@@ -2,10 +2,9 @@
 #include "Vector4.h"
 #include "ViewManager.h"
 #include "Model.h"
+#include "SimpleContext.h"
 #include <iostream>
-
-
-
+#include <thread>
 
 int main(int argc, char** argv) {
 
@@ -45,9 +44,19 @@ int main(int argc, char** argv) {
     camera.applyTransform(Matrix::cameraRotationAroundY(90.0)); //apply rotation based on user rotation
 
 
+	//Create instance of glut wrapper class context
+	//GLUT context can only run on main thread!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	//PLEASE DO NOT THREAD GLUT CALLS
+	SimpleContext con(&argc, argv);
+
     //Square object modeled around the x y z axis
     Model square;
-    square.render();
+    //square.render();
+
+	//Start rendering!
+	con.run();
 
     std::cout << "Done matrix testing!" << std::endl;
+
+	return 0;
 }

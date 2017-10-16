@@ -1,7 +1,13 @@
 
 #include "Model.h"
+//#include <functional>
+//#include "SimpleContext.h"
+//
+//using namespace std::placeholders; 
 
 Model::Model() {
+
+	//SimpleContext::subscribe(std::bind(&Model::updateKeyboard, this, _3, _2, _1));
 
     //DEFAULT MODEL
     //Cube vertices modeled around origin (0,0,0) with length,width,height of 2
@@ -57,11 +63,11 @@ Model::Model() {
         flattenVerts[i++] = flat[2];
     }
 
-    //Create a buffer that will be filled the vertex data
-    glGenBuffers(1, &_bufferContext);
-    glBindBuffer(GL_ARRAY_BUFFER, _bufferContext);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(float)*triBuffSize, flattenVerts, GL_STATIC_DRAW);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    ////Create a buffer that will be filled the vertex data
+    //glGenBuffers(1, &_bufferContext);
+    //glBindBuffer(GL_ARRAY_BUFFER, _bufferContext);
+    //glBufferData(GL_ARRAY_BUFFER, sizeof(float)*triBuffSize, flattenVerts, GL_STATIC_DRAW);
+    //glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 }
 
@@ -85,4 +91,12 @@ void Model::render() {
 
 
     //glUseProgram(0);//end using this shader
+}
+
+void Model::updateKeyboard(unsigned char key, int x, int y){
+	std::cout << key << std::endl;
+}
+	
+void Model::updateMouse(int button, int state, int x, int y){
+	std::cout << x << " " << y << std::endl;
 }

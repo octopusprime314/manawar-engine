@@ -4,6 +4,7 @@
 #include <vector>
 #include "UpdateInterface.h"
 #include "GLIncludes.h"
+#include "Shader.h"
 #include <iostream>
 
 class Model : public UpdateInterface {
@@ -12,6 +13,7 @@ class Model : public UpdateInterface {
     StateVector _state; //Kinematics
     std::vector<Vector4> _vertices; //Vertices that make up the triangles of the model
     GLuint _bufferContext; //Used as the vbo context
+	Shader _shaderProgram; //Container object of the Model's shader
 protected:
 	void updateKeyboard(unsigned char key, int x, int y); //Do stuff based on keyboard upate
 	void updateMouse(int button, int state, int x, int y); //Do stuff based on mouse update

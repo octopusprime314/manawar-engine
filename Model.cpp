@@ -1,13 +1,10 @@
 
 #include "Model.h"
-//#include <functional>
-//#include "SimpleContext.h"
-//
-//using namespace std::placeholders; 
 
 Model::Model() {
 
-	//SimpleContext::subscribe(std::bind(&Model::updateKeyboard, this, _3, _2, _1));
+	//Load default shader
+	_shaderProgram.compile();
 
     //DEFAULT MODEL
     //Cube vertices modeled around origin (0,0,0) with length,width,height of 2
@@ -63,17 +60,17 @@ Model::Model() {
         flattenVerts[i++] = flat[2];
     }
 
-    ////Create a buffer that will be filled the vertex data
-    //glGenBuffers(1, &_bufferContext);
-    //glBindBuffer(GL_ARRAY_BUFFER, _bufferContext);
-    //glBufferData(GL_ARRAY_BUFFER, sizeof(float)*triBuffSize, flattenVerts, GL_STATIC_DRAW);
-    //glBindBuffer(GL_ARRAY_BUFFER, 0);
+    //Create a buffer that will be filled the vertex data
+    glGenBuffers(1, &_bufferContext);
+    glBindBuffer(GL_ARRAY_BUFFER, _bufferContext);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float)*triBuffSize, flattenVerts, GL_STATIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 }
 
 void Model::render() {
     //LOAD IN SHADER
-    //glUseProgram(); //use context for loaded shader
+    glUseProgram(_shaderProgram.getShaderContext()); //use context for loaded shader
 
     //LOAD IN BUFFER 
     //Bind this context to current buffer

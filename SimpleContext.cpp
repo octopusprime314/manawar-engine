@@ -6,16 +6,39 @@ std::vector<std::function<void(int, int, int, int)>> SimpleContext::_mouseFuncs;
 SimpleContext::SimpleContext(int* argc, char** argv) {
 		
 	glutInit(argc, argv); //initialize glut
-	glewInit(); //initialize the extension gl call functionality
-	glutCreateWindow("ReBoot!"); //create a window called ReBoot
+	
+	/* Select type of Display mode:   
+	Double buffer 
+	RGBA color
+	Alpha components supported 
+	Depth buffer */  
+	glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_ALPHA | GLUT_ACCUM | GLUT_DEPTH); 
+
+	//WINDOW CONTEXT SETTINGS
 	glutInitWindowPosition(0,0); //Position it at the top
 	glutInitWindowSize(1080, 1920); //make it 1080x1920
+	glutCreateWindow("ReBoot!"); //create a window called ReBoot
 		
+	//GLUT FUNCTION CALLBACKS
 	glutKeyboardFunc(_keyboardUpdate); //Set function callback for keyboard input
 	glutDisplayFunc(_drawUpdate); //Set function callback for draw updates
+	glutIdleFunc(_drawUpdate); //Set function callback for draw updates when no events are occuring
 	glutMouseFunc(_mouseUpdate); //Set function callback for mouse press input
 	glutMotionFunc(_mouseUpdate); //Set function callback for movement while pressing mouse 
 	glutPassiveMotionFunc(_mouseUpdate); //Set function callback for mouse movement without press
+
+	glewInit(); //initialize the extension gl call functionality
+
+	//PER SAMPLE PROCESSING DEFAULTS
+	glEnable(GL_TEXTURE_2D);
+	glutSetCursor(GLUT_CURSOR_NONE);
+	glClearDepth(1.0);						// Enables Clearing Of The Depth Buffer
+	glShadeModel(GL_SMOOTH);
+	glEnable(GL_DEPTH_TEST);
+	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST); // Ask for nicest perspective correction
+	glDepthFunc(GL_LESS);
+	glEnable(GL_LIGHTING);
+
 }
 
 void SimpleContext::run(){

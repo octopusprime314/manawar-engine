@@ -23,14 +23,16 @@ float* Matrix::getFlatBuffer() {
     return this->_matrix;
 }
 
-void Matrix::transpose() {
+Matrix Matrix::transpose() {
     Matrix matrix(_matrix);
     float* mat = matrix.getFlatBuffer();
 
-    _matrix[0] = mat[0], _matrix[1] = mat[4], _matrix[2] = mat[8], _matrix[3] = mat[12];
-    _matrix[4] = mat[1], _matrix[5] = mat[5], _matrix[6] = mat[9], _matrix[7] = mat[13];
-    _matrix[8] = mat[2], _matrix[9] = mat[6], _matrix[10] = mat[10], _matrix[11] = mat[14];
-    _matrix[12] = mat[3], _matrix[13] = mat[7], _matrix[14] = mat[11], _matrix[15] = mat[15];
+	mat[0] = _matrix[0], mat[1] = _matrix[4], mat[2] = _matrix[8], mat[3] = _matrix[12];
+    mat[4] = _matrix[1], mat[5] = _matrix[5], mat[6] = _matrix[9], mat[7] = _matrix[13];
+    mat[8] = _matrix[2], mat[9] = _matrix[6], mat[10] = _matrix[10], mat[11] = _matrix[14];
+    mat[12] = _matrix[3], mat[13] = _matrix[7], mat[14] = _matrix[11], mat[15] = _matrix[15];
+
+	return matrix;
 }
 
 Vector4 Matrix::operator * (Vector4 vec) {
@@ -206,6 +208,26 @@ Matrix Matrix::cameraTranslation(float x, float y, float z) {
     result[12] = 0.0, result[13] = 0.0, result[14] = 0.0, result[15] = 1.0;
 
     return Matrix(result);
+}
+
+Matrix Matrix::cameraProjection(float angleOfView, float imageAspectRatio, float n, float f){
+   
+	float result[16];
+
+	//Setup components of projection
+	float scale = tan(angleOfView * 0.5 * PI_OVER_180) * n; //scale
+    float r = imageAspectRatio * scale; //Right
+	float l = -r; //Left
+    float t = scale; //scale again
+	float b = -t; //negative scale
+
+	// Perspective Matrix
+    result[0] = 2 * n / (r - l),   result[1] = 0,                 result[2] = (r + l) / (r - l),     result[3] = 0; 
+    result[4] = 0,				   result[5] = 2 * n / (t - b),   result[6] = (t + b) / (t - b),     result[7] = 0; 
+    result[8] = 0,				   result[9] = 0,				  result[10] = -(f + n) / (f - n),   result[11] = -2 * f * n / (f - n); 
+    result[12] = 0,				   result[13] = 0,                result[14] = -1,					 result[15] = 0; 
+
+	return Matrix(result);
 }
 
 //Prints out the result in row major

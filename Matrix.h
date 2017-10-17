@@ -2,7 +2,8 @@
 #include "Vector4.h"
 #include <math.h>
 
-const float PI_OVER_180 = 3.14159265f / 180.0f;
+const float PI = 3.14159265f;
+const float PI_OVER_180 = PI / 180.0f;
 
 class Matrix {
 
@@ -65,7 +66,7 @@ public:
 
     float* getFlatBuffer();
 
-    void transpose(); //Used to convert row major to column major for opengl
+    Matrix transpose(); //Returns transpose of matrix 
     void display();
 
     static Matrix rotationAroundX(float degrees); //Build rotation matrix around the x axis
@@ -79,21 +80,5 @@ public:
     static Matrix cameraRotationAroundY(float degrees); //Build rotation matrix around the y axis
     static Matrix cameraRotationAroundZ(float degrees); //Build rotation matrix around the z axis
     static Matrix cameraTranslation(float x, float y, float z); //Build translation matrix
+	static Matrix cameraProjection(float angleOfView, float aspectRatio, float near, float far);
 }; 
-
-
-
-//MAYBE USE VARIADIC TEMPLATES PARAMETER PACK
-//template <class... Ts> class Matrix {};
-//
-//template <class T, class... Ts>
-//class Matrix<T, Ts...> : Matrix<Ts...> {
-//
-//    T tail;
-//public:
-//    Matrix(T t, Ts... ts) : Matrix<Ts...>(ts...), tail(t) {
-//        
-//    }
-//
-//
-//};

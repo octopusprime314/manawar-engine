@@ -2,6 +2,8 @@
 
 std::vector<std::function<void(unsigned char, int, int)>> SimpleContext::_keyboardFuncs;
 std::vector<std::function<void(int, int, int, int)>> SimpleContext::_mouseFuncs;
+std::vector<std::function<void()>> SimpleContext::_drawFuncs;
+std::vector<std::function<void(Matrix)>> SimpleContext::_viewFuncs;
 
 SimpleContext::SimpleContext(int* argc, char** argv) {
 		
@@ -30,14 +32,14 @@ SimpleContext::SimpleContext(int* argc, char** argv) {
 	glewInit(); //initialize the extension gl call functionality
 
 	//PER SAMPLE PROCESSING DEFAULTS
-	glEnable(GL_TEXTURE_2D);
-	glutSetCursor(GLUT_CURSOR_NONE);
-	glClearDepth(1.0);						// Enables Clearing Of The Depth Buffer
-	glShadeModel(GL_SMOOTH);
-	glEnable(GL_DEPTH_TEST);
-	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST); // Ask for nicest perspective correction
-	glDepthFunc(GL_LESS);
-	glEnable(GL_LIGHTING);
+	glEnable(GL_TEXTURE_2D); //Enable use of textures
+	glutSetCursor(GLUT_CURSOR_NONE); //Disable cursor icon
+	glClearDepth(1.0); //Enables Clearing Of The Depth Buffer
+	glShadeModel(GL_SMOOTH); //Shade models smoothly
+	glEnable(GL_DEPTH_TEST); //Ensure depth test happens
+	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST); //Ask for nicest perspective correction
+	glDepthFunc(GL_LESS); //Keep the fragment closest
+	glEnable(GL_LIGHTING); //Lighting enabled
 
 }
 
@@ -51,9 +53,19 @@ void SimpleContext::subscribeToKeyboard(std::function<void(unsigned char, int, i
 void SimpleContext::subscribeToMouse(std::function<void(int, int, int, int)> func){ //Use this call to connect functions to mouse updates
 	_mouseFuncs.push_back(func);
 }
+void SimpleContext::subscribeToDraw(std::function<void()> func){ //Use this call to connect functions to draw updates
+	_drawFuncs.push_back(func);
+}
+void SimpleContext::subscribeToView(std::function<void(Matrix)> func){ //Use this call to connect functions to camera/view updates
+	_viewFuncs.push_back(func);
+}
 
 //All keyboard input from glut will be notified here
 void SimpleContext::_keyboardUpdate(unsigned char key, int x, int y){
+
+	if(key == 27) //Escape key pressed, hard exit no cleanup, TODO FIX THIS!!!!
+		exit(0);
+
 	for(auto func : _keyboardFuncs){
 		func(key,x,y); //Call keyboard update
 	}
@@ -61,6 +73,12 @@ void SimpleContext::_keyboardUpdate(unsigned char key, int x, int y){
 
 //One frame draw update call
 void SimpleContext::_drawUpdate(){
+
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);//Clear depth and color info before new frame
+
+	for(auto func : _drawFuncs){
+		func(); //Call draw update method
+	}
 
 	glutSwapBuffers(); // Double buffering
 }
@@ -76,6 +94,13 @@ void SimpleContext::_mouseUpdate(int button, int state, int x, int y){
 void SimpleContext::_mouseUpdate(int x, int y){
 	for(auto func : _mouseFuncs){
 		func(0,0,x,y); //Call mouse movement update 
+	}
+}
+
+//Blast all subscribers that have overriden the updateViewFunction
+void SimpleContext::broadcastViewMatrix(Matrix view){
+	for(auto func : _viewFuncs){
+		func(view); //Call view/camera update 
 	}
 }
 

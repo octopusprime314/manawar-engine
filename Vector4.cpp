@@ -20,6 +20,15 @@ float* Vector4::getFlatBuffer() {
     return _vec;
 }
 
+Vector4 Vector4::operator / (float scale){
+	Vector4 result;
+	float* vector = result.getFlatBuffer();
+	vector[0] = vector[0] / scale;
+	vector[1] = vector[1] / scale;
+	vector[2] = vector[2] / scale;
+	return result;
+}
+
 //Prints out the result in row major
 void Vector4::display() {
     std::cout << setprecision(2) << std::setw(6) << _vec[0] << " " << std::setw(6) << _vec[1]

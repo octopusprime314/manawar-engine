@@ -34,16 +34,6 @@ int main(int argc, char** argv) {
     Vector4 pos3 = Matrix::translation(0.0, 0.0, -10.0) * Matrix::rotationAroundY(90.0) * Matrix::translation(0.0, 0.0, -2.0) * Vector4(0, 0, 0, 1);
     pos3.display();
 
-    //ViewManager acts as camera moving through space
-    ViewManager camera;
-
-    //View transformations always apply opposite transformations because objects move around camera
-    //If the user wants to move foward in z 10 meters then the view matrix must be translated in z by -10
-    //If the user wants to rotate around the y axis by -90 then the rotation appliec must be + 90 around the y axis
-    camera.applyTransform(Matrix::cameraTranslation(0.0, 0.0, 10.0)); //Camera Translation in x applies opposite translation
-    camera.applyTransform(Matrix::cameraRotationAroundY(90.0)); //apply rotation based on user rotation
-
-
 	//Create instance of glut wrapper class context
 	//GLUT context can only run on main thread!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	//PLEASE DO NOT THREAD GLUT CALLS
@@ -51,12 +41,21 @@ int main(int argc, char** argv) {
 
     //Square object modeled around the x y z axis
     Model square;
-    //square.render();
 
 	//Start rendering!
 	con.run();
 
     std::cout << "Done matrix testing!" << std::endl;
+
+	
+    ////ViewManager acts as camera moving through space
+    //ViewManager camera;
+	
+    ////View transformations always apply opposite transformations because objects move around camera
+    ////If the user wants to move foward in z 10 meters then the view matrix must be translated in z by -10
+    ////If the user wants to rotate around the y axis by -90 then the rotation appliec must be + 90 around the y axis
+    //camera.applyTransform(Matrix::cameraTranslation(0.0, 0.0, 10.0)); //Camera Translation in x applies opposite translation
+    //camera.applyTransform(Matrix::cameraRotationAroundY(90.0)); //apply rotation based on user rotation
 
 	return 0;
 }

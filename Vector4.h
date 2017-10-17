@@ -8,5 +8,6 @@ public:
     Vector4(float x, float y, float z, float w);
     float* getFlatBuffer();
     void display();
+	Vector4 operator / (float scale);
 
 };

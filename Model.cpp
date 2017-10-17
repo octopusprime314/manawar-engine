@@ -1,5 +1,9 @@
 
 #include "Model.h"
+#include <glm/glm.hpp>
+#include <glm/gtx/transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+#include "glm\gtc\matrix_transform.hpp"
 
 Model::Model() {
 
@@ -20,9 +24,9 @@ Model::Model() {
     _vertices.push_back(Vector4(1.0, -1.0, 1.0, 1.0));
 
     //xy plane triangle top - z
-    _vertices.push_back(Vector4(1.0, 1.0, 1.0, 1.0));
-    _vertices.push_back(Vector4(-1.0, -1.0, 1.0, 1.0));
-    _vertices.push_back(Vector4(-1.0, 1.0, 1.0, 1.0));
+    _vertices.push_back(Vector4(1.0, 1.0, -1.0, 1.0));
+    _vertices.push_back(Vector4(-1.0, -1.0, -1.0, 1.0));
+    _vertices.push_back(Vector4(-1.0, 1.0, -1.0, 1.0));
 
     //xy plane triangle bottom - z
     _vertices.push_back(Vector4(1.0, 1.0, -1.0, 1.0));
@@ -68,7 +72,8 @@ Model::Model() {
 
 }
 
-void Model::render() {
+void Model::updateDraw() {
+
     //LOAD IN SHADER
     glUseProgram(_shaderProgram.getShaderContext()); //use context for loaded shader
 
@@ -83,11 +88,21 @@ void Model::render() {
     //Now enable it at location 0
     glEnableVertexAttribArray(0);
 
+	//glUniform mat4 combined model and world matrix
+	glUniformMatrix4fv(glGetUniformLocation(_shaderProgram.getShaderContext(), "M"), 1, GL_FALSE, _model.transpose().getFlatBuffer());
+	
+	//glUniform mat4 view matrix
+	glUniformMatrix4fv(glGetUniformLocation(_shaderProgram.getShaderContext(), "V"), 1, GL_FALSE, _view.transpose().getFlatBuffer());
+	
+	//glUniform mat4 perspective matrix, TODO HARDCODED PERSPECTIVE CHANGE THIS!!!!!
+	glUniformMatrix4fv(glGetUniformLocation(_shaderProgram.getShaderContext(), "P"), 1, GL_FALSE, Matrix::cameraProjection(45.0f, 1080.0f/1920.0f, 0.1, 100.0).transpose().getFlatBuffer());
+	
     //Draw triangles using the bound buffer vertices at starting index 0 and number of triangles
     glDrawArraysEXT(GL_TRIANGLES, 0, (GLsizei)_vertices.size());
 
-
-    //glUseProgram(0);//end using this shader
+	glDisableVertexAttribArray (0); //Disable attribute
+	glBindBuffer(GL_ARRAY_BUFFER, 0); //Unbind buffer
+    glUseProgram(0);//end using this shader
 }
 
 void Model::updateKeyboard(unsigned char key, int x, int y){
@@ -96,4 +111,9 @@ void Model::updateKeyboard(unsigned char key, int x, int y){
 	
 void Model::updateMouse(int button, int state, int x, int y){
 	std::cout << x << " " << y << std::endl;
+}
+
+void Model::updateView(Matrix view){
+	_view = view; //Receive updates when the view matrix has changed
+	_view.display();
 }

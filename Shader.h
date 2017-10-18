@@ -9,10 +9,14 @@ class Shader{
 
 	GLuint _shaderContext; //keeps track of the shader context
 	GLhandleARB _loadShader(char* filename, unsigned int type);
+	GLint _viewLocation;
+	GLint _modelLocation;
+	GLint _projectionLocation;
 public:
 	Shader();
-	void compile();
-	GLuint getShaderContext(){
-		return _shaderContext;
-	}
+	virtual void compile();
+	GLuint getShaderContext();
+	GLint getViewLocation();
+	GLint getModelLocation();
+	GLint getProjectionLocation();
 };

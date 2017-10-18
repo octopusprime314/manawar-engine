@@ -4,15 +4,19 @@
 #include "Vector4.h"
 class ViewManager : public UpdateInterface{
 
-    Vector4 _pos;
     Matrix _view;
     Matrix _projection;
 
+	Matrix _translation; //Keep track of translation state
+	Matrix _rotation; //Keep track of rotation state
+
+	Matrix _inverseRotation; //Manages how to translate based on the inverse of the actual rotation matrix
+
 public:
 
-    ViewManager() {}
+    ViewManager();
     void applyTransform(Matrix transform);
-	void updateSubscribers();
+	void setProjection();
 
 protected:
 	void updateKeyboard(unsigned char key, int x, int y); //Do stuff based on keyboard upate

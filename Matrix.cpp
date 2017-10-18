@@ -20,7 +20,7 @@ Matrix::Matrix(float* mat) {
 }
 
 float* Matrix::getFlatBuffer() {
-    return this->_matrix;
+    return _matrix;
 }
 
 Matrix Matrix::transpose() {
@@ -108,6 +108,7 @@ Matrix Matrix::rotationAroundY(float degrees) {
 
     return Matrix(result);
 }
+
 
 //Rotation Matrix of a theta change around Z axis
 //| cos -sin 0  0 |  
@@ -215,7 +216,7 @@ Matrix Matrix::cameraProjection(float angleOfView, float imageAspectRatio, float
 	float result[16];
 
 	//Setup components of projection
-	float scale = tan(angleOfView * 0.5 * PI_OVER_180) * n; //scale
+	float scale = static_cast<float>(tan(angleOfView * 0.5 * PI_OVER_180)) * n; //scale
     float r = imageAspectRatio * scale; //Right
 	float l = -r; //Left
     float t = scale; //scale again
@@ -228,6 +229,11 @@ Matrix Matrix::cameraProjection(float angleOfView, float imageAspectRatio, float
     result[12] = 0,				   result[13] = 0,                result[14] = -1,					 result[15] = 0; 
 
 	return Matrix(result);
+}
+
+//ALWAYS CALL THIS FUNCTION BEFORE SENDING A MATRIX TO A SHADER!!!!!!!!!!!!!
+Matrix Matrix::getGLFormat(){
+	return transpose(); //Convert matrix from row major storage to column major storage
 }
 
 //Prints out the result in row major

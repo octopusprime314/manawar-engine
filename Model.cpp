@@ -45,7 +45,7 @@ Model::Model() {
 
     //zy plane triangle top - x
     _vertices.push_back(Vector4(-1.0, 1.0, 1.0, 1.0));
-    _vertices.push_back(Vector4(-1.0, -1.0, 1.0, 1.0));
+    _vertices.push_back(Vector4(-1.0, 1.0, -1.0, 1.0));
     _vertices.push_back(Vector4(-1.0, -1.0, -1.0, 1.0));
 
     //zy plane triangle bottom - x
@@ -89,13 +89,13 @@ void Model::updateDraw() {
     glEnableVertexAttribArray(0);
 
 	//glUniform mat4 combined model and world matrix
-	glUniformMatrix4fv(glGetUniformLocation(_shaderProgram.getShaderContext(), "M"), 1, GL_FALSE, _model.transpose().getFlatBuffer());
+	glUniformMatrix4fv(_shaderProgram.getModelLocation(), 1, GL_FALSE, _model.getGLFormat().getFlatBuffer());
 	
 	//glUniform mat4 view matrix
-	glUniformMatrix4fv(glGetUniformLocation(_shaderProgram.getShaderContext(), "V"), 1, GL_FALSE, _view.transpose().getFlatBuffer());
+	glUniformMatrix4fv(_shaderProgram.getViewLocation(), 1, GL_FALSE, _view.getGLFormat().getFlatBuffer());
 	
-	//glUniform mat4 perspective matrix, TODO HARDCODED PERSPECTIVE CHANGE THIS!!!!!
-	glUniformMatrix4fv(glGetUniformLocation(_shaderProgram.getShaderContext(), "P"), 1, GL_FALSE, Matrix::cameraProjection(45.0f, 1080.0f/1920.0f, 0.1, 100.0).transpose().getFlatBuffer());
+	//glUniform mat4 projection matrix
+	glUniformMatrix4fv(_shaderProgram.getProjectionLocation(), 1, GL_FALSE, _projection.getGLFormat().getFlatBuffer());
 	
     //Draw triangles using the bound buffer vertices at starting index 0 and number of triangles
     glDrawArraysEXT(GL_TRIANGLES, 0, (GLsizei)_vertices.size());
@@ -106,14 +106,19 @@ void Model::updateDraw() {
 }
 
 void Model::updateKeyboard(unsigned char key, int x, int y){
-	std::cout << key << std::endl;
+	//std::cout << key << std::endl;
 }
 	
 void Model::updateMouse(int button, int state, int x, int y){
-	std::cout << x << " " << y << std::endl;
+	//std::cout << x << " " << y << std::endl;
 }
 
 void Model::updateView(Matrix view){
 	_view = view; //Receive updates when the view matrix has changed
-	_view.display();
+	//_view.display();
+}
+
+void Model::updateProjection(Matrix projection){
+	_projection = projection; //Receive updates when the projection matrix has changed
+	//_projection.display();
 }

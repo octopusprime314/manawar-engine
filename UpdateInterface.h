@@ -15,4 +15,5 @@ protected:
 	virtual void updateMouse(int button, int state, int x, int y) = 0;
 	virtual void updateDraw() = 0;
 	virtual void updateView(Matrix view){} //optional to implement overriden function
+	virtual void updateProjection(Matrix view){} //optional to implement overriden function
 };

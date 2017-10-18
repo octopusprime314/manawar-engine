@@ -61,12 +61,13 @@ public:
     Matrix();
     Matrix(float *mat);
 
-    Matrix operator * (Matrix mat); 
+	//ALWAYS CALL THIS FUNCTION BEFORE SENDING A MATRIX TO A SHADER!!!!!!!!!!!!!
+	Matrix getGLFormat(); //Returns the matrix in column major format which is how GL works
+
+    Matrix transpose(); //Returns transpose of matrix
+	Matrix operator * (Matrix mat); 
     Vector4 operator * (Vector4 vec);
-
     float* getFlatBuffer();
-
-    Matrix transpose(); //Returns transpose of matrix 
     void display();
 
     static Matrix rotationAroundX(float degrees); //Build rotation matrix around the x axis

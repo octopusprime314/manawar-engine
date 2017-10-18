@@ -121,14 +121,17 @@
     <ClCompile Include="Matrix.cpp" />
     <ClCompile Include="Model.cpp" />
     <ClCompile Include="Shader.cpp" />
+    <ClCompile Include="ShadowShader.cpp" />
     <ClCompile Include="SimpleContext.cpp" />
     <ClCompile Include="StateVector.cpp" />
     <ClCompile Include="UpdateInterface.cpp" />
     <ClCompile Include="Vector4.cpp" />
     <ClCompile Include="ViewManager.cpp" />
+    <ClCompile Include="ViewManagerEvents.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GLIncludes.h" />
+    <ClInclude Include="ShadowShader.h" />
     <ClInclude Include="SimpleContext.h" />
     <ClInclude Include="Matrix.h" />
     <ClInclude Include="Model.h" />
@@ -138,6 +141,7 @@
     <ClInclude Include="UpdateInterface.h" />
     <ClInclude Include="Vector4.h" />
     <ClInclude Include="ViewManager.h" />
+    <ClInclude Include="ViewManagerEvents.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="simpleShader.frag" />

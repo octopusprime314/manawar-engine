@@ -4,6 +4,22 @@ Shader::Shader(){
 	
 }
 
+GLuint Shader::getShaderContext(){
+	return _shaderContext;
+}
+
+GLint Shader::getViewLocation(){
+	return _viewLocation;
+}
+	
+GLint Shader::getModelLocation(){
+	return _modelLocation;
+}
+	
+GLint Shader::getProjectionLocation(){
+	return _projectionLocation;
+}
+
 void Shader::compile(){
 	GLhandleARB vertexShaderHandle;
 	GLhandleARB fragmentShaderHandle;
@@ -24,8 +40,7 @@ void Shader::compile(){
 	glGetProgramiv(_shaderContext, GL_LINK_STATUS, &successfully_linked);
 
 	// Exit if the program couldn't be linked correctly
-	if(!successfully_linked)
-	{
+	if(!successfully_linked){
 		GLint errorLoglength;
 		GLint actualErrorLogLength;
 		//Attempt to get the length of our error log.
@@ -48,6 +63,18 @@ void Shader::compile(){
 		free(errorLogText);
 
 		std::cout << "Program was not linked correctly!" << std::endl;
+	}
+	else{ //Program successful grab locations in shader for uniforms and attributes
+		
+		//glUniform mat4 combined model and world matrix
+		_modelLocation = glGetUniformLocation(_shaderContext, "model");
+	
+		//glUniform mat4 view matrix
+		_viewLocation = glGetUniformLocation(_shaderContext, "view");
+	
+		//glUniform mat4 projection matrix
+		_projectionLocation = glGetUniformLocation(_shaderContext, "projection");
+	
 	}
 }
 
@@ -80,8 +107,7 @@ GLhandleARB Shader::_loadShader(char* filename, unsigned int type)
 	fclose(pfile);
 	
 	handle = glCreateShaderObjectARB(type);
-	if (!handle)
-	{
+	if (!handle){
 		//We have failed creating the vertex shader object.
 		printf("Failed creating vertex shader object from file: %s.",filename);
 		return 0;
@@ -100,8 +126,7 @@ GLhandleARB Shader::_loadShader(char* filename, unsigned int type)
 	glGetObjectParameterivARB(handle, GL_OBJECT_COMPILE_STATUS_ARB, &result);
 	
 	// If an error was detected.
-	if (!result)
-	{
+	if (!result) {
 		//We failed to compile.
 		printf("Shader '%s' failed compilation.\n",filename);
 		

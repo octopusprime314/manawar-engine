@@ -1,9 +1,10 @@
 #include "SimpleContext.h"
+#include "ViewManagerEvents.h"
 
 std::vector<std::function<void(unsigned char, int, int)>> SimpleContext::_keyboardFuncs;
 std::vector<std::function<void(int, int, int, int)>> SimpleContext::_mouseFuncs;
 std::vector<std::function<void()>> SimpleContext::_drawFuncs;
-std::vector<std::function<void(Matrix)>> SimpleContext::_viewFuncs;
+ViewManager SimpleContext::_viewManager;
 
 SimpleContext::SimpleContext(int* argc, char** argv) {
 		
@@ -44,6 +45,9 @@ SimpleContext::SimpleContext(int* argc, char** argv) {
 }
 
 void SimpleContext::run(){
+
+	_viewManager.setProjection(); //Initializes projection matrix and broadcasts upate to all listeners
+
 	glutMainLoop();
 }
 
@@ -55,9 +59,6 @@ void SimpleContext::subscribeToMouse(std::function<void(int, int, int, int)> fun
 }
 void SimpleContext::subscribeToDraw(std::function<void()> func){ //Use this call to connect functions to draw updates
 	_drawFuncs.push_back(func);
-}
-void SimpleContext::subscribeToView(std::function<void(Matrix)> func){ //Use this call to connect functions to camera/view updates
-	_viewFuncs.push_back(func);
 }
 
 //All keyboard input from glut will be notified here
@@ -94,13 +95,6 @@ void SimpleContext::_mouseUpdate(int button, int state, int x, int y){
 void SimpleContext::_mouseUpdate(int x, int y){
 	for(auto func : _mouseFuncs){
 		func(0,0,x,y); //Call mouse movement update 
-	}
-}
-
-//Blast all subscribers that have overriden the updateViewFunction
-void SimpleContext::broadcastViewMatrix(Matrix view){
-	for(auto func : _viewFuncs){
-		func(view); //Call view/camera update 
 	}
 }
 

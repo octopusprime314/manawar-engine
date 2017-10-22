@@ -1,12 +1,11 @@
-
 #include "Model.h"
-#include <glm/glm.hpp>
-#include <glm/gtx/transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-#include "glm\gtc\matrix_transform.hpp"
+#include "SimpleContext.h"
 
-Model::Model() {
+Model::Model(){
 
+}
+
+Model::Model(ViewManagerEvents* eventWrapper) : UpdateInterface(eventWrapper){
 	//Load default shader
 	_shaderProgram.compile();
 
@@ -69,7 +68,6 @@ Model::Model() {
     glBindBuffer(GL_ARRAY_BUFFER, _bufferContext);
     glBufferData(GL_ARRAY_BUFFER, sizeof(float)*triBuffSize, flattenVerts, GL_STATIC_DRAW);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
-
 }
 
 void Model::updateDraw() {

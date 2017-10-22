@@ -1,7 +1,5 @@
 #include "ViewManagerEvents.h"
 
-std::vector<std::function<void(Matrix)>> ViewManagerEvents::_projectionFuncs;
-std::vector<std::function<void(Matrix)>> ViewManagerEvents::_viewFuncs;
 
 void ViewManagerEvents::subscribeToView(std::function<void(Matrix)> func){ //Use this call to connect functions to camera/view updates
 	_viewFuncs.push_back(func);

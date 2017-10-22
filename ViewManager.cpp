@@ -3,8 +3,8 @@
 #include "SimpleContext.h"
 #include "ViewManagerEvents.h"
 
-ViewManager::ViewManager(){
-	
+ViewManager::ViewManager() {
+	_viewEvents = new ViewManagerEvents();
 }
 
 void ViewManager::setProjection(){
@@ -13,11 +13,15 @@ void ViewManager::setProjection(){
 																				 //near plane from camera location
 																				 //far plane from camera location
 	//Broadcast perspective matrix once to all subscribers
-	ViewManagerEvents::updateProjection(_projection);
+	_viewEvents->updateProjection(_projection);
 }
 
 void ViewManager::applyTransform(Matrix transform) {
     _view = _view * transform;
+}
+
+ViewManagerEvents* ViewManager::getEventWrapper(){
+	return _viewEvents;
 }
 
 void ViewManager::updateKeyboard(unsigned char key, int x, int y){ //Do stuff based on keyboard update
@@ -46,7 +50,7 @@ void ViewManager::updateKeyboard(unsigned char key, int x, int y){ //Do stuff ba
 
 		_translation = Matrix::cameraTranslation(temp[0], temp[1], temp[2]) * _translation; //Update the translation state matrix
 		_view = _rotation * _translation; //translate then rotate around point
-		ViewManagerEvents::updateView(_view); //Send out event to all listeners
+		_viewEvents->updateView(_view); //Send out event to all listeners
 
 		if(trans != nullptr) delete trans;
 	}
@@ -68,7 +72,7 @@ void ViewManager::updateMouse(int button, int state, int x, int y){ //Do stuff b
 		}
 
 		_view = _rotation * _translation; //translate then rotate around point
-		ViewManagerEvents::updateView(_view); //Send out event to all listeners
+		_viewEvents->updateView(_view); //Send out event to all listeners
 		glutWarpPointer(widthMidpoint,heightMidpoint);  //Bring cursor back to center position
 	}
 }

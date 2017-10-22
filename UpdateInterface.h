@@ -3,11 +3,14 @@
 #include "Matrix.h"
 using namespace std::placeholders; 
 
+class ViewManagerEvents;
+
 //Class needed to derive from to subscribe to input events
 class UpdateInterface{
 
 public:
 	UpdateInterface();
+	UpdateInterface(ViewManagerEvents* eventWrapper);
 	virtual ~UpdateInterface(){}
 
 protected:

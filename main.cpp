@@ -1,10 +1,9 @@
 #include "Matrix.h"
 #include "Vector4.h"
-#include "ViewManager.h"
-#include "Model.h"
 #include "SimpleContext.h"
 #include <iostream>
 #include <thread>
+#include "SceneManager.h"
 
 int main(int argc, char** argv) {
 
@@ -39,8 +38,7 @@ int main(int argc, char** argv) {
 	//PLEASE DO NOT THREAD GLUT CALLS
 	SimpleContext con(&argc, argv);
 
-    //Square object modeled around the x y z axis
-    Model square;
+	SceneManager sceneManager; //Manages the camera view and models in scene
 
 	//Start rendering!
 	con.run();

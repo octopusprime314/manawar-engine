@@ -7,6 +7,8 @@
 #include "Shader.h"
 #include <iostream>
 
+class SimpleContext;
+
 class Model : public UpdateInterface {
     Matrix _model; //Object and World Space Matrix i.e. how the model is centered around the origin and 
 				   //where it is placed in the context of the game World
@@ -25,4 +27,5 @@ protected:
 
 public:
     Model();
+	Model(ViewManagerEvents* eventWrapper);
 };

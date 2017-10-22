@@ -3,25 +3,23 @@
 #include "ViewManager.h"
 #include <functional>
 #include <vector>
+#include "SimpleContextEvents.h"
 
 class SimpleContext{
 
 public:
 	SimpleContext(int* argc, char** argv);
 
-	static void subscribeToKeyboard(std::function<void(unsigned char, int, int)> func); //Use this call to connect functions up to key updates
-	static void subscribeToMouse(std::function<void(int, int, int, int)> func); //Use this call to connect functions up to mouse updates
-	static void subscribeToDraw(std::function<void()> func); //Use this call to connect functions up to draw updates
-	static void run(); //Function used to run context as a thread managed elsewhere
-
+	void run(); //Function used to run context as a thread managed elsewhere
+	
+	void subscribeToKeyboard(std::function<void(unsigned char, int, int)> func); //Use this call to connect functions up to key updates
+	void subscribeToMouse(std::function<void(int, int, int, int)> func); //Use this call to connect functions up to mouse updates
+	void subscribeToDraw(std::function<void()> func); //Use this call to connect functions up to draw updates
+	
 private:
 
-	static std::vector<std::function<void(unsigned char, int, int)>> _keyboardFuncs;
-	static std::vector<std::function<void(int, int, int, int)>> _mouseFuncs;
-	static std::vector<std::function<void()>> _drawFuncs;
+	SimpleContextEvents _events; //Event wrapper for GLUT based events
 
-	static ViewManager _viewManager; //manages the view/camera matrix from the user's perspective
-	
 	//All keyboard input from glut will be notified here
 	static void _keyboardUpdate(unsigned char key, int x, int y);
 

@@ -2,6 +2,7 @@
 #include "UpdateInterface.h"
 #include "Matrix.h"
 #include "Vector4.h"
+#include "ViewManagerEvents.h"
 class ViewManager : public UpdateInterface{
 
     Matrix _view;
@@ -12,11 +13,14 @@ class ViewManager : public UpdateInterface{
 
 	Matrix _inverseRotation; //Manages how to translate based on the inverse of the actual rotation matrix
 
+	ViewManagerEvents* _viewEvents;
+
 public:
 
     ViewManager();
     void applyTransform(Matrix transform);
 	void setProjection();
+	ViewManagerEvents* getEventWrapper();
 
 protected:
 	void updateKeyboard(unsigned char key, int x, int y); //Do stuff based on keyboard upate

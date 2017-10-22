@@ -82,7 +82,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>C:\Users\OctopusPrime\Documents\GitHub\PhysicsEngineBuild\APIs\glm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalDependencies>glew32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -120,9 +120,12 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Matrix.cpp" />
     <ClCompile Include="Model.cpp" />
+    <ClCompile Include="ModelFactory.cpp" />
+    <ClCompile Include="SceneManager.cpp" />
     <ClCompile Include="Shader.cpp" />
     <ClCompile Include="ShadowShader.cpp" />
     <ClCompile Include="SimpleContext.cpp" />
+    <ClCompile Include="SimpleContextEvents.cpp" />
     <ClCompile Include="StateVector.cpp" />
     <ClCompile Include="UpdateInterface.cpp" />
     <ClCompile Include="Vector4.cpp" />
@@ -131,12 +134,14 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GLIncludes.h" />
+    <ClInclude Include="ModelFactory.h" />
+    <ClInclude Include="SceneManager.h" />
     <ClInclude Include="ShadowShader.h" />
     <ClInclude Include="SimpleContext.h" />
     <ClInclude Include="Matrix.h" />
     <ClInclude Include="Model.h" />
     <ClInclude Include="Shader.h" />
-    <ClInclude Include="SimpleContext.h" />
+    <ClInclude Include="SimpleContextEvents.h" />
     <ClInclude Include="StateVector.h" />
     <ClInclude Include="UpdateInterface.h" />
     <ClInclude Include="Vector4.h" />

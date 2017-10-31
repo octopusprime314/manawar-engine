@@ -57,6 +57,9 @@
     <ClCompile Include="ModelFactory.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="DebugShader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Matrix.h">
@@ -104,12 +107,21 @@
     <ClInclude Include="ModelFactory.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="DebugShader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="simpleShader.vert">
       <Filter>Resource Files</Filter>
     </None>
     <None Include="simpleShader.frag">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="normalShader.frag">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="normalShader.vert">
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>

@@ -23,9 +23,19 @@ float* Vector4::getFlatBuffer() {
 Vector4 Vector4::operator / (float scale){
 	Vector4 result;
 	float* vector = result.getFlatBuffer();
-	vector[0] = vector[0] / scale;
-	vector[1] = vector[1] / scale;
-	vector[2] = vector[2] / scale;
+	vector[0] = _vec[0] / scale;
+	vector[1] = _vec[1] / scale;
+	vector[2] = _vec[2] / scale;
+	return result;
+}
+
+Vector4 Vector4::operator + (Vector4 other){
+	Vector4 result;
+	float* vector = result.getFlatBuffer();
+	float* vector2 = other.getFlatBuffer();
+	vector[0] = _vec[0] + vector2[0];
+	vector[1] = _vec[1] +vector2[1];
+	vector[2] = _vec[2] + vector2[2];
 	return result;
 }
 

@@ -3,6 +3,8 @@
 #include "Matrix.h"
 #include "Vector4.h"
 #include "ViewManagerEvents.h"
+
+class SimpleContext;
 class ViewManager : public UpdateInterface{
 
     Matrix _view;
@@ -15,12 +17,15 @@ class ViewManager : public UpdateInterface{
 
 	ViewManagerEvents* _viewEvents;
 
+	SimpleContext* _glutContext;
 public:
 
     ViewManager();
+	ViewManager(int* argc, char** argv, unsigned int viewportWidth, unsigned int viewportHeight);
     void applyTransform(Matrix transform);
-	void setProjection();
+	void setProjection(unsigned int viewportWidth, unsigned int viewportHeight, float nearPlaneDistance, float farPlaneDistance);
 	ViewManagerEvents* getEventWrapper();
+	void run(); //Make this call to start glut mainloop
 
 protected:
 	void updateKeyboard(unsigned char key, int x, int y); //Do stuff based on keyboard upate

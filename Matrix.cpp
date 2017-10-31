@@ -35,6 +35,77 @@ Matrix Matrix::transpose() {
 	return matrix;
 }
 
+Matrix Matrix::inverse(){
+
+	Matrix matrix(_matrix);
+    float* mat = matrix.getFlatBuffer();
+	float a11 = mat[0];
+	float a12 = mat[1];
+	float a13 = mat[2];
+	float a14 = mat[3];
+	float a21 = mat[4];
+	float a22 = mat[5];
+	float a23 = mat[6];
+	float a24 = mat[7];
+	float a31 = mat[8];
+	float a32 = mat[9];
+	float a33 = mat[10];
+	float a34 = mat[11];
+	float a41 = mat[12];
+	float a42 = mat[13];
+	float a43 = mat[14];
+	float a44 = mat[15];
+
+	float det = (a11 * a22 * a33 * a44) + (a11 * a23 * a34 * a42) + (a11 * a24 * a32 * a43) + 
+				(a12 * a21 * a34 * a43) + (a12 * a23 * a31 * a44) + (a12 * a24 * a33 * a41) +
+				(a13 * a21 * a32 * a44) + (a13 * a22 * a34 * a41) + (a13 * a24 * a31 * a42) +
+				(a14 * a21 * a33 * a42) + (a14 * a22 * a31 * a43) + (a14 * a23 * a32 * a41) -
+				(a11 * a22 * a34 * a43) - (a11 * a23 * a32 * a44) - (a11 * a24 * a33 * a42) - 
+				(a12 * a21 * a33 * a44) - (a12 * a23 * a34 * a41) - (a12 * a24 * a31 * a43) -
+				(a13 * a21 * a34 * a42) - (a13 * a22 * a31 * a44) - (a13 * a24 * a32 * a41) -
+				(a14 * a21 * a32 * a43) - (a14 * a22 * a33 * a41) - (a14 * a23 * a31 * a42);
+	
+	//Determinant cannot equal zero
+	if(det != 0){
+
+		float b11 = (a22*a33*a44) + (a23*a34*a42) + (a24*a32*a43) - (a22*a34*a43) - (a23*a32*a44) - (a24*a33*a42);
+		float b12 = (a12*a34*a43) + (a13*a32*a44) + (a14*a33*a42) - (a12*a33*a44) - (a13*a34*a42) - (a14*a32*a43);
+		float b13 = (a12*a23*a44) + (a13*a24*a42) + (a14*a22*a43) - (a12*a24*a43) - (a13*a22*a44) - (a14*a23*a42);
+		float b14 = (a12*a24*a33) + (a13*a22*a34) + (a14*a23*a32) - (a12*a23*a34) - (a13*a24*a32) - (a14*a22*a33);
+		float b21 = (a21*a34*a43) + (a23*a31*a44) + (a24*a33*a41) - (a21*a33*a44) - (a23*a34*a41) - (a24*a31*a43);
+		float b22 = (a11*a33*a44) + (a13*a34*a41) + (a14*a31*a43) - (a11*a34*a43) - (a13*a31*a44) - (a14*a33*a41);
+		float b23 = (a11*a24*a43) + (a13*a21*a44) + (a14*a23*a41) - (a11*a23*a44) - (a13*a24*a41) - (a14*a21*a43);
+		float b24 = (a11*a23*a34) + (a13*a24*a31) + (a14*a21*a33) - (a11*a24*a33) - (a13*a21*a34) - (a14*a23*a31);
+		float b31 = (a21*a32*a44) + (a22*a34*a41) + (a24*a31*a42) - (a21*a34*a42) - (a22*a31*a44) - (a24*a32*a41);
+		float b32 = (a11*a34*a42) + (a12*a31*a44) + (a14*a32*a41) - (a11*a32*a44) - (a12*a34*a41) - (a14*a31*a42);
+		float b33 = (a11*a22*a44) + (a12*a24*a41) + (a14*a21*a42) - (a11*a24*a42) - (a12*a21*a44) - (a14*a22*a41);
+		float b34 = (a11*a24*a32) + (a12*a21*a34) + (a14*a22*a31) - (a11*a22*a34) - (a12*a24*a31) - (a14*a21*a32);
+		float b41 = (a21*a33*a42) + (a22*a31*a43) + (a23*a32*a41) - (a21*a32*a43) - (a22*a33*a41) - (a23*a31*a42);
+		float b42 = (a11*a32*a43) + (a12*a33*a41) + (a13*a31*a42) - (a11*a33*a42) - (a12*a31*a43) - (a13*a32*a41);
+		float b43 = (a11*a23*a42) + (a12*a21*a43) + (a13*a22*a41) - (a11*a22*a43) - (a12*a23*a41) - (a13*a21*a42);
+		float b44 = (a11*a22*a33) + (a12*a23*a31) + (a13*a21*a32) - (a11*a23*a32) - (a12*a21*a33) - (a13*a22*a31);
+
+
+		mat[0]  = b11 / det;
+		mat[1]  = b12 / det;
+		mat[2]  = b13 / det;
+		mat[3]  = b14 / det;
+		mat[4]  = b21 / det;
+		mat[5]  = b22 / det;
+		mat[6]  = b23 / det;
+		mat[7]  = b24 / det;
+		mat[8]  = b31 / det;
+		mat[9]  = b32 / det;
+		mat[10] = b33 / det;
+		mat[11] = b34 / det;
+		mat[12] = b41 / det;
+		mat[13] = b42 / det;
+		mat[14] = b43 / det;
+		mat[15] = b44 / det;
+	}
+	return matrix;
+}
+
 Vector4 Matrix::operator * (Vector4 vec) {
     Vector4 result; //Get underlying vector memory
     float* vector = vec.getFlatBuffer();

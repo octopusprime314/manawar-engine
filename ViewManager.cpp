@@ -4,14 +4,34 @@
 #include "ViewManagerEvents.h"
 
 ViewManager::ViewManager() {
+	
 	_viewEvents = new ViewManagerEvents();
 }
 
-void ViewManager::setProjection(){
-	_projection =  Matrix::cameraProjection(45.0f, 1080.0f/1920.0f, 0.1, 100.0); //45 degree angle up/down/left/right, 
-																				 //1080/1920 aspect ratio
-																				 //near plane from camera location
-																				 //far plane from camera location
+ViewManager::ViewManager(int* argc, char** argv, unsigned int viewportWidth, unsigned int viewportHeight){
+	
+	//Create instance of glut wrapper class context
+	//GLUT context can only run on main thread!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	//PLEASE DO NOT THREAD GLUT CALLS
+	_glutContext = new SimpleContext(argc, argv, viewportWidth, viewportHeight);
+
+	_viewEvents = new ViewManagerEvents();
+}
+
+void ViewManager::run(){
+	_glutContext->run();
+}
+
+void ViewManager::setProjection(unsigned int viewportWidth, unsigned int viewportHeight, float nearPlaneDistance, float farPlaneDistance){
+	//45 degree angle up/down/left/right, 
+	//width by height aspect ratio
+    //near plane from camera location
+	//far plane from camera location
+	_projection =  Matrix::cameraProjection(45.0f, 
+		static_cast<float>(viewportWidth)/static_cast<float>(viewportHeight),
+		nearPlaneDistance, 
+		farPlaneDistance); 
+																				 
 	//Broadcast perspective matrix once to all subscribers
 	_viewEvents->updateProjection(_projection);
 }

@@ -65,6 +65,7 @@ public:
 	Matrix getGLFormat(); //Returns the matrix in column major format which is how GL works
 
     Matrix transpose(); //Returns transpose of matrix
+	Matrix inverse(); //Returns inverse of matrix
 	Matrix operator * (Matrix mat); 
     Vector4 operator * (Vector4 vec);
     float* getFlatBuffer();

@@ -1,4 +1,5 @@
 #include "Shader.h"
+#include "Model.h"
 
 Shader::Shader(){
 	
@@ -20,15 +21,74 @@ GLint Shader::getProjectionLocation(){
 	return _projectionLocation;
 }
 
-void Shader::compile(){
+GLint Shader::getNormalLocation(){
+	return _normalLocation;
+}
+
+void Shader::runShader(Model* model){
+
+	 //LOAD IN SHADER
+    glUseProgram(_shaderContext); //use context for loaded shader
+
+    //LOAD IN VBO BUFFERS 
+    //Bind vertex buff context to current buffer
+    glBindBuffer(GL_ARRAY_BUFFER, model->getVertexContext());
+
+    //Say that the vertex data is associated with attribute 0 in the context of a shader program
+    //Each vertex contains 3 floats per vertex
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+
+    //Now enable vertex buffer at location 0
+    glEnableVertexAttribArray(0);
+
+	//Bind normal buff context to current buffer
+    glBindBuffer(GL_ARRAY_BUFFER, model->getNormalContext());
+
+    //Say that the normal data is associated with attribute 1 in the context of a shader program
+    //Each normal contains 3 floats per normal
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
+
+    //Now enable normal buffer at location 1
+    glEnableVertexAttribArray(1);
+
+	//glUniform mat4 combined model and world matrix, GL_TRUE is telling GL we are passing in the matrix as row major
+	glUniformMatrix4fv(_modelLocation, 1, GL_TRUE, model->getModelBuffer());
+	
+	//glUniform mat4 view matrix, GL_TRUE is telling GL we are passing in the matrix as row major
+	glUniformMatrix4fv(_viewLocation, 1, GL_TRUE, model->getViewBuffer());
+	
+	//glUniform mat4 projection matrix, GL_TRUE is telling GL we are passing in the matrix as row major
+	glUniformMatrix4fv(_projectionLocation, 1, GL_TRUE, model->getProjectionBuffer());
+
+	//glUniform mat4 normal matrix, GL_TRUE is telling GL we are passing in the matrix as row major
+	glUniformMatrix4fv(_normalLocation, 1, GL_TRUE, model->getNormalBuffer());
+	
+    //Draw triangles using the bound buffer vertices at starting index 0 and number of triangles
+    glDrawArraysEXT(GL_TRIANGLES, 0, (GLsizei)model->getVertexCount());
+
+	glDisableVertexAttribArray (0); //Disable vertex attribute
+	glDisableVertexAttribArray (1); //Disable normal attribute
+	glBindBuffer(GL_ARRAY_BUFFER, 0); //Unbind buffer
+    glUseProgram(0);//end using this shader
+}
+
+void Shader::build(){
 	GLhandleARB vertexShaderHandle;
 	GLhandleARB fragmentShaderHandle;
 	
 	std::string fileNameVert = "simpleShader.vert";
 	std::string fileNameFrag = "simpleShader.frag";
-	vertexShaderHandle   = _loadShader((char*)fileNameVert.c_str(),GL_VERTEX_SHADER);
-	fragmentShaderHandle = _loadShader((char*)fileNameFrag.c_str(),GL_FRAGMENT_SHADER);
+
+	//Compile each shader
+	vertexShaderHandle   = _compile((char*)fileNameVert.c_str(),GL_VERTEX_SHADER);
+	fragmentShaderHandle = _compile((char*)fileNameFrag.c_str(),GL_FRAGMENT_SHADER);
+
+	//Link the two compiled binaries
+	_link(vertexShaderHandle, fragmentShaderHandle);
 	
+}
+
+void Shader::_link(GLhandleARB vertexShaderHandle, GLhandleARB fragmentShaderHandle){
 	_shaderContext = glCreateProgramObjectARB();
 
 	glAttachObjectARB(_shaderContext, vertexShaderHandle);
@@ -74,12 +134,15 @@ void Shader::compile(){
 	
 		//glUniform mat4 projection matrix
 		_projectionLocation = glGetUniformLocation(_shaderContext, "projection");
+
+		//glUniform mat4 normal matrix
+		_normalLocation = glGetUniformLocation(_shaderContext, "normal");
 	
 	}
 }
 
 // Loading shader function
-GLhandleARB Shader::_loadShader(char* filename, unsigned int type)
+GLhandleARB Shader::_compile(char* filename, unsigned int type)
 {
 	FILE *pfile;
 	GLhandleARB handle;

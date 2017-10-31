@@ -117,6 +117,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="DebugShader.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Matrix.cpp" />
     <ClCompile Include="Model.cpp" />
@@ -133,6 +134,7 @@
     <ClCompile Include="ViewManagerEvents.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="DebugShader.h" />
     <ClInclude Include="GLIncludes.h" />
     <ClInclude Include="ModelFactory.h" />
     <ClInclude Include="SceneManager.h" />
@@ -149,6 +151,8 @@
     <ClInclude Include="ViewManagerEvents.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="normalShader.frag" />
+    <None Include="normalShader.vert" />
     <None Include="simpleShader.frag" />
     <None Include="simpleShader.vert" />
   </ItemGroup>

@@ -9,5 +9,6 @@ public:
     float* getFlatBuffer();
     void display();
 	Vector4 operator / (float scale);
+	Vector4 operator + (Vector4 other);
 
 };

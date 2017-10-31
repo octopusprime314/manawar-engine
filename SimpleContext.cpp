@@ -1,7 +1,7 @@
 #include "SimpleContext.h"
 #include "ViewManagerEvents.h"
 
-SimpleContext::SimpleContext(int* argc, char** argv) {
+SimpleContext::SimpleContext(int* argc, char** argv, unsigned int viewportWidth, unsigned int viewportHeight) {
 
 	glutInit(argc, argv); //initialize glut
 	
@@ -14,7 +14,7 @@ SimpleContext::SimpleContext(int* argc, char** argv) {
 
 	//WINDOW CONTEXT SETTINGS
 	glutInitWindowPosition(0,0); //Position it at the top
-	glutInitWindowSize(1080, 1920); //make it 1080x1920
+	glutInitWindowSize(viewportWidth, viewportHeight); //viewport pixel width and height
 	glutCreateWindow("ReBoot!"); //create a window called ReBoot
 		
 	//GLUT FUNCTION CALLBACKS

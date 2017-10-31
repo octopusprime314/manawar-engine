@@ -1,4 +1,5 @@
 #include "ModelFactory.h"
+#include "ViewManager.h"
 //Initialize the factory
 ModelFactory* ModelFactory::_factory = nullptr;
 
@@ -15,7 +16,12 @@ ModelFactory* ModelFactory::instance() { //Only initializes the static pointer o
 		_factory = new ModelFactory();
 	}
 	return _factory;
+}
+
+void ModelFactory::setViewWrapper(ViewManager* viewManager) { 
+	_viewEventWrapper = viewManager->getEventWrapper();
 }	
-Model* ModelFactory::makeModel(ViewManagerEvents* eventWrapper) {
-	return new Model(eventWrapper);
+
+Model* ModelFactory::makeModel() {
+	return new Model(_viewEventWrapper);
 }

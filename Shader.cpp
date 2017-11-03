@@ -5,6 +5,10 @@ Shader::Shader(){
 	
 }
 
+Shader::~Shader() {
+
+}
+
 GLuint Shader::getShaderContext(){
 	return _shaderContext;
 }

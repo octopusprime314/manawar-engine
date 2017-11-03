@@ -1,10 +1,18 @@
 #include "AnimatedModel.h"
 
-AnimatedModel::AnimatedModel(std::string name, ViewManagerEvents* eventWrapper) : Model(name, eventWrapper) {
+AnimatedModel::AnimatedModel(std::string name, ViewManagerEvents* eventWrapper) : Model(name, eventWrapper, ModelClass::AnimatedModelType) {
 
-	//Load in fbx object
-    FbxLoader fbxLoad(name);
-	fbxLoad.loadAnimatedModel(this, fbxLoad.getScene()->GetRootNode()); //Grab skin animation transformss
+    _fbxLoader->loadAnimatedModel(this, _fbxLoader->getScene()->GetRootNode()); //Grab skin animation transforms
+
+    //Done with fbx loader so close all handles to fbx scene instance
+    delete _fbxLoader;
+}
+
+AnimatedModel::~AnimatedModel() {
+
+    for (auto animation : _animations) {
+        delete animation;
+    }
 }
 
 void AnimatedModel::updateKeyboard(unsigned char key, int x, int y) {

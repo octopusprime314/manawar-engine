@@ -18,6 +18,11 @@ ViewManager::ViewManager(int* argc, char** argv, unsigned int viewportWidth, uns
 	_viewEvents = new ViewManagerEvents();
 }
 
+ViewManager::~ViewManager() {
+    delete _viewEvents;
+    delete _glutContext;
+}
+
 void ViewManager::run(){
 	_glutContext->run();
 }

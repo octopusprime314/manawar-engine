@@ -16,3 +16,11 @@ SceneManager::SceneManager(int* argc, char** argv, unsigned int viewportWidth, u
 
 	_viewManager->run(); //Enables the glut main loop
 }
+
+SceneManager::~SceneManager() {
+    for (auto model : _modelList) {
+        delete model;
+    }
+    delete _modelFactory;
+    delete _viewManager;
+}

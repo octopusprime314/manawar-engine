@@ -19,3 +19,7 @@ UpdateInterface::UpdateInterface(ViewManagerEvents* eventWrapper){
 	eventWrapper->subscribeToView(std::bind(&UpdateInterface::updateView, this, _1));
 	eventWrapper->subscribeToProjection(std::bind(&UpdateInterface::updateProjection, this, _1));
 }
+
+UpdateInterface::~UpdateInterface() {
+
+}

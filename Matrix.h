@@ -1,3 +1,24 @@
+/*
+* Matrix is part of the ReBoot distribution (https://github.com/octopusprime314/ReBoot.git).
+* Copyright (c) 2017 Peter Morley.
+*
+* ReBoot is free software: you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation, version 3.
+*
+* ReBoot is distributed in the hope that it will be useful, but
+* WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+* General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program. If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/**
+*  Matrix class. Handles matrix transforms
+*/
+
 #pragma once
 #include "Vector4.h"
 #include <math.h>
@@ -54,19 +75,17 @@ class Matrix {
 
     
     float _matrix[16];
-    int _rows;
-    int _columns;
 
 public:
     Matrix();
     Matrix(float *mat);
 
-    Matrix transpose(); //Returns transpose of matrix
-	Matrix inverse(); //Returns inverse of matrix
-	Matrix operator * (Matrix mat); 
-    Vector4 operator * (Vector4 vec);
-    float* getFlatBuffer();
-    void display();
+    Matrix        transpose(); //Returns transpose of matrix
+	Matrix        inverse(); //Returns inverse of matrix
+	Matrix        operator * (Matrix mat); 
+    Vector4       operator * (Vector4 vec);
+    float*        getFlatBuffer();
+    void          display();
 
     static Matrix rotationAroundX(float degrees); //Build rotation matrix around the x axis
     static Matrix rotationAroundY(float degrees); //Build rotation matrix around the y axis

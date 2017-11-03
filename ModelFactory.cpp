@@ -9,6 +9,7 @@ ModelFactory::ModelFactory() {
 
 ModelFactory::~ModelFactory() {
 	delete _factory;
+    delete _viewEventWrapper;
 }
 
 ModelFactory* ModelFactory::instance() { //Only initializes the static pointer once

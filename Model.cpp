@@ -238,8 +238,6 @@ void Model::updateDraw() {
 	//Run model shader by allowing the shader to operate on the model
 	_shaderProgram->runShader(this);
 
-	Vector4 transformedNormal = _normal * _normals[0];
-	transformedNormal.display();
 }
 
 void Model::updateKeyboard(unsigned char key, int x, int y){
@@ -255,13 +253,10 @@ void Model::updateView(Matrix view){
 	
 	//If view changes then change our normal matrix
 	_normal = _view.inverse().transpose();
-
-	_normal.display();
 }
 
 void Model::updateProjection(Matrix projection){
 	_projection = projection; //Receive updates when the projection matrix has changed
-	//_projection.display();
 }
 
 Matrix Model::getModel(){

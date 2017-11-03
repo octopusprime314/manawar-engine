@@ -22,10 +22,10 @@ void ModelFactory::setViewWrapper(ViewManager* viewManager) {
 	_viewEventWrapper = viewManager->getEventWrapper();
 }	
 
-Model* ModelFactory::makeModel() {
-	return new Model(_viewEventWrapper);
+Model* ModelFactory::makeModel(std::string name) {
+	return new Model(name, _viewEventWrapper);
 }
 
-AnimatedModel* ModelFactory::makeAnimatedModel() {
-    return new AnimatedModel(_viewEventWrapper);
+AnimatedModel* ModelFactory::makeAnimatedModel(std::string name) {
+    return new AnimatedModel(name, _viewEventWrapper);
 }

@@ -37,7 +37,7 @@ protected:
 
 public:
     Model();
-	Model(ViewManagerEvents* eventWrapper);
+	Model(std::string name, ViewManagerEvents* eventWrapper);
 	Matrix getModel();
 	Matrix getView();
 	Matrix getProjection();

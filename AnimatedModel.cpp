@@ -1,10 +1,9 @@
 #include "AnimatedModel.h"
 
-AnimatedModel::AnimatedModel(ViewManagerEvents* eventWrapper) : Model(eventWrapper) {
+AnimatedModel::AnimatedModel(std::string name, ViewManagerEvents* eventWrapper) : Model(name, eventWrapper) {
 
 	//Load in fbx object
-    FbxLoader fbxLoad("../models/hagraven_idle.fbx");
-	fbxLoad.loadModel(this, fbxLoad.getScene()->GetRootNode()); //Grab the bind pose geometry
+    FbxLoader fbxLoad(name);
 	fbxLoad.loadAnimatedModel(this, fbxLoad.getScene()->GetRootNode()); //Grab skin animation transformss
 }
 

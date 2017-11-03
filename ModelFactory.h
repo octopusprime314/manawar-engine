@@ -12,7 +12,7 @@ public:
 	ModelFactory();
 	~ModelFactory();
 	static ModelFactory* instance();
-	Model* makeModel();
-    AnimatedModel* makeAnimatedModel();
+	Model* makeModel(std::string name);
+    AnimatedModel* makeAnimatedModel(std::string name);
 	void setViewWrapper(ViewManager* viewManager); //Sets the reference to the view model's event object
 };

@@ -6,7 +6,7 @@ Model::Model(){
 
 }
 
-Model::Model(ViewManagerEvents* eventWrapper) : UpdateInterface(eventWrapper){
+Model::Model(std::string name, ViewManagerEvents* eventWrapper) : UpdateInterface(eventWrapper){
 
 	//disable debug mode
 	_debugMode = false;
@@ -20,162 +20,163 @@ Model::Model(ViewManagerEvents* eventWrapper) : UpdateInterface(eventWrapper){
 	_debugShaderProgram->build();
 
     //Load in fbx object
-    FbxLoader fbxLoad("../models/landscape.fbx");
+    FbxLoader fbxLoad(name);
 	//Populate model with fbx file data and recursivelty search with the root node of the scene
     fbxLoad.loadModel(this, fbxLoad.getScene()->GetRootNode()); 
 
-    //DEFAULT MODEL
-    //Cube vertices modeled around origin (0,0,0) with length,width,height of 2
+#pragma region "DEFAULT CUBE"
+ //   //DEFAULT MODEL
+ //   //Cube vertices modeled around origin (0,0,0) with length,width,height of 2
 
-    //xy plane triangle top + z
-    _vertices.push_back(Vector4(1.0, 1.0, 1.0, 1.0));
-    _vertices.push_back(Vector4(-1.0, -1.0, 1.0, 1.0));
-    _vertices.push_back(Vector4(-1.0, 1.0, 1.0, 1.0));
+ //   //xy plane triangle top + z
+ //   _vertices.push_back(Vector4(1.0, 1.0, 1.0, 1.0));
+ //   _vertices.push_back(Vector4(-1.0, -1.0, 1.0, 1.0));
+ //   _vertices.push_back(Vector4(-1.0, 1.0, 1.0, 1.0));
 
-    //xy plane triangle bottom + z
-    _vertices.push_back(Vector4(1.0, 1.0, 1.0, 1.0));
-    _vertices.push_back(Vector4(-1.0, -1.0, 1.0, 1.0));
-    _vertices.push_back(Vector4(1.0, -1.0, 1.0, 1.0));
+ //   //xy plane triangle bottom + z
+ //   _vertices.push_back(Vector4(1.0, 1.0, 1.0, 1.0));
+ //   _vertices.push_back(Vector4(-1.0, -1.0, 1.0, 1.0));
+ //   _vertices.push_back(Vector4(1.0, -1.0, 1.0, 1.0));
 
-    //xy plane triangle top - z
-    _vertices.push_back(Vector4(1.0, 1.0, -1.0, 1.0));
-    _vertices.push_back(Vector4(-1.0, -1.0, -1.0, 1.0));
-    _vertices.push_back(Vector4(-1.0, 1.0, -1.0, 1.0));
+ //   //xy plane triangle top - z
+ //   _vertices.push_back(Vector4(1.0, 1.0, -1.0, 1.0));
+ //   _vertices.push_back(Vector4(-1.0, -1.0, -1.0, 1.0));
+ //   _vertices.push_back(Vector4(-1.0, 1.0, -1.0, 1.0));
 
-    //xy plane triangle bottom - z
-    _vertices.push_back(Vector4(1.0, 1.0, -1.0, 1.0));
-    _vertices.push_back(Vector4(-1.0, -1.0, -1.0, 1.0));
-    _vertices.push_back(Vector4(1.0, -1.0, -1.0, 1.0));
+ //   //xy plane triangle bottom - z
+ //   _vertices.push_back(Vector4(1.0, 1.0, -1.0, 1.0));
+ //   _vertices.push_back(Vector4(-1.0, -1.0, -1.0, 1.0));
+ //   _vertices.push_back(Vector4(1.0, -1.0, -1.0, 1.0));
 
-    //zy plane triangle top + x
-    _vertices.push_back(Vector4(1.0, 1.0, 1.0, 1.0));
-    _vertices.push_back(Vector4(1.0, -1.0, 1.0, 1.0));
-    _vertices.push_back(Vector4(1.0, -1.0, -1.0, 1.0));
+ //   //zy plane triangle top + x
+ //   _vertices.push_back(Vector4(1.0, 1.0, 1.0, 1.0));
+ //   _vertices.push_back(Vector4(1.0, -1.0, 1.0, 1.0));
+ //   _vertices.push_back(Vector4(1.0, -1.0, -1.0, 1.0));
 
-    //zy plane triangle bottom + x
-    _vertices.push_back(Vector4(1.0, 1.0, 1.0, 1.0));
-    _vertices.push_back(Vector4(1.0, 1.0, -1.0, 1.0));
-    _vertices.push_back(Vector4(1.0, -1.0, -1.0, 1.0));
+ //   //zy plane triangle bottom + x
+ //   _vertices.push_back(Vector4(1.0, 1.0, 1.0, 1.0));
+ //   _vertices.push_back(Vector4(1.0, 1.0, -1.0, 1.0));
+ //   _vertices.push_back(Vector4(1.0, -1.0, -1.0, 1.0));
 
-    //zy plane triangle top - x
-    _vertices.push_back(Vector4(-1.0, 1.0, 1.0, 1.0));
-    _vertices.push_back(Vector4(-1.0, 1.0, -1.0, 1.0));
-    _vertices.push_back(Vector4(-1.0, -1.0, -1.0, 1.0));
+ //   //zy plane triangle top - x
+ //   _vertices.push_back(Vector4(-1.0, 1.0, 1.0, 1.0));
+ //   _vertices.push_back(Vector4(-1.0, 1.0, -1.0, 1.0));
+ //   _vertices.push_back(Vector4(-1.0, -1.0, -1.0, 1.0));
 
-    //zy plane triangle bottom - x
-    _vertices.push_back(Vector4(-1.0, 1.0, 1.0, 1.0));
-    _vertices.push_back(Vector4(-1.0, -1.0, 1.0, 1.0));
-    _vertices.push_back(Vector4(-1.0, -1.0, -1.0, 1.0));
+ //   //zy plane triangle bottom - x
+ //   _vertices.push_back(Vector4(-1.0, 1.0, 1.0, 1.0));
+ //   _vertices.push_back(Vector4(-1.0, -1.0, 1.0, 1.0));
+ //   _vertices.push_back(Vector4(-1.0, -1.0, -1.0, 1.0));
 
-	//Normal per vertex ratio
+	////Normal per vertex ratio
 
-	//xy plane triangle top + z
-    _normals.push_back(Vector4(0.0, 0.0, 1.0, 1.0));
-    _normals.push_back(Vector4(0.0, 0.0, 1.0, 1.0));
-    _normals.push_back(Vector4(0.0, 0.0, 1.0, 1.0));
+	////xy plane triangle top + z
+ //   _normals.push_back(Vector4(0.0, 0.0, 1.0, 1.0));
+ //   _normals.push_back(Vector4(0.0, 0.0, 1.0, 1.0));
+ //   _normals.push_back(Vector4(0.0, 0.0, 1.0, 1.0));
 
-    //xy plane triangle bottom + z
-    _normals.push_back(Vector4(0.0, 0.0, 1.0, 1.0));
-    _normals.push_back(Vector4(0.0, 0.0, 1.0, 1.0));
-    _normals.push_back(Vector4(0.0, 0.0, 1.0, 1.0));
+ //   //xy plane triangle bottom + z
+ //   _normals.push_back(Vector4(0.0, 0.0, 1.0, 1.0));
+ //   _normals.push_back(Vector4(0.0, 0.0, 1.0, 1.0));
+ //   _normals.push_back(Vector4(0.0, 0.0, 1.0, 1.0));
 
-    //xy plane triangle top - z
-    _normals.push_back(Vector4(0.0, 0.0, -1.0, 1.0));
-    _normals.push_back(Vector4(0.0, 0.0, -1.0, 1.0));
-	_normals.push_back(Vector4(0.0, 0.0, -1.0, 1.0));
+ //   //xy plane triangle top - z
+ //   _normals.push_back(Vector4(0.0, 0.0, -1.0, 1.0));
+ //   _normals.push_back(Vector4(0.0, 0.0, -1.0, 1.0));
+	//_normals.push_back(Vector4(0.0, 0.0, -1.0, 1.0));
 
-    //xy plane triangle bottom - z
-    _normals.push_back(Vector4(0.0, 0.0, -1.0, 1.0));
-    _normals.push_back(Vector4(0.0, 0.0, -1.0, 1.0));
-	_normals.push_back(Vector4(0.0, 0.0, -1.0, 1.0));
+ //   //xy plane triangle bottom - z
+ //   _normals.push_back(Vector4(0.0, 0.0, -1.0, 1.0));
+ //   _normals.push_back(Vector4(0.0, 0.0, -1.0, 1.0));
+	//_normals.push_back(Vector4(0.0, 0.0, -1.0, 1.0));
 
-    //zy plane triangle top + x
-    _normals.push_back(Vector4(1.0, 0.0, 0.0, 1.0));
-    _normals.push_back(Vector4(1.0, 0.0, 0.0, 1.0));
-    _normals.push_back(Vector4(1.0, 0.0, 0.0, 1.0));
+ //   //zy plane triangle top + x
+ //   _normals.push_back(Vector4(1.0, 0.0, 0.0, 1.0));
+ //   _normals.push_back(Vector4(1.0, 0.0, 0.0, 1.0));
+ //   _normals.push_back(Vector4(1.0, 0.0, 0.0, 1.0));
 
-    //zy plane triangle bottom + x
-    _normals.push_back(Vector4(1.0, 0.0, 0.0, 1.0));
-    _normals.push_back(Vector4(1.0, 0.0, 0.0, 1.0));
-    _normals.push_back(Vector4(1.0, 0.0, 0.0, 1.0));
+ //   //zy plane triangle bottom + x
+ //   _normals.push_back(Vector4(1.0, 0.0, 0.0, 1.0));
+ //   _normals.push_back(Vector4(1.0, 0.0, 0.0, 1.0));
+ //   _normals.push_back(Vector4(1.0, 0.0, 0.0, 1.0));
 
-    //zy plane triangle top - x
-    _normals.push_back(Vector4(-1.0, 0.0, 0.0, 1.0));
-    _normals.push_back(Vector4(-1.0, 0.0, 0.0, 1.0));
-    _normals.push_back(Vector4(-1.0, 0.0, 0.0, 1.0));
+ //   //zy plane triangle top - x
+ //   _normals.push_back(Vector4(-1.0, 0.0, 0.0, 1.0));
+ //   _normals.push_back(Vector4(-1.0, 0.0, 0.0, 1.0));
+ //   _normals.push_back(Vector4(-1.0, 0.0, 0.0, 1.0));
 
-    //zy plane triangle bottom - x
-    _normals.push_back(Vector4(-1.0, 0.0, 0.0, 1.0));
-    _normals.push_back(Vector4(-1.0, 0.0, 0.0, 1.0));
-    _normals.push_back(Vector4(-1.0, 0.0, 0.0, 1.0));
+ //   //zy plane triangle bottom - x
+ //   _normals.push_back(Vector4(-1.0, 0.0, 0.0, 1.0));
+ //   _normals.push_back(Vector4(-1.0, 0.0, 0.0, 1.0));
+ //   _normals.push_back(Vector4(-1.0, 0.0, 0.0, 1.0));
 
 
-	//Lines for normal visualization
+	////Lines for normal visualization
 
-	//xy plane triangle top + z
-    _normalLineVertices.push_back(_vertices[0]);
-	_normalLineVertices.push_back(_vertices[0] + _normals[0]);
-    _normalLineVertices.push_back(_vertices[1]);
-	_normalLineVertices.push_back(_vertices[1] + _normals[1]);
-	_normalLineVertices.push_back(_vertices[2]);
-	_normalLineVertices.push_back(_vertices[2] + _normals[2]);
+	////xy plane triangle top + z
+ //   _normalLineVertices.push_back(_vertices[0]);
+	//_normalLineVertices.push_back(_vertices[0] + _normals[0]);
+ //   _normalLineVertices.push_back(_vertices[1]);
+	//_normalLineVertices.push_back(_vertices[1] + _normals[1]);
+	//_normalLineVertices.push_back(_vertices[2]);
+	//_normalLineVertices.push_back(_vertices[2] + _normals[2]);
 
-	//xy plane triangle bottom + z
-	_normalLineVertices.push_back(_vertices[3]);
-	_normalLineVertices.push_back(_vertices[3] + _normals[3]);
-    _normalLineVertices.push_back(_vertices[4]);
-	_normalLineVertices.push_back(_vertices[4] + _normals[4]);
-	_normalLineVertices.push_back(_vertices[5]);
-	_normalLineVertices.push_back(_vertices[5] + _normals[5]);
+	////xy plane triangle bottom + z
+	//_normalLineVertices.push_back(_vertices[3]);
+	//_normalLineVertices.push_back(_vertices[3] + _normals[3]);
+ //   _normalLineVertices.push_back(_vertices[4]);
+	//_normalLineVertices.push_back(_vertices[4] + _normals[4]);
+	//_normalLineVertices.push_back(_vertices[5]);
+	//_normalLineVertices.push_back(_vertices[5] + _normals[5]);
 
-	//xy plane triangle top - z
-	_normalLineVertices.push_back(_vertices[6]);
-	_normalLineVertices.push_back(_vertices[6] + _normals[6]);
-    _normalLineVertices.push_back(_vertices[7]);
-	_normalLineVertices.push_back(_vertices[7] + _normals[7]);
-	_normalLineVertices.push_back(_vertices[8]);
-	_normalLineVertices.push_back(_vertices[8] + _normals[8]);
+	////xy plane triangle top - z
+	//_normalLineVertices.push_back(_vertices[6]);
+	//_normalLineVertices.push_back(_vertices[6] + _normals[6]);
+ //   _normalLineVertices.push_back(_vertices[7]);
+	//_normalLineVertices.push_back(_vertices[7] + _normals[7]);
+	//_normalLineVertices.push_back(_vertices[8]);
+	//_normalLineVertices.push_back(_vertices[8] + _normals[8]);
 
-	//xy plane triangle bottom - z
-	_normalLineVertices.push_back(_vertices[9]);
-	_normalLineVertices.push_back(_vertices[9] + _normals[9]);
-    _normalLineVertices.push_back(_vertices[10]);
-	_normalLineVertices.push_back(_vertices[10] + _normals[10]);
-	_normalLineVertices.push_back(_vertices[11]);
-	_normalLineVertices.push_back(_vertices[11] + _normals[11]);
+	////xy plane triangle bottom - z
+	//_normalLineVertices.push_back(_vertices[9]);
+	//_normalLineVertices.push_back(_vertices[9] + _normals[9]);
+ //   _normalLineVertices.push_back(_vertices[10]);
+	//_normalLineVertices.push_back(_vertices[10] + _normals[10]);
+	//_normalLineVertices.push_back(_vertices[11]);
+	//_normalLineVertices.push_back(_vertices[11] + _normals[11]);
 
-    //zy plane triangle top + x
-    _normalLineVertices.push_back(_vertices[12]);
-	_normalLineVertices.push_back(_vertices[12] + _normals[12]);
-    _normalLineVertices.push_back(_vertices[13]);
-	_normalLineVertices.push_back(_vertices[13] + _normals[13]);
-	_normalLineVertices.push_back(_vertices[14]);
-	_normalLineVertices.push_back(_vertices[14] + _normals[14]);
+ //   //zy plane triangle top + x
+ //   _normalLineVertices.push_back(_vertices[12]);
+	//_normalLineVertices.push_back(_vertices[12] + _normals[12]);
+ //   _normalLineVertices.push_back(_vertices[13]);
+	//_normalLineVertices.push_back(_vertices[13] + _normals[13]);
+	//_normalLineVertices.push_back(_vertices[14]);
+	//_normalLineVertices.push_back(_vertices[14] + _normals[14]);
 
-    //zy plane triangle bottom + x
-    _normalLineVertices.push_back(_vertices[15]);
-	_normalLineVertices.push_back(_vertices[15] + _normals[15]);
-    _normalLineVertices.push_back(_vertices[16]);
-	_normalLineVertices.push_back(_vertices[16] + _normals[16]);
-	_normalLineVertices.push_back(_vertices[17]);
-	_normalLineVertices.push_back(_vertices[17] + _normals[17]);
+ //   //zy plane triangle bottom + x
+ //   _normalLineVertices.push_back(_vertices[15]);
+	//_normalLineVertices.push_back(_vertices[15] + _normals[15]);
+ //   _normalLineVertices.push_back(_vertices[16]);
+	//_normalLineVertices.push_back(_vertices[16] + _normals[16]);
+	//_normalLineVertices.push_back(_vertices[17]);
+	//_normalLineVertices.push_back(_vertices[17] + _normals[17]);
 
-    //zy plane triangle top - x
-    _normalLineVertices.push_back(_vertices[18]);
-	_normalLineVertices.push_back(_vertices[18] + _normals[18]);
-    _normalLineVertices.push_back(_vertices[19]);
-	_normalLineVertices.push_back(_vertices[19] + _normals[19]);
-	_normalLineVertices.push_back(_vertices[20]);
-	_normalLineVertices.push_back(_vertices[20] + _normals[20]);
+ //   //zy plane triangle top - x
+ //   _normalLineVertices.push_back(_vertices[18]);
+	//_normalLineVertices.push_back(_vertices[18] + _normals[18]);
+ //   _normalLineVertices.push_back(_vertices[19]);
+	//_normalLineVertices.push_back(_vertices[19] + _normals[19]);
+	//_normalLineVertices.push_back(_vertices[20]);
+	//_normalLineVertices.push_back(_vertices[20] + _normals[20]);
 
-    //zy plane triangle bottom - x
-    _normalLineVertices.push_back(_vertices[21]);
-	_normalLineVertices.push_back(_vertices[21] + _normals[21]);
-    _normalLineVertices.push_back(_vertices[22]);
-	_normalLineVertices.push_back(_vertices[22] + _normals[22]);
-	_normalLineVertices.push_back(_vertices[23]);
-	_normalLineVertices.push_back(_vertices[23] + _normals[23]);
-
+ //   //zy plane triangle bottom - x
+ //   _normalLineVertices.push_back(_vertices[21]);
+	//_normalLineVertices.push_back(_vertices[21] + _normals[21]);
+ //   _normalLineVertices.push_back(_vertices[22]);
+	//_normalLineVertices.push_back(_vertices[22] + _normals[22]);
+	//_normalLineVertices.push_back(_vertices[23]);
+	//_normalLineVertices.push_back(_vertices[23] + _normals[23]);
+#pragma endregion "DEFAULT CUBE"
 
     //Now flatten vertices and normals out for opengl
     size_t triBuffSize = _vertices.size() * 3;

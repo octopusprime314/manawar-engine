@@ -11,6 +11,6 @@ class AnimatedModel : public Model {
     void updateMouse(int button, int state, int x, int y); //Do stuff based on mouse update
 
 public:
-    AnimatedModel(ViewManagerEvents* eventWrapper);
+    AnimatedModel(std::string name, ViewManagerEvents* eventWrapper);
 	void addAnimation(Animation* animation);
 };

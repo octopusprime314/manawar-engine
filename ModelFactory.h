@@ -1,4 +1,5 @@
 #pragma once
+#include "AnimatedModel.h"
 #include "Model.h"
 
 class ViewManager;
@@ -12,5 +13,6 @@ public:
 	~ModelFactory();
 	static ModelFactory* instance();
 	Model* makeModel();
+    AnimatedModel* makeAnimatedModel();
 	void setViewWrapper(ViewManager* viewManager); //Sets the reference to the view model's event object
 };

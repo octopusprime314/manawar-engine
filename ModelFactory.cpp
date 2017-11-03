@@ -25,3 +25,7 @@ void ModelFactory::setViewWrapper(ViewManager* viewManager) {
 Model* ModelFactory::makeModel() {
 	return new Model(_viewEventWrapper);
 }
+
+AnimatedModel* ModelFactory::makeAnimatedModel() {
+    return new AnimatedModel(_viewEventWrapper);
+}

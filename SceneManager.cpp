@@ -10,6 +10,8 @@ SceneManager::SceneManager(int* argc, char** argv, unsigned int viewportWidth, u
 	
     _modelList.push_back(_modelFactory->makeModel()); //Add a model to the scene
 
+	_modelList.push_back(_modelFactory->makeAnimatedModel()); //Add an animated model to the scene
+
 	_viewManager->setProjection(viewportWidth, viewportHeight, nearPlaneDistance, farPlaneDistance); //Initializes projection matrix and broadcasts upate to all listeners
 
 	_viewManager->run(); //Enables the glut main loop

@@ -10,5 +10,8 @@ public:
     void display();
 	Vector4 operator / (float scale);
 	Vector4 operator + (Vector4 other);
-
+	float getx();
+	float gety();
+	float getz();
+	float getw();
 };

@@ -61,9 +61,6 @@ public:
     Matrix();
     Matrix(float *mat);
 
-	//ALWAYS CALL THIS FUNCTION BEFORE SENDING A MATRIX TO A SHADER!!!!!!!!!!!!!
-	Matrix getGLFormat(); //Returns the matrix in column major format which is how GL works
-
     Matrix transpose(); //Returns transpose of matrix
 	Matrix inverse(); //Returns inverse of matrix
 	Matrix operator * (Matrix mat); 
@@ -76,6 +73,7 @@ public:
     static Matrix rotationAroundZ(float degrees); //Build rotation matrix around the z axis
     static Matrix translation(float x, float y, float z); //Build translation matrix
     static Matrix scale(float scalar); //Build a scale matrix
+	static Matrix scale(float x, float y, float z); //Build a scale matrix
 
     //Used specific for view transformations associated with a camera view
     static Matrix cameraRotationAroundX(float degrees); //Build rotation matrix around the x axis

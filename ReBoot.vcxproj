@@ -82,11 +82,11 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\fbx-sdk\include;</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>glew32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>C:\Users\OctopusPrime\Documents\GitHub\ReBoot\glew-1.9.0\lib\x64;C:\Users\OctopusPrime\Documents\GitHub\ReBoot\glut-3.7.6\lib\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libfbxsdk-md.lib;glew32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\glew-1.9.0\lib\x64;..\glut-3.7.6\lib\x64;..\fbx-sdk\lib\debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
@@ -117,7 +117,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="AnimatedModel.cpp" />
+    <ClCompile Include="Animation.cpp" />
+    <ClCompile Include="AnimationBuilder.cpp" />
+    <ClCompile Include="AnimationFrames.cpp" />
     <ClCompile Include="DebugShader.cpp" />
+    <ClCompile Include="FbxLoader.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Matrix.cpp" />
     <ClCompile Include="Model.cpp" />
@@ -127,6 +132,7 @@
     <ClCompile Include="ShadowShader.cpp" />
     <ClCompile Include="SimpleContext.cpp" />
     <ClCompile Include="SimpleContextEvents.cpp" />
+    <ClCompile Include="SkinningData.cpp" />
     <ClCompile Include="StateVector.cpp" />
     <ClCompile Include="UpdateInterface.cpp" />
     <ClCompile Include="Vector4.cpp" />
@@ -134,7 +140,12 @@
     <ClCompile Include="ViewManagerEvents.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AnimatedModel.h" />
+    <ClInclude Include="Animation.h" />
+    <ClInclude Include="AnimationBuilder.h" />
+    <ClInclude Include="AnimationFrames.h" />
     <ClInclude Include="DebugShader.h" />
+    <ClInclude Include="FbxLoader.h" />
     <ClInclude Include="GLIncludes.h" />
     <ClInclude Include="ModelFactory.h" />
     <ClInclude Include="SceneManager.h" />
@@ -144,6 +155,7 @@
     <ClInclude Include="Model.h" />
     <ClInclude Include="Shader.h" />
     <ClInclude Include="SimpleContextEvents.h" />
+    <ClInclude Include="SkinningData.h" />
     <ClInclude Include="StateVector.h" />
     <ClInclude Include="UpdateInterface.h" />
     <ClInclude Include="Vector4.h" />

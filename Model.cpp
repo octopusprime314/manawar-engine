@@ -1,5 +1,6 @@
 #include "Model.h"
 #include "SimpleContext.h"
+#include "FbxLoader.h"
 
 Model::Model(){
 
@@ -7,8 +8,8 @@ Model::Model(){
 
 Model::Model(ViewManagerEvents* eventWrapper) : UpdateInterface(eventWrapper){
 
-	//enable debug mode
-	_debugMode = true;
+	//disable debug mode
+	_debugMode = false;
 
 	//Load default shader
 	_shaderProgram = new Shader();
@@ -17,6 +18,11 @@ Model::Model(ViewManagerEvents* eventWrapper) : UpdateInterface(eventWrapper){
 	//Load debug shader
 	_debugShaderProgram = new DebugShader();
 	_debugShaderProgram->build();
+
+    //Load in fbx object
+    FbxLoader fbxLoad("../models/landscape.fbx");
+	//Populate model with fbx file data and recursivelty search with the root node of the scene
+    fbxLoad.loadModel(this, fbxLoad.getScene()->GetRootNode()); 
 
     //DEFAULT MODEL
     //Cube vertices modeled around origin (0,0,0) with length,width,height of 2
@@ -308,4 +314,16 @@ size_t Model::getVertexCount(){
 
 size_t Model::getNormalLineCount(){
 	return _normalLineVertices.size();
+}
+
+void Model::addVertex(Vector4 vertex) {
+    _vertices.push_back(vertex);
+}
+
+void Model::addNormal(Vector4 normal) {
+    _normals.push_back(normal);
+}
+
+void Model::addDebugNormal(Vector4 normal){
+	_normalLineVertices.push_back(normal);
 }

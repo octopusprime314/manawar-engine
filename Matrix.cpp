@@ -230,6 +230,22 @@ Matrix Matrix::scale(float scalar) {
     return Matrix(result);
 }
 
+//Scale Matrix of 2, 4 and 5
+//| 2 0 0 0 |  
+//| 0 4 0 0 |  
+//| 0 0 5 0 |  
+//| 0 0 0 1 |  
+Matrix Matrix::scale(float x, float y, float z) {
+    float result[16]; //Get underlying matrix memory
+
+    result[0]  =   x,    result[1]  = 0.0,    result[2]  = 0.0,    result[3]  = 0.0;
+    result[4]  = 0.0,    result[5]  = y,      result[6]  = 0.0,    result[7]  = 0.0;
+    result[8]  = 0.0,    result[9]  = 0.0,    result[10] = z,      result[11] = 0.0;
+    result[12] = 0.0,    result[13] = 0.0,    result[14] = 0.0,    result[15] = 1.0;
+
+    return Matrix(result);
+}
+
 //Camera Rotation Matrix is opposite
 Matrix Matrix::cameraRotationAroundX(float degrees) {
     float result[16]; //Get underlying matrix memory
@@ -300,11 +316,6 @@ Matrix Matrix::cameraProjection(float angleOfView, float imageAspectRatio, float
     result[12] = 0,				   result[13] = 0,                result[14] = -1,					 result[15] = 0; 
 
 	return Matrix(result);
-}
-
-//ALWAYS CALL THIS FUNCTION BEFORE SENDING A MATRIX TO A SHADER!!!!!!!!!!!!!
-Matrix Matrix::getGLFormat(){
-	return transpose(); //Convert matrix from row major storage to column major storage
 }
 
 //Prints out the result in row major

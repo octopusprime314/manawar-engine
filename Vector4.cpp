@@ -44,3 +44,19 @@ void Vector4::display() {
     std::cout << setprecision(2) << std::setw(6) << _vec[0] << " " << std::setw(6) << _vec[1]
         << " " << std::setw(6) << _vec[2] << " " << std::setw(6) << _vec[3] << " " << std::endl;
 }
+
+float Vector4::getx(){
+	return _vec[0];
+}
+	
+float Vector4::gety(){
+	return _vec[1];
+}
+	
+float Vector4::getz(){
+	return _vec[2];
+}
+
+float Vector4::getw(){
+	return _vec[3];
+}

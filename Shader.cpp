@@ -157,9 +157,8 @@ GLhandleARB Shader::_compile(char* filename, unsigned int type)
 	char buffer[400000];
 	memset(buffer,0,400000);
 	
-	// This will raise a warning on MS compiler
-	pfile = fopen(filename, "rb");
-	if(!pfile)
+    errno_t err = fopen_s(&pfile, filename, "rb");
+	if(err != 0)
 	{
 		printf("Sorry, can't open file: '%s'.\n", filename);
 		return 0;
@@ -181,7 +180,7 @@ GLhandleARB Shader::_compile(char* filename, unsigned int type)
 					  handle, //The handle to our shader
 					  1, //The number of files.
 					  files, //An array of const char * data, which represents the source code of theshaders
-					  NULL);
+                      nullptr);
 	
 	glCompileShaderARB(handle);
 	

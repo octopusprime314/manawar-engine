@@ -23,13 +23,20 @@
 
 #pragma once
 #include <string>
-#include "AnimationFrames.h"
 #include "FbxLoader.h"
+#include "SkinningData.h"
+#include "AnimationFrame.h"
 class Animation {
 
-    AnimationFrames _frames; //Contains the skin/bone transforms that compose an entire animation frame
+    int                          _animationFrames;
+    std::vector<AnimationFrame*> _frames;
+    int                          _currentAnimationFrame;
 
 public:
-	Animation();
-	void addSkin(SkinningData* skin);
+    Animation();
+    ~Animation();
+    void addFrame(AnimationFrame* frame);
+    int getFrameCount();
+    AnimationFrame* getNextFrame();
+    void setFrames(int animationFrames);
 };

@@ -69,13 +69,13 @@
     <ClCompile Include="Animation.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="AnimationFrames.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="SkinningData.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="FbxLoader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AnimationFrame.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -137,13 +137,13 @@
     <ClInclude Include="AnimationBuilder.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="AnimationFrames.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="SkinningData.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="FbxLoader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AnimationFrame.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

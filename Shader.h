@@ -29,23 +29,23 @@
 class Model;
 
 //Simple shader loading class that should be derived from to create more complex shaders
-class Shader{
+class Shader {
 protected:
-	GLuint      _shaderContext; //keeps track of the shader context
-	GLint       _viewLocation;
-	GLint       _modelLocation;
-	GLint       _projectionLocation;
-	GLint       _normalLocation;
-	GLhandleARB _compile(char* filename, unsigned int type);
-	void        _link(GLhandleARB vertexShaderHandle, GLhandleARB fragmentShaderHandle);
+    GLuint      _shaderContext; //keeps track of the shader context
+    GLint       _viewLocation;
+    GLint       _modelLocation;
+    GLint       _projectionLocation;
+    GLint       _normalLocation;
+    GLhandleARB _compile(char* filename, unsigned int type);
+    void        _link(GLhandleARB vertexShaderHandle, GLhandleARB fragmentShaderHandle);
 public:
-	Shader();
+    Shader();
     virtual ~Shader();
-	virtual void build();
-	virtual void runShader(Model* model);
-	GLuint       getShaderContext();
-	GLint        getViewLocation();
-	GLint        getModelLocation();
-	GLint        getProjectionLocation();
-	GLint        getNormalLocation();
+    virtual void build();
+    virtual void runShader(Model* model);
+    GLuint       getShaderContext();
+    GLint        getViewLocation();
+    GLint        getModelLocation();
+    GLint        getProjectionLocation();
+    GLint        getNormalLocation();
 };

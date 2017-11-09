@@ -3,79 +3,79 @@
 
 SimpleContext::SimpleContext(int* argc, char** argv, unsigned int viewportWidth, unsigned int viewportHeight) {
 
-	glutInit(argc, argv); //initialize glut
-	
-	/* Select type of Display mode:   
-	Double buffer 
-	RGBA color
-	Alpha components supported 
-	Depth buffer */  
-	glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_ALPHA | GLUT_ACCUM | GLUT_DEPTH); 
+    glutInit(argc, argv); //initialize glut
 
-	//WINDOW CONTEXT SETTINGS
-	glutInitWindowPosition(0,0); //Position it at the top
-	glutInitWindowSize(viewportWidth, viewportHeight); //viewport pixel width and height
-	glutCreateWindow("ReBoot!"); //create a window called ReBoot
-		
-	//GLUT FUNCTION CALLBACKS
-	glutKeyboardFunc(&SimpleContext::_keyboardUpdate); //Set function callback for keyboard input
-	glutDisplayFunc(_drawUpdate); //Set function callback for draw updates
-	glutIdleFunc(_drawUpdate); //Set function callback for draw updates when no events are occuring
-	glutMouseFunc(_mouseUpdate); //Set function callback for mouse press input
-	glutMotionFunc(_mouseUpdate); //Set function callback for movement while pressing mouse 
-	glutPassiveMotionFunc(_mouseUpdate); //Set function callback for mouse movement without press
+    /* Select type of Display mode:
+    Double buffer
+    RGBA color
+    Alpha components supported
+    Depth buffer */
+    glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_ALPHA | GLUT_ACCUM | GLUT_DEPTH);
 
-	glewInit(); //initialize the extension gl call functionality
+    //WINDOW CONTEXT SETTINGS
+    glutInitWindowPosition(0, 0); //Position it at the top
+    glutInitWindowSize(viewportWidth, viewportHeight); //viewport pixel width and height
+    glutCreateWindow("ReBoot!"); //create a window called ReBoot
 
-	//PER SAMPLE PROCESSING DEFAULTS
-	glEnable(GL_TEXTURE_2D); //Enable use of textures
-	glutSetCursor(GLUT_CURSOR_NONE); //Disable cursor icon
-	glClearDepth(1.0); //Enables Clearing Of The Depth Buffer
-	glShadeModel(GL_SMOOTH); //Shade models smoothly
-	glEnable(GL_DEPTH_TEST); //Ensure depth test happens
-	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST); //Ask for nicest perspective correction
-	glDepthFunc(GL_LESS); //Keep the fragment closest
-	glEnable(GL_LIGHTING); //Lighting enabled
+    //GLUT FUNCTION CALLBACKS
+    glutKeyboardFunc(&SimpleContext::_keyboardUpdate); //Set function callback for keyboard input
+    glutDisplayFunc(_drawUpdate); //Set function callback for draw updates
+    glutIdleFunc(_drawUpdate); //Set function callback for draw updates when no events are occuring
+    glutMouseFunc(_mouseUpdate); //Set function callback for mouse press input
+    glutMotionFunc(_mouseUpdate); //Set function callback for movement while pressing mouse 
+    glutPassiveMotionFunc(_mouseUpdate); //Set function callback for mouse movement without press
+
+    glewInit(); //initialize the extension gl call functionality
+
+    //PER SAMPLE PROCESSING DEFAULTS
+    glEnable(GL_TEXTURE_2D); //Enable use of textures
+    glutSetCursor(GLUT_CURSOR_NONE); //Disable cursor icon
+    glClearDepth(1.0); //Enables Clearing Of The Depth Buffer
+    glShadeModel(GL_SMOOTH); //Shade models smoothly
+    glEnable(GL_DEPTH_TEST); //Ensure depth test happens
+    glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST); //Ask for nicest perspective correction
+    glDepthFunc(GL_LESS); //Keep the fragment closest
+    glEnable(GL_LIGHTING); //Lighting enabled
 
 
 }
 
-void SimpleContext::run(){
+void SimpleContext::run() {
 
-	glutMainLoop();
+    glutMainLoop();
 }
 
-void SimpleContext::subscribeToKeyboard(std::function<void(unsigned char, int, int)> func){ //Use this call to connect functions to key updates
-	_events.subscribeToKeyboard(func);
+void SimpleContext::subscribeToKeyboard(std::function<void(unsigned char, int, int)> func) { //Use this call to connect functions to key updates
+    _events.subscribeToKeyboard(func);
 }
-void SimpleContext::subscribeToMouse(std::function<void(int, int, int, int)> func){ //Use this call to connect functions to mouse updates
-	_events.subscribeToMouse(func);
+void SimpleContext::subscribeToMouse(std::function<void(int, int, int, int)> func) { //Use this call to connect functions to mouse updates
+    _events.subscribeToMouse(func);
 }
-void SimpleContext::subscribeToDraw(std::function<void()> func){ //Use this call to connect functions to draw updates
-	_events.subscribeToDraw(func);
+void SimpleContext::subscribeToDraw(std::function<void()> func) { //Use this call to connect functions to draw updates
+    _events.subscribeToDraw(func);
 }
 
 //All keyboard input from glut will be notified here
-void SimpleContext::_keyboardUpdate(unsigned char key, int x, int y){
+void SimpleContext::_keyboardUpdate(unsigned char key, int x, int y) {
 
-	SimpleContextEvents::updateKeyboard(key, x, y);
+    SimpleContextEvents::updateKeyboard(key, x, y);
 }
 
 //One frame draw update call
-void SimpleContext::_drawUpdate(){
+void SimpleContext::_drawUpdate() {
 
-	SimpleContextEvents::updateDraw();
+    SimpleContextEvents::updateDraw();
 }
 
 //All mouse input presses from glut will be notified here
-void SimpleContext::_mouseUpdate(int button, int state, int x, int y){
+void SimpleContext::_mouseUpdate(int button, int state, int x, int y) {
 
-	SimpleContextEvents::updateMouse(button, state, x, y);
+    SimpleContextEvents::updateMouse(button, state, x, y);
 }
 
 //All passive mouse movement input from glut will be notified here
-void SimpleContext::_mouseUpdate(int x, int y){
-	
-	SimpleContextEvents::updateMouse(x, y);
+void SimpleContext::_mouseUpdate(int x, int y) {
+
+    SimpleContextEvents::updateMouse(x, y);
 }
 

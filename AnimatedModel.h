@@ -17,7 +17,7 @@
 
 /**
 *  AnimatedModel class. Derives from Model class and is used for Models
-*  that have animation skinning transforms.  
+*  that have animation skinning transforms.
 */
 
 #pragma once
@@ -28,12 +28,18 @@
 class AnimatedModel : public Model {
 
     std::vector<Animation*> _animations;
+    int                     _currentAnimation;
+
+    void _loadFrame(AnimationFrame* frame);
 
     void updateKeyboard(unsigned char key, int x, int y); //Do stuff based on keyboard update
     void updateMouse(int button, int state, int x, int y); //Do stuff based on mouse update
+    void updateDraw();
 
 public:
     AnimatedModel(std::string name, ViewManagerEvents* eventWrapper);
     ~AnimatedModel();
-	void addAnimation(Animation* animation);
+    void addAnimation(Animation* animation);
+    void addFrame(AnimationFrame* frame);
+    Animation* getAnimation(); //Return current animation
 };

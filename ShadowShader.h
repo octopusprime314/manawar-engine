@@ -22,10 +22,10 @@
 #pragma once
 #include "Shader.h"
 
-class ShadowShader : public Shader{
+class ShadowShader : public Shader {
 
 public:
-	ShadowShader();
+    ShadowShader();
     ~ShadowShader();
-	void compile();
+    void compile();
 };

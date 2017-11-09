@@ -2,11 +2,11 @@
 #include <iterator>
 
 SkinningData::SkinningData(FbxCluster* skinData, FbxNode* node, int animationFrames) {
-    
+
     int skinningPoints = skinData->GetControlPointIndicesCount();
     auto indices = skinData->GetControlPointIndices();
     auto weights = skinData->GetControlPointWeights();
-   
+
     std::copy(&indices[0], &indices[skinningPoints], back_inserter(_indexes));
     std::copy(&weights[0], &weights[skinningPoints], back_inserter(_weights));
 
@@ -23,7 +23,6 @@ SkinningData::SkinningData(FbxCluster* skinData, FbxNode* node, int animationFra
     skinData->GetTransformLinkMatrix(transformLinkMatrix);
 
     FbxAMatrix globalBindposeInverseMatrix = transformLinkMatrix.Inverse() * transformMatrix * geometryTransform;
-    FbxVector4 globalBindposeInverseVector = transformLinkMatrix.Inverse().GetR() * transformMatrix.GetR() * rotVector;
 
     for (FbxLongLong j = 0; j < animationFrames; j++) {
         FbxTime currTime;
@@ -32,22 +31,35 @@ SkinningData::SkinningData(FbxCluster* skinData, FbxNode* node, int animationFra
         //Multiply node offset with global transform at time currTime and finally with inverse bind pose transform
         FbxAMatrix currentTransformOffset = node->EvaluateGlobalTransform(currTime) * geometryTransform;
 
-		FbxAMatrix transformed = ((currentTransformOffset.Inverse() * skinData->GetLink()->EvaluateGlobalTransform(currTime) 
-															  * globalBindposeInverseMatrix).Transpose()); 
+        FbxAMatrix transformed = ((currentTransformOffset.Inverse() * skinData->GetLink()->EvaluateGlobalTransform(currTime)
+            * globalBindposeInverseMatrix).Transpose());
 
-        double* matDouble = (double *)&transformed[0][0]; //Cast to linear double pointer
-		float matToFloat[16];
-		std::copy(matDouble, matDouble + 16, matToFloat); //Copy contents to float buffer
-		_frameVertexTransforms.push_back(Matrix(matToFloat)); //Add the transform
+        double* matVertex = (double *)&transformed[0][0]; //Cast to linear double pointer
+        _frameVertexTransforms.push_back(Matrix(matVertex)); //Add the transform
 
-        FbxAMatrix rotMatrix = (currentTransformOffset.Inverse() * skinData->GetLink()->EvaluateGlobalTransform(currTime) 
-																 * globalBindposeInverseMatrix).Transpose();
+        FbxAMatrix rotMatrix = (currentTransformOffset.Inverse() * skinData->GetLink()->EvaluateGlobalTransform(currTime)
+            * globalBindposeInverseMatrix).Transpose();
 
         FbxAMatrix rotMatrixResult = rotMatrix.Inverse().Transpose();
 
-		matDouble = (double *)&rotMatrixResult[0][0]; //Cast to linear double pointer
-		std::copy(matDouble, matDouble + 16, matToFloat); //Copy contents to float buffer
-		_frameNormalTransforms.push_back(Matrix(matToFloat)); //Add the transform
-
+        double* matNormal = (double *)&rotMatrixResult[0][0]; //Cast to linear double pointer
+        _frameNormalTransforms.push_back(Matrix(matNormal)); //Add the transform
     }
+}
+
+SkinningData::~SkinningData() {
+
+}
+
+std::vector<int>* SkinningData::getIndexes() {
+    return &_indexes;
+}
+std::vector<double>* SkinningData::getWeights() {
+    return &_weights;
+}
+std::vector<Matrix>* SkinningData::getFrameVertexTransforms() {
+    return &_frameVertexTransforms;
+}
+std::vector<Matrix>* SkinningData::getFrameNormalTransforms() {
+    return &_frameNormalTransforms;
 }

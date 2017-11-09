@@ -3,28 +3,28 @@
 //Initialize the factory
 ModelFactory* ModelFactory::_factory = nullptr;
 
-ModelFactory::ModelFactory() { 
-	_factory = nullptr;
+ModelFactory::ModelFactory() {
+    _factory = nullptr;
 }
 
 ModelFactory::~ModelFactory() {
-	delete _factory;
+    delete _factory;
     delete _viewEventWrapper;
 }
 
 ModelFactory* ModelFactory::instance() { //Only initializes the static pointer once
-	if(_factory == nullptr){
-		_factory = new ModelFactory();
-	}
-	return _factory;
+    if (_factory == nullptr) {
+        _factory = new ModelFactory();
+    }
+    return _factory;
 }
 
-void ModelFactory::setViewWrapper(ViewManager* viewManager) { 
-	_viewEventWrapper = viewManager->getEventWrapper();
-}	
+void ModelFactory::setViewWrapper(ViewManager* viewManager) {
+    _viewEventWrapper = viewManager->getEventWrapper();
+}
 
 Model* ModelFactory::makeModel(std::string name) {
-	return new Model(name, _viewEventWrapper);
+    return new Model(name, _viewEventWrapper);
 }
 
 AnimatedModel* ModelFactory::makeAnimatedModel(std::string name) {

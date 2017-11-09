@@ -39,32 +39,37 @@ enum class ModelClass {
 };
 
 class Model : public UpdateInterface {
-    
+
 
 public:
 
     Model();
     //Default model to type to base class
-	Model(std::string name, ViewManagerEvents* eventWrapper, ModelClass classId = ModelClass::ModelType); 
+    Model(std::string name, ViewManagerEvents* eventWrapper, ModelClass classId = ModelClass::ModelType);
     ~Model();
-	Matrix               getModel();
-	Matrix               getView();
-	Matrix               getProjection();
-	Matrix               getNormal();
-	float*               getModelBuffer();
-	float*               getViewBuffer();
-	float*               getProjectionBuffer();
-	float*               getNormalBuffer();
-	GLuint               getVertexContext();
-	GLuint               getNormalContext();
-	GLuint               getNormalDebugContext();
-	size_t               getVertexCount();
-	size_t               getNormalLineCount();
-    std::vector<Vector4> getVertices();
-    std::vector<Vector4> getNormals();
-    void                 addVertex(Vector4 vertex);
-    void                 addNormal(Vector4 normal);
-    void                 addDebugNormal(Vector4 normal);
+    Matrix                      getModel();
+    Matrix                      getView();
+    Matrix                      getProjection();
+    Matrix                      getNormal();
+    float*                      getModelBuffer();
+    float*                      getViewBuffer();
+    float*                      getProjectionBuffer();
+    float*                      getNormalBuffer();
+    GLuint                      getVertexContext();
+    GLuint                      getNormalContext();
+    GLuint                      getNormalDebugContext();
+    size_t                      getVertexCount();
+    size_t                      getNormalLineCount();
+    std::vector<Vector4>*       getVertices();
+    std::vector<Vector4>*       getNormals();
+    std::vector<int>*		    getIndices();
+    void                        addVertex(Vector4 vertex);
+    void                        addNormal(Vector4 normal);
+    void                        addDebugNormal(Vector4 normal);
+    void						setVertexIndices(std::vector<int>* indices);
+    ModelClass                  getClassType();
+    size_t						getIndicesCount();
+    size_t                      getArrayCount();
 
 protected:
     Matrix               _model; //Object and World Space Matrix i.e. how the model is centered around the origin and 
@@ -81,14 +86,15 @@ protected:
     Shader*              _shaderProgram; //Container object of the Model's shader
     DebugShader*         _debugShaderProgram; //Container object of the normal line shader
     bool                 _debugMode; //Runs an extra shader with debug information include normals
-    std::vector<Vector4> _normalLineVertices; //Vertex storage for normal line visualization
+    std::vector<Vector4> _debugNormals; //Vertex storage for normal line visualization
     FbxLoader*           _fbxLoader; //Used to load fbx data and parse it into engine format
     ModelClass           _classId; //Used to identify which class is being used
+    std::vector<int>*    _indices; //Used to map vertices
 
-	void                 updateKeyboard(unsigned char key, int x, int y); //Do stuff based on keyboard upate
-	void                 updateMouse(int button, int state, int x, int y); //Do stuff based on mouse update
-	void                 updateDraw(); //Do draw stuff
-	void                 updateView(Matrix view); //Get view matrix updates
-	void                 updateProjection(Matrix projection); //Get projection matrix updates
+    void                 updateKeyboard(unsigned char key, int x, int y); //Do stuff based on keyboard upate
+    void                 updateMouse(int button, int state, int x, int y); //Do stuff based on mouse update
+    void                 updateDraw(); //Do draw stuff
+    void                 updateView(Matrix view); //Get view matrix updates
+    void                 updateProjection(Matrix projection); //Get projection matrix updates
 
 };

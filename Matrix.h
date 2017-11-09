@@ -73,17 +73,21 @@ class Matrix {
     //| 0 0 2 0 |  
     //| 0 0 0 1 |  
 
-    
+
     float _matrix[16];
 
 public:
     Matrix();
     Matrix(float *mat);
+    Matrix(double *mat);
 
     Matrix        transpose(); //Returns transpose of matrix
-	Matrix        inverse(); //Returns inverse of matrix
-	Matrix        operator * (Matrix mat); 
+    Matrix        inverse(); //Returns inverse of matrix
+    Matrix        operator * (Matrix mat);
     Vector4       operator * (Vector4 vec);
+    Matrix        operator * (double scale);
+    Matrix        operator * (float scale);
+    Matrix        operator + (Matrix mat);
     float*        getFlatBuffer();
     void          display();
 
@@ -92,12 +96,12 @@ public:
     static Matrix rotationAroundZ(float degrees); //Build rotation matrix around the z axis
     static Matrix translation(float x, float y, float z); //Build translation matrix
     static Matrix scale(float scalar); //Build a scale matrix
-	static Matrix scale(float x, float y, float z); //Build a scale matrix
+    static Matrix scale(float x, float y, float z); //Build a scale matrix
 
     //Used specific for view transformations associated with a camera view
     static Matrix cameraRotationAroundX(float degrees); //Build rotation matrix around the x axis
     static Matrix cameraRotationAroundY(float degrees); //Build rotation matrix around the y axis
     static Matrix cameraRotationAroundZ(float degrees); //Build rotation matrix around the z axis
     static Matrix cameraTranslation(float x, float y, float z); //Build translation matrix
-	static Matrix cameraProjection(float angleOfView, float aspectRatio, float near, float far);
-}; 
+    static Matrix cameraProjection(float angleOfView, float aspectRatio, float near, float far);
+};

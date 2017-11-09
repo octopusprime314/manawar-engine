@@ -24,7 +24,7 @@
 #include "Matrix.h"
 #include "fbxsdk.h"
 class SkinningData {
- 
+
     std::vector<int>          _indexes;
     std::vector<double>       _weights;
     std::vector<Matrix>       _frameVertexTransforms;
@@ -32,4 +32,10 @@ class SkinningData {
 
 public:
     SkinningData(FbxCluster* skinData, FbxNode* node, int animationFrames);
+    ~SkinningData();
+
+    std::vector<int>*          getIndexes();
+    std::vector<double>*       getWeights();
+    std::vector<Matrix>*       getFrameVertexTransforms();
+    std::vector<Matrix>*       getFrameNormalTransforms();
 };

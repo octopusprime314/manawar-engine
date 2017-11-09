@@ -124,7 +124,7 @@
     <ClCompile Include="AnimatedModel.cpp" />
     <ClCompile Include="Animation.cpp" />
     <ClCompile Include="AnimationBuilder.cpp" />
-    <ClCompile Include="AnimationFrames.cpp" />
+    <ClCompile Include="AnimationFrame.cpp" />
     <ClCompile Include="DebugShader.cpp" />
     <ClCompile Include="FbxLoader.cpp" />
     <ClCompile Include="main.cpp" />
@@ -147,7 +147,7 @@
     <ClInclude Include="AnimatedModel.h" />
     <ClInclude Include="Animation.h" />
     <ClInclude Include="AnimationBuilder.h" />
-    <ClInclude Include="AnimationFrames.h" />
+    <ClInclude Include="AnimationFrame.h" />
     <ClInclude Include="DebugShader.h" />
     <ClInclude Include="FbxLoader.h" />
     <ClInclude Include="GLIncludes.h" />

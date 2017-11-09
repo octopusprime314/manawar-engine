@@ -18,7 +18,7 @@
 /**
 *  ViewManager class.  Manages the transformation of the view state.
 *  Geometry that live in model-world space need to be updated in opposite
-*  fashion in order to properly move geometry around view. 
+*  fashion in order to properly move geometry around view.
 *  Classes that derive from UpdateInterface will receive view manager
 *  change events and will transform their model-world space to the updated
 *  view transform.
@@ -31,31 +31,31 @@
 #include "ViewManagerEvents.h"
 
 class SimpleContext;
-class ViewManager : public UpdateInterface{
+class ViewManager : public UpdateInterface {
 
     Matrix             _view;
     Matrix             _projection;
 
-	Matrix             _translation; //Keep track of translation state
-	Matrix             _rotation; //Keep track of rotation state
+    Matrix             _translation; //Keep track of translation state
+    Matrix             _rotation; //Keep track of rotation state
 
-	Matrix             _inverseRotation; //Manages how to translate based on the inverse of the actual rotation matrix
+    Matrix             _inverseRotation; //Manages how to translate based on the inverse of the actual rotation matrix
 
-	ViewManagerEvents* _viewEvents;
+    ViewManagerEvents* _viewEvents;
 
-	SimpleContext*     _glutContext;
+    SimpleContext*     _glutContext;
 public:
 
     ViewManager();
-	ViewManager(int* argc, char** argv, unsigned int viewportWidth, unsigned int viewportHeight);
+    ViewManager(int* argc, char** argv, unsigned int viewportWidth, unsigned int viewportHeight);
     ~ViewManager();
     void               applyTransform(Matrix transform);
-	void               setProjection(unsigned int viewportWidth, unsigned int viewportHeight, float nearPlaneDistance, float farPlaneDistance);
-	ViewManagerEvents* getEventWrapper();
-	void               run(); //Make this call to start glut mainloop
+    void               setProjection(unsigned int viewportWidth, unsigned int viewportHeight, float nearPlaneDistance, float farPlaneDistance);
+    ViewManagerEvents* getEventWrapper();
+    void               run(); //Make this call to start glut mainloop
 
 protected:
-	void               updateKeyboard(unsigned char key, int x, int y); //Do stuff based on keyboard upate
-	void               updateMouse(int button, int state, int x, int y); //Do stuff based on mouse update
-	void               updateDraw(); //Do draw stuff
+    void               updateKeyboard(unsigned char key, int x, int y); //Do stuff based on keyboard upate
+    void               updateMouse(int button, int state, int x, int y); //Do stuff based on mouse update
+    void               updateDraw(); //Do draw stuff
 };

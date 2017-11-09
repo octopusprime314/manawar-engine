@@ -16,7 +16,7 @@
 */
 
 /**
-*  AnimationFrames class. Contains the skinning transforms for individual 
+*  AnimationFrames class. Contains the skinning transforms for individual
 *  animation frames
 */
 
@@ -28,13 +28,16 @@
 
 const float FRAMERATE = 60.0f;
 
-class AnimationFrames {
-    
-    int                        _animationFrames;
-    std::vector<SkinningData*> _skins;
+class AnimationFrame {
+
+    std::vector<Vector4>* _normals;             //Normal data for an animation frame
+    std::vector<Vector4>* _vertices;            //Vertex data for an animation frame
+    std::vector<Vector4>* _debugNormals;        //Normal debugging data for an animation frame
 
 public:
-    AnimationFrames();
-    ~AnimationFrames();
-    void addSkinToFrame(SkinningData* skinData);
+    AnimationFrame(std::vector<Vector4>* vertices, std::vector<Vector4>* normals, std::vector<Vector4>* debugNormals);
+    ~AnimationFrame();
+    std::vector<Vector4>* getVertices();
+    std::vector<Vector4>* getNormals();
+    std::vector<Vector4>* getDebugNormals();
 };

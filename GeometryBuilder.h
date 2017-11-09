@@ -132,34 +132,35 @@ namespace GeometryBuilder {
         model->addNormal(Vector4(-1.0, 0.0, 0.0, 1.0));
 
         //zx plane triangle top + y
-        model->addVertex(Vector4(0.0, 1.0, 0.0, 1.0));
-        model->addVertex(Vector4(0.0, 1.0, 0.0, 1.0));
-        model->addVertex(Vector4(0.0, 1.0, 0.0, 1.0));
+        model->addNormal(Vector4(0.0, 1.0, 0.0, 1.0));
+        model->addNormal(Vector4(0.0, 1.0, 0.0, 1.0));
+        model->addNormal(Vector4(0.0, 1.0, 0.0, 1.0));
 
         //zx plane triangle top + y
-        model->addVertex(Vector4(0.0, 1.0, 0.0, 1.0));
-        model->addVertex(Vector4(0.0, 1.0, 0.0, 1.0));
-        model->addVertex(Vector4(0.0, 1.0, 0.0, 1.0));
+        model->addNormal(Vector4(0.0, 1.0, 0.0, 1.0));
+        model->addNormal(Vector4(0.0, 1.0, 0.0, 1.0));
+        model->addNormal(Vector4(0.0, 1.0, 0.0, 1.0));
 
         //zx plane triangle bottom - y
-        model->addVertex(Vector4(0.0, -1.0, 0.0, 1.0));
-        model->addVertex(Vector4(0.0, -1.0, 0.0, 1.0));
-        model->addVertex(Vector4(0.0, -1.0, 0.0, 1.0));
+        model->addNormal(Vector4(0.0, -1.0, 0.0, 1.0));
+        model->addNormal(Vector4(0.0, -1.0, 0.0, 1.0));
+        model->addNormal(Vector4(0.0, -1.0, 0.0, 1.0));
 
         //zx plane triangle bottom - y
-        model->addVertex(Vector4(0.0, -1.0, 0.0, 1.0));
-        model->addVertex(Vector4(0.0, -1.0, 0.0, 1.0));
-        model->addVertex(Vector4(0.0, -1.0, 0.0, 1.0));
+        model->addNormal(Vector4(0.0, -1.0, 0.0, 1.0));
+        model->addNormal(Vector4(0.0, -1.0, 0.0, 1.0));
+        model->addNormal(Vector4(0.0, -1.0, 0.0, 1.0));
 
 
-        //Lines for normal visualization
-        std::vector<Vector4> vertices = model->getVertices();
-        std::vector<Vector4> normals = model->getNormals();
-        size_t length = vertices.size();
-        for (int i = 0; i < length; ++i) {
-            model->addDebugNormal(vertices[i]);
-            model->addDebugNormal(vertices[i] + normals[i]);
-        }
+   //     //Lines for normal visualization
+   //     const std::vector<Vector4>* vertices = model->getVertices();
+   //     const std::vector<Vector4>* normals = model->getNormals();
+   //     size_t length = vertices->size();
+   //     for (int i = 0; i < length; ++i) {
+   //		  Vector4 vertex = static_cast<Vector4>((*vertices)[i]);
+   //         model->addDebugNormal(vertex);
+   //         model->addDebugNormal(vertex + (*normals)[i]);
+   //     }
 
     }
 }

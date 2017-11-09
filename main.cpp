@@ -18,7 +18,7 @@ int main(int argc, char** argv) {
     //translateAgain.display();
 
     Matrix finalTransformation = translate * rotateY * translateAgain;
-    Vector4 pos = translate * rotateY * translateAgain * Vector4(0,0,0,1); //Origin vector
+    Vector4 pos = translate * rotateY * translateAgain * Vector4(0, 0, 0, 1); //Origin vector
     //pos.display();
 
     //Multiply matrices as we go and store in one
@@ -26,17 +26,17 @@ int main(int argc, char** argv) {
     transformation = transformation * Matrix::translation(0.0, 0.0, -10.0);
     transformation = transformation * Matrix::rotationAroundY(90.0);
     transformation = transformation * Matrix::translation(0.0, 0.0, -2.0);
-    Vector4 pos2 = transformation * Vector4(0,0,0,1);
+    Vector4 pos2 = transformation * Vector4(0, 0, 0, 1);
     //pos2.display();
 
     //Multiple ways to get results
     Vector4 pos3 = Matrix::translation(0.0, 0.0, -10.0) * Matrix::rotationAroundY(90.0) * Matrix::translation(0.0, 0.0, -2.0) * Vector4(0, 0, 0, 1);
     //pos3.display();
 
-	//Send the width and height in pixel units and the near and far plane to describe the view frustum
-	SceneManager sceneManager(&argc, argv, 1920, 1080, 0.1, 1000); //Manages the camera view and models in scene
+    //Send the width and height in pixel units and the near and far plane to describe the view frustum
+    SceneManager sceneManager(&argc, argv, 1920, 1080, 0.1, 1000); //Manages the camera view and models in scene
 
     std::cout << "Done matrix testing!" << std::endl;
 
-	return 0;
+    return 0;
 }

@@ -49,7 +49,7 @@ ViewManagerEvents* ViewManager::getEventWrapper() {
     return _viewEvents;
 }
 
-void ViewManager::updateKeyboard(unsigned char key, int x, int y) { //Do stuff based on keyboard update
+void ViewManager::_updateKeyboard(unsigned char key, int x, int y) { //Do stuff based on keyboard update
 
     if (key == 119 || key == 115 || key == 97 || key == 100) {
 
@@ -81,7 +81,7 @@ void ViewManager::updateKeyboard(unsigned char key, int x, int y) { //Do stuff b
     }
 }
 
-void ViewManager::updateMouse(int button, int state, int x, int y) { //Do stuff based on mouse update
+void ViewManager::_updateMouse(int button, int state, int x, int y) { //Do stuff based on mouse update
 
     int widthMidpoint = 1080 / 2;
     int heightMidpoint = 1920 / 2;
@@ -101,6 +101,6 @@ void ViewManager::updateMouse(int button, int state, int x, int y) { //Do stuff 
         glutWarpPointer(widthMidpoint, heightMidpoint);  //Bring cursor back to center position
     }
 }
-void ViewManager::updateDraw() { //Do draw stuff
+void ViewManager::_updateDraw() { //Do draw stuff
 
 }

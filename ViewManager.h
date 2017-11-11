@@ -55,7 +55,7 @@ public:
     void               run(); //Make this call to start glut mainloop
 
 protected:
-    void               updateKeyboard(unsigned char key, int x, int y); //Do stuff based on keyboard upate
-    void               updateMouse(int button, int state, int x, int y); //Do stuff based on mouse update
-    void               updateDraw(); //Do draw stuff
+    void               _updateKeyboard(unsigned char key, int x, int y); //Do stuff based on keyboard upate
+    void               _updateMouse(int button, int state, int x, int y); //Do stuff based on mouse update
+    void               _updateDraw(); //Do draw stuff
 };

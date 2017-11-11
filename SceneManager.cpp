@@ -8,7 +8,7 @@ SceneManager::SceneManager(int* argc, char** argv, unsigned int viewportWidth, u
 
     _modelFactory->setViewWrapper(_viewManager); //Set the reference to the view model event interface
 
-    _modelList.push_back(_modelFactory->makeModel("../models/landscape.fbx")); //Add a model to the scene
+    //_modelList.push_back(_modelFactory->makeModel("../models/landscape.fbx")); //Add a static model to the scene
 
     _modelList.push_back(_modelFactory->makeAnimatedModel("../models/hagraven_idle.fbx")); //Add an animated model to the scene
 

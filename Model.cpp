@@ -95,7 +95,7 @@ Model::~Model() {
     delete _shaderProgram;
 }
 
-void Model::updateDraw() {
+void Model::_updateDraw() {
 
     //if debugging normals, etc.
     if (_debugMode) {
@@ -109,22 +109,22 @@ void Model::updateDraw() {
 
 }
 
-void Model::updateKeyboard(unsigned char key, int x, int y) {
+void Model::_updateKeyboard(unsigned char key, int x, int y) {
     //std::cout << key << std::endl;
 }
 
-void Model::updateMouse(int button, int state, int x, int y) {
+void Model::_updateMouse(int button, int state, int x, int y) {
     //std::cout << x << " " << y << std::endl;
 }
 
-void Model::updateView(Matrix view) {
+void Model::_updateView(Matrix view) {
     _view = view; //Receive updates when the view matrix has changed
 
     //If view changes then change our normal matrix
     _normal = _view.inverse().transpose();
 }
 
-void Model::updateProjection(Matrix projection) {
+void Model::_updateProjection(Matrix projection) {
     _projection = projection; //Receive updates when the projection matrix has changed
 }
 
@@ -200,16 +200,27 @@ void Model::addDebugNormal(Vector4 normal) {
     _debugNormals.push_back(normal);
 }
 
-void Model::setVertexIndices(std::vector<int>* indices) {
+void Model::setVertexIndices(std::vector<int> indices) {
     _indices = indices;
 }
 
 size_t Model::getIndicesCount() {
-    return _indices->size();
+    return _indices.size();
 }
 
 std::vector<int>* Model::getIndices() {
-    return _indices;
+    return &_indices;
+}
+
+void Model::setVertexContext(GLuint context){
+    _vertexBufferContext = context;
+}
+
+void Model::setNormalContext(GLuint context){
+    _normalBufferContext = context;
+}
+void Model::setNormalDebugContext(GLuint context){
+    _debugNormalBufferContext = context;
 }
 
 ModelClass Model::getClassType() {
@@ -218,7 +229,7 @@ ModelClass Model::getClassType() {
 
 size_t Model::getArrayCount() {
     if(_classId == ModelClass::AnimatedModelType){
-        return _indices->size();
+        return _indices.size();
     }
     else if(_classId == ModelClass::ModelType) {
         return _vertices.size();

@@ -224,7 +224,8 @@ void FbxLoader::_buildAnimationFrames(AnimatedModel* model, const std::vector<Sk
         }
         //Create an animation frame and add it to the animation object for safe keeping!
         AnimationFrame* frame = new AnimationFrame(animationVertices, animationNormals, animationDebugNormals);
-        animation->addFrame(frame); //Add a new frame to the animation
+        animation->addFrame(frame, false 
+            ); //Add a new frame to the animation and do not store in GPU memory yet
     }
 }
 
@@ -246,8 +247,7 @@ void FbxLoader::loadModelData(Model* model, FbxMesh* meshNode, FbxNode* childNod
     int* indices = meshNode->GetPolygonVertices();
     int  numVerts = meshNode->GetControlPointsCount();
 
-    std::vector<int>* indicesVector = new std::vector<int>(indices, indices + numIndices);
-    model->setVertexIndices(indicesVector);
+    model->setVertexIndices(std::vector<int>(indices, indices + numIndices)); //Copy vector
 
     //Get the vertices from the model
     std::vector<Vector4> vertices;
@@ -319,8 +319,7 @@ void FbxLoader::_buildTriangles(Model* model, std::vector<Vector4>& vertices, st
     std::vector<int>& indices, Matrix translation, Matrix rotation, Matrix scale) {
 
     int triCount = 0;
-    //Matrix transformation = scale * translation * rotation;
-    Matrix transformation = translation * scale * rotation;
+    Matrix transformation = translation * rotation * scale;
 
     size_t totalTriangles = indices.size() / 3; //Each index represents one vertex and a triangle is 3 vertices
     //Read each triangle vertex indices and store them in triangle array

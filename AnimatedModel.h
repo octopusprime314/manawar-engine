@@ -29,17 +29,15 @@ class AnimatedModel : public Model {
 
     std::vector<Animation*> _animations;
     int                     _currentAnimation;
-
-    void _loadFrame(AnimationFrame* frame);
-
-    void updateKeyboard(unsigned char key, int x, int y); //Do stuff based on keyboard update
-    void updateMouse(int button, int state, int x, int y); //Do stuff based on mouse update
-    void updateDraw();
+    
+protected:
+    void                    _updateKeyboard(unsigned char key, int x, int y); //Do stuff based on keyboard update
+    void                    _updateMouse(int button, int state, int x, int y); //Do stuff based on mouse update
+    void                    _updateDraw();
 
 public:
     AnimatedModel(std::string name, ViewManagerEvents* eventWrapper);
     ~AnimatedModel();
-    void addAnimation(Animation* animation);
-    void addFrame(AnimationFrame* frame);
-    Animation* getAnimation(); //Return current animation
+    void                    addAnimation(Animation* animation);
+    Animation*              getAnimation(); //Return current animation
 };

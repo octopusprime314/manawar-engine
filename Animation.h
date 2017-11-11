@@ -26,17 +26,25 @@
 #include "FbxLoader.h"
 #include "SkinningData.h"
 #include "AnimationFrame.h"
+#include "GLIncludes.h"
+
+class Model;
+
 class Animation {
 
     int                          _animationFrames;
     std::vector<AnimationFrame*> _frames;
     int                          _currentAnimationFrame;
+    std::vector<GLuint>          _frameVerticesVBO;
+    std::vector<GLuint>          _frameNormalsVBO;
+    std::vector<GLuint>          _frameDebugNormalsVBO;
+    bool                         _storedInGPU; //boolean indicating whether animation frames are prestored into GPU memory or not
 
 public:
     Animation();
     ~Animation();
-    void addFrame(AnimationFrame* frame);
-    int getFrameCount();
-    AnimationFrame* getNextFrame();
+    void addFrame(AnimationFrame* frame, bool sendToGPU); //If sendToGPU is true then create a vbo for the frame
+    int  getFrameCount();
     void setFrames(int animationFrames);
+    void loadFrame(Model* model); //Takes in model object and assigns animation data to it
 };

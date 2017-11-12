@@ -38,6 +38,7 @@ class ViewManager : public UpdateInterface {
 
     Matrix             _translation; //Keep track of translation state
     Matrix             _rotation; //Keep track of rotation state
+    Matrix             _scale; //Keep track of scale state
 
     Matrix             _inverseRotation; //Manages how to translate based on the inverse of the actual rotation matrix
 
@@ -51,6 +52,8 @@ public:
     ~ViewManager();
     void               applyTransform(Matrix transform);
     void               setProjection(unsigned int viewportWidth, unsigned int viewportHeight, float nearPlaneDistance, float farPlaneDistance);
+    void               setView(Matrix translation, Matrix rotation, Matrix scale);
+    
     ViewManagerEvents* getEventWrapper();
     void               run(); //Make this call to start glut mainloop
 

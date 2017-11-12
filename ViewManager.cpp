@@ -39,6 +39,16 @@ void ViewManager::setProjection(unsigned int viewportWidth, unsigned int viewpor
 
     //Broadcast perspective matrix once to all subscribers
     _viewEvents->updateProjection(_projection);
+
+   
+}
+
+void ViewManager::setView(Matrix translation, Matrix rotation, Matrix scale){
+    _translation = translation;
+    _rotation = rotation;
+    _scale = scale;
+    _view = _view * _scale * _rotation * _translation;
+    _viewEvents->updateView(_view);
 }
 
 void ViewManager::applyTransform(Matrix transform) {

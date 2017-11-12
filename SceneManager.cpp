@@ -1,4 +1,5 @@
 #include "SceneManager.h"
+#include "MasterClock.h"
 
 SceneManager::SceneManager(int* argc, char** argv, unsigned int viewportWidth, unsigned int viewportHeight, float nearPlaneDistance, float farPlaneDistance) {
 
@@ -10,9 +11,18 @@ SceneManager::SceneManager(int* argc, char** argv, unsigned int viewportWidth, u
 
     //_modelList.push_back(_modelFactory->makeModel("../models/landscape.fbx")); //Add a static model to the scene
 
-    _modelList.push_back(_modelFactory->makeAnimatedModel("../models/hagraven_idle.fbx")); //Add an animated model to the scene
+    _modelList.push_back(_modelFactory->makeAnimatedModel("../models/troll_idle.fbx")); //Add an animated model to the scene
+
+    //_modelList.push_back(_modelFactory->makeAnimatedModel("../models/hagraven_idle.fbx")); //Add an animated model to the scene
+
+    //_modelList.push_back(_modelFactory->makeAnimatedModel("../models/troll_idle.fbx")); //Add an animated model to the scene
+
+    //_modelList.push_back(_modelFactory->makeAnimatedModel("../models/hagraven_idle.fbx")); //Add an animated model to the scene
 
     _viewManager->setProjection(viewportWidth, viewportHeight, nearPlaneDistance, farPlaneDistance); //Initializes projection matrix and broadcasts upate to all listeners
+    _viewManager->setView(Matrix::cameraTranslation(0.0, 0.0, 25.0), Matrix(), Matrix()); //Place view 25 meters in +z direction
+
+    MasterClock::instance()->run(); //Scene manager kicks off the clock event manager
 
     _viewManager->run(); //Enables the glut main loop
 }

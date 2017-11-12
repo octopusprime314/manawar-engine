@@ -30,6 +30,7 @@
 #include "DebugShader.h"
 #include <iostream>
 #include "FbxLoader.h"
+#include "MasterClock.h"
 
 class SimpleContext;
 
@@ -40,16 +41,12 @@ enum class ModelClass {
 
 class Model : public UpdateInterface {
 
-
 public:
 
     Model();
     //Default model to type to base class
     Model(std::string name, ViewManagerEvents* eventWrapper, ModelClass classId = ModelClass::ModelType);
     virtual ~Model();
-    Matrix                      getModel();
-    Matrix                      getView();
-    Matrix                      getProjection();
     Matrix                      getNormal();
     float*                      getModelBuffer();
     float*                      getViewBuffer();
@@ -58,11 +55,12 @@ public:
     GLuint                      getVertexContext();
     GLuint                      getNormalContext();
     GLuint                      getNormalDebugContext();
+    GLuint                      getBufferedVertexContext();
+    GLuint                      getBufferedNormalContext();
+    GLuint                      getBufferedNormalDebugContext();
     void                        setVertexContext(GLuint context);
     void                        setNormalContext(GLuint context);
     void                        setNormalDebugContext(GLuint context);
-    size_t                      getVertexCount();
-    size_t                      getNormalLineCount();
     std::vector<Vector4>*       getVertices();
     std::vector<Vector4>*       getNormals();
     std::vector<int>*		    getIndices();
@@ -71,7 +69,6 @@ public:
     void                        addDebugNormal(Vector4 normal);
     void						setVertexIndices(std::vector<int> indices);
     ModelClass                  getClassType();
-    size_t						getIndicesCount();
     size_t                      getArrayCount();
 
 protected:
@@ -84,20 +81,23 @@ protected:
     std::vector<Vector4>        _vertices; //Vertices that make up the triangles of the model
     std::vector<Vector4>        _normals; //Normals that implement how light is shaded onto a model
     std::vector<int>            _indices; //Used to map vertices
-    GLuint                      _vertexBufferContext; //Used as the vertex attribute vbo context
-    GLuint                      _normalBufferContext; //Used as the normal attribute vbo context
-    GLuint                      _debugNormalBufferContext; //Used as the debug normal line attribute vbo context
+    GLuint                      _vertexBufferContext[2]; //Used as the vertex attribute vbo context, double buffered
+    GLuint                      _normalBufferContext[2]; //Used as the normal attribute vbo context, double buffered
+    GLuint                      _debugNormalBufferContext[2]; //Used as the debug normal line attribute vbo context, double buffered
     Shader*                     _shaderProgram; //Container object of the Model's shader
     DebugShader*                _debugShaderProgram; //Container object of the normal line shader
     bool                        _debugMode; //Runs an extra shader with debug information include normals
     std::vector<Vector4>        _debugNormals; //Vertex storage for normal line visualization
     FbxLoader*                  _fbxLoader; //Used to load fbx data and parse it into engine format
     ModelClass                  _classId; //Used to identify which class is being used
+    MasterClock*                _clock; //Used to coordinate time with the world
+    bool                        _doubleBufferIndex; //Used to switch between gpu contexts for buffering purposes
     
     void                        _updateKeyboard(unsigned char key, int x, int y); //Do stuff based on keyboard upate
     void                        _updateMouse(int button, int state, int x, int y); //Do stuff based on mouse update
     void                        _updateDraw(); //Do draw stuff
     void                        _updateView(Matrix view); //Get view matrix updates
     void                        _updateProjection(Matrix projection); //Get projection matrix updates
+    void                        _updateKinematics(int milliSeconds);
 
 };

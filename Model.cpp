@@ -7,7 +7,10 @@ Model::Model() {
 
 }
 
-Model::Model(std::string name, ViewManagerEvents* eventWrapper, ModelClass classId) : _fbxLoader(nullptr), UpdateInterface(eventWrapper) {
+Model::Model(std::string name, ViewManagerEvents* eventWrapper, ModelClass classId) : UpdateInterface(eventWrapper),
+    _fbxLoader(nullptr), 
+    _clock(MasterClock::instance()),
+    _doubleBufferIndex(true) {
 
     //Set class id
     _classId = classId;
@@ -65,27 +68,30 @@ Model::Model(std::string name, ViewManagerEvents* eventWrapper, ModelClass class
         flattenNormLines[i++] = flat[2];
     }
 
-    //Create a buffer that will be filled with the vertex data
-    glGenBuffers(1, &_vertexBufferContext);
-    glBindBuffer(GL_ARRAY_BUFFER, _vertexBufferContext);
+    //Create a double buffer that will be filled with the vertex data
+    glGenBuffers(2, &_vertexBufferContext[0]);
+    glBindBuffer(GL_ARRAY_BUFFER, _vertexBufferContext[0]);
     glBufferData(GL_ARRAY_BUFFER, sizeof(float)*triBuffSize, flattenVerts, GL_STATIC_DRAW);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-    //Create a buffer that will be filled with the normal data
-    glGenBuffers(1, &_normalBufferContext);
-    glBindBuffer(GL_ARRAY_BUFFER, _normalBufferContext);
+    //Create a double buffer that will be filled with the normal data
+    glGenBuffers(2, &_normalBufferContext[0]);
+    glBindBuffer(GL_ARRAY_BUFFER, _normalBufferContext[0]);
     glBufferData(GL_ARRAY_BUFFER, sizeof(float)*triBuffSize, flattenNorms, GL_STATIC_DRAW);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-    //Create a buffer that will be filled with the normal line data for visualizing normals
-    glGenBuffers(1, &_debugNormalBufferContext);
-    glBindBuffer(GL_ARRAY_BUFFER, _debugNormalBufferContext);
+    //Create a double buffer that will be filled with the normal line data for visualizing normals
+    glGenBuffers(2, &_debugNormalBufferContext[0]);
+    glBindBuffer(GL_ARRAY_BUFFER, _debugNormalBufferContext[0]);
     glBufferData(GL_ARRAY_BUFFER, sizeof(float)*lineBuffSize, flattenNormLines, GL_STATIC_DRAW);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     delete[] flattenVerts;
     delete[] flattenNorms;
     delete[] flattenNormLines;
+
+    //Hook up to kinematic update for proper physics handling
+    _clock->subscribeKinematicsRate(std::bind(&Model::_updateKinematics, this, std::placeholders::_1)); 
 
 }
 
@@ -128,16 +134,9 @@ void Model::_updateProjection(Matrix projection) {
     _projection = projection; //Receive updates when the projection matrix has changed
 }
 
-Matrix Model::getModel() {
-    return _model;
-}
-
-Matrix Model::getView() {
-    return _view;
-}
-
-Matrix Model::getProjection() {
-    return _projection;
+void Model::_updateKinematics(int milliSeconds){
+    //Do kinematic calculations
+    _state.update(milliSeconds);
 }
 
 Matrix Model::getNormal() {
@@ -161,23 +160,27 @@ float* Model::getNormalBuffer() {
 }
 
 GLuint Model::getVertexContext() {
-    return _vertexBufferContext;
+    return _vertexBufferContext[_doubleBufferIndex];
 }
 
 GLuint Model::getNormalContext() {
-    return _normalBufferContext;
+    return _normalBufferContext[_doubleBufferIndex];
 }
 
 GLuint Model::getNormalDebugContext() {
-    return _debugNormalBufferContext;
+    return _debugNormalBufferContext[_doubleBufferIndex];
 }
 
-size_t Model::getVertexCount() {
-    return _vertices.size();
+GLuint Model::getBufferedVertexContext() {
+    return _vertexBufferContext[!_doubleBufferIndex];
 }
 
-size_t Model::getNormalLineCount() {
-    return _debugNormals.size();
+GLuint Model::getBufferedNormalContext() {
+    return _normalBufferContext[!_doubleBufferIndex];
+} 
+
+GLuint Model::getBufferedNormalDebugContext() {
+    return _debugNormalBufferContext[!_doubleBufferIndex];
 }
 
 std::vector<Vector4>* Model::getVertices() {
@@ -204,23 +207,20 @@ void Model::setVertexIndices(std::vector<int> indices) {
     _indices = indices;
 }
 
-size_t Model::getIndicesCount() {
-    return _indices.size();
-}
-
 std::vector<int>* Model::getIndices() {
     return &_indices;
 }
 
 void Model::setVertexContext(GLuint context){
-    _vertexBufferContext = context;
+    _vertexBufferContext[_doubleBufferIndex] = context;
 }
 
 void Model::setNormalContext(GLuint context){
-    _normalBufferContext = context;
+    _normalBufferContext[_doubleBufferIndex] = context;
 }
+
 void Model::setNormalDebugContext(GLuint context){
-    _debugNormalBufferContext = context;
+    _debugNormalBufferContext[_doubleBufferIndex] = context;
 }
 
 ModelClass Model::getClassType() {

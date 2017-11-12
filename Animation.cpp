@@ -133,19 +133,19 @@ void Animation::loadFrame(Model* model){
             flattenNormLines[i++] = flat[2];
         }
 
-        glBindBuffer(GL_ARRAY_BUFFER, model->getVertexContext()); //Load in vertex buffer context
+        glBindBuffer(GL_ARRAY_BUFFER, model->getBufferedVertexContext()); //Load in vertex buffer context
         //Load the vertex data into the current vertex context
-        glBufferData(GL_ARRAY_BUFFER, sizeof(float)*triBuffSize, flattenVerts, GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(float)*triBuffSize, flattenVerts, GL_DYNAMIC_DRAW);
         glBindBuffer(GL_ARRAY_BUFFER, 0); //Unbind
 
-        glBindBuffer(GL_ARRAY_BUFFER, model->getNormalContext()); //Load in normal buffer context
+        glBindBuffer(GL_ARRAY_BUFFER, model->getBufferedNormalContext()); //Load in normal buffer context
         //Load the normal data into the current normal context
-        glBufferData(GL_ARRAY_BUFFER, sizeof(float)*triBuffSize, flattenNorms, GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(float)*triBuffSize, flattenNorms, GL_DYNAMIC_DRAW);
         glBindBuffer(GL_ARRAY_BUFFER, 0); //Unbind
 
-        glBindBuffer(GL_ARRAY_BUFFER, model->getNormalDebugContext()); //Load in normal debug buffer context
+        glBindBuffer(GL_ARRAY_BUFFER, model->getBufferedNormalDebugContext()); //Load in normal debug buffer context
         //Load the normal debug data into the current normal debug context
-        glBufferData(GL_ARRAY_BUFFER, sizeof(float)*lineBuffSize, flattenNormLines, GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(float)*lineBuffSize, flattenNormLines, GL_DYNAMIC_DRAW);
         glBindBuffer(GL_ARRAY_BUFFER, 0); //Unbind
 
         delete[] flattenVerts;

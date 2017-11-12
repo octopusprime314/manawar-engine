@@ -8,6 +8,9 @@ AnimatedModel::AnimatedModel(std::string name, ViewManagerEvents* eventWrapper) 
 
     //Done with fbx loader so close all handles to fbx scene instance
     delete _fbxLoader;
+
+    //Hook up to framerate update for proper animation progression
+    _clock->subscribeFrameRate(std::bind(&AnimatedModel::_updateAnimation, this, std::placeholders::_1)); 
 }
 
 AnimatedModel::~AnimatedModel() {
@@ -19,8 +22,15 @@ AnimatedModel::~AnimatedModel() {
 
 void AnimatedModel::_updateDraw() {
 
-    //Load in the next frame of the animation
-    _animations[_currentAnimation]->loadFrame(this);
+    //If animation update request was received from an asynchronous event then send vbo to gpu
+    if(_animationUpdateRequest){
+        //Swap buffer context so the next animation gpu data will be in the gpu when requested
+        _doubleBufferIndex = !_doubleBufferIndex;
+
+        //Load in the next frame of the animation
+        _animations[_currentAnimation]->loadFrame(this);
+        _updateLock.lock(); _animationUpdateRequest = false; _updateLock.unlock();
+    }
 
     Model::_updateDraw();
 }
@@ -45,4 +55,9 @@ void AnimatedModel::addAnimation(Animation* animation) {
 
 Animation* AnimatedModel::getAnimation() {
     return _animations.back();
+}
+
+void AnimatedModel::_updateAnimation(int milliSeconds){
+    //Coordinate loading new animation frame to gpu
+    _updateLock.lock(); _animationUpdateRequest = true; _updateLock.unlock();
 }

@@ -24,12 +24,16 @@
 #include "Model.h"
 #include "Animation.h"
 #include "AnimationBuilder.h"
+#include <mutex>
 
 class AnimatedModel : public Model {
 
     std::vector<Animation*> _animations;
     int                     _currentAnimation;
-    
+    void                    _updateAnimation(int milliSeconds);
+    bool                    _animationUpdateRequest; //Used to tell the animated model a new animation needs to be loaded to gpu
+    std::mutex              _updateLock;
+
 protected:
     void                    _updateKeyboard(unsigned char key, int x, int y); //Do stuff based on keyboard update
     void                    _updateMouse(int button, int state, int x, int y); //Do stuff based on mouse update

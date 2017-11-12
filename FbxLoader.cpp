@@ -82,7 +82,7 @@ void FbxLoader::loadAnimatedModel(AnimatedModel* model, FbxNode* node) {
 
         FbxMesh* mesh = childNode->GetMesh();
         if (mesh != nullptr) {
-            //Look for a skin animations
+            //Look for a skin animation
             int ctrlPointCount = mesh->GetControlPointsCount();
             int deformerCount = mesh->GetDeformerCount();
 
@@ -95,11 +95,9 @@ void FbxLoader::loadAnimatedModel(AnimatedModel* model, FbxNode* node) {
                 if (pFBXDeformer == nullptr) {
                     continue;
                 }
-
                 if (pFBXDeformer->GetDeformerType() != FbxDeformer::eSkin) {
                     continue;
                 }
-
                 pFBXSkin = (FbxSkin*)(pFBXDeformer);
                 if (pFBXSkin == nullptr) {
                     continue;
@@ -224,8 +222,7 @@ void FbxLoader::_buildAnimationFrames(AnimatedModel* model, const std::vector<Sk
         }
         //Create an animation frame and add it to the animation object for safe keeping!
         AnimationFrame* frame = new AnimationFrame(animationVertices, animationNormals, animationDebugNormals);
-        animation->addFrame(frame, false 
-            ); //Add a new frame to the animation and do not store in GPU memory yet
+        animation->addFrame(frame, false); //Add a new frame to the animation and do not store in GPU memory yet
     }
 }
 
@@ -316,7 +313,7 @@ void FbxLoader::loadModelData(Model* model, FbxMesh* meshNode, FbxNode* childNod
 }
 
 void FbxLoader::_buildTriangles(Model* model, std::vector<Vector4>& vertices, std::vector<Vector4>& normals,
-    std::vector<int>& indices, Matrix translation, Matrix rotation, Matrix scale) {
+                                std::vector<int>& indices, Matrix translation, Matrix rotation, Matrix scale) {
 
     int triCount = 0;
     Matrix transformation = translation * rotation * scale;

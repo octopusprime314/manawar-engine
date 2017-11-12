@@ -23,9 +23,19 @@
 #include "Matrix.h"
 #include "Vector4.h"
 
+const float GRAVITY = 9.8f; //meters per second squared 
 
 class StateVector {
-    Vector4 _pos;
+    Vector4 _linearPosition;
+    Vector4 _angularPosition;
+    Vector4 _linearVelocity;
+    Vector4 _angularVelocity;
+    Vector4 _linearAcceleration;
+    Vector4 _angularAcceleration;
+    Vector4 _force; //linear force
+    Vector4 _torque; //angular force
+    float   _mass; //mass of object used to calculate acceleration on objects
 public:
     StateVector();
+    void update(int milliSeconds);
 };

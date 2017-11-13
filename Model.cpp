@@ -16,7 +16,7 @@ Model::Model(std::string name, ViewManagerEvents* eventWrapper, ModelClass class
     _classId = classId;
 
     //disable debug mode
-    _debugMode = true;
+    _debugMode = false;
 
     //Load default shader
     _shaderProgram = new Shader();
@@ -44,6 +44,8 @@ Model::Model(std::string name, ViewManagerEvents* eventWrapper, ModelClass class
     size_t triBuffSize = _vertices.size() * 3;
     float* flattenVerts = new float[triBuffSize]; //Only include the x y and z values not w
     float* flattenNorms = new float[triBuffSize]; //Only include the x y and z values not w, same size as vertices
+    size_t textureBuffSize = _textures.size() * 2;
+    float* flattenTextures = new float[textureBuffSize]; //Only include the s and t
     size_t lineBuffSize = _debugNormals.size() * 3;
     float* flattenNormLines = new float[lineBuffSize]; //Only include the x y and z values not w, flat line data
     int i = 0; //iterates through vertices indexes
@@ -59,6 +61,12 @@ Model::Model(std::string name, ViewManagerEvents* eventWrapper, ModelClass class
         flattenNorms[i++] = flat[0];
         flattenNorms[i++] = flat[1];
         flattenNorms[i++] = flat[2];
+    }
+    i = 0; //Reset for texture indexes
+    for (auto texture : _textures) {
+        float *flat = texture.getFlatBuffer();
+        flattenTextures[i++] = flat[0];
+        flattenTextures[i++] = flat[1];
     }
     i = 0; //Reset for normal line indexes
     for (auto normalLine : _debugNormals) {
@@ -80,6 +88,12 @@ Model::Model(std::string name, ViewManagerEvents* eventWrapper, ModelClass class
     glBufferData(GL_ARRAY_BUFFER, sizeof(float)*triBuffSize, flattenNorms, GL_STATIC_DRAW);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
+    //Create a single buffer that will be filled with the texture coordinate data
+    glGenBuffers(1, &_textureBufferContext); //Do not need to double buffer
+    glBindBuffer(GL_ARRAY_BUFFER, _textureBufferContext);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float)*textureBuffSize, flattenTextures, GL_STATIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+
     //Create a double buffer that will be filled with the normal line data for visualizing normals
     glGenBuffers(2, &_debugNormalBufferContext[0]);
     glBindBuffer(GL_ARRAY_BUFFER, _debugNormalBufferContext[0]);
@@ -88,6 +102,7 @@ Model::Model(std::string name, ViewManagerEvents* eventWrapper, ModelClass class
 
     delete[] flattenVerts;
     delete[] flattenNorms;
+    delete[] flattenTextures;
     delete[] flattenNormLines;
 
     //Hook up to kinematic update for proper physics handling
@@ -167,6 +182,10 @@ GLuint Model::getNormalContext() {
     return _normalBufferContext[_doubleBufferIndex];
 }
 
+GLuint Model::getTextureContext() {
+    return _textureBufferContext;
+}
+
 GLuint Model::getNormalDebugContext() {
     return _debugNormalBufferContext[_doubleBufferIndex];
 }
@@ -191,12 +210,20 @@ std::vector<Vector4>* Model::getNormals() {
     return &_normals;
 }
 
+std::vector<Texture2>* Model::getTextures() {
+    return &_textures;
+}
+
 void Model::addVertex(Vector4 vertex) {
     _vertices.push_back(vertex);
 }
 
 void Model::addNormal(Vector4 normal) {
     _normals.push_back(normal);
+}
+
+void Model::addTexture(Texture2 texture){
+    _textures.push_back(texture);
 }
 
 void Model::addDebugNormal(Vector4 normal) {
@@ -219,6 +246,10 @@ void Model::setNormalContext(GLuint context){
     _normalBufferContext[_doubleBufferIndex] = context;
 }
 
+void Model::setTextureContext(GLuint context){
+    _textureBufferContext = context;
+}
+
 void Model::setNormalDebugContext(GLuint context){
     _debugNormalBufferContext[_doubleBufferIndex] = context;
 }
@@ -237,4 +268,12 @@ size_t Model::getArrayCount() {
     else{
         return 0;
     }
+}
+
+void Model::addTexture(Texture* texture){
+    _textureManager.addTexture(texture);
+}
+
+Texture* Model::getTexture(int index){
+    return _textureManager.getTexture(index);
 }

@@ -9,26 +9,6 @@ Shader::~Shader() {
 
 }
 
-GLuint Shader::getShaderContext() {
-    return _shaderContext;
-}
-
-GLint Shader::getViewLocation() {
-    return _viewLocation;
-}
-
-GLint Shader::getModelLocation() {
-    return _modelLocation;
-}
-
-GLint Shader::getProjectionLocation() {
-    return _projectionLocation;
-}
-
-GLint Shader::getNormalLocation() {
-    return _normalLocation;
-}
-
 void Shader::runShader(Model* model) {
 
     //LOAD IN SHADER
@@ -55,6 +35,22 @@ void Shader::runShader(Model* model) {
     //Now enable normal buffer at location 1
     glEnableVertexAttribArray(1);
 
+    //Bind texture coordinate buff context to current buffer
+    glBindBuffer(GL_ARRAY_BUFFER, model->getTextureContext());
+
+    //Say that the texture coordinate data is associated with attribute 2 in the context of a shader program
+    //Each texture coordinate contains 2 floats per texture
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, 0);
+
+    //Now enable texture buffer at location 2
+    glEnableVertexAttribArray(2);
+
+    glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, model->getTexture(0)->getContext()); //grab first texture of model and return context
+    //glUniform texture 
+    //The second parameter has to be equal to GL_TEXTURE(X) so X must be 0 because we activated texture GL_TEXTURE0 two calls before
+    glUniform1iARB(_textureLocation, 0); 
+
     //glUniform mat4 combined model and world matrix, GL_TRUE is telling GL we are passing in the matrix as row major
     glUniformMatrix4fv(_modelLocation, 1, GL_TRUE, model->getModelBuffer());
 
@@ -72,6 +68,7 @@ void Shader::runShader(Model* model) {
 
     glDisableVertexAttribArray(0); //Disable vertex attribute
     glDisableVertexAttribArray(1); //Disable normal attribute
+    glDisableVertexAttribArray(2); //Disable texture attribute
     glBindBuffer(GL_ARRAY_BUFFER, 0); //Unbind buffer
     glUseProgram(0);//end using this shader
 }
@@ -142,6 +139,8 @@ void Shader::_link(GLhandleARB vertexShaderHandle, GLhandleARB fragmentShaderHan
         //glUniform mat4 normal matrix
         _normalLocation = glGetUniformLocation(_shaderContext, "normal");
 
+        //glUniform texture map sampler location
+        _textureLocation = glGetUniformLocation(_shaderContext, "textureMap");
     }
 }
 

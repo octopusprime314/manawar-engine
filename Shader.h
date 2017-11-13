@@ -36,6 +36,7 @@ protected:
     GLint       _modelLocation;
     GLint       _projectionLocation;
     GLint       _normalLocation;
+    GLint       _textureLocation;
     GLhandleARB _compile(char* filename, unsigned int type);
     void        _link(GLhandleARB vertexShaderHandle, GLhandleARB fragmentShaderHandle);
 public:
@@ -43,9 +44,4 @@ public:
     virtual ~Shader();
     virtual void build();
     virtual void runShader(Model* model);
-    GLuint       getShaderContext();
-    GLint        getViewLocation();
-    GLint        getModelLocation();
-    GLint        getProjectionLocation();
-    GLint        getNormalLocation();
 };

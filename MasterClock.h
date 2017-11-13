@@ -30,16 +30,17 @@ const int FRAME_TIME = 16; //frame time in milliseconds
 const int KINEMATICS_TIME = 1; //kinematics time in milliseconds
 
 class MasterClock{
-
-    static MasterClock* _clock;
+    //Make constructor/destructor private so it can't be instantiated
+    MasterClock();
+    static MasterClock*                   _clock;
     std::vector<std::function<void(int)>> _frameRateFuncs; //Clock feed subscriber's function pointers
     std::vector<std::function<void(int)>> _kinematicsRateFuncs; //Clock feed subscriber's function pointers
-    void _clockProcess();
-    std::thread* _clockThread;
-    unsigned int _milliSecondCounter;
+    void                                  _clockProcess();
+    std::thread*                          _clockThread;
+    unsigned int                          _milliSecondCounter;
 
 public:
-    MasterClock();
+    
     ~MasterClock();
     static MasterClock* instance();
     void subscribeFrameRate(std::function<void(int)> func); //Frame rate update

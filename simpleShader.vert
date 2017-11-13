@@ -1,9 +1,11 @@
 #version 330
 
-in vec3 vertexIn;			 // Each vertex supplied 
-in vec3 normalIn;			 // Each normal supplied 
-out vec3 normalOut;			 // Transformed normal based on the normal matrix transform
-out vec3 directionalLight;   // Negated directional light to be used in fragment shader for dot product testing
+in vec3 vertexIn;			   // Each vertex supplied 
+in vec3 normalIn;			   // Each normal supplied 
+in vec2 textureCoordinateIn;   // Each texture coordinate supplied
+out vec3 normalOut;			   // Transformed normal based on the normal matrix transform
+out vec3 directionalLight;     // Negated directional light to be used in fragment shader for dot product testing
+out vec2 textureCoordinateOut; // Passthrough
 
 uniform mat4 model;		 // Model and World transformation matrix
 uniform mat4 view;		 // View/Camera transformation matrix
@@ -18,6 +20,8 @@ void main(){
 	vec4 transformedVert = projection * view * model * vec4(vertexIn.xyz, 1.0); 
 
 	normalOut = vec3((normal * vec4(normalIn, 1.0)).xyz); //Transform normal coordinate in with the normal matrix
+	
+	textureCoordinateOut = textureCoordinateIn; //Passthrough
 	
 	//Fake directional light test pointing in the -x direction
 	vec4 light = vec4(-1.0, 0.0, 0.0, 1.0); //Directional light vector

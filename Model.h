@@ -22,6 +22,7 @@
 
 #pragma once
 #include "Matrix.h"
+#include "Texture2.h"
 #include "StateVector.h"
 #include <vector>
 #include "UpdateInterface.h"
@@ -31,6 +32,7 @@
 #include <iostream>
 #include "FbxLoader.h"
 #include "MasterClock.h"
+#include "TextureBroker.h"
 
 class SimpleContext;
 
@@ -54,22 +56,28 @@ public:
     float*                      getNormalBuffer();
     GLuint                      getVertexContext();
     GLuint                      getNormalContext();
+    GLuint                      getTextureContext();
     GLuint                      getNormalDebugContext();
     GLuint                      getBufferedVertexContext();
     GLuint                      getBufferedNormalContext();
     GLuint                      getBufferedNormalDebugContext();
     void                        setVertexContext(GLuint context);
     void                        setNormalContext(GLuint context);
+    void                        setTextureContext(GLuint context);
     void                        setNormalDebugContext(GLuint context);
     std::vector<Vector4>*       getVertices();
     std::vector<Vector4>*       getNormals();
+    std::vector<Texture2>*      getTextures();
     std::vector<int>*		    getIndices();
     void                        addVertex(Vector4 vertex);
     void                        addNormal(Vector4 normal);
+    void                        addTexture(Texture2 texture);
     void                        addDebugNormal(Vector4 normal);
     void						setVertexIndices(std::vector<int> indices);
     ModelClass                  getClassType();
     size_t                      getArrayCount();
+    void                        addTexture(Texture* texture);
+    Texture*                    getTexture(int index);
 
 protected:
     Matrix                      _model; //Object and World Space Matrix i.e. how the model is centered around the origin and 
@@ -80,9 +88,11 @@ protected:
     StateVector                 _state; //Kinematics
     std::vector<Vector4>        _vertices; //Vertices that make up the triangles of the model
     std::vector<Vector4>        _normals; //Normals that implement how light is shaded onto a model
+    std::vector<Texture2>       _textures; //Texture coordinates that places texture data and maps it onto a vertex
     std::vector<int>            _indices; //Used to map vertices
     GLuint                      _vertexBufferContext[2]; //Used as the vertex attribute vbo context, double buffered
     GLuint                      _normalBufferContext[2]; //Used as the normal attribute vbo context, double buffered
+    GLuint                      _textureBufferContext; //Used as the texture coordinate attribute vbo context, single buffered
     GLuint                      _debugNormalBufferContext[2]; //Used as the debug normal line attribute vbo context, double buffered
     Shader*                     _shaderProgram; //Container object of the Model's shader
     DebugShader*                _debugShaderProgram; //Container object of the normal line shader
@@ -92,6 +102,7 @@ protected:
     ModelClass                  _classId; //Used to identify which class is being used
     MasterClock*                _clock; //Used to coordinate time with the world
     bool                        _doubleBufferIndex; //Used to switch between gpu contexts for buffering purposes
+    TextureBroker               _textureManager; //Used to coordinate between textures of the model
     
     void                        _updateKeyboard(unsigned char key, int x, int y); //Do stuff based on keyboard upate
     void                        _updateMouse(int button, int state, int x, int y); //Do stuff based on mouse update

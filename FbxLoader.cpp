@@ -2,6 +2,7 @@
 #include "AnimatedModel.h"
 #include "Model.h"
 #include <map>
+#include "Texture.h"
 
 FbxLoader::FbxLoader(std::string name) {
 
@@ -296,24 +297,98 @@ void FbxLoader::loadModelData(Model* model, FbxMesh* meshNode, FbxNode* childNod
         }
     }
 
+    //Get the texture coordinates from the mesh
+	FbxVector2 uv;
+    std::vector<Texture2> textures;
+	FbxGeometryElementUV*                 leUV = meshNode->GetElementUV( 0 );
+	const FbxLayerElement::EReferenceMode refMode = leUV->GetReferenceMode();
+	const FbxLayerElement::EMappingMode   textMapMode = leUV->GetMappingMode();
+	if(refMode == FbxLayerElement::EReferenceMode::eDirect) {
+		int numTextures = meshNode->GetTextureUVCount();
+		// Loop through the triangle meshes
+		for(int textureCounter = 0; textureCounter < numTextures; textureCounter++) {
+			//Get the normal for this vertex
+			FbxVector2 uvTexture = leUV->GetDirectArray().GetAt(textureCounter);
+            textures.push_back(Texture2(uvTexture[0], uvTexture[1]));
+		}
+	}
+	else if(refMode == FbxLayerElement::EReferenceMode::eIndexToDirect) {
+		int indexUV;
+		for(int i = 0; i < numIndices; i++) {
+			//Get the normal for this vertex
+			indexUV = leUV->GetIndexArray().GetAt(i);
+			FbxVector2 uvTexture = leUV->GetDirectArray().GetAt(indexUV);
+			textures.push_back(Texture2(uvTexture[0], uvTexture[1]));
+		}
+	}
+
+    _loadTextures(model, meshNode, childNode);
+
     //Load in models differently based on type
     if (model->getClassType() == ModelClass::AnimatedModelType) {
         //Load vertices and normals into model
         for (int i = 0; i < numVerts; i++) {
-            model->addVertex(vertices[i]); //Scale then rotate vertex
-            model->addNormal(normals[i]); //Scale then rotate normal
+            model->addVertex(vertices[i]); 
+            model->addNormal(normals[i]); 
             model->addDebugNormal(vertices[i]);
             model->addDebugNormal(vertices[i] + normals[i]);
+        }
+        //Load texture coordinates
+        for (int i = 0; i < textures.size(); i++) {
+            model->addTexture(textures[i]);
         }
     }
     else if (model->getClassType() == ModelClass::ModelType) {
         //Load in the entire model once if the data is not animated
-        _buildTriangles(model, vertices, normals, *model->getIndices(), translation, rotation, scale);
+        _buildTriangles(model, vertices, normals, textures, *model->getIndices(), translation, rotation, scale);
     }
 }
 
+void FbxLoader::_loadTextures(Model* model, FbxMesh* meshNode, FbxNode* childNode) {
+    
+    //Get material element info
+    FbxLayerElementMaterial* pLayerMaterial = meshNode->GetLayer(0)->GetMaterials();   
+    //Get material mapping info
+	FbxLayerElementArrayTemplate<int> *tmpArray = &pLayerMaterial->GetIndexArray();   
+	
+    //No layers then no textures :(
+	if(meshNode->GetLayerCount() == 0){
+        return;
+    }
+	//Return the number of materials found in mesh
+	int materialCount = childNode->GetSrcObjectCount<FbxSurfaceMaterial>();
+	for (int materialIndex = 0; materialIndex < materialCount; ++materialIndex) {
+		
+        FbxSurfaceMaterial* material = (FbxSurfaceMaterial*)childNode->GetSrcObject<FbxSurfaceMaterial>(materialIndex);
+		if (material == nullptr) {
+            continue;
+        }
+
+		// This only gets the material of type sDiffuse,
+        // you probably need to traverse all Standard Material Property by its name to get all possible textures.
+		FbxProperty propDiffuse = material->FindProperty(FbxSurfaceMaterial::sDiffuse);
+
+		// Get number of textures in the material which could contain diffuse, bump, normal and/or specular maps...
+        int textureCount = propDiffuse.GetSrcObjectCount<FbxTexture>();
+
+		for (int textureIndex = 0; textureIndex < textureCount; ++textureIndex) {
+            //Fetch the diffuse texture
+			FbxFileTexture* textureFbx = FbxCast<FbxFileTexture>(propDiffuse.GetSrcObject<FbxFileTexture>(textureIndex));
+						
+			// Then, you can get all the properties of the texture, including its name
+			std::string textureName = textureFbx->GetFileName();
+            std::string textureNameTemp = textureName; //Used a temporary storage to not overwrite textureName
+            std::string texturePath = "..\\models\\textures";
+            //Finds second to last position of string and use that for file access name
+			texturePath.append(textureName.substr(textureNameTemp.substr(0, textureNameTemp.find_last_of("/\\")).find_last_of("/\\")));
+            Texture* texture = new Texture(texturePath);
+            model->addTexture(texture);
+		}
+	}
+}
+
 void FbxLoader::_buildTriangles(Model* model, std::vector<Vector4>& vertices, std::vector<Vector4>& normals,
-                                std::vector<int>& indices, Matrix translation, Matrix rotation, Matrix scale) {
+    std::vector<Texture2>& textures, std::vector<int>& indices, Matrix translation, Matrix rotation, Matrix scale) {
 
     int triCount = 0;
     Matrix transformation = translation * rotation * scale;
@@ -332,6 +407,7 @@ void FbxLoader::_buildTriangles(Model* model, std::vector<Vector4>& vertices, st
             normals[indices[triCount]].getz(),
             1.0);
         model->addNormal(rotation * AN); //Scale then rotate normal
+        model->addTexture(textures[triCount]);
         model->addDebugNormal(transformation * A);
         model->addDebugNormal((transformation * A) + (rotation * AN));
         triCount++;
@@ -347,6 +423,7 @@ void FbxLoader::_buildTriangles(Model* model, std::vector<Vector4>& vertices, st
             normals[indices[triCount]].getz(),
             1.0);
         model->addNormal(rotation * BN); //Scale then rotate normal
+        model->addTexture(textures[triCount]);
         model->addDebugNormal(transformation * B);
         model->addDebugNormal((transformation * B) + (rotation * BN));
         triCount++;
@@ -362,6 +439,7 @@ void FbxLoader::_buildTriangles(Model* model, std::vector<Vector4>& vertices, st
             normals[indices[triCount]].getz(),
             1.0);
         model->addNormal(rotation * CN); //Scale then rotate normal
+        model->addTexture(textures[triCount]);
         model->addDebugNormal(transformation * C);
         model->addDebugNormal((transformation * C) + (rotation * CN));
         triCount++;

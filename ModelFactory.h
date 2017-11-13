@@ -26,11 +26,12 @@
 class ViewManager;
 //ModelFactory is a singleton factory
 class ModelFactory {
-
+    //Make constructor private so it can't be instantiated
+    ModelFactory();
     static ModelFactory* _factory;
     ViewManagerEvents*   _viewEventWrapper;
 public:
-    ModelFactory();
+ 
     ~ModelFactory();
     static ModelFactory* instance();
     Model*               makeModel(std::string name);

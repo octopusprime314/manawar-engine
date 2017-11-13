@@ -23,6 +23,7 @@
 #include <string>
 #include "fbxsdk.h"
 #include <vector>
+#include "Texture2.h"
 
 class Model;
 class AnimatedModel;
@@ -34,9 +35,10 @@ class FbxLoader {
     FbxManager*    _fbxManager;
     FbxIOSettings* _ioSettings;
     FbxScene*      _scene;
+    void           _loadTextures(Model* model, FbxMesh* meshNode, FbxNode* childNode);
     void           _buildAnimationFrames(AnimatedModel* model, const std::vector<SkinningData>& skins);
     void           _buildTriangles(Model* model, std::vector<Vector4>& vertices, std::vector<Vector4>& normals, 
-                                   std::vector<int>& indices, Matrix translation, Matrix rotation, Matrix scale);
+                   std::vector<Texture2>& textures, std::vector<int>& indices, Matrix translation, Matrix rotation, Matrix scale);
 public:
     FbxLoader(std::string name);
     ~FbxLoader();

@@ -2,7 +2,9 @@
 
 MasterClock* MasterClock::_clock = nullptr;
 
-MasterClock::MasterClock() : _milliSecondCounter(0){
+MasterClock::MasterClock() : _milliSecondCounter(0),
+    _frameTime(DEFAULT_FRAME_TIME),
+    _animationTime(DEFAULT_FRAME_TIME){
 
 }
 
@@ -28,9 +30,16 @@ void MasterClock::_clockProcess(){
     while(true){
 
         //If the millisecond amount is divisible by frame time then trigger a frame time event to subscribers
-        if(_milliSecondCounter % FRAME_TIME == 0){
+        if(_milliSecondCounter % _frameTime == 0){
             for(auto funcs : _frameRateFuncs){
-                funcs(FRAME_TIME);
+                funcs(_frameTime);
+            }
+        }
+
+        //If the millisecond amount is divisible by frame time then trigger a frame time event to subscribers
+        if(_milliSecondCounter % _animationTime == 0){
+            for(auto funcs : _animationRateFuncs){
+                funcs(_animationTime);
             }
         }
 
@@ -47,8 +56,16 @@ void MasterClock::_clockProcess(){
     }
 }
 
+void MasterClock::setFrameRate(int framesPerSecond) {
+    _frameTime = static_cast<int>((1.0/static_cast<double>(framesPerSecond)) * 1000.0);
+}
+
 void MasterClock::subscribeFrameRate(std::function<void(int)> func){
     _frameRateFuncs.push_back(func);
+}
+
+void MasterClock::subscribeAnimationRate(std::function<void(int)> func){
+    _animationRateFuncs.push_back(func);
 }
 
 void MasterClock::subscribeKinematicsRate(std::function<void(int)> func){

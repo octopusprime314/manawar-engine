@@ -69,3 +69,30 @@ float Vector4::getz() {
 float Vector4::getw() {
     return _vec[3];
 }
+
+bool Vector4::operator == (Vector4 other) {
+    float* ovec = other.getFlatBuffer();
+    if (_vec[0] == ovec[0] && _vec[1] == ovec[1] && _vec[2] == ovec[2] && _vec[3] == ovec[3]) {
+        return true;
+    }
+    else {
+        return false;
+    }
+}
+
+bool Vector4::operator != (Vector4 other) {
+    float* ovec = other.getFlatBuffer();
+    if (_vec[0] != ovec[0] || _vec[1] != ovec[1] || _vec[2] != ovec[2] || _vec[3] != ovec[3]) {
+        return true;
+    }
+    else {
+        return false;
+    }
+}
+
+std::ostream& operator << (std::ostream& output, Vector4 &other) {
+    float* vec = other.getFlatBuffer();
+    output << setprecision(2) << std::setw(6) << vec[0] << " " << std::setw(6) << vec[1]
+        << " " << std::setw(6) << vec[2] << " " << std::setw(6) << vec[3] << " " << std::endl;
+    return output;
+}

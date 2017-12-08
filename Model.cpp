@@ -3,14 +3,15 @@
 #include "FbxLoader.h"
 #include "GeometryBuilder.h"
 
+TextureBroker* Model::_textureManager = TextureBroker::instance();
+
 Model::Model() {
 
 }
 
 Model::Model(std::string name, ViewManagerEvents* eventWrapper, ModelClass classId) : UpdateInterface(eventWrapper),
     _fbxLoader(nullptr), 
-    _clock(MasterClock::instance()),
-    _doubleBufferIndex(true) {
+    _clock(MasterClock::instance()) {
 
     //Set class id
     _classId = classId;
@@ -41,50 +42,98 @@ Model::Model(std::string name, ViewManagerEvents* eventWrapper, ModelClass class
     //GeometryBuilder::buildCube(this); //Add a generic cube centered at the origin
 
     //Now flatten vertices and normals out for opengl
-    size_t triBuffSize = _vertices.size() * 3;
-    float* flattenVerts = new float[triBuffSize]; //Only include the x y and z values not w
-    float* flattenNorms = new float[triBuffSize]; //Only include the x y and z values not w, same size as vertices
-    size_t textureBuffSize = _textures.size() * 2;
-    float* flattenTextures = new float[textureBuffSize]; //Only include the s and t
-    size_t lineBuffSize = _debugNormals.size() * 3;
-    float* flattenNormLines = new float[lineBuffSize]; //Only include the x y and z values not w, flat line data
-    int i = 0; //iterates through vertices indexes
-    for (auto vertex : _vertices) {
-        float *flat = vertex.getFlatBuffer();
-        flattenVerts[i++] = flat[0];
-        flattenVerts[i++] = flat[1];
-        flattenVerts[i++] = flat[2];
+    size_t triBuffSize = 0;
+    float* flattenVerts = nullptr; //Only include the x y and z values not w
+    float* flattenNorms = nullptr; //Only include the x y and z values not w, same size as vertices
+    size_t textureBuffSize = 0;
+    float* flattenTextures = nullptr; //Only include the s and t
+    size_t lineBuffSize = 0;
+    float* flattenNormLines = nullptr; //Only include the x y and z values not w, flat line data
+
+    if(_classId == ModelClass::ModelType){
+        //Now flatten vertices and normals out for opengl
+        triBuffSize = _vertices.size() * 3;
+        flattenVerts = new float[triBuffSize]; //Only include the x y and z values not w
+        flattenNorms = new float[triBuffSize]; //Only include the x y and z values not w, same size as vertices
+        textureBuffSize = _textures.size() * 2;
+        flattenTextures = new float[textureBuffSize]; //Only include the s and t
+        lineBuffSize = _debugNormals.size() * 3;
+        flattenNormLines = new float[lineBuffSize]; //Only include the x y and z values not w, flat line data
+        int i = 0; //iterates through vertices indexes
+        for (auto vertex : _vertices) {
+            float *flat = vertex.getFlatBuffer();
+            flattenVerts[i++] = flat[0];
+            flattenVerts[i++] = flat[1];
+            flattenVerts[i++] = flat[2];
+        }
+        i = 0; //Reset for normal indexes
+        for (auto normal : _normals) {
+            float *flat = normal.getFlatBuffer();
+            flattenNorms[i++] = flat[0];
+            flattenNorms[i++] = flat[1];
+            flattenNorms[i++] = flat[2];
+        }
+        i = 0; //Reset for texture indexes
+        for (auto texture : _textures) {
+            float *flat = texture.getFlatBuffer();
+            flattenTextures[i++] = flat[0];
+            flattenTextures[i++] = flat[1];
+        }
+        i = 0; //Reset for normal line indexes
+        for (auto normalLine : _debugNormals) {
+            float *flat = normalLine.getFlatBuffer();
+            flattenNormLines[i++] = flat[0];
+            flattenNormLines[i++] = flat[1];
+            flattenNormLines[i++] = flat[2];
+        }
     }
-    i = 0; //Reset for normal indexes
-    for (auto normal : _normals) {
-        float *flat = normal.getFlatBuffer();
-        flattenNorms[i++] = flat[0];
-        flattenNorms[i++] = flat[1];
-        flattenNorms[i++] = flat[2];
-    }
-    i = 0; //Reset for texture indexes
-    for (auto texture : _textures) {
-        float *flat = texture.getFlatBuffer();
-        flattenTextures[i++] = flat[0];
-        flattenTextures[i++] = flat[1];
-    }
-    i = 0; //Reset for normal line indexes
-    for (auto normalLine : _debugNormals) {
-        float *flat = normalLine.getFlatBuffer();
-        flattenNormLines[i++] = flat[0];
-        flattenNormLines[i++] = flat[1];
-        flattenNormLines[i++] = flat[2];
+    else if(_classId == ModelClass::AnimatedModelType){
+        //Now flatten vertices and normals out for opengl
+        triBuffSize = _indices.size() * 3;
+        flattenVerts = new float[triBuffSize]; //Only include the x y and z values not w
+        flattenNorms = new float[triBuffSize]; //Only include the x y and z values not w, same size as vertices
+        textureBuffSize = _textures.size() * 2;
+        flattenTextures = new float[textureBuffSize]; //Only include the s and t
+        lineBuffSize = _indices.size() * 2 * 3;
+        flattenNormLines = new float[lineBuffSize]; //Only include the x y and z values not w, flat line data
+        int i = 0; //iterates through vertices indexes
+        for (auto index : _indices) {
+            float *flat = _vertices[index].getFlatBuffer();
+            flattenVerts[i++] = flat[0];
+            flattenVerts[i++] = flat[1];
+            flattenVerts[i++] = flat[2];
+        }
+        i = 0; //Reset for normal indexes
+        for (auto index : _indices) {
+            float *flat =  _normals[index].getFlatBuffer();
+            flattenNorms[i++] = flat[0];
+            flattenNorms[i++] = flat[1];
+            flattenNorms[i++] = flat[2];
+        }
+        i = 0; //Reset for texture indexes
+        for (auto texture : _textures) {
+            float *flat = texture.getFlatBuffer();
+            flattenTextures[i++] = flat[0];
+            flattenTextures[i++] = flat[1];
+        }
+        //i = 0; //Reset for normal line indexes
+        //for (auto normalLine : _debugNormals) {
+        //    float *flat = normalLine.getFlatBuffer();
+        //    flattenNormLines[i++] = flat[0];
+        //    flattenNormLines[i++] = flat[1];
+        //    flattenNormLines[i++] = flat[2];
+        //}
     }
 
     //Create a double buffer that will be filled with the vertex data
-    glGenBuffers(2, &_vertexBufferContext[0]);
-    glBindBuffer(GL_ARRAY_BUFFER, _vertexBufferContext[0]);
+    glGenBuffers(1, &_vertexBufferContext);
+    glBindBuffer(GL_ARRAY_BUFFER, _vertexBufferContext);
     glBufferData(GL_ARRAY_BUFFER, sizeof(float)*triBuffSize, flattenVerts, GL_STATIC_DRAW);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     //Create a double buffer that will be filled with the normal data
-    glGenBuffers(2, &_normalBufferContext[0]);
-    glBindBuffer(GL_ARRAY_BUFFER, _normalBufferContext[0]);
+    glGenBuffers(1, &_normalBufferContext);
+    glBindBuffer(GL_ARRAY_BUFFER, _normalBufferContext);
     glBufferData(GL_ARRAY_BUFFER, sizeof(float)*triBuffSize, flattenNorms, GL_STATIC_DRAW);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
@@ -95,8 +144,8 @@ Model::Model(std::string name, ViewManagerEvents* eventWrapper, ModelClass class
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     //Create a double buffer that will be filled with the normal line data for visualizing normals
-    glGenBuffers(2, &_debugNormalBufferContext[0]);
-    glBindBuffer(GL_ARRAY_BUFFER, _debugNormalBufferContext[0]);
+    glGenBuffers(1, &_debugNormalBufferContext);
+    glBindBuffer(GL_ARRAY_BUFFER, _debugNormalBufferContext);
     glBufferData(GL_ARRAY_BUFFER, sizeof(float)*lineBuffSize, flattenNormLines, GL_STATIC_DRAW);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
@@ -111,7 +160,6 @@ Model::Model(std::string name, ViewManagerEvents* eventWrapper, ModelClass class
 }
 
 Model::~Model() {
-    delete _fbxLoader;
     delete _debugShaderProgram;
     delete _shaderProgram;
 }
@@ -175,11 +223,11 @@ float* Model::getNormalBuffer() {
 }
 
 GLuint Model::getVertexContext() {
-    return _vertexBufferContext[_doubleBufferIndex];
+    return _vertexBufferContext;
 }
 
 GLuint Model::getNormalContext() {
-    return _normalBufferContext[_doubleBufferIndex];
+    return _normalBufferContext;
 }
 
 GLuint Model::getTextureContext() {
@@ -187,19 +235,7 @@ GLuint Model::getTextureContext() {
 }
 
 GLuint Model::getNormalDebugContext() {
-    return _debugNormalBufferContext[_doubleBufferIndex];
-}
-
-GLuint Model::getBufferedVertexContext() {
-    return _vertexBufferContext[!_doubleBufferIndex];
-}
-
-GLuint Model::getBufferedNormalContext() {
-    return _normalBufferContext[!_doubleBufferIndex];
-} 
-
-GLuint Model::getBufferedNormalDebugContext() {
-    return _debugNormalBufferContext[!_doubleBufferIndex];
+    return _debugNormalBufferContext;
 }
 
 std::vector<Vector4>* Model::getVertices() {
@@ -239,11 +275,11 @@ std::vector<int>* Model::getIndices() {
 }
 
 void Model::setVertexContext(GLuint context){
-    _vertexBufferContext[_doubleBufferIndex] = context;
+    _vertexBufferContext = context;
 }
 
 void Model::setNormalContext(GLuint context){
-    _normalBufferContext[_doubleBufferIndex] = context;
+    _normalBufferContext = context;
 }
 
 void Model::setTextureContext(GLuint context){
@@ -251,7 +287,7 @@ void Model::setTextureContext(GLuint context){
 }
 
 void Model::setNormalDebugContext(GLuint context){
-    _debugNormalBufferContext[_doubleBufferIndex] = context;
+    _debugNormalBufferContext = context;
 }
 
 ModelClass Model::getClassType() {
@@ -270,10 +306,11 @@ size_t Model::getArrayCount() {
     }
 }
 
-void Model::addTexture(Texture* texture){
-    _textureManager.addTexture(texture);
+void Model::addTexture(std::string textureName){
+    _textureName = textureName;
+    _textureManager->addTexture(textureName);
 }
 
-Texture* Model::getTexture(int index){
-    return _textureManager.getTexture(index);
+Texture* Model::getTexture(){
+    return _textureManager->getTexture(_textureName);
 }

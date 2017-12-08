@@ -16,16 +16,20 @@
 */
 
 /**
-*  ShadowShader class. Derived shader class that implements shadow mapping.
+*  BonedShader class. Derived shader class that implements animation boneing.
 */
 
 #pragma once
 #include "Shader.h"
+class Model;
 
-class ShadowShader : public Shader {
+class AnimationShader : public Shader {
+
+    GLint _bonesLocation;
 
 public:
-    ShadowShader();
-    ~ShadowShader();
-    void compile();
+    AnimationShader();
+    ~AnimationShader();
+    void runShader(Model* modelIn);
+    void build(std::string shaderName);
 };

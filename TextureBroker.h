@@ -21,13 +21,16 @@
 
 #pragma once
 #include "Texture.h"
-#include <vector>
+#include <map>
+
 
 class TextureBroker{
-    std::vector<Texture*> _textures;
-public:
+    std::map<std::string, Texture*> _textures;
     TextureBroker();
+    static TextureBroker* _broker;
+public:
+    static TextureBroker* instance();
     ~TextureBroker();
-    void                       addTexture(Texture* texture);
-    Texture*                   getTexture(int index);
+    void                       addTexture(std::string textureName);
+    Texture*                   getTexture(std::string textureName);
 };

@@ -42,6 +42,6 @@ protected:
 public:
     Shader();
     virtual ~Shader();
-    virtual void build();
+    virtual void build(std::string shaderName = "shaders/simpleShader");
     virtual void runShader(Model* model);
 };

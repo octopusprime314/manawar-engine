@@ -28,20 +28,27 @@
 
 class AnimatedModel : public Model {
 
+protected:
+    void                    _updateKeyboard(unsigned char key, int x, int y); //Do stuff based on keyboard update
+    void                    _updateMouse(int button, int state, int x, int y); //Do stuff based on mouse update
+    void                    _updateDraw();
     std::vector<Animation*> _animations;
     int                     _currentAnimation;
     void                    _updateAnimation(int milliSeconds);
     bool                    _animationUpdateRequest; //Used to tell the animated model a new animation needs to be loaded to gpu
     std::mutex              _updateLock;
 
-protected:
-    void                    _updateKeyboard(unsigned char key, int x, int y); //Do stuff based on keyboard update
-    void                    _updateMouse(int button, int state, int x, int y); //Do stuff based on mouse update
-    void                    _updateDraw();
+    GLuint                  _indexContext;
+    GLuint                  _weightContext;
+    std::vector<Matrix>*    _currBones;
+
 
 public:
     AnimatedModel(std::string name, ViewManagerEvents* eventWrapper);
     ~AnimatedModel();
     void                    addAnimation(Animation* animation);
     Animation*              getAnimation(); //Return current animation
+    GLuint                  getIndexContext();
+    GLuint                  getWeightContext();
+    std::vector<Matrix>*    getBones();
 };

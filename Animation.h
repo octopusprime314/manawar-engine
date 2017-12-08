@@ -25,26 +25,30 @@
 #include <string>
 #include "FbxLoader.h"
 #include "SkinningData.h"
-#include "AnimationFrame.h"
 #include "GLIncludes.h"
 
+
 class Model;
+class BonedModel;
 
 class Animation {
 
-    int                          _animationFrames;
-    std::vector<AnimationFrame*> _frames;
-    int                          _currentAnimationFrame;
-    std::vector<GLuint>          _frameVerticesVBO;
-    std::vector<GLuint>          _frameNormalsVBO;
-    std::vector<GLuint>          _frameDebugNormalsVBO;
-    bool                         _storedInGPU; //boolean indicating whether animation frames are prestored into GPU memory or not
+    int                                _animationFrames;
+    int                                _currentAnimationFrame;
+    std::vector<std::vector<int>>*     _boneIndexes;
+    std::vector<std::vector<float>>*   _boneWeights;
+    std::vector<std::vector<Matrix>*>  _boneTransforms;
 
 public:
     Animation();
     ~Animation();
-    void addFrame(AnimationFrame* frame, bool sendToGPU); //If sendToGPU is true then create a vbo for the frame
+    
     int  getFrameCount();
     void setFrames(int animationFrames);
-    void loadFrame(Model* model); //Takes in model object and assigns animation data to it
+    void nextFrame(); //set to the next animation frame
+    void setBoneIndexWeights( std::vector<std::vector<int>>* boneIndexes, std::vector<std::vector<float>>* boneWeights); 
+    void addBoneTransforms(std::vector<Matrix>* boneTransforms); 
+    std::vector<Matrix>* getBones();
+    std::vector<std::vector<int>>* getBoneIndexes();
+    std::vector<std::vector<float>>* getBoneWeights();
 };

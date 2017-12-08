@@ -29,7 +29,7 @@ void SimpleContextEvents::updateKeyboard(unsigned char key, int x, int y) {
 //One frame draw update call
 void SimpleContextEvents::updateDraw() {
 
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);//Clear depth and color info before new frame
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); //Clear depth and color info before new frame
 
     for (auto func : _drawFuncs) {
         func(); //Call draw update method

@@ -25,6 +25,7 @@
 #include "ViewManager.h"
 #include <functional>
 #include <vector>
+#include <mutex>
 #include "SimpleContextEvents.h"
 
 class SimpleContext {
@@ -43,6 +44,8 @@ private:
     SimpleContextEvents _events; //Event wrapper for GLUT based events
     unsigned int        _viewportWidth;  //Width dimension of glut window context in pixel units
     unsigned int        _viewportHeight; //Height dimension of glut window context in pixel units
+    static int          _renderNow;      //Internal flag that coordinates with the framerate
+    static std::mutex   _renderLock;     //Prevents write/write collisions with renderNow on a frame tick trigger
 
     //All keyboard input from glut will be notified here
     static void         _keyboardUpdate(unsigned char key, int x, int y);
@@ -54,4 +57,6 @@ private:
     static void         _mouseUpdate(int button, int state, int x, int y);
     //All mouse movement input from glut will be notified here
     static void         _mouseUpdate(int x, int y);
+    //Simple context synchronizes frame rate using the MasterClock tuning capability
+    static void         _frameRateTrigger(int milliSeconds);
 };

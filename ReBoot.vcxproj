@@ -124,7 +124,6 @@
     <ClCompile Include="AnimatedModel.cpp" />
     <ClCompile Include="Animation.cpp" />
     <ClCompile Include="AnimationBuilder.cpp" />
-    <ClCompile Include="AnimationFrame.cpp" />
     <ClCompile Include="DebugShader.cpp" />
     <ClCompile Include="FbxLoader.cpp" />
     <ClCompile Include="main.cpp" />
@@ -134,7 +133,7 @@
     <ClCompile Include="ModelFactory.cpp" />
     <ClCompile Include="SceneManager.cpp" />
     <ClCompile Include="Shader.cpp" />
-    <ClCompile Include="ShadowShader.cpp" />
+    <ClCompile Include="AnimationShader.cpp" />
     <ClCompile Include="SimpleContext.cpp" />
     <ClCompile Include="SimpleContextEvents.cpp" />
     <ClCompile Include="SkinningData.cpp" />
@@ -151,14 +150,13 @@
     <ClInclude Include="AnimatedModel.h" />
     <ClInclude Include="Animation.h" />
     <ClInclude Include="AnimationBuilder.h" />
-    <ClInclude Include="AnimationFrame.h" />
     <ClInclude Include="DebugShader.h" />
     <ClInclude Include="FbxLoader.h" />
     <ClInclude Include="GLIncludes.h" />
     <ClInclude Include="MasterClock.h" />
     <ClInclude Include="ModelFactory.h" />
     <ClInclude Include="SceneManager.h" />
-    <ClInclude Include="ShadowShader.h" />
+    <ClInclude Include="AnimationShader.h" />
     <ClInclude Include="SimpleContext.h" />
     <ClInclude Include="Matrix.h" />
     <ClInclude Include="Model.h" />
@@ -175,10 +173,14 @@
     <ClInclude Include="ViewManagerEvents.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="normalShader.frag" />
-    <None Include="normalShader.vert" />
-    <None Include="simpleShader.frag" />
-    <None Include="simpleShader.vert" />
+    <None Include="shaders\hagravenBoneShader.frag" />
+    <None Include="shaders\hagravenBoneShader.vert" />
+    <None Include="shaders\normalShader.frag" />
+    <None Include="shaders\normalShader.vert" />
+    <None Include="shaders\simpleShader.frag" />
+    <None Include="shaders\simpleShader.vert" />
+    <None Include="shaders\trollBoneShader.frag" />
+    <None Include="shaders\trollBoneShader.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

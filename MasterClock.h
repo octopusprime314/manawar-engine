@@ -26,7 +26,7 @@
 #include <chrono>
 #include <thread>
 
-const int FRAME_TIME = 16; //frame time in milliseconds
+const int DEFAULT_FRAME_TIME = 16; //frame time in milliseconds which is 60 frames per second
 const int KINEMATICS_TIME = 1; //kinematics time in milliseconds
 
 class MasterClock{
@@ -34,16 +34,21 @@ class MasterClock{
     MasterClock();
     static MasterClock*                   _clock;
     std::vector<std::function<void(int)>> _frameRateFuncs; //Clock feed subscriber's function pointers
+    std::vector<std::function<void(int)>> _animationRateFuncs; //Clock feed subscriber's function pointers
     std::vector<std::function<void(int)>> _kinematicsRateFuncs; //Clock feed subscriber's function pointers
     void                                  _clockProcess();
     std::thread*                          _clockThread;
     unsigned int                          _milliSecondCounter;
+    int                                   _frameTime;
+    int                                   _animationTime;
 
 public:
     
     ~MasterClock();
     static MasterClock* instance();
+    void setFrameRate(int framesPerSecond); //Gives programmer adjustable framerate
     void subscribeFrameRate(std::function<void(int)> func); //Frame rate update
+    void subscribeAnimationRate(std::function<void(int)> func); //Frame rate update
     void subscribeKinematicsRate(std::function<void(int)> func); //Physics clock time update
     void run(); //Kicks off the master clock thread that will asynchronously updates subscribers with clock events
 };

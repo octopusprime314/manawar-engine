@@ -58,9 +58,6 @@ public:
     GLuint                      getNormalContext();
     GLuint                      getTextureContext();
     GLuint                      getNormalDebugContext();
-    GLuint                      getBufferedVertexContext();
-    GLuint                      getBufferedNormalContext();
-    GLuint                      getBufferedNormalDebugContext();
     void                        setVertexContext(GLuint context);
     void                        setNormalContext(GLuint context);
     void                        setTextureContext(GLuint context);
@@ -76,8 +73,8 @@ public:
     void						setVertexIndices(std::vector<int> indices);
     ModelClass                  getClassType();
     size_t                      getArrayCount();
-    void                        addTexture(Texture* texture);
-    Texture*                    getTexture(int index);
+    void                        addTexture(std::string textureName);
+    Texture*                    getTexture();
 
 protected:
     Matrix                      _model; //Object and World Space Matrix i.e. how the model is centered around the origin and 
@@ -90,10 +87,10 @@ protected:
     std::vector<Vector4>        _normals; //Normals that implement how light is shaded onto a model
     std::vector<Texture2>       _textures; //Texture coordinates that places texture data and maps it onto a vertex
     std::vector<int>            _indices; //Used to map vertices
-    GLuint                      _vertexBufferContext[2]; //Used as the vertex attribute vbo context, double buffered
-    GLuint                      _normalBufferContext[2]; //Used as the normal attribute vbo context, double buffered
-    GLuint                      _textureBufferContext; //Used as the texture coordinate attribute vbo context, single buffered
-    GLuint                      _debugNormalBufferContext[2]; //Used as the debug normal line attribute vbo context, double buffered
+    GLuint                      _vertexBufferContext; //Used as the vertex attribute vbo context
+    GLuint                      _normalBufferContext; //Used as the normal attribute vbo context
+    GLuint                      _textureBufferContext; //Used as the texture coordinate attribute vbo context
+    GLuint                      _debugNormalBufferContext; //Used as the debug normal line attribute vbo context
     Shader*                     _shaderProgram; //Container object of the Model's shader
     DebugShader*                _debugShaderProgram; //Container object of the normal line shader
     bool                        _debugMode; //Runs an extra shader with debug information include normals
@@ -101,8 +98,8 @@ protected:
     FbxLoader*                  _fbxLoader; //Used to load fbx data and parse it into engine format
     ModelClass                  _classId; //Used to identify which class is being used
     MasterClock*                _clock; //Used to coordinate time with the world
-    bool                        _doubleBufferIndex; //Used to switch between gpu contexts for buffering purposes
-    TextureBroker               _textureManager; //Used to coordinate between textures of the model
+    static TextureBroker*       _textureManager; //Static texture manager for texture reuse purposes, all models have access
+    std::string                 _textureName; //Keeps track of which texture to grab from static texture manager
     
     void                        _updateKeyboard(unsigned char key, int x, int y); //Do stuff based on keyboard upate
     void                        _updateMouse(int button, int state, int x, int y); //Do stuff based on mouse update

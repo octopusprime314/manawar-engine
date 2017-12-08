@@ -1,5 +1,9 @@
 #include "SimpleContext.h"
 #include "ViewManagerEvents.h"
+#include "MasterClock.h"
+
+int         SimpleContext::_renderNow = 0;
+std::mutex  SimpleContext::_renderLock;   
 
 SimpleContext::SimpleContext(int* argc, char** argv, unsigned int viewportWidth, unsigned int viewportHeight) {
 
@@ -37,6 +41,9 @@ SimpleContext::SimpleContext(int* argc, char** argv, unsigned int viewportWidth,
     glDepthFunc(GL_LESS); //Keep the fragment closest
     glEnable(GL_LIGHTING); //Lighting enabled
 
+    MasterClock* masterClock = MasterClock::instance();
+    masterClock->setFrameRate(60); //Establishes the frame rate of the draw context
+    masterClock->subscribeFrameRate(std::bind(_frameRateTrigger, std::placeholders::_1));
 
 }
 
@@ -64,6 +71,18 @@ void SimpleContext::_keyboardUpdate(unsigned char key, int x, int y) {
 //One frame draw update call
 void SimpleContext::_drawUpdate() {
 
+    ////Only draw when a framerate trigger event has been received from the master clock
+    //if(_renderNow > 0){
+    //    _renderLock.lock();
+
+    //    do {
+    //        SimpleContextEvents::updateDraw();
+    //        //Decrement trigger
+    //        _renderNow--;
+    //    } while(_renderNow > 0);
+
+    //    _renderLock.unlock();
+    //}
     SimpleContextEvents::updateDraw();
 }
 
@@ -79,3 +98,9 @@ void SimpleContext::_mouseUpdate(int x, int y) {
     SimpleContextEvents::updateMouse(x, y);
 }
 
+void SimpleContext::_frameRateTrigger(int milliSeconds){
+    //Triggers the simple context to draw a frame
+    _renderLock.lock();
+    _renderNow++;
+    _renderLock.unlock();
+}

@@ -9,8 +9,8 @@ void DebugShader::build() {
     GLhandleARB vertexShaderHandle;
     GLhandleARB fragmentShaderHandle;
 
-    std::string fileNameVert = "normalShader.vert";
-    std::string fileNameFrag = "normalShader.frag";
+    std::string fileNameVert = "shaders/normalShader.vert";
+    std::string fileNameFrag = "shaders/normalShader.frag";
 
     //Compile each shader
     vertexShaderHandle = _compile((char*)fileNameVert.c_str(), GL_VERTEX_SHADER);

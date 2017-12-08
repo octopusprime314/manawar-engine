@@ -46,7 +46,7 @@ void Shader::runShader(Model* model) {
     glEnableVertexAttribArray(2);
 
     glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, model->getTexture(0)->getContext()); //grab first texture of model and return context
+	glBindTexture(GL_TEXTURE_2D, model->getTexture()->getContext()); //grab first texture of model and return context
     //glUniform texture 
     //The second parameter has to be equal to GL_TEXTURE(X) so X must be 0 because we activated texture GL_TEXTURE0 two calls before
     glUniform1iARB(_textureLocation, 0); 
@@ -73,12 +73,14 @@ void Shader::runShader(Model* model) {
     glUseProgram(0);//end using this shader
 }
 
-void Shader::build() {
+void Shader::build(std::string shaderName) {
     GLhandleARB vertexShaderHandle;
     GLhandleARB fragmentShaderHandle;
 
-    std::string fileNameVert = "simpleShader.vert";
-    std::string fileNameFrag = "simpleShader.frag";
+    std::string fileNameVert = shaderName;
+    fileNameVert.append(".vert");
+    std::string fileNameFrag = shaderName;
+    fileNameFrag.append(".frag");
 
     //Compile each shader
     vertexShaderHandle = _compile((char*)fileNameVert.c_str(), GL_VERTEX_SHADER);

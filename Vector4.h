@@ -20,6 +20,7 @@
 */
 
 #pragma once
+#include <iostream>
 
 class Vector4 {
     float _vec[4];
@@ -31,9 +32,12 @@ public:
     void    display();
     Vector4 operator / (float scale);
     Vector4 operator + (Vector4 other);
+    bool    operator == (Vector4 other);
+    bool    operator != (Vector4 other);
     float   getx();
     float   gety();
     float   getz();
     float   getw();
     void    normalize();
+    friend std::ostream &operator << (std::ostream& output, Vector4 &other); 
 };

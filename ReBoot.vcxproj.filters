@@ -9,7 +9,7 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
-    <Filter Include="Resource Files">
+    <Filter Include="shaders">
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
@@ -42,9 +42,6 @@
     <ClCompile Include="UpdateInterface.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ShadowShader.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="ViewManagerEvents.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -75,9 +72,6 @@
     <ClCompile Include="FbxLoader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="AnimationFrame.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="MasterClock.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -88,6 +82,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Texture2.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AnimationShader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -122,9 +119,6 @@
     <ClInclude Include="UpdateInterface.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ShadowShader.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="ViewManagerEvents.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -155,9 +149,6 @@
     <ClInclude Include="FbxLoader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="AnimationFrame.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="MasterClock.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -170,19 +161,34 @@
     <ClInclude Include="Texture2.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="AnimationShader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="simpleShader.vert">
-      <Filter>Resource Files</Filter>
+    <None Include="shaders\normalShader.frag">
+      <Filter>shaders</Filter>
     </None>
-    <None Include="simpleShader.frag">
-      <Filter>Resource Files</Filter>
+    <None Include="shaders\normalShader.vert">
+      <Filter>shaders</Filter>
     </None>
-    <None Include="normalShader.frag">
-      <Filter>Resource Files</Filter>
+    <None Include="shaders\simpleShader.frag">
+      <Filter>shaders</Filter>
     </None>
-    <None Include="normalShader.vert">
-      <Filter>Resource Files</Filter>
+    <None Include="shaders\simpleShader.vert">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shaders\hagravenBoneShader.frag">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shaders\hagravenBoneShader.vert">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shaders\trollBoneShader.frag">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shaders\trollBoneShader.vert">
+      <Filter>shaders</Filter>
     </None>
   </ItemGroup>
 </Project>

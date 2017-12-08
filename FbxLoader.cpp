@@ -4,6 +4,8 @@
 #include <map>
 #include "Texture.h"
 
+const float FRAMERATE = 60.0f;
+
 FbxLoader::FbxLoader(std::string name) {
 
     _fbxManager = FbxManager::Create();
@@ -151,79 +153,47 @@ void FbxLoader::loadAnimatedModelData(AnimatedModel* model, FbxSkin* pSkin, FbxN
     _buildAnimationFrames(model, skins); //Build up each animation frame's vertices and normals
 }
 
-void FbxLoader::_buildAnimationFrames(AnimatedModel* model, const std::vector<SkinningData>& skins) {
+void FbxLoader::_buildAnimationFrames(AnimatedModel* model, std::vector<SkinningData>& skins) {
 
     Animation* animation = model->getAnimation();
     std::vector<Vector4>* vertices = model->getVertices(); //Get the reference to an object to prevent copy
-    std::vector<Vector4>* normals = model->getNormals(); //Get the reference to an object to prevent copy
     size_t verticesSize = vertices->size();
     std::vector<int>* indices = model->getIndices();
     size_t indicesSize = indices->size();
     int animationFrames = animation->getFrameCount();
 
+    std::vector<std::vector<int>>* boneIndexes = new std::vector<std::vector<int>>(verticesSize); //Bone indexes per vertex
+    std::vector<std::vector<float>>* boneWeights = new std::vector<std::vector<float>>(verticesSize); //Bone weights per vertex
+    int boneIndex = 0;
+    for (SkinningData skin : skins) { //Dereference vertices
+        std::vector<int>*    indexes = skin.getIndexes(); //Get all of the vertex indexes that are affected by this skinning data
+        std::vector<double>* weights = skin.getWeights(); //Get all of the vertex weights that are affected by this skinning data
+        int subSkinIndex = 0;
+        for (int index : *indexes) { //Derefence indexes
+                
+            (*boneIndexes)[index].push_back(boneIndex);
+            (*boneWeights)[index].push_back((*weights)[subSkinIndex]);
+            ++subSkinIndex; //Indexer for other vectors
+        }
+        boneIndex++;
+    }
+    
+    //Pad data
+    for(int i = 0; i < boneWeights->size(); i++){
+        (*boneWeights)[i].resize(4);
+        (*boneIndexes)[i].resize(4);
+    }
+
+    animation->setBoneIndexWeights(boneIndexes, boneWeights);
+
     for (int animationFrame = 0; animationFrame < animationFrames; ++animationFrame) {
 
-        std::vector<Vector4>* animationVertices = new std::vector<Vector4>(indicesSize); //Allocate a vertices pointer and pass it to AniminatedModel object
-        std::vector<Vector4>* animationNormals = new std::vector<Vector4>(indicesSize); //Allocate a normals pointer and pass it to AniminatedModel object
-        std::vector<Vector4>* animationDebugNormals = new std::vector<Vector4>(indicesSize * 2); //Allocate a normals debug pointer and pass it to AniminatedModel object
-        std::vector<Matrix>   vertexWeightedTransformations(verticesSize); //Create on stack because only temporary
-        std::vector<Matrix>   normalWeightedTransformations(verticesSize); //Create on stack because only temporary
-        std::vector<bool>     affectedVertices(verticesSize, false); //Initialize a dirty bit indicator whether a vertex is affected by skin data
-
-        //Build up weighted vertex animation transforms
+        std::vector<Matrix>* bones = new std::vector<Matrix>(); //Bone weights per vertex
         for (SkinningData skin : skins) { //Dereference vertices
-            std::vector<int>*    indexes = skin.getIndexes(); //Get all of the vertex indexes that are affected by this skinning data
-            std::vector<double>* weights = skin.getWeights(); //Get all of the vertex weights that are affected by this skinning data
             std::vector<Matrix>* vertexTransforms = skin.getFrameVertexTransforms(); //Get all of the vertex transform data per frame
-            std::vector<Matrix>* normalTransforms = skin.getFrameNormalTransforms(); //Get all of the normal transform data per frame
-            int subSkinIndex = 0;
-            for (int index : *indexes) { //Derefence indexes
-                if (!affectedVertices[index]) { //If vertex has not been flagged already for being affected by this skinning data
-                    affectedVertices[index] = true;
-                    vertexWeightedTransformations[index] = (*vertexTransforms)[animationFrame] * (*weights)[subSkinIndex];
-                    normalWeightedTransformations[index] = (*normalTransforms)[animationFrame] * (*weights)[subSkinIndex];
-                }
-                else {
-                    Matrix vertexWeightedTransform = (*vertexTransforms)[animationFrame] * (*weights)[subSkinIndex];
-                    //Add on transform to pre existing vertex transform
-                    vertexWeightedTransformations[index] = vertexWeightedTransformations[index] + vertexWeightedTransform;
-
-                    Matrix normalWeightedTransform = (*normalTransforms)[animationFrame] * (*weights)[subSkinIndex];
-                    //Add on transform to pre existing noraml transform
-                    normalWeightedTransformations[index] = normalWeightedTransformations[index] + normalWeightedTransform;
-
-                }
-                ++subSkinIndex; //Indexer for other vectors
-            }
+            bones->push_back((*vertexTransforms)[animationFrame]);
         }
-
-        //Transform vertices with vertex weighted transforms
-        int weightedTransformIndex = 0;
-        for (int index : *indices) {
-            (*animationVertices)[weightedTransformIndex] = vertexWeightedTransformations[index] * (*vertices)[index];
-            ++weightedTransformIndex;
-        }
-        //Transform normals with normal weighted transforms
-        weightedTransformIndex = 0;
-        for (int index : *indices) {
-            (*animationNormals)[weightedTransformIndex] = normalWeightedTransformations[index] * (*normals)[index];
-            (*animationNormals)[weightedTransformIndex].normalize(); //normalize the normal vector
-            ++weightedTransformIndex;
-        }
-        //Build up debug normals
-        weightedTransformIndex = 0;
-        int vertexNormalIndex = 0;
-        for (int index : *indices) {
-            (*animationDebugNormals)[weightedTransformIndex] = (*animationVertices)[vertexNormalIndex];
-            ++weightedTransformIndex;
-            (*animationDebugNormals)[weightedTransformIndex] = (*animationVertices)[vertexNormalIndex] +
-                (*animationNormals)[vertexNormalIndex];
-            ++weightedTransformIndex;
-            ++vertexNormalIndex;
-        }
-        //Create an animation frame and add it to the animation object for safe keeping!
-        AnimationFrame* frame = new AnimationFrame(animationVertices, animationNormals, animationDebugNormals);
-        animation->addFrame(frame, false); //Add a new frame to the animation and do not store in GPU memory yet
+        animation->addBoneTransforms(bones); //Add a new frame to the animation and do not store in GPU memory yet
     }
 }
 
@@ -374,15 +344,16 @@ void FbxLoader::_loadTextures(Model* model, FbxMesh* meshNode, FbxNode* childNod
 		for (int textureIndex = 0; textureIndex < textureCount; ++textureIndex) {
             //Fetch the diffuse texture
 			FbxFileTexture* textureFbx = FbxCast<FbxFileTexture>(propDiffuse.GetSrcObject<FbxFileTexture>(textureIndex));
-						
-			// Then, you can get all the properties of the texture, including its name
-			std::string textureName = textureFbx->GetFileName();
-            std::string textureNameTemp = textureName; //Used a temporary storage to not overwrite textureName
-            std::string texturePath = "..\\models\\textures";
-            //Finds second to last position of string and use that for file access name
-			texturePath.append(textureName.substr(textureNameTemp.substr(0, textureNameTemp.find_last_of("/\\")).find_last_of("/\\")));
-            Texture* texture = new Texture(texturePath);
-            model->addTexture(texture);
+			
+            if(textureFbx != nullptr){
+			    // Then, you can get all the properties of the texture, including its name
+			    std::string textureName = textureFbx->GetFileName();
+                std::string textureNameTemp = textureName; //Used a temporary storage to not overwrite textureName
+                std::string texturePath = "..\\models\\textures";
+                //Finds second to last position of string and use that for file access name
+			    texturePath.append(textureName.substr(textureNameTemp.substr(0, textureNameTemp.find_last_of("/\\")).find_last_of("/\\")));
+                model->addTexture(texturePath);
+            }
 		}
 	}
 }

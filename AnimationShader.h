@@ -16,7 +16,7 @@
 */
 
 /**
-*  BonedShader class. Derived shader class that implements animation boneing.
+*  AnimationShader class. Derived shader class that implements animation boneing.
 */
 
 #pragma once

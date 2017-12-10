@@ -28,14 +28,14 @@ class SkinningData {
     std::vector<int>          _indexes;
     std::vector<double>       _weights;
     std::vector<Matrix>       _frameVertexTransforms;
-    std::vector<Matrix>       _frameNormalTransforms;
+    int                       _indexOffset;
 
 public:
-    SkinningData(FbxCluster* skinData, FbxNode* node, int animationFrames);
+    SkinningData(FbxCluster* skinData, FbxNode* node, int animationFrames, int indexOffset);
     ~SkinningData();
 
     std::vector<int>*          getIndexes();
     std::vector<double>*       getWeights();
     std::vector<Matrix>*       getFrameVertexTransforms();
-    std::vector<Matrix>*       getFrameNormalTransforms();
+    int                        getIndexOffset();
 };

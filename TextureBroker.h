@@ -16,7 +16,7 @@
 */
 
 /**
-*  The TextureBroker class manages a collection of Texture objects
+*  The TextureBroker class is a singleton that manages all textures in a scene
 */
 
 #pragma once

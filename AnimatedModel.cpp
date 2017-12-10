@@ -5,7 +5,13 @@ AnimatedModel::AnimatedModel(std::string name, ViewManagerEvents* eventWrapper) 
     Model(name, eventWrapper, ModelClass::AnimatedModelType),
     _currentAnimation(0) {
 
+    //First create an animation object
+    Animation* animation = AnimationBuilder::buildAnimation();
+    addAnimation(animation); //Push animation onto the animated model
+
     _fbxLoader->loadAnimatedModel(this, _fbxLoader->getScene()->GetRootNode()); //Grab skin animation transforms
+
+    _fbxLoader->buildAnimationFrames(this, animation->getSkins()); //Build up each animation frame's vertices and normals
 
     //Done with fbx loader so close all handles to fbx scene instance
     delete _fbxLoader;

@@ -24,7 +24,7 @@ void main(){
 	textureCoordinateOut = textureCoordinateIn; //Passthrough
 	
 	//Fake directional light test pointing in the -x direction
-	vec4 light = vec4(-1.0, 0.0, 0.0, 1.0); //Directional light vector
+	vec4 light = vec4(0.0, -1.0, 0.0, 1.0); //Directional light vector
 	vec3 transformedLight = vec3((normal * light).xyz); //Transform light vector with normal matrix
 	directionalLight = vec3(-transformedLight.x, -transformedLight.y, -transformedLight.z); //negate the directional light for normal computations
 	

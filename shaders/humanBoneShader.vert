@@ -15,7 +15,7 @@ uniform mat4 view;		 // View/Camera transformation matrix
 uniform mat4 projection; // Projection transformation matrix
 uniform mat4 normal;     // Normal matrix
 
-uniform mat4 bones[78]; // 78 bones
+uniform mat4 bones[59]; // 59 bones
 
 void main(){
 

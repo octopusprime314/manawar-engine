@@ -3,8 +3,7 @@
 #include "Model.h"
 #include <map>
 #include "Texture.h"
-
-const float FRAMERATE = 60.0f;
+#include <algorithm>
 
 FbxLoader::FbxLoader(std::string name) {
 
@@ -86,7 +85,6 @@ void FbxLoader::loadAnimatedModel(AnimatedModel* model, FbxNode* node) {
         FbxMesh* mesh = childNode->GetMesh();
         if (mesh != nullptr) {
             //Look for a skin animation
-            int ctrlPointCount = mesh->GetControlPointsCount();
             int deformerCount = mesh->GetDeformerCount();
 
             FbxDeformer* pFBXDeformer;
@@ -95,27 +93,23 @@ void FbxLoader::loadAnimatedModel(AnimatedModel* model, FbxNode* node) {
             for (int i = 0; i < deformerCount; ++i) {
                 pFBXDeformer = mesh->GetDeformer(i);
 
-                if (pFBXDeformer == nullptr) {
+                if (pFBXDeformer == nullptr || pFBXDeformer->GetDeformerType() != FbxDeformer::eSkin) {
                     continue;
                 }
-                if (pFBXDeformer->GetDeformerType() != FbxDeformer::eSkin) {
-                    continue;
-                }
+
                 pFBXSkin = (FbxSkin*)(pFBXDeformer);
                 if (pFBXSkin == nullptr) {
                     continue;
                 }
-                loadAnimatedModelData(model, pFBXSkin, node);
+                loadAnimatedModelData(model, pFBXSkin, node, mesh);
             }
         }
         loadAnimatedModel(model, childNode);
     }
+
 }
 
-void FbxLoader::loadAnimatedModelData(AnimatedModel* model, FbxSkin* pSkin, FbxNode* node) {
-
-    //First create an animation object
-    Animation* animation = AnimationBuilder::buildAnimation();
+void FbxLoader::loadAnimatedModelData(AnimatedModel* model, FbxSkin* pSkin, FbxNode* node, FbxMesh* mesh) {
 
     //Used to supply animation frame data for skinning a model
     std::vector<SkinningData> skins;
@@ -123,15 +117,18 @@ void FbxLoader::loadAnimatedModelData(AnimatedModel* model, FbxSkin* pSkin, FbxN
     //Load the global animation stack information
     FbxAnimStack* currAnimStack = node->GetScene()->GetSrcObject<FbxAnimStack>(0);
     FbxString animStackName = currAnimStack->GetName();
-    std::string mAnimationName = animStackName.Buffer();
     FbxTakeInfo* takeInfo = node->GetScene()->GetTakeInfo(animStackName);
     FbxTime start = takeInfo->mLocalTimeSpan.GetStart();
     FbxTime end = takeInfo->mLocalTimeSpan.GetStop();
-    int animationFrames = (int)(end.GetFrameCount(FbxTime::eFrames30) - start.GetFrameCount(FbxTime::eFrames30) + 1);
-    FbxTime frameTime = takeInfo->mLocalTimeSpan.GetDuration();
-    FbxTime::EMode mode = frameTime.GetGlobalTimeMode();
-    int fps = (int)frameTime.GetFrameRate(mode);
-    int animationDuration = (((float)fps*fps) / (FRAMERATE))*((frameTime.GetMilliSeconds() / 1000.0f) / ((float)animationFrames));
+    int animationFrames = (int)(end.GetFrameCount(FbxTime::eFrames60) - start.GetFrameCount(FbxTime::eFrames60) + 1);
+ 
+    auto animation = model->getAnimation();
+    animation->setFrames(animationFrames); //Set the number of frames this animation contains
+    auto previousSkins = animation->getSkins();
+    int indexOffset = 0;
+    if(previousSkins.size() > 0){
+        indexOffset = previousSkins.back().getIndexOffset();
+    }
 
     int clusterCount = pSkin->GetClusterCount();
     for (int i = 0; i < clusterCount; ++i) {
@@ -145,15 +142,22 @@ void FbxLoader::loadAnimatedModelData(AnimatedModel* model, FbxSkin* pSkin, FbxN
         if (pLinkNode == nullptr) {
             continue;
         }
-        skins.push_back(SkinningData(pCluster, node, animationFrames));
+        skins.push_back(SkinningData(pCluster, node, animationFrames, mesh->GetControlPointsCount()));
     }
 
-    animation->setFrames(animationFrames); //Set the number of frames this animation contains
-    model->addAnimation(animation); //Push animation onto the animated model
-    _buildAnimationFrames(model, skins); //Build up each animation frame's vertices and normals
+    if(model->getClassType() == ModelClass::AnimatedModelType){
+
+        if(animation->getSkins().size() > 0) {
+            for(SkinningData& skin : skins){
+                auto ind = skin.getIndexes();
+                transform(ind->begin(), ind->end(), ind->begin(), bind2nd(std::plus<int>(), indexOffset));     
+            }
+        }
+    }
+    animation->addSkin(skins);
 }
 
-void FbxLoader::_buildAnimationFrames(AnimatedModel* model, std::vector<SkinningData>& skins) {
+void FbxLoader::buildAnimationFrames(AnimatedModel* model, std::vector<SkinningData>& skins) {
 
     Animation* animation = model->getAnimation();
     std::vector<Vector4>* vertices = model->getVertices(); //Get the reference to an object to prevent copy
@@ -180,6 +184,9 @@ void FbxLoader::_buildAnimationFrames(AnimatedModel* model, std::vector<Skinning
     
     //Pad data
     for(int i = 0; i < boneWeights->size(); i++){
+        if((*boneWeights)[i].size() > 4){
+            std::cout << "Currently cannot support this animation model!" << std::endl;
+        }
         (*boneWeights)[i].resize(4);
         (*boneIndexes)[i].resize(4);
     }
@@ -200,32 +207,85 @@ void FbxLoader::_buildAnimationFrames(AnimatedModel* model, std::vector<Skinning
 
 void FbxLoader::loadModelData(Model* model, FbxMesh* meshNode, FbxNode* childNode) {
 
-    //Global transform
-    FbxDouble* TBuff = childNode->EvaluateGlobalTransform().GetT().Buffer();
-    FbxDouble* RBuff = childNode->EvaluateGlobalTransform().GetR().Buffer();
-    FbxDouble* SBuff = childNode->EvaluateGlobalTransform().GetS().Buffer();
+    //Get the indices from the mesh
+    int* indices = nullptr;
+    _loadIndices(model, meshNode, indices);
 
-    //Compute x, y and z rotation vectors by multiplying through
-    Matrix rotation = Matrix::rotationAroundX(RBuff[0]) * Matrix::rotationAroundY(RBuff[1]) * Matrix::rotationAroundZ(RBuff[2]);
-    Matrix translation = Matrix::translation(TBuff[0], TBuff[1], TBuff[2]);
-    Matrix scale = Matrix::scale(SBuff[0], SBuff[1], SBuff[2]);
+    //Get the vertices from the mesh
+    std::vector<Vector4> vertices;
+    _loadVertices(meshNode, vertices);
 
+    //Get the normals from the mesh
+    std::vector<Vector4> normals;
+    _loadNormals(meshNode, indices, normals);
+
+    //Get the textures UV/ST coordinates from the mesh
+    std::vector<Texture2> textures;
+    _loadTextureUVs(meshNode, textures);
+
+    //Send texture image data to GPU
+    _loadTextures(model, meshNode, childNode);
+
+    //Build the entire model in one long stream of vertex, normal and texture buffers
+    _buildModelData(model, meshNode, childNode, vertices, normals, textures);
+}
+
+void FbxLoader::_loadIndices(Model* model, FbxMesh* meshNode, int*& indices){
+    
     //Get the indices from the model
     int  numIndices = meshNode->GetPolygonVertexCount();
-    int* indices = meshNode->GetPolygonVertices();
-    int  numVerts = meshNode->GetControlPointsCount();
+    indices = meshNode->GetPolygonVertices();
 
-    model->setVertexIndices(std::vector<int>(indices, indices + numIndices)); //Copy vector
+    if(model->getClassType() == ModelClass::ModelType){
+        model->setVertexIndices(std::vector<int>(indices, indices + numIndices)); //Copy vector
+    }
+    else if(model->getClassType() == ModelClass::AnimatedModelType){
+        std::vector<int> newIndices(indices, indices + numIndices);
 
+        //Find previous maximum vertex index and add to all of the sequential indexes
+        auto currentIndices = model->getIndices();
+        if(currentIndices->size() > 0){
+            auto maxIndex = std::max_element(currentIndices->begin(), currentIndices->end());
+            //Add one to the maxIndex otherwise this model uses the last vertex from the previous model!!!!!!!!!!!!!
+            transform(newIndices.begin(), newIndices.end(), newIndices.begin(), bind2nd(std::plus<int>(), (*maxIndex) + 1));     
+        }
+        model->addVertexIndices(newIndices); //Copy vector
+    }
+}
+
+void FbxLoader::_loadVertices(FbxMesh* meshNode, std::vector<Vector4>& vertices){
     //Get the vertices from the model
-    std::vector<Vector4> vertices;
+    int  numVerts = meshNode->GetControlPointsCount();
     for (int j = 0; j < numVerts; j++) {
         FbxVector4 coord = meshNode->GetControlPointAt(j);
         vertices.push_back(Vector4((float)coord.mData[0], (float)coord.mData[1], (float)coord.mData[2], 1.0));
     }
+}
 
-    //Get the normals from the mesh
-    std::vector<Vector4> normals;
+void FbxLoader::_buildModelData(Model* model, FbxMesh* meshNode, FbxNode* childNode, std::vector<Vector4>& vertices, 
+                                std::vector<Vector4>& normals, std::vector<Texture2>& textures) {
+    int numVerts = meshNode->GetControlPointsCount();
+    //Load in models differently based on type
+    if (model->getClassType() == ModelClass::AnimatedModelType) {
+        //Load vertices and normals into model
+        for (int i = 0; i < numVerts; i++) {
+            model->addVertex(vertices[i]); 
+            model->addNormal(normals[i]); 
+            model->addDebugNormal(vertices[i]);
+            model->addDebugNormal(vertices[i] + normals[i]);
+        }
+        //Load texture coordinates
+        for (int i = 0; i < textures.size(); i++) {
+            model->addTexture(textures[i]);
+        }
+    }
+    else if (model->getClassType() == ModelClass::ModelType) {
+        //Load in the entire model once if the data is not animated
+        _buildTriangles(model, vertices, normals, textures, *model->getIndices(), childNode);
+    }
+}
+
+void FbxLoader::_loadNormals(FbxMesh* meshNode, int* indices, std::vector<Vector4>& normals){
     std::map<int, Vector4> mappingNormals;
     FbxGeometryElementNormal* normalElement = meshNode->GetElementNormal();
     const FbxLayerElement::EMappingMode mapMode = normalElement->GetMappingMode();
@@ -266,10 +326,14 @@ void FbxLoader::loadModelData(Model* model, FbxMesh* meshNode, FbxNode* childNod
             }
         }
     }
+}
+
+void FbxLoader::_loadTextureUVs(FbxMesh* meshNode, std::vector<Texture2>& textures){
+
+    int numIndices = meshNode->GetPolygonVertexCount();
 
     //Get the texture coordinates from the mesh
 	FbxVector2 uv;
-    std::vector<Texture2> textures;
 	FbxGeometryElementUV*                 leUV = meshNode->GetElementUV( 0 );
 	const FbxLayerElement::EReferenceMode refMode = leUV->GetReferenceMode();
 	const FbxLayerElement::EMappingMode   textMapMode = leUV->GetMappingMode();
@@ -291,42 +355,78 @@ void FbxLoader::loadModelData(Model* model, FbxMesh* meshNode, FbxNode* childNod
 			textures.push_back(Texture2(uvTexture[0], uvTexture[1]));
 		}
 	}
-
-    _loadTextures(model, meshNode, childNode);
-
-    //Load in models differently based on type
-    if (model->getClassType() == ModelClass::AnimatedModelType) {
-        //Load vertices and normals into model
-        for (int i = 0; i < numVerts; i++) {
-            model->addVertex(vertices[i]); 
-            model->addNormal(normals[i]); 
-            model->addDebugNormal(vertices[i]);
-            model->addDebugNormal(vertices[i] + normals[i]);
-        }
-        //Load texture coordinates
-        for (int i = 0; i < textures.size(); i++) {
-            model->addTexture(textures[i]);
-        }
-    }
-    else if (model->getClassType() == ModelClass::ModelType) {
-        //Load in the entire model once if the data is not animated
-        _buildTriangles(model, vertices, normals, textures, *model->getIndices(), translation, rotation, scale);
-    }
 }
 
-void FbxLoader::_loadTextures(Model* model, FbxMesh* meshNode, FbxNode* childNode) {
-    
+void FbxLoader::_generateTextureStrides(FbxMesh* meshNode, std::vector<int>& textureStrides){
     //Get material element info
     FbxLayerElementMaterial* pLayerMaterial = meshNode->GetLayer(0)->GetMaterials();   
     //Get material mapping info
 	FbxLayerElementArrayTemplate<int> *tmpArray = &pLayerMaterial->GetIndexArray();   
-	
-    //No layers then no textures :(
-	if(meshNode->GetLayerCount() == 0){
+    //Get mapping mode
+    FbxLayerElement::EMappingMode mapMode = pLayerMaterial->GetMappingMode();
+
+	int textureCountage = tmpArray->GetCount();
+
+    if(mapMode == FbxLayerElement::EMappingMode::eAllSame){
+        textureStrides.push_back(meshNode->GetPolygonVertexCount());
+    }
+    else{
+        int currMaterial;
+        int vertexStride = 0;
+	    for(int i = 0; i < textureCountage; i++) {     
+		    if(i == 0) {
+			    currMaterial = tmpArray->GetAt(i);
+		    }
+		    else {
+			    if(currMaterial != tmpArray->GetAt(i)) {
+				    currMaterial = tmpArray->GetAt(i);
+                    if(mapMode == FbxLayerElement::EMappingMode::eByPolygon){
+                        textureStrides.push_back(vertexStride*3); //Multiply by 3 because materials are done per triangle not per vertex
+                    }
+                    else if(mapMode == FbxLayerElement::EMappingMode::eByPolygonVertex){
+                        textureStrides.push_back(vertexStride);
+                    }
+                    vertexStride = 0;
+			    }
+		    }
+            vertexStride++;
+	    }
+        if(mapMode == FbxLayerElement::EMappingMode::eByPolygon){
+            textureStrides.push_back(vertexStride*3); //Multiply by 3 because materials are done per triangle not per vertex
+        }
+        else if(mapMode == FbxLayerElement::EMappingMode::eByPolygonVertex){
+            textureStrides.push_back(vertexStride);
+        }
+    }
+}
+
+bool FbxLoader::_loadTexture(Model* model, int textureStride, FbxFileTexture* textureFbx, int textureIndex){
+
+    if(textureFbx != nullptr){
+		// Then, you can get all the properties of the texture, including its name
+		std::string textureName = textureFbx->GetFileName();
+        std::string textureNameTemp = textureName; //Used a temporary storage to not overwrite textureName
+        std::string texturePath = "..\\models\\textures";
+        //Finds second to last position of string and use that for file access name
+		texturePath.append(textureName.substr(textureNameTemp.substr(0, textureNameTemp.find_last_of("/\\")).find_last_of("/\\")));
+        model->addTexture(texturePath, textureStride);
+        return true;
+    }
+    return false;
+}
+
+void FbxLoader::_loadTextures(Model* model, FbxMesh* meshNode, FbxNode* childNode) {
+    
+    //First verify if mesh nodes has materials...
+    if(meshNode->GetLayerCount() == 0){
         return;
     }
+    std::vector<int> strides;
+    _generateTextureStrides(meshNode, strides);
+
 	//Return the number of materials found in mesh
 	int materialCount = childNode->GetSrcObjectCount<FbxSurfaceMaterial>();
+    int textureStrideIndex = 0;
 	for (int materialIndex = 0; materialIndex < materialCount; ++materialIndex) {
 		
         FbxSurfaceMaterial* material = (FbxSurfaceMaterial*)childNode->GetSrcObject<FbxSurfaceMaterial>(materialIndex);
@@ -338,28 +438,57 @@ void FbxLoader::_loadTextures(Model* model, FbxMesh* meshNode, FbxNode* childNod
         // you probably need to traverse all Standard Material Property by its name to get all possible textures.
 		FbxProperty propDiffuse = material->FindProperty(FbxSurfaceMaterial::sDiffuse);
 
-		// Get number of textures in the material which could contain diffuse, bump, normal and/or specular maps...
-        int textureCount = propDiffuse.GetSrcObjectCount<FbxTexture>();
+        // Check if it's layeredtextures
+	    int layeredTextureCount = propDiffuse.GetSrcObjectCount<FbxLayeredTexture>();
 
-		for (int textureIndex = 0; textureIndex < textureCount; ++textureIndex) {
-            //Fetch the diffuse texture
-			FbxFileTexture* textureFbx = FbxCast<FbxFileTexture>(propDiffuse.GetSrcObject<FbxFileTexture>(textureIndex));
-			
-            if(textureFbx != nullptr){
-			    // Then, you can get all the properties of the texture, including its name
-			    std::string textureName = textureFbx->GetFileName();
-                std::string textureNameTemp = textureName; //Used a temporary storage to not overwrite textureName
-                std::string texturePath = "..\\models\\textures";
-                //Finds second to last position of string and use that for file access name
-			    texturePath.append(textureName.substr(textureNameTemp.substr(0, textureNameTemp.find_last_of("/\\")).find_last_of("/\\")));
-                model->addTexture(texturePath);
+        if (layeredTextureCount > 0) {
+            for (int j = 0; j < layeredTextureCount; j++) {
+				FbxLayeredTexture* layered_texture = FbxCast<FbxLayeredTexture>(propDiffuse.GetSrcObject<FbxLayeredTexture>(j));
+                if(layered_texture != nullptr) {
+
+                    int textureCount = layered_texture->GetSrcObjectCount<FbxTexture>();
+                    for (int textureIndex = 0; textureIndex < textureCount; textureIndex++) {
+
+                        //Fetch the diffuse texture
+                        FbxFileTexture* textureFbx = FbxCast<FbxFileTexture >(layered_texture->GetSrcObject<FbxFileTexture >(textureIndex));
+                        if(_loadTexture(model, strides[textureStrideIndex], textureFbx, textureIndex)){
+                            textureStrideIndex++;
+                        }
+
+                        // TODO Implement layered textures but for now just grab the first texture and break out
+                        break;
+                    }
+                }
             }
-		}
+        }
+        else {
+		    // Get number of textures in the material which could contain diffuse, bump, normal and/or specular maps...
+            int textureCount = propDiffuse.GetSrcObjectCount<FbxTexture>();
+
+		    for (int textureIndex = 0; textureIndex < textureCount; ++textureIndex) {
+                
+                //Fetch the diffuse texture
+                FbxFileTexture* textureFbx = FbxCast<FbxFileTexture>(propDiffuse.GetSrcObject<FbxFileTexture>(textureIndex));
+                if(_loadTexture(model, strides[textureStrideIndex], textureFbx, textureIndex)){
+                    textureStrideIndex++;
+                }
+		    }
+        }
 	}
 }
 
 void FbxLoader::_buildTriangles(Model* model, std::vector<Vector4>& vertices, std::vector<Vector4>& normals,
-    std::vector<Texture2>& textures, std::vector<int>& indices, Matrix translation, Matrix rotation, Matrix scale) {
+    std::vector<Texture2>& textures, std::vector<int>& indices, FbxNode* node) {
+
+    //Global transform
+    FbxDouble* TBuff = node->EvaluateGlobalTransform().GetT().Buffer();
+    FbxDouble* RBuff = node->EvaluateGlobalTransform().GetR().Buffer();
+    FbxDouble* SBuff = node->EvaluateGlobalTransform().GetS().Buffer();
+
+    //Compute x, y and z rotation vectors by multiplying through
+    Matrix rotation = Matrix::rotationAroundX(RBuff[0]) * Matrix::rotationAroundY(RBuff[1]) * Matrix::rotationAroundZ(RBuff[2]);
+    Matrix translation = Matrix::translation(TBuff[0], TBuff[1], TBuff[2]);
+    Matrix scale = Matrix::scale(SBuff[0], SBuff[1], SBuff[2]);
 
     int triCount = 0;
     Matrix transformation = translation * rotation * scale;

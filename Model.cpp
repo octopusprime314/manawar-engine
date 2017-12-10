@@ -270,6 +270,10 @@ void Model::setVertexIndices(std::vector<int> indices) {
     _indices = indices;
 }
 
+void Model::addVertexIndices(std::vector<int> indices) {
+    _indices.insert(_indices.end(), indices.begin(), indices.end());
+}
+
 std::vector<int>* Model::getIndices() {
     return &_indices;
 }
@@ -306,11 +310,15 @@ size_t Model::getArrayCount() {
     }
 }
 
-void Model::addTexture(std::string textureName){
-    _textureName = textureName;
+void Model::addTexture(std::string textureName, int stride){
+    _textureStrides.push_back(std::pair<std::string, int>(textureName, stride));
     _textureManager->addTexture(textureName);
 }
 
-Texture* Model::getTexture(){
-    return _textureManager->getTexture(_textureName);
+Texture* Model::getTexture(std::string textureName){
+    return _textureManager->getTexture(textureName);
+} 
+
+std::vector<std::pair<std::string, int>> Model::getTextureStrides(){
+    return _textureStrides;
 }

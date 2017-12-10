@@ -42,7 +42,7 @@ enum class ModelClass {
 };
 
 class Model : public UpdateInterface {
-
+    
 public:
 
     Model();
@@ -71,10 +71,12 @@ public:
     void                        addTexture(Texture2 texture);
     void                        addDebugNormal(Vector4 normal);
     void						setVertexIndices(std::vector<int> indices);
+    void                        addVertexIndices(std::vector<int> indices);
     ModelClass                  getClassType();
     size_t                      getArrayCount();
-    void                        addTexture(std::string textureName);
-    Texture*                    getTexture();
+    void                        addTexture(std::string textureName, int stride);
+    Texture*                    getTexture(std::string textureName);
+    std::vector<std::pair<std::string, int>> getTextureStrides();
 
 protected:
     Matrix                      _model; //Object and World Space Matrix i.e. how the model is centered around the origin and 
@@ -100,6 +102,7 @@ protected:
     MasterClock*                _clock; //Used to coordinate time with the world
     static TextureBroker*       _textureManager; //Static texture manager for texture reuse purposes, all models have access
     std::string                 _textureName; //Keeps track of which texture to grab from static texture manager
+    std::vector<std::pair<std::string, int>> _textureStrides; //Keeps track of which set of vertices use a certain texture within the large vertex set
     
     void                        _updateKeyboard(unsigned char key, int x, int y); //Do stuff based on keyboard upate
     void                        _updateMouse(int button, int state, int x, int y); //Do stuff based on mouse update

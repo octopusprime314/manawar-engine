@@ -1,7 +1,7 @@
 #include "SkinningData.h"
 #include <iterator>
 
-SkinningData::SkinningData(FbxCluster* skinData, FbxNode* node, int animationFrames) {
+SkinningData::SkinningData(FbxCluster* skinData, FbxNode* node, int animationFrames, int indexOffset) {
 
     int skinningPoints = skinData->GetControlPointIndicesCount();
     auto indices = skinData->GetControlPointIndices();
@@ -26,7 +26,7 @@ SkinningData::SkinningData(FbxCluster* skinData, FbxNode* node, int animationFra
 
     for (FbxLongLong j = 0; j < animationFrames; j++) {
         FbxTime currTime;
-        currTime.SetFrame(j, FbxTime::eFrames30);
+        currTime.SetFrame(j, FbxTime::eFrames60);
 
         //Multiply node offset with global transform at time currTime and finally with inverse bind pose transform
         FbxAMatrix currentTransformOffset = node->EvaluateGlobalTransform(currTime) * geometryTransform;
@@ -36,15 +36,10 @@ SkinningData::SkinningData(FbxCluster* skinData, FbxNode* node, int animationFra
 
         double* matVertex = (double *)&transformed[0][0]; //Cast to linear double pointer
         _frameVertexTransforms.push_back(Matrix(matVertex)); //Add the transform
-
-        FbxAMatrix rotMatrix = (currentTransformOffset.Inverse() * skinData->GetLink()->EvaluateGlobalTransform(currTime)
-            * globalBindposeInverseMatrix).Transpose();
-
-        FbxAMatrix rotMatrixResult = rotMatrix.Inverse().Transpose();
-
-        double* matNormal = (double *)&rotMatrixResult[0][0]; //Cast to linear double pointer
-        _frameNormalTransforms.push_back(Matrix(matNormal)); //Add the transform
     }
+
+    //Keeps track off the number of indices
+    _indexOffset = indexOffset;
 }
 
 SkinningData::~SkinningData() {
@@ -60,6 +55,6 @@ std::vector<double>* SkinningData::getWeights() {
 std::vector<Matrix>* SkinningData::getFrameVertexTransforms() {
     return &_frameVertexTransforms;
 }
-std::vector<Matrix>* SkinningData::getFrameNormalTransforms() {
-    return &_frameNormalTransforms;
+int SkinningData::getIndexOffset(){
+    return _indexOffset;
 }

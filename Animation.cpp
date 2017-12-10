@@ -44,3 +44,12 @@ std::vector<std::vector<int>>* Animation::getBoneIndexes() {
 std::vector<std::vector<float>>* Animation::getBoneWeights() {
     return _boneWeights;
 }
+
+void Animation::addSkin(std::vector<SkinningData> skinData){
+    _skinData.insert(_skinData.end(), skinData.begin(), skinData.end());
+}
+
+std::vector<SkinningData>& Animation::getSkins(){
+    return _skinData;
+}
+

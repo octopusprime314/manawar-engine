@@ -14,8 +14,7 @@ void AnimationShader::build(std::string shaderName) {
     //Call main build
     Shader::build(shaderName);
 
-    //BONE UNIFORMS!!!!
-    //glUniform mat4 
+    //Boen uniforms glUniform mat4 
     _bonesLocation = glGetUniformLocation(_shaderContext, "bones");
 
 }
@@ -79,12 +78,6 @@ void AnimationShader::runShader(Model* modelIn) {
     //Now enable weight buffer at location 4
     glEnableVertexAttribArray(4);
 
-    glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, model->getTexture()->getContext()); //grab first texture of model and return context
-    //glUniform texture 
-    //The second parameter has to be equal to GL_TEXTURE(X) so X must be 0 because we activated texture GL_TEXTURE0 two calls before
-    glUniform1iARB(_textureLocation, 0); 
-
     //glUniform mat4 combined model and world matrix, GL_TRUE is telling GL we are passing in the matrix as row major
     glUniformMatrix4fv(_modelLocation, 1, GL_TRUE, model->getModelBuffer());
 
@@ -98,7 +91,6 @@ void AnimationShader::runShader(Model* modelIn) {
     glUniformMatrix4fv(_normalLocation, 1, GL_TRUE, model->getNormalBuffer());
 
     //Add bone uniforms here!!!!!!!!!!!!!!!!!!!!!!!!!
-
     auto bones = model->getBones();
     float* bonesArray = new float[ 16 * bones->size() ]; //4x4 times number of bones
     int bonesArrayIndex = 0;
@@ -111,8 +103,21 @@ void AnimationShader::runShader(Model* modelIn) {
     glUniformMatrix4fv(_bonesLocation, static_cast<GLsizei>(bones->size()), GL_TRUE, bonesArray);
     delete [] bonesArray;
 
-    //Draw triangles using the bound buffer vertices at starting index 0 and number of triangles
-    glDrawArraysEXT(GL_TRIANGLES, 0, (GLsizei)model->getArrayCount());
+    auto textureStrides = model->getTextureStrides();
+    unsigned int strideLocation = 0;
+    for(auto textureStride : textureStrides) {
+        
+        glActiveTexture(GL_TEXTURE0);
+	    glBindTexture(GL_TEXTURE_2D, model->getTexture(textureStride.first)->getContext()); //grab first texture of model and return context
+        //glUniform texture 
+        //The second parameter has to be equal to GL_TEXTURE(X) so X must be 0 because we activated texture GL_TEXTURE0 two calls before
+        glUniform1iARB(_textureLocation, 0); 
+
+        //Draw triangles using the bound buffer vertices at starting index 0 and number of vertices
+        glDrawArraysEXT(GL_TRIANGLES, strideLocation, (GLsizei)textureStride.second);
+        
+        strideLocation += textureStride.second;
+    }
 
     glDisableVertexAttribArray(0); //Disable vertex attribute
     glDisableVertexAttribArray(1); //Disable normal attribute

@@ -27,9 +27,7 @@
 #include "SkinningData.h"
 #include "GLIncludes.h"
 
-
 class Model;
-class BonedModel;
 
 class Animation {
 
@@ -38,6 +36,7 @@ class Animation {
     std::vector<std::vector<int>>*     _boneIndexes;
     std::vector<std::vector<float>>*   _boneWeights;
     std::vector<std::vector<Matrix>*>  _boneTransforms;
+    std::vector<SkinningData>          _skinData;
 
 public:
     Animation();
@@ -51,4 +50,6 @@ public:
     std::vector<Matrix>* getBones();
     std::vector<std::vector<int>>* getBoneIndexes();
     std::vector<std::vector<float>>* getBoneWeights();
+    void addSkin(std::vector<SkinningData> skinData);
+    std::vector<SkinningData>& getSkins();
 };

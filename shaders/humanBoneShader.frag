@@ -12,13 +12,15 @@ void main(){
 
 	vec3 normalizedNormal = normalize(normalOut.xyz);
 	vec3 lightNormal = normalize(directionalLight.xyz);
-
+	
+	gl_FragColor = fragmentColor;
+	
 	//If the dot product between the two vectors is greater than 0 then that directional light will illuminate the fragment 
-	float illumination = (lightNormal.x * normalizedNormal.x) + (lightNormal.y * normalizedNormal.y) + (lightNormal.z * normalizedNormal.z);
-	if(illumination > 0.0){
-		gl_FragColor = fragmentColor * illumination;
-	}
-	else{
-		gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
-	}
+	//float illumination = (lightNormal.x * normalizedNormal.x) + (lightNormal.y * normalizedNormal.y) + (lightNormal.z * normalizedNormal.z);
+	//if(illumination > 0.0){
+	//	gl_FragColor = fragmentColor * illumination;
+	//}
+	//else{
+	//	gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
+	//}
 }

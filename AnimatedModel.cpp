@@ -20,7 +20,7 @@ AnimatedModel::AnimatedModel(std::string name, ViewManagerEvents* eventWrapper) 
     _shaderProgram = new AnimationShader();
 
     std::string modelName = name;
-    for(int i = 0; i < 3; ++i) { //Strip off the beginning of the file location
+    for(int j = 0; j < 3; ++j) { //Strip off the beginning of the file location
         modelName = modelName.substr(modelName.find_first_of("/") + 1);
     }
     modelName = modelName.substr(0, modelName.find_first_of("/"));
@@ -34,7 +34,7 @@ AnimatedModel::AnimatedModel(std::string name, ViewManagerEvents* eventWrapper) 
     auto boneWeights = _animations[_currentAnimation]->getBoneWeights();
 
     //Now flatten bone indexes and weights out for opengl
-    size_t boneIndexesBuffSize = _indices.size() * 4;
+    size_t boneIndexesBuffSize = _indices.size() * 8;
     float* flattenIndexes = new float[boneIndexesBuffSize]; 
     float* flattenWeights = new float[boneIndexesBuffSize]; 
     
@@ -45,6 +45,10 @@ AnimatedModel::AnimatedModel(std::string name, ViewManagerEvents* eventWrapper) 
         flattenIndexes[i++] = indexes[1];
         flattenIndexes[i++] = indexes[2];
         flattenIndexes[i++] = indexes[3];
+        flattenIndexes[i++] = indexes[4];
+        flattenIndexes[i++] = indexes[5];
+        flattenIndexes[i++] = indexes[6];
+        flattenIndexes[i++] = indexes[7];
     }
     i = 0; //Reset for normal indexes
     for (auto vertexIndex : _indices) {
@@ -53,6 +57,10 @@ AnimatedModel::AnimatedModel(std::string name, ViewManagerEvents* eventWrapper) 
         flattenWeights[i++] = weights[1];
         flattenWeights[i++] = weights[2];
         flattenWeights[i++] = weights[3];
+        flattenWeights[i++] = weights[4];
+        flattenWeights[i++] = weights[5];
+        flattenWeights[i++] = weights[6];
+        flattenWeights[i++] = weights[7];
     }
 
     glGenBuffers(1, &_indexContext);

@@ -142,7 +142,7 @@ void FbxLoader::loadAnimatedModelData(AnimatedModel* model, FbxSkin* pSkin, FbxN
         if (pLinkNode == nullptr) {
             continue;
         }
-        skins.push_back(SkinningData(pCluster, node, animationFrames, mesh->GetControlPointsCount()));
+        skins.push_back(SkinningData(pCluster, node, animationFrames, indexOffset + mesh->GetControlPointsCount()));
     }
 
     if(model->getClassType() == ModelClass::AnimatedModelType){
@@ -184,11 +184,8 @@ void FbxLoader::buildAnimationFrames(AnimatedModel* model, std::vector<SkinningD
     
     //Pad data
     for(int i = 0; i < boneWeights->size(); i++){
-        if((*boneWeights)[i].size() > 4){
-            std::cout << "Currently cannot support this animation model!" << std::endl;
-        }
-        (*boneWeights)[i].resize(4);
-        (*boneIndexes)[i].resize(4);
+        (*boneWeights)[i].resize(8);
+        (*boneIndexes)[i].resize(8);
     }
 
     animation->setBoneIndexWeights(boneIndexes, boneWeights);

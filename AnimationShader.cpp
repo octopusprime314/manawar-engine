@@ -61,22 +61,46 @@ void AnimationShader::runShader(Model* modelIn) {
     //Bind bone index buff context to current buffer
     glBindBuffer(GL_ARRAY_BUFFER, model->getIndexContext());
 
+    //First 4 indexes
+    //Specify stride to be 8 because the beginning of each index attribute value is 8 bytes away
     //Say that the bone index data is associated with attribute 3 in the context of a shader program
     //Each bone index contains 4 floats per index
-    glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, 0, 0);
+    glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, 8 * sizeof(GL_FLOAT), 0);
 
     //Now enable bone index buffer at location 3
     glEnableVertexAttribArray(3);
 
+    //Second 4 indexes
+    //Specify stride to be 8 because the beginning of each index attribute value is 8 bytes away
+    //Specify offset for attribute location of indexes2 to be 4 bytes offset from the beginning location of the buffer
+    //Say that the bone index data is associated with attribute 3 in the context of a shader program
+    //Each bone index contains 4 floats per index
+    glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, 8 * sizeof(GL_FLOAT), (GLvoid*)(4 * sizeof(GL_FLOAT)));
+
+    //Now enable bone index buffer at location 3
+    glEnableVertexAttribArray(4);
+
     //Bind weight buff context to current buffer
     glBindBuffer(GL_ARRAY_BUFFER, model->getWeightContext());
 
+    //First 4 weights
+    //Specify stride to be 8 because the beginning of each weight attribute value is 8 bytes away
     //Say that the weight data is associated with attribute 4 in the context of a shader program
     //Each weight contains 4 floats per index
-    glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, 0, 0);
+    glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, 8 * sizeof(GL_FLOAT), 0);
 
     //Now enable weight buffer at location 4
-    glEnableVertexAttribArray(4);
+    glEnableVertexAttribArray(5);
+
+    //Second 4 weights
+    //Specify stride to be 8 because the beginning of each weight attribute value is 8 bytes away
+    //Specify offset for attribute location of weights2 to be 4 bytes offset from the beginning location of the buffer
+    //Say that the weight data is associated with attribute 4 in the context of a shader program
+    //Each weight contains 4 floats per index
+    glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, 8 * sizeof(GL_FLOAT), (GLvoid*)(4 * sizeof(GL_FLOAT)));
+
+    //Now enable weight buffer at location 4
+    glEnableVertexAttribArray(6);
 
     //glUniform mat4 combined model and world matrix, GL_TRUE is telling GL we are passing in the matrix as row major
     glUniformMatrix4fv(_modelLocation, 1, GL_TRUE, model->getModelBuffer());
@@ -106,7 +130,7 @@ void AnimationShader::runShader(Model* modelIn) {
     auto textureStrides = model->getTextureStrides();
     unsigned int strideLocation = 0;
     for(auto textureStride : textureStrides) {
-        
+       
         glActiveTexture(GL_TEXTURE0);
 	    glBindTexture(GL_TEXTURE_2D, model->getTexture(textureStride.first)->getContext()); //grab first texture of model and return context
         //glUniform texture 
@@ -117,6 +141,7 @@ void AnimationShader::runShader(Model* modelIn) {
         glDrawArraysEXT(GL_TRIANGLES, strideLocation, (GLsizei)textureStride.second);
         
         strideLocation += textureStride.second;
+        
     }
 
     glDisableVertexAttribArray(0); //Disable vertex attribute

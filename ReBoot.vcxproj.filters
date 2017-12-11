@@ -190,5 +190,23 @@
     <None Include="shaders\trollBoneShader.vert">
       <Filter>shaders</Filter>
     </None>
+    <None Include="shaders\humanBoneShader.frag">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shaders\humanBoneShader.vert">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shaders\werewolfBoneShader.frag">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shaders\werewolfBoneShader.vert">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shaders\wolfBoneShader.frag">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shaders\wolfBoneShader.vert">
+      <Filter>shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

@@ -177,12 +177,18 @@
   <ItemGroup>
     <None Include="shaders\hagravenBoneShader.frag" />
     <None Include="shaders\hagravenBoneShader.vert" />
+    <None Include="shaders\humanBoneShader.frag" />
+    <None Include="shaders\humanBoneShader.vert" />
     <None Include="shaders\normalShader.frag" />
     <None Include="shaders\normalShader.vert" />
     <None Include="shaders\simpleShader.frag" />
     <None Include="shaders\simpleShader.vert" />
     <None Include="shaders\trollBoneShader.frag" />
     <None Include="shaders\trollBoneShader.vert" />
+    <None Include="shaders\werewolfBoneShader.frag" />
+    <None Include="shaders\werewolfBoneShader.vert" />
+    <None Include="shaders\wolfBoneShader.frag" />
+    <None Include="shaders\wolfBoneShader.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

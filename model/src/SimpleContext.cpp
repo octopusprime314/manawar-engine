@@ -76,14 +76,13 @@ void SimpleContext::_drawUpdate() {
     //    _renderLock.lock();
 
     //    do {
-    //        SimpleContextEvents::updateDraw();
+            SimpleContextEvents::updateDraw();
     //        //Decrement trigger
     //        _renderNow--;
     //    } while(_renderNow > 0);
 
     //    _renderLock.unlock();
     //}
-    SimpleContextEvents::updateDraw();
 }
 
 //All mouse input presses from glut will be notified here

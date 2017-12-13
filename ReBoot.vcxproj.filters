@@ -13,156 +13,133 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="model">
+      <UniqueIdentifier>{ea9353b3-1d3c-4735-b35e-32f8be356e3a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="model\include">
+      <UniqueIdentifier>{fa1f856c-5d2b-4341-abe0-852e1fa98ffc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="model\src">
+      <UniqueIdentifier>{fb2043d3-f24b-4889-ac45-05579e1ff3ef}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="physics">
+      <UniqueIdentifier>{7d991e7b-41a3-412c-9af0-215157dde990}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="physics\include">
+      <UniqueIdentifier>{00f1633c-88e8-44dc-b65d-10adb6d98aa8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="physics\src">
+      <UniqueIdentifier>{b07fbf16-6ec8-4cbe-8df1-f5fd513db0f7}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Matrix.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ViewManager.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Model.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="StateVector.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Shader.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Vector4.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="SimpleContext.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="UpdateInterface.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ViewManagerEvents.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="SimpleContextEvents.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="SceneManager.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ModelFactory.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="DebugShader.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="AnimatedModel.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="AnimationBuilder.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Animation.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="SkinningData.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="FbxLoader.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="MasterClock.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Texture.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="TextureBroker.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Texture2.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="AnimationShader.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="Matrix.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="model\include\AnimatedModel.h">
+      <Filter>model\include</Filter>
     </ClInclude>
-    <ClInclude Include="StateVector.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="model\include\Animation.h">
+      <Filter>model\include</Filter>
     </ClInclude>
-    <ClInclude Include="ViewManager.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="model\include\AnimationBuilder.h">
+      <Filter>model\include</Filter>
     </ClInclude>
-    <ClInclude Include="Model.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="model\include\AnimationShader.h">
+      <Filter>model\include</Filter>
     </ClInclude>
-    <ClInclude Include="Vector4.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="model\include\DebugShader.h">
+      <Filter>model\include</Filter>
     </ClInclude>
-    <ClInclude Include="GLIncludes.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="model\include\FbxLoader.h">
+      <Filter>model\include</Filter>
     </ClInclude>
-    <ClInclude Include="Shader.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="model\include\GeometryBuilder.h">
+      <Filter>model\include</Filter>
     </ClInclude>
-    <ClInclude Include="SimpleContext.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="model\include\glew.h">
+      <Filter>model\include</Filter>
     </ClInclude>
-    <ClInclude Include="SimpleContext.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="model\include\GLIncludes.h">
+      <Filter>model\include</Filter>
     </ClInclude>
-    <ClInclude Include="UpdateInterface.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="model\include\glut.h">
+      <Filter>model\include</Filter>
     </ClInclude>
-    <ClInclude Include="ViewManagerEvents.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="model\include\MasterClock.h">
+      <Filter>model\include</Filter>
     </ClInclude>
-    <ClInclude Include="SimpleContextEvents.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="model\include\Matrix.h">
+      <Filter>model\include</Filter>
     </ClInclude>
-    <ClInclude Include="SceneManager.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="model\include\Model.h">
+      <Filter>model\include</Filter>
     </ClInclude>
-    <ClInclude Include="ModelFactory.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="model\include\ModelFactory.h">
+      <Filter>model\include</Filter>
     </ClInclude>
-    <ClInclude Include="DebugShader.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="model\include\SceneManager.h">
+      <Filter>model\include</Filter>
     </ClInclude>
-    <ClInclude Include="AnimatedModel.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="model\include\Shader.h">
+      <Filter>model\include</Filter>
     </ClInclude>
-    <ClInclude Include="Animation.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="model\include\SimpleContext.h">
+      <Filter>model\include</Filter>
     </ClInclude>
-    <ClInclude Include="AnimationBuilder.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="model\include\SimpleContextEvents.h">
+      <Filter>model\include</Filter>
     </ClInclude>
-    <ClInclude Include="SkinningData.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="model\include\SkinningData.h">
+      <Filter>model\include</Filter>
     </ClInclude>
-    <ClInclude Include="FbxLoader.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="model\include\StateVector.h">
+      <Filter>model\include</Filter>
     </ClInclude>
-    <ClInclude Include="MasterClock.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="model\include\Texture.h">
+      <Filter>model\include</Filter>
     </ClInclude>
-    <ClInclude Include="Texture.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="model\include\Texture2.h">
+      <Filter>model\include</Filter>
     </ClInclude>
-    <ClInclude Include="TextureBroker.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="model\include\TextureBroker.h">
+      <Filter>model\include</Filter>
     </ClInclude>
-    <ClInclude Include="Texture2.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="model\include\UpdateInterface.h">
+      <Filter>model\include</Filter>
     </ClInclude>
-    <ClInclude Include="AnimationShader.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="model\include\Vector4.h">
+      <Filter>model\include</Filter>
+    </ClInclude>
+    <ClInclude Include="model\include\ViewManager.h">
+      <Filter>model\include</Filter>
+    </ClInclude>
+    <ClInclude Include="model\include\ViewManagerEvents.h">
+      <Filter>model\include</Filter>
+    </ClInclude>
+    <ClInclude Include="physics\include\BSP.h">
+      <Filter>physics\include</Filter>
+    </ClInclude>
+    <ClInclude Include="physics\include\Geometry.h">
+      <Filter>physics\include</Filter>
+    </ClInclude>
+    <ClInclude Include="physics\include\GeometryMath.h">
+      <Filter>physics\include</Filter>
+    </ClInclude>
+    <ClInclude Include="physics\include\Physics.h">
+      <Filter>physics\include</Filter>
+    </ClInclude>
+    <ClInclude Include="physics\include\Sphere.h">
+      <Filter>physics\include</Filter>
+    </ClInclude>
+    <ClInclude Include="physics\include\Triangle.h">
+      <Filter>physics\include</Filter>
+    </ClInclude>
+    <ClInclude Include="model\include\VBO.h">
+      <Filter>model\include</Filter>
+    </ClInclude>
+    <ClInclude Include="model\include\MVP.h">
+      <Filter>model\include</Filter>
+    </ClInclude>
+    <ClInclude Include="model\include\RenderBuffers.h">
+      <Filter>model\include</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -208,5 +185,106 @@
     <None Include="shaders\wolfBoneShader.vert">
       <Filter>shaders</Filter>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="model\src\AnimatedModel.cpp">
+      <Filter>model\src</Filter>
+    </ClCompile>
+    <ClCompile Include="model\src\Animation.cpp">
+      <Filter>model\src</Filter>
+    </ClCompile>
+    <ClCompile Include="model\src\AnimationBuilder.cpp">
+      <Filter>model\src</Filter>
+    </ClCompile>
+    <ClCompile Include="model\src\AnimationShader.cpp">
+      <Filter>model\src</Filter>
+    </ClCompile>
+    <ClCompile Include="model\src\DebugShader.cpp">
+      <Filter>model\src</Filter>
+    </ClCompile>
+    <ClCompile Include="model\src\FbxLoader.cpp">
+      <Filter>model\src</Filter>
+    </ClCompile>
+    <ClCompile Include="model\src\main.cpp">
+      <Filter>model\src</Filter>
+    </ClCompile>
+    <ClCompile Include="model\src\MasterClock.cpp">
+      <Filter>model\src</Filter>
+    </ClCompile>
+    <ClCompile Include="model\src\Matrix.cpp">
+      <Filter>model\src</Filter>
+    </ClCompile>
+    <ClCompile Include="model\src\Model.cpp">
+      <Filter>model\src</Filter>
+    </ClCompile>
+    <ClCompile Include="model\src\ModelFactory.cpp">
+      <Filter>model\src</Filter>
+    </ClCompile>
+    <ClCompile Include="model\src\SceneManager.cpp">
+      <Filter>model\src</Filter>
+    </ClCompile>
+    <ClCompile Include="model\src\Shader.cpp">
+      <Filter>model\src</Filter>
+    </ClCompile>
+    <ClCompile Include="model\src\SimpleContext.cpp">
+      <Filter>model\src</Filter>
+    </ClCompile>
+    <ClCompile Include="model\src\SimpleContextEvents.cpp">
+      <Filter>model\src</Filter>
+    </ClCompile>
+    <ClCompile Include="model\src\SkinningData.cpp">
+      <Filter>model\src</Filter>
+    </ClCompile>
+    <ClCompile Include="model\src\StateVector.cpp">
+      <Filter>model\src</Filter>
+    </ClCompile>
+    <ClCompile Include="model\src\Texture.cpp">
+      <Filter>model\src</Filter>
+    </ClCompile>
+    <ClCompile Include="model\src\Texture2.cpp">
+      <Filter>model\src</Filter>
+    </ClCompile>
+    <ClCompile Include="model\src\TextureBroker.cpp">
+      <Filter>model\src</Filter>
+    </ClCompile>
+    <ClCompile Include="model\src\UpdateInterface.cpp">
+      <Filter>model\src</Filter>
+    </ClCompile>
+    <ClCompile Include="model\src\Vector4.cpp">
+      <Filter>model\src</Filter>
+    </ClCompile>
+    <ClCompile Include="model\src\ViewManager.cpp">
+      <Filter>model\src</Filter>
+    </ClCompile>
+    <ClCompile Include="model\src\ViewManagerEvents.cpp">
+      <Filter>model\src</Filter>
+    </ClCompile>
+    <ClCompile Include="physics\src\BSP.cpp">
+      <Filter>physics\src</Filter>
+    </ClCompile>
+    <ClCompile Include="physics\src\Geometry.cpp">
+      <Filter>physics\src</Filter>
+    </ClCompile>
+    <ClCompile Include="physics\src\GeometryMath.cpp">
+      <Filter>physics\src</Filter>
+    </ClCompile>
+    <ClCompile Include="physics\src\Physics.cpp">
+      <Filter>physics\src</Filter>
+    </ClCompile>
+    <ClCompile Include="physics\src\Sphere.cpp">
+      <Filter>physics\src</Filter>
+    </ClCompile>
+    <ClCompile Include="physics\src\Triangle.cpp">
+      <Filter>physics\src</Filter>
+    </ClCompile>
+    <ClCompile Include="model\src\VBO.cpp">
+      <Filter>model\src</Filter>
+    </ClCompile>
+    <ClCompile Include="model\src\MVP.cpp">
+      <Filter>model\src</Filter>
+    </ClCompile>
+    <ClCompile Include="model\src\RenderBuffers.cpp">
+      <Filter>model\src</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

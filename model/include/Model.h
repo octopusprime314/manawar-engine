@@ -33,6 +33,10 @@
 #include "FbxLoader.h"
 #include "MasterClock.h"
 #include "TextureBroker.h"
+#include "Geometry.h"
+#include "VBO.h"
+#include "MVP.h"
+#include "RenderBuffers.h"
 
 class SimpleContext;
 
@@ -41,69 +45,51 @@ enum class ModelClass {
     AnimatedModelType
 };
 
+enum class GeometryType {
+    Triangle = 0,
+    Sphere = 1
+};
+
 class Model : public UpdateInterface {
     
-public:
 
+public:
+    
     Model();
     //Default model to type to base class
     Model(std::string name, ViewManagerEvents* eventWrapper, ModelClass classId = ModelClass::ModelType);
     virtual ~Model();
-    Matrix                      getNormal();
-    float*                      getModelBuffer();
-    float*                      getViewBuffer();
-    float*                      getProjectionBuffer();
-    float*                      getNormalBuffer();
-    GLuint                      getVertexContext();
-    GLuint                      getNormalContext();
-    GLuint                      getTextureContext();
-    GLuint                      getNormalDebugContext();
-    void                        setVertexContext(GLuint context);
-    void                        setNormalContext(GLuint context);
-    void                        setTextureContext(GLuint context);
-    void                        setNormalDebugContext(GLuint context);
-    std::vector<Vector4>*       getVertices();
-    std::vector<Vector4>*       getNormals();
-    std::vector<Texture2>*      getTextures();
-    std::vector<int>*		    getIndices();
-    void                        addVertex(Vector4 vertex);
-    void                        addNormal(Vector4 normal);
-    void                        addTexture(Texture2 texture);
-    void                        addDebugNormal(Vector4 normal);
-    void						setVertexIndices(std::vector<int> indices);
-    void                        addVertexIndices(std::vector<int> indices);
+    MVP*                        getMVP();
+    VBO*                        getVBO();  
+    RenderBuffers*              getRenderBuffers();
     ModelClass                  getClassType();
     size_t                      getArrayCount();
     void                        addTexture(std::string textureName, int stride);
     Texture*                    getTexture(std::string textureName);
     std::vector<std::pair<std::string, int>> getTextureStrides();
+    GeometryType                getGeometryType();    
+    Geometry*                   getGeometry(); 
+    void                        addGeometryTriangle(Triangle triangle);
+    void                        addGeometrySphere(Sphere sphere);
 
 protected:
-    Matrix                      _model; //Object and World Space Matrix i.e. how the model is centered around the origin and 
-                                 //where it is placed in the context of the game World
-    Matrix                      _view;  //View matrix updates from ViewManager/Camera 
-    Matrix                      _projection; //Projection matrix based on ViewManager/Camera
-    Matrix                      _normal; //Normal matrix based on inverse transpose matrix of the ViewManager/Camera matrix
     StateVector                 _state; //Kinematics
-    std::vector<Vector4>        _vertices; //Vertices that make up the triangles of the model
-    std::vector<Vector4>        _normals; //Normals that implement how light is shaded onto a model
-    std::vector<Texture2>       _textures; //Texture coordinates that places texture data and maps it onto a vertex
-    std::vector<int>            _indices; //Used to map vertices
-    GLuint                      _vertexBufferContext; //Used as the vertex attribute vbo context
-    GLuint                      _normalBufferContext; //Used as the normal attribute vbo context
-    GLuint                      _textureBufferContext; //Used as the texture coordinate attribute vbo context
-    GLuint                      _debugNormalBufferContext; //Used as the debug normal line attribute vbo context
+    RenderBuffers               _renderBuffers; //Manages vertex, normal and texture data
+    VBO                         _vbo; //Vbo container
+    MVP                         _mvp; //Model view matrix container
     Shader*                     _shaderProgram; //Container object of the Model's shader
     DebugShader*                _debugShaderProgram; //Container object of the normal line shader
     bool                        _debugMode; //Runs an extra shader with debug information include normals
-    std::vector<Vector4>        _debugNormals; //Vertex storage for normal line visualization
     FbxLoader*                  _fbxLoader; //Used to load fbx data and parse it into engine format
     ModelClass                  _classId; //Used to identify which class is being used
     MasterClock*                _clock; //Used to coordinate time with the world
     static TextureBroker*       _textureManager; //Static texture manager for texture reuse purposes, all models have access
     std::string                 _textureName; //Keeps track of which texture to grab from static texture manager
     std::vector<std::pair<std::string, int>> _textureStrides; //Keeps track of which set of vertices use a certain texture within the large vertex set
-    
+    GeometryType                _geometryType; //Indicates whether the collision geometry is sphere or triangle based
+    Geometry                    _geometry; //Geometry object that contains all collision information for a model
+
+    std::string                 _getModelName(std::string name);
     void                        _updateKeyboard(unsigned char key, int x, int y); //Do stuff based on keyboard upate
     void                        _updateMouse(int button, int state, int x, int y); //Do stuff based on mouse update
     void                        _updateDraw(); //Do draw stuff

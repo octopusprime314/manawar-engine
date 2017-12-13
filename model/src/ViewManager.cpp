@@ -67,19 +67,19 @@ void ViewManager::_updateKeyboard(unsigned char key, int x, int y) { //Do stuff 
         Vector4 *trans = nullptr;
 
         if (key == 119) { //forward
-            trans = new Vector4(_inverseRotation * Vector4(0.0, 0.0, -0.1, 1.0)); //Apply transformation based off inverse rotation
+            trans = new Vector4(_inverseRotation * Vector4(0.0, 0.0, -0.3, 1.0)); //Apply transformation based off inverse rotation
             temp = trans->getFlatBuffer();
         }
         else if (key == 115) { //backward
-            trans = new Vector4(_inverseRotation * Vector4(0.0, 0.0, 0.1, 1.0)); //Apply transformation based off inverse rotation
+            trans = new Vector4(_inverseRotation * Vector4(0.0, 0.0, 0.3, 1.0)); //Apply transformation based off inverse rotation
             temp = trans->getFlatBuffer();
         }
         else if (key == 97) { //left
-            trans = new Vector4(_inverseRotation * Vector4(-0.1, 0.0, 0.0, 1.0)); //Apply transformation based off inverse rotation
+            trans = new Vector4(_inverseRotation * Vector4(-0.3, 0.0, 0.0, 1.0)); //Apply transformation based off inverse rotation
             temp = trans->getFlatBuffer();
         }
         else if (key == 100) { //right
-            trans = new Vector4(_inverseRotation * Vector4(0.1, 0.0, 0.0, 1.0)); //Apply transformation based off inverse rotation
+            trans = new Vector4(_inverseRotation * Vector4(0.3, 0.0, 0.0, 1.0)); //Apply transformation based off inverse rotation
             temp = trans->getFlatBuffer();
         }
 
@@ -98,12 +98,12 @@ void ViewManager::_updateMouse(int button, int state, int x, int y) { //Do stuff
 
     if (x < widthMidpoint || x > widthMidpoint) {
         if (x < widthMidpoint) { //rotate left around y axis
-            _rotation = _rotation * Matrix::cameraRotationAroundY(0.2); //Update the rotation state matrix
-            _inverseRotation = _inverseRotation * Matrix::cameraRotationAroundY(-0.2); //Inverse rotation for translation updates
+            _rotation = _rotation * Matrix::cameraRotationAroundY(0.4); //Update the rotation state matrix
+            _inverseRotation = _inverseRotation * Matrix::cameraRotationAroundY(-0.4); //Inverse rotation for translation updates
         }
         else if (x > widthMidpoint) { //rotate right around y axis
-            _rotation = _rotation * Matrix::cameraRotationAroundY(-0.2); //Update the rotation state matrix
-            _inverseRotation = _inverseRotation * Matrix::cameraRotationAroundY(0.2); //Inverse rotation for translation updates
+            _rotation = _rotation * Matrix::cameraRotationAroundY(-0.4); //Update the rotation state matrix
+            _inverseRotation = _inverseRotation * Matrix::cameraRotationAroundY(0.4); //Inverse rotation for translation updates
         }
 
         _view = _rotation * _translation; //translate then rotate around point

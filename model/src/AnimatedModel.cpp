@@ -16,14 +16,18 @@ AnimatedModel::AnimatedModel(std::string name, ViewManagerEvents* eventWrapper) 
     //Done with fbx loader so close all handles to fbx scene instance
     delete _fbxLoader;
 
+    
+    std::string modelName = _getModelName(name);
+    std::string colliderName = "../models/meshes/";
+    colliderName.append(modelName).append("/collider.fbx");
+    //Load in geometry fbx object 
+    FbxLoader geometryLoader(colliderName);
+    //Populate model with fbx file data and recursivelty search with the root node of the scene
+    geometryLoader.loadGeometry(this, geometryLoader.getScene()->GetRootNode());
+
     //Override default shader with a bone animation shader
     _shaderProgram = new AnimationShader();
 
-    std::string modelName = name;
-    for(int j = 0; j < 3; ++j) { //Strip off the beginning of the file location
-        modelName = modelName.substr(modelName.find_first_of("/") + 1);
-    }
-    modelName = modelName.substr(0, modelName.find_first_of("/"));
     std::string shaderName = "shaders/";
     shaderName.append(modelName).append("BoneShader");
     _shaderProgram->build(shaderName);
@@ -34,12 +38,13 @@ AnimatedModel::AnimatedModel(std::string name, ViewManagerEvents* eventWrapper) 
     auto boneWeights = _animations[_currentAnimation]->getBoneWeights();
 
     //Now flatten bone indexes and weights out for opengl
-    size_t boneIndexesBuffSize = _indices.size() * 8;
+    std::vector<int>* indices = _renderBuffers.getIndices();
+    size_t boneIndexesBuffSize = indices->size() * 8;
     float* flattenIndexes = new float[boneIndexesBuffSize]; 
     float* flattenWeights = new float[boneIndexesBuffSize]; 
     
     int i = 0; //iterates through vertices indexes
-    for (auto vertexIndex : _indices) {
+    for (auto vertexIndex : *indices) {
         auto indexes = (*boneIndexes)[vertexIndex];
         flattenIndexes[i++] = indexes[0];
         flattenIndexes[i++] = indexes[1];
@@ -51,7 +56,7 @@ AnimatedModel::AnimatedModel(std::string name, ViewManagerEvents* eventWrapper) 
         flattenIndexes[i++] = indexes[7];
     }
     i = 0; //Reset for normal indexes
-    for (auto vertexIndex : _indices) {
+    for (auto vertexIndex : *indices) {
         auto weights = (*boneWeights)[vertexIndex];
         flattenWeights[i++] = weights[0];
         flattenWeights[i++] = weights[1];

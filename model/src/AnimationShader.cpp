@@ -25,11 +25,12 @@ void AnimationShader::runShader(Model* modelIn) {
     AnimatedModel* model = static_cast<AnimatedModel*>(modelIn);
 
     //LOAD IN SHADER
+    VBO* vbo = model->getVBO();
     glUseProgram(_shaderContext); //use context for loaded shader
 
     //LOAD IN VBO BUFFERS 
     //Bind vertex buff context to current buffer
-    glBindBuffer(GL_ARRAY_BUFFER, model->getVertexContext());
+    glBindBuffer(GL_ARRAY_BUFFER, vbo->getVertexContext());
 
     //Say that the vertex data is associated with attribute 0 in the context of a shader program
     //Each vertex contains 3 floats per vertex
@@ -39,7 +40,7 @@ void AnimationShader::runShader(Model* modelIn) {
     glEnableVertexAttribArray(0);
 
     //Bind normal buff context to current buffer
-    glBindBuffer(GL_ARRAY_BUFFER, model->getNormalContext());
+    glBindBuffer(GL_ARRAY_BUFFER, vbo->getNormalContext());
 
     //Say that the normal data is associated with attribute 1 in the context of a shader program
     //Each normal contains 3 floats per normal
@@ -49,7 +50,7 @@ void AnimationShader::runShader(Model* modelIn) {
     glEnableVertexAttribArray(1);
 
     //Bind texture coordinate buff context to current buffer
-    glBindBuffer(GL_ARRAY_BUFFER, model->getTextureContext());
+    glBindBuffer(GL_ARRAY_BUFFER, vbo->getTextureContext());
 
     //Say that the texture coordinate data is associated with attribute 2 in the context of a shader program
     //Each texture coordinate contains 2 floats per texture
@@ -102,19 +103,20 @@ void AnimationShader::runShader(Model* modelIn) {
     //Now enable weight buffer at location 4
     glEnableVertexAttribArray(6);
 
+    MVP* mvp = model->getMVP();
     //glUniform mat4 combined model and world matrix, GL_TRUE is telling GL we are passing in the matrix as row major
-    glUniformMatrix4fv(_modelLocation, 1, GL_TRUE, model->getModelBuffer());
+    glUniformMatrix4fv(_modelLocation, 1, GL_TRUE, mvp->getModelBuffer());
 
     //glUniform mat4 view matrix, GL_TRUE is telling GL we are passing in the matrix as row major
-    glUniformMatrix4fv(_viewLocation, 1, GL_TRUE, model->getViewBuffer());
+    glUniformMatrix4fv(_viewLocation, 1, GL_TRUE, mvp->getViewBuffer());
 
     //glUniform mat4 projection matrix, GL_TRUE is telling GL we are passing in the matrix as row major
-    glUniformMatrix4fv(_projectionLocation, 1, GL_TRUE, model->getProjectionBuffer());
+    glUniformMatrix4fv(_projectionLocation, 1, GL_TRUE, mvp->getProjectionBuffer());
 
     //glUniform mat4 normal matrix, GL_TRUE is telling GL we are passing in the matrix as row major
-    glUniformMatrix4fv(_normalLocation, 1, GL_TRUE, model->getNormalBuffer());
+    glUniformMatrix4fv(_normalLocation, 1, GL_TRUE, mvp->getNormalBuffer());
 
-    //Add bone uniforms here!!!!!!!!!!!!!!!!!!!!!!!!!
+    //Bone uniforms
     auto bones = model->getBones();
     float* bonesArray = new float[ 16 * bones->size() ]; //4x4 times number of bones
     int bonesArrayIndex = 0;
@@ -127,6 +129,7 @@ void AnimationShader::runShader(Model* modelIn) {
     glUniformMatrix4fv(_bonesLocation, static_cast<GLsizei>(bones->size()), GL_TRUE, bonesArray);
     delete [] bonesArray;
 
+    //Grab strides of vertex sets that have a single texture associated with them
     auto textureStrides = model->getTextureStrides();
     unsigned int strideLocation = 0;
     for(auto textureStride : textureStrides) {

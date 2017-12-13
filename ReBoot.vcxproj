@@ -82,7 +82,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\fbx-sdk\include;..\freeimage\include;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\fbx-sdk\include;..\freeimage\include;model\include;physics\include</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
@@ -111,7 +111,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>..\fbx-sdk\include;..\freeimage\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\fbx-sdk\include;..\freeimage\include;model\include;physics\include</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
@@ -122,58 +122,6 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <ClCompile Include="AnimatedModel.cpp" />
-    <ClCompile Include="Animation.cpp" />
-    <ClCompile Include="AnimationBuilder.cpp" />
-    <ClCompile Include="DebugShader.cpp" />
-    <ClCompile Include="FbxLoader.cpp" />
-    <ClCompile Include="main.cpp" />
-    <ClCompile Include="MasterClock.cpp" />
-    <ClCompile Include="Matrix.cpp" />
-    <ClCompile Include="Model.cpp" />
-    <ClCompile Include="ModelFactory.cpp" />
-    <ClCompile Include="SceneManager.cpp" />
-    <ClCompile Include="Shader.cpp" />
-    <ClCompile Include="AnimationShader.cpp" />
-    <ClCompile Include="SimpleContext.cpp" />
-    <ClCompile Include="SimpleContextEvents.cpp" />
-    <ClCompile Include="SkinningData.cpp" />
-    <ClCompile Include="StateVector.cpp" />
-    <ClCompile Include="Texture.cpp" />
-    <ClCompile Include="Texture2.cpp" />
-    <ClCompile Include="TextureBroker.cpp" />
-    <ClCompile Include="UpdateInterface.cpp" />
-    <ClCompile Include="Vector4.cpp" />
-    <ClCompile Include="ViewManager.cpp" />
-    <ClCompile Include="ViewManagerEvents.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="AnimatedModel.h" />
-    <ClInclude Include="Animation.h" />
-    <ClInclude Include="AnimationBuilder.h" />
-    <ClInclude Include="DebugShader.h" />
-    <ClInclude Include="FbxLoader.h" />
-    <ClInclude Include="GLIncludes.h" />
-    <ClInclude Include="MasterClock.h" />
-    <ClInclude Include="ModelFactory.h" />
-    <ClInclude Include="SceneManager.h" />
-    <ClInclude Include="AnimationShader.h" />
-    <ClInclude Include="SimpleContext.h" />
-    <ClInclude Include="Matrix.h" />
-    <ClInclude Include="Model.h" />
-    <ClInclude Include="Shader.h" />
-    <ClInclude Include="SimpleContextEvents.h" />
-    <ClInclude Include="SkinningData.h" />
-    <ClInclude Include="StateVector.h" />
-    <ClInclude Include="Texture.h" />
-    <ClInclude Include="Texture2.h" />
-    <ClInclude Include="TextureBroker.h" />
-    <ClInclude Include="UpdateInterface.h" />
-    <ClInclude Include="Vector4.h" />
-    <ClInclude Include="ViewManager.h" />
-    <ClInclude Include="ViewManagerEvents.h" />
-  </ItemGroup>
   <ItemGroup>
     <None Include="shaders\hagravenBoneShader.frag" />
     <None Include="shaders\hagravenBoneShader.vert" />
@@ -189,6 +137,79 @@
     <None Include="shaders\werewolfBoneShader.vert" />
     <None Include="shaders\wolfBoneShader.frag" />
     <None Include="shaders\wolfBoneShader.vert" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="model\include\AnimatedModel.h" />
+    <ClInclude Include="model\include\Animation.h" />
+    <ClInclude Include="model\include\AnimationBuilder.h" />
+    <ClInclude Include="model\include\AnimationShader.h" />
+    <ClInclude Include="model\include\DebugShader.h" />
+    <ClInclude Include="model\include\FbxLoader.h" />
+    <ClInclude Include="model\include\GeometryBuilder.h" />
+    <ClInclude Include="model\include\glew.h" />
+    <ClInclude Include="model\include\GLIncludes.h" />
+    <ClInclude Include="model\include\glut.h" />
+    <ClInclude Include="model\include\MasterClock.h" />
+    <ClInclude Include="model\include\Matrix.h" />
+    <ClInclude Include="model\include\Model.h" />
+    <ClInclude Include="model\include\ModelFactory.h" />
+    <ClInclude Include="model\include\MVP.h" />
+    <ClInclude Include="model\include\RenderBuffers.h" />
+    <ClInclude Include="model\include\SceneManager.h" />
+    <ClInclude Include="model\include\Shader.h" />
+    <ClInclude Include="model\include\SimpleContext.h" />
+    <ClInclude Include="model\include\SimpleContextEvents.h" />
+    <ClInclude Include="model\include\SkinningData.h" />
+    <ClInclude Include="model\include\StateVector.h" />
+    <ClInclude Include="model\include\Texture.h" />
+    <ClInclude Include="model\include\Texture2.h" />
+    <ClInclude Include="model\include\TextureBroker.h" />
+    <ClInclude Include="model\include\UpdateInterface.h" />
+    <ClInclude Include="model\include\VBO.h" />
+    <ClInclude Include="model\include\Vector4.h" />
+    <ClInclude Include="model\include\ViewManager.h" />
+    <ClInclude Include="model\include\ViewManagerEvents.h" />
+    <ClInclude Include="physics\include\BSP.h" />
+    <ClInclude Include="physics\include\Geometry.h" />
+    <ClInclude Include="physics\include\GeometryMath.h" />
+    <ClInclude Include="physics\include\Physics.h" />
+    <ClInclude Include="physics\include\Sphere.h" />
+    <ClInclude Include="physics\include\Triangle.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="model\src\AnimatedModel.cpp" />
+    <ClCompile Include="model\src\Animation.cpp" />
+    <ClCompile Include="model\src\AnimationBuilder.cpp" />
+    <ClCompile Include="model\src\AnimationShader.cpp" />
+    <ClCompile Include="model\src\DebugShader.cpp" />
+    <ClCompile Include="model\src\FbxLoader.cpp" />
+    <ClCompile Include="model\src\main.cpp" />
+    <ClCompile Include="model\src\MasterClock.cpp" />
+    <ClCompile Include="model\src\Matrix.cpp" />
+    <ClCompile Include="model\src\Model.cpp" />
+    <ClCompile Include="model\src\ModelFactory.cpp" />
+    <ClCompile Include="model\src\MVP.cpp" />
+    <ClCompile Include="model\src\RenderBuffers.cpp" />
+    <ClCompile Include="model\src\SceneManager.cpp" />
+    <ClCompile Include="model\src\Shader.cpp" />
+    <ClCompile Include="model\src\SimpleContext.cpp" />
+    <ClCompile Include="model\src\SimpleContextEvents.cpp" />
+    <ClCompile Include="model\src\SkinningData.cpp" />
+    <ClCompile Include="model\src\StateVector.cpp" />
+    <ClCompile Include="model\src\Texture.cpp" />
+    <ClCompile Include="model\src\Texture2.cpp" />
+    <ClCompile Include="model\src\TextureBroker.cpp" />
+    <ClCompile Include="model\src\UpdateInterface.cpp" />
+    <ClCompile Include="model\src\VBO.cpp" />
+    <ClCompile Include="model\src\Vector4.cpp" />
+    <ClCompile Include="model\src\ViewManager.cpp" />
+    <ClCompile Include="model\src\ViewManagerEvents.cpp" />
+    <ClCompile Include="physics\src\BSP.cpp" />
+    <ClCompile Include="physics\src\Geometry.cpp" />
+    <ClCompile Include="physics\src\GeometryMath.cpp" />
+    <ClCompile Include="physics\src\Physics.cpp" />
+    <ClCompile Include="physics\src\Sphere.cpp" />
+    <ClCompile Include="physics\src\Triangle.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

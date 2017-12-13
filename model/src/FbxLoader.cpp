@@ -3,7 +3,10 @@
 #include "Model.h"
 #include <map>
 #include "Texture.h"
+#include "Triangle.h"
 #include <algorithm>
+#include <limits>
+#include "RenderBuffers.h"
 
 FbxLoader::FbxLoader(std::string name) {
 
@@ -157,12 +160,29 @@ void FbxLoader::loadAnimatedModelData(AnimatedModel* model, FbxSkin* pSkin, FbxN
     animation->addSkin(skins);
 }
 
+void FbxLoader::loadGeometry(Model* model, FbxNode* node) {
+
+    // Determine the number of children there are
+    int numChildren = node->GetChildCount();
+    FbxNode* childNode = nullptr;
+    for (int i = 0; i < numChildren; i++) {
+        childNode = node->GetChild(i);
+
+        FbxMesh* mesh = childNode->GetMesh();
+        if (mesh != nullptr) {
+            loadGeometryData(model, mesh, childNode);
+        }
+        loadGeometry(model, childNode);
+    }
+}
+
 void FbxLoader::buildAnimationFrames(AnimatedModel* model, std::vector<SkinningData>& skins) {
 
+    RenderBuffers* renderBuffers = model->getRenderBuffers();
     Animation* animation = model->getAnimation();
-    std::vector<Vector4>* vertices = model->getVertices(); //Get the reference to an object to prevent copy
+    std::vector<Vector4>* vertices = renderBuffers->getVertices(); //Get the reference to an object to prevent copy
     size_t verticesSize = vertices->size();
-    std::vector<int>* indices = model->getIndices();
+    std::vector<int>* indices = renderBuffers->getIndices();
     size_t indicesSize = indices->size();
     int animationFrames = animation->getFrameCount();
 
@@ -201,6 +221,20 @@ void FbxLoader::buildAnimationFrames(AnimatedModel* model, std::vector<SkinningD
     }
 }
 
+void FbxLoader::loadGeometryData(Model* model, FbxMesh* meshNode, FbxNode* childNode) {
+
+    //Get the indices from the mesh
+    int  numIndices = meshNode->GetPolygonVertexCount();
+    int* indicesPointer = meshNode->GetPolygonVertices();
+    std::vector<int> indices(indicesPointer, indicesPointer + numIndices);
+    
+    //Get the vertices from the mesh
+    std::vector<Vector4> vertices;
+    _loadVertices(meshNode, vertices);
+
+    //Build the entire model in one long stream of vertex, normal and texture buffers
+    _buildGeometryData(model, vertices, indices, childNode);
+}
 
 void FbxLoader::loadModelData(Model* model, FbxMesh* meshNode, FbxNode* childNode) {
 
@@ -227,26 +261,112 @@ void FbxLoader::loadModelData(Model* model, FbxMesh* meshNode, FbxNode* childNod
     _buildModelData(model, meshNode, childNode, vertices, normals, textures);
 }
 
+void FbxLoader::_buildGeometryData(Model* model, std::vector<Vector4>& vertices, std::vector<int>& indices, FbxNode* node){
+    
+    //Global transform
+    FbxDouble* TBuff = node->EvaluateGlobalTransform().GetT().Buffer();
+    FbxDouble* RBuff = node->EvaluateGlobalTransform().GetR().Buffer();
+    FbxDouble* SBuff = node->EvaluateGlobalTransform().GetS().Buffer();
+
+    //Compute x, y and z rotation vectors by multiplying through
+    Matrix rotation = Matrix::rotationAroundX(RBuff[0]) * Matrix::rotationAroundY(RBuff[1]) * Matrix::rotationAroundZ(RBuff[2]);
+    Matrix translation = Matrix::translation(TBuff[0], TBuff[1], TBuff[2]);
+    Matrix scale = Matrix::scale(SBuff[0], SBuff[1], SBuff[2]);
+
+    int triCount = 0;
+    Matrix transformation = translation * rotation * scale;
+
+    if(model->getGeometryType() == GeometryType::Triangle){
+        size_t totalTriangles = indices.size() / 3; //Each index represents one vertex and a triangle is 3 vertices
+        //Read each triangle vertex indices and store them in triangle array
+        for (int i = 0; i < totalTriangles; i++) {
+
+            Vector4 A(vertices[indices[triCount]].getx(),
+                vertices[indices[triCount]].gety(),
+                vertices[indices[triCount]].getz(),
+                1.0);
+            triCount++;
+
+            Vector4 B(vertices[indices[triCount]].getx(),
+                vertices[indices[triCount]].gety(),
+                vertices[indices[triCount]].getz(),
+                1.0);
+            triCount++;
+
+            Vector4 C(vertices[indices[triCount]].getx(),
+                vertices[indices[triCount]].gety(),
+                vertices[indices[triCount]].getz(),
+                1.0);
+            triCount++;
+
+            //Add triangle to geometry object stored in model class
+            model->addGeometryTriangle(Triangle(transformation * A, transformation * B, transformation * C));
+        }
+    }
+    else if(model->getGeometryType() == GeometryType::Sphere){
+        //Choose a min and max in either x y or z and that will be the diameter of the sphere
+        float min[3] = {(std::numeric_limits<float>::max)(), (std::numeric_limits<float>::max)(), (std::numeric_limits<float>::max)()};
+        float max[3] = {(std::numeric_limits<float>::min)(), (std::numeric_limits<float>::min)(), (std::numeric_limits<float>::min)()};
+        size_t totalTriangles = indices.size(); //Each index represents one vertex
+
+        //Find the minimum and maximum x position which will render us a diameter
+        for (int i = 0; i < totalTriangles; i++) {
+
+            float xPos = vertices[indices[i]].getx();
+            float yPos = vertices[indices[i]].gety();
+            float zPos = vertices[indices[i]].getz();
+
+            if(xPos < min[0]) {
+                min[0] = xPos;
+            }
+            if(xPos > max[0]) {
+                max[0] = xPos;
+            }
+
+            if(yPos < min[1]) {
+                min[1] = yPos;
+            }
+            if(yPos > max[1]) {
+                max[1] = yPos;
+            }
+
+            if(zPos < min[2]) {
+                min[2] = zPos;
+            }
+            if(zPos > max[2]) {
+                max[2] = zPos;
+            }
+        }
+        float radius = (max[0] - min[0]) / 2.0f;
+        float xCenter = min[0] + radius;
+        float yCenter = min[1] + radius;
+        float zCenter = min[2] + radius;
+        //Add sphere to geometry object stored in model class
+        model->addGeometrySphere(Sphere(radius, Vector4(xCenter, yCenter, zCenter, 1.0f)));
+    }
+ }
+
 void FbxLoader::_loadIndices(Model* model, FbxMesh* meshNode, int*& indices){
     
+    RenderBuffers* renderBuffers = model->getRenderBuffers();
     //Get the indices from the model
     int  numIndices = meshNode->GetPolygonVertexCount();
     indices = meshNode->GetPolygonVertices();
 
     if(model->getClassType() == ModelClass::ModelType){
-        model->setVertexIndices(std::vector<int>(indices, indices + numIndices)); //Copy vector
+        renderBuffers->setVertexIndices(std::vector<int>(indices, indices + numIndices)); //Copy vector
     }
     else if(model->getClassType() == ModelClass::AnimatedModelType){
         std::vector<int> newIndices(indices, indices + numIndices);
 
         //Find previous maximum vertex index and add to all of the sequential indexes
-        auto currentIndices = model->getIndices();
+        auto currentIndices = renderBuffers->getIndices();
         if(currentIndices->size() > 0){
             auto maxIndex = std::max_element(currentIndices->begin(), currentIndices->end());
             //Add one to the maxIndex otherwise this model uses the last vertex from the previous model!!!!!!!!!!!!!
             transform(newIndices.begin(), newIndices.end(), newIndices.begin(), bind2nd(std::plus<int>(), (*maxIndex) + 1));     
         }
-        model->addVertexIndices(newIndices); //Copy vector
+        renderBuffers->addVertexIndices(newIndices); //Copy vector
     }
 }
 
@@ -261,24 +381,26 @@ void FbxLoader::_loadVertices(FbxMesh* meshNode, std::vector<Vector4>& vertices)
 
 void FbxLoader::_buildModelData(Model* model, FbxMesh* meshNode, FbxNode* childNode, std::vector<Vector4>& vertices, 
                                 std::vector<Vector4>& normals, std::vector<Texture2>& textures) {
+
+    RenderBuffers* renderBuffers = model->getRenderBuffers();
     int numVerts = meshNode->GetControlPointsCount();
     //Load in models differently based on type
     if (model->getClassType() == ModelClass::AnimatedModelType) {
         //Load vertices and normals into model
         for (int i = 0; i < numVerts; i++) {
-            model->addVertex(vertices[i]); 
-            model->addNormal(normals[i]); 
-            model->addDebugNormal(vertices[i]);
-            model->addDebugNormal(vertices[i] + normals[i]);
+            renderBuffers->addVertex(vertices[i]); 
+            renderBuffers->addNormal(normals[i]); 
+            renderBuffers->addDebugNormal(vertices[i]);
+            renderBuffers->addDebugNormal(vertices[i] + normals[i]);
         }
         //Load texture coordinates
         for (int i = 0; i < textures.size(); i++) {
-            model->addTexture(textures[i]);
+            renderBuffers->addTexture(textures[i]);
         }
     }
     else if (model->getClassType() == ModelClass::ModelType) {
         //Load in the entire model once if the data is not animated
-        _buildTriangles(model, vertices, normals, textures, *model->getIndices(), childNode);
+        _buildTriangles(model, vertices, normals, textures, *renderBuffers->getIndices(), childNode);
     }
 }
 
@@ -477,6 +599,7 @@ void FbxLoader::_loadTextures(Model* model, FbxMesh* meshNode, FbxNode* childNod
 void FbxLoader::_buildTriangles(Model* model, std::vector<Vector4>& vertices, std::vector<Vector4>& normals,
     std::vector<Texture2>& textures, std::vector<int>& indices, FbxNode* node) {
 
+    RenderBuffers* renderBuffers = model->getRenderBuffers();
     //Global transform
     FbxDouble* TBuff = node->EvaluateGlobalTransform().GetT().Buffer();
     FbxDouble* RBuff = node->EvaluateGlobalTransform().GetR().Buffer();
@@ -497,48 +620,48 @@ void FbxLoader::_buildTriangles(Model* model, std::vector<Vector4>& vertices, st
             vertices[indices[triCount]].gety(),
             vertices[indices[triCount]].getz(),
             1.0);
-        model->addVertex(transformation * A); //Scale then rotate vertex
+        renderBuffers->addVertex(transformation * A); //Scale then rotate vertex
 
         Vector4 AN(normals[indices[triCount]].getx(),
             normals[indices[triCount]].gety(),
             normals[indices[triCount]].getz(),
             1.0);
-        model->addNormal(rotation * AN); //Scale then rotate normal
-        model->addTexture(textures[triCount]);
-        model->addDebugNormal(transformation * A);
-        model->addDebugNormal((transformation * A) + (rotation * AN));
+        renderBuffers->addNormal(rotation * AN); //Scale then rotate normal
+        renderBuffers->addTexture(textures[triCount]);
+        renderBuffers->addDebugNormal(transformation * A);
+        renderBuffers->addDebugNormal((transformation * A) + (rotation * AN));
         triCount++;
 
         Vector4 B(vertices[indices[triCount]].getx(),
             vertices[indices[triCount]].gety(),
             vertices[indices[triCount]].getz(),
             1.0);
-        model->addVertex(transformation * B); //Scale then rotate vertex
+        renderBuffers->addVertex(transformation * B); //Scale then rotate vertex
 
         Vector4 BN(normals[indices[triCount]].getx(),
             normals[indices[triCount]].gety(),
             normals[indices[triCount]].getz(),
             1.0);
-        model->addNormal(rotation * BN); //Scale then rotate normal
-        model->addTexture(textures[triCount]);
-        model->addDebugNormal(transformation * B);
-        model->addDebugNormal((transformation * B) + (rotation * BN));
+        renderBuffers->addNormal(rotation * BN); //Scale then rotate normal
+        renderBuffers->addTexture(textures[triCount]);
+        renderBuffers->addDebugNormal(transformation * B);
+        renderBuffers->addDebugNormal((transformation * B) + (rotation * BN));
         triCount++;
 
         Vector4 C(vertices[indices[triCount]].getx(),
             vertices[indices[triCount]].gety(),
             vertices[indices[triCount]].getz(),
             1.0);
-        model->addVertex(transformation * C); //Scale then rotate vertex
+        renderBuffers->addVertex(transformation * C); //Scale then rotate vertex
 
         Vector4 CN(normals[indices[triCount]].getx(),
             normals[indices[triCount]].gety(),
             normals[indices[triCount]].getz(),
             1.0);
-        model->addNormal(rotation * CN); //Scale then rotate normal
-        model->addTexture(textures[triCount]);
-        model->addDebugNormal(transformation * C);
-        model->addDebugNormal((transformation * C) + (rotation * CN));
+        renderBuffers->addNormal(rotation * CN); //Scale then rotate normal
+        renderBuffers->addTexture(textures[triCount]);
+        renderBuffers->addDebugNormal(transformation * C);
+        renderBuffers->addDebugNormal((transformation * C) + (rotation * CN));
         triCount++;
     }
 }

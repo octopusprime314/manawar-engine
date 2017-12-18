@@ -1,0 +1,70 @@
+/*
+* OctNode is part of the ReBoot distribution (https://github.com/octopusprime314/ReBoot.git).
+* Copyright (c) 2017 Peter Morley.
+*
+* ReBoot is free software: you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation, version 3.
+*
+* ReBoot is distributed in the hope that it will be useful, but
+* WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+* General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program. If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/**
+*  OctNode class. Node contains 8 child nodes
+*/
+#pragma once
+#include "Triangle.h"
+#include "Sphere.h"
+#include <unordered_map>
+#include "Model.h"
+#include <set>
+
+template<typename T>
+class OctNode {
+    OctNode* _children[8]; //8 children in an oct node
+    T _data;
+
+    //Maps models to a list of triangles in the oct node
+    //if a model's triangles are involved in a collision then changes can be propogated back to the model
+    std::unordered_map<Model*, std::set<Triangle*>> _triangles;
+    //Maps models to a list of spheres in the oct node
+    //if a model's spheres are involved in a collision then changes can be propogated back to the model
+    std::unordered_map<Model*, std::set<Sphere*>> _spheres;
+
+public:
+    OctNode(T data) : _data(data) {
+        for(int i = 0; i < 8; ++i) {
+            _children[i] = nullptr;
+        }
+    }
+    OctNode* insert(T data, int index) {
+        _children[index] = new OctNode(data);
+        return _children[index];
+    }
+    void addGeometry(Model* model, Triangle* triangle) {
+        _triangles[model].insert(triangle);
+    }
+    void addGeometry(Model* model, Sphere* sphere) {
+        _spheres[model].insert(sphere);
+    }
+    void removeGeometry(Model* model, Triangle* triangle) {
+        _triangles[model].erase(triangle);
+    }
+    void removeGeometry(Model* model, Sphere* sphere) {
+        _spheres[model].erase(sphere);
+    }
+    std::unordered_map<Model*, std::set<Triangle*>>* getTriangles() {
+        return &_triangles;
+    }
+    std::unordered_map<Model*, std::set<Sphere*>>* getSpheres() {
+        return &_spheres;
+    }
+    OctNode<T>* getChild(int index) { return _children[index]; }
+    T getData() { return _data; }
+};

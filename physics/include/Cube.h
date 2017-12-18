@@ -1,5 +1,5 @@
 /*
-* BSP is part of the ReBoot distribution (https://github.com/octopusprime314/ReBoot.git).
+* Cube is part of the ReBoot distribution (https://github.com/octopusprime314/ReBoot.git).
 * Copyright (c) 2017 Peter Morley.
 *
 * ReBoot is free software: you can redistribute it and/or modify
@@ -16,16 +16,21 @@
 */
 
 /**
-*  BSP class. Binary Space Partitioning code
+*  Cube class. 3D Rectangle length, width, height and center position
 */
 
 #pragma once
+#include "Vector4.h"
 
-class BSP {
-
-
+class Cube {
+    float   _length; //x dimension
+    float   _height; //y dimension
+    float   _width;  //z dimension
+    Vector4 _center;
 public:
-    BSP();
-    ~BSP();
-  
+    Cube(float length, float width, float height, Vector4 center);
+    float   getLength(); //x dimension
+    float   getHeight(); //y dimension
+    float   getWidth();  //z dimenion
+    Vector4 getCenter();
 };

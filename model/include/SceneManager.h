@@ -31,6 +31,7 @@ class SceneManager {
     ModelFactory*       _modelFactory; //Creates new models
     Physics             _physics; //Manages physical interactions between models
 public:
-    SceneManager(int* argc, char** argv, unsigned int viewportWidth, unsigned int viewportHeight, float nearPlaneDistance, float farPlaneDistance);
+    SceneManager(int* argc, char** argv, unsigned int viewportWidth, unsigned int viewportHeight, 
+        float nearPlaneDistance, float farPlaneDistance);
     ~SceneManager();
 };

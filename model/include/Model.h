@@ -51,26 +51,29 @@ enum class GeometryType {
 };
 
 class Model : public UpdateInterface {
-    
+
 
 public:
-    
+
     Model();
     //Default model to type to base class
     Model(std::string name, ViewManagerEvents* eventWrapper, ModelClass classId = ModelClass::ModelType);
     virtual ~Model();
     MVP*                        getMVP();
-    VBO*                        getVBO();  
+    VBO*                        getVBO();
     RenderBuffers*              getRenderBuffers();
+    StateVector*                getStateVector();
     ModelClass                  getClassType();
     size_t                      getArrayCount();
     void                        addTexture(std::string textureName, int stride);
     Texture*                    getTexture(std::string textureName);
     std::vector<std::pair<std::string, int>> getTextureStrides();
-    GeometryType                getGeometryType();    
-    Geometry*                   getGeometry(); 
+    GeometryType                getGeometryType();
+    Geometry*                   getGeometry();
     void                        addGeometryTriangle(Triangle triangle);
     void                        addGeometrySphere(Sphere sphere);
+    void                        setPosition(Vector4 position);
+    void                        setVelocity(Vector4 velocity);
 
 protected:
     StateVector                 _state; //Kinematics

@@ -26,12 +26,15 @@
 #include <vector>
 class Geometry {
 
-    std::vector<Sphere> _spheres;
-    std::vector<Triangle> _triangles;
+    std::vector<Sphere>    _spheres;
+    std::vector<Triangle>  _triangles;
 
 public:
     Geometry();
     ~Geometry();
-	void addTriangle(Triangle triangle);
-    void addSphere(Sphere sphere);
+    void                   addTriangle(Triangle triangle);
+    void                   addSphere(Sphere sphere);
+    std::vector<Triangle>* getTriangles();
+    std::vector<Sphere>*   getSpheres();
+    void                   updatePosition(Vector4 position);
 };

@@ -36,14 +36,18 @@ class MasterClock{
     std::vector<std::function<void(int)>> _frameRateFuncs; //Clock feed subscriber's function pointers
     std::vector<std::function<void(int)>> _animationRateFuncs; //Clock feed subscriber's function pointers
     std::vector<std::function<void(int)>> _kinematicsRateFuncs; //Clock feed subscriber's function pointers
-    void                                  _clockProcess();
-    std::thread*                          _clockThread;
+    void                                  _physicsProcess();
+    void                                  _fpsProcess();
+    void                                  _animationProcess();
+    std::thread*                          _physicsThread;
+    std::thread*                          _fpsThread;
+    std::thread*                          _animationThread;
     unsigned int                          _milliSecondCounter;
     int                                   _frameTime;
     int                                   _animationTime;
 
 public:
-    
+
     ~MasterClock();
     static MasterClock* instance();
     void setFrameRate(int framesPerSecond); //Gives programmer adjustable framerate

@@ -169,9 +169,12 @@
     <ClInclude Include="model\include\Vector4.h" />
     <ClInclude Include="model\include\ViewManager.h" />
     <ClInclude Include="model\include\ViewManagerEvents.h" />
-    <ClInclude Include="physics\include\BSP.h" />
+    <ClInclude Include="physics\include\Cube.h" />
     <ClInclude Include="physics\include\Geometry.h" />
     <ClInclude Include="physics\include\GeometryMath.h" />
+    <ClInclude Include="physics\include\OctNode.h" />
+    <ClInclude Include="physics\include\OctTree.h" />
+    <ClInclude Include="physics\include\OSP.h" />
     <ClInclude Include="physics\include\Physics.h" />
     <ClInclude Include="physics\include\Sphere.h" />
     <ClInclude Include="physics\include\Triangle.h" />
@@ -204,9 +207,10 @@
     <ClCompile Include="model\src\Vector4.cpp" />
     <ClCompile Include="model\src\ViewManager.cpp" />
     <ClCompile Include="model\src\ViewManagerEvents.cpp" />
-    <ClCompile Include="physics\src\BSP.cpp" />
+    <ClCompile Include="physics\src\Cube.cpp" />
     <ClCompile Include="physics\src\Geometry.cpp" />
     <ClCompile Include="physics\src\GeometryMath.cpp" />
+    <ClCompile Include="physics\src\OSP.cpp" />
     <ClCompile Include="physics\src\Physics.cpp" />
     <ClCompile Include="physics\src\Sphere.cpp" />
     <ClCompile Include="physics\src\Triangle.cpp" />

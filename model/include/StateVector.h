@@ -23,7 +23,7 @@
 #include "Matrix.h"
 #include "Vector4.h"
 
-const float GRAVITY = 9.8f; //meters per second squared 
+const float GRAVITY = -9.8f; //meters per second squared 
 
 class StateVector {
     Vector4 _linearPosition;
@@ -35,7 +35,25 @@ class StateVector {
     Vector4 _force; //linear force
     Vector4 _torque; //angular force
     float   _mass; //mass of object used to calculate acceleration on objects
+    bool    _active; //indicates whether an object is in motion or not
 public:
     StateVector();
-    void update(int milliSeconds);
+    void    update(int milliSeconds);
+    Vector4 getLinearPosition();
+    Vector4 getAngularPosition();
+    Vector4 getLinearVelocity();
+    Vector4 getAngularVelocity();
+    Vector4 getLinearAcceleration();
+    Vector4 getAngularAcceleration();
+    Vector4 getForce(); //get linear force
+    Vector4 getTorque(); //get angular force
+    float   getMass(); // get mass of object
+    bool    getActive(); //get whether an object is in motion or not
+    void    setActive(bool active); //set whether an object is in motion or not
+    void    setLinearPosition(Vector4 position); //set the position of the state vector
+    void    setAngularPosition(Vector4 position);
+    void    setLinearVelocity(Vector4 velocity);
+    void    setAngularVelocity(Vector4 velocity);
+    void    setLinearAcceleration(Vector4 acceleration);
+    void    setAngularAcceleration(Vector4 acceleration);
 };

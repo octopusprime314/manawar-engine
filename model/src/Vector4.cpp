@@ -20,12 +20,25 @@ float* Vector4::getFlatBuffer() {
     return _vec;
 }
 
+float Vector4::getMagnitude() {
+    return sqrtf((_vec[0] * _vec[0]) + (_vec[1] * _vec[1]) + (_vec[2] * _vec[2]));
+}
+
 Vector4 Vector4::operator / (float scale) {
     Vector4 result;
     float* vector = result.getFlatBuffer();
     vector[0] = _vec[0] / scale;
     vector[1] = _vec[1] / scale;
     vector[2] = _vec[2] / scale;
+    return result;
+}
+
+Vector4 Vector4::operator * (float scale) {
+    Vector4 result;
+    float* vector = result.getFlatBuffer();
+    vector[0] = _vec[0] * scale;
+    vector[1] = _vec[1] * scale;
+    vector[2] = _vec[2] * scale;
     return result;
 }
 
@@ -39,10 +52,43 @@ Vector4 Vector4::operator + (Vector4 other) {
     return result;
 }
 
+Vector4 Vector4::operator - (Vector4 other) {
+    Vector4 result;
+    float* vector = result.getFlatBuffer();
+    float* vector2 = other.getFlatBuffer();
+    vector[0] = _vec[0] - vector2[0];
+    vector[1] = _vec[1] - vector2[1];
+    vector[2] = _vec[2] - vector2[2];
+    return result;
+}
+
+Vector4 Vector4::crossProduct(Vector4 other) {
+    Vector4 result;
+    float* vector = result.getFlatBuffer();
+    float* vector2 = other.getFlatBuffer();
+    //x1 y1 z1
+    //x2 y2 z2
+    //x = y1*z2 - z1*y2
+    //y = x1*z2 - z1*x2
+    //z = x1*y2 - y1*x2
+    //result = x - y + z
+    vector[0] =  (_vec[1] * vector2[2]) - (_vec[2] * vector2[1]);
+    vector[1] = -(_vec[0] * vector2[2]) - (_vec[2] * vector2[0]);
+    vector[2] =  (_vec[0] * vector2[1]) - (_vec[1] * vector2[0]);
+    return result;
+}
+
+float Vector4::dotProduct(Vector4 other) {
+    float result;
+    float* vector2 = other.getFlatBuffer();
+    result = (_vec[0] * vector2[0]) + (_vec[1] * vector2[1]) + (_vec[2] * vector2[2]);
+    return result;
+}
+
 void Vector4::normalize() {
     Vector4 result;
     float* vector = result.getFlatBuffer();
-    float mag = sqrtf((_vec[0] * _vec[0]) + (_vec[1] * _vec[1]) + (_vec[2] * _vec[2]));
+    float mag = getMagnitude();
     _vec[0] /= mag;
     _vec[1] /= mag;
     _vec[2] /= mag;
@@ -51,7 +97,7 @@ void Vector4::normalize() {
 //Prints out the result in row major
 void Vector4::display() {
     std::cout << setprecision(2) << std::setw(6) << _vec[0] << " " << std::setw(6) << _vec[1]
-        << " " << std::setw(6) << _vec[2] << " " << std::setw(6) << _vec[3] << " " << std::endl;
+    << " " << std::setw(6) << _vec[2] << " " << std::setw(6) << _vec[3] << " " << std::endl;
 }
 
 float Vector4::getx() {
@@ -93,6 +139,6 @@ bool Vector4::operator != (Vector4 other) {
 std::ostream& operator << (std::ostream& output, Vector4 &other) {
     float* vec = other.getFlatBuffer();
     output << setprecision(2) << std::setw(6) << vec[0] << " " << std::setw(6) << vec[1]
-        << " " << std::setw(6) << vec[2] << " " << std::setw(6) << vec[3] << " " << std::endl;
+    << " " << std::setw(6) << vec[2] << " " << std::setw(6) << vec[3] << " " << std::endl;
     return output;
 }

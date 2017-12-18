@@ -21,11 +21,30 @@ MasterClock* MasterClock::instance(){
 
 void MasterClock::run(){
 
-    //Run the master clock process that is responsible for sending time events to subscribers
-    _clockThread = new std::thread(&MasterClock::_clockProcess, _clock);
-
+    //Run the clock event processes that are responsible for sending time events to subscribers
+    _physicsThread = new std::thread(&MasterClock::_physicsProcess, _clock);
+    _fpsThread = new std::thread(&MasterClock::_fpsProcess, _clock);
+    _animationThread = new std::thread(&MasterClock::_animationProcess, _clock);
 }
-void MasterClock::_clockProcess(){
+
+void MasterClock::_physicsProcess(){
+
+    while(true){
+
+        //If the millisecond amount is divisible by kinematics time then trigger a kinematic calculation time event to subscribers
+        if(_milliSecondCounter % KINEMATICS_TIME == 0){
+            for(auto funcs : _kinematicsRateFuncs){
+                funcs(KINEMATICS_TIME);
+            }
+        }
+
+        //Wait for a millisecond
+        std::this_thread::sleep_for(std::chrono::milliseconds(1)); //1 millisecond clock resolution
+        _milliSecondCounter++;
+    }
+}
+
+void MasterClock::_fpsProcess(){
 
     while(true){
 
@@ -36,17 +55,20 @@ void MasterClock::_clockProcess(){
             }
         }
 
+        //Wait for a millisecond
+        std::this_thread::sleep_for(std::chrono::milliseconds(1)); //1 millisecond clock resolution
+        _milliSecondCounter++;
+    }
+}
+
+void MasterClock::_animationProcess(){
+
+    while(true){
+
         //If the millisecond amount is divisible by frame time then trigger a frame time event to subscribers
         if(_milliSecondCounter % _animationTime == 0){
             for(auto funcs : _animationRateFuncs){
                 funcs(_animationTime);
-            }
-        }
-
-        //If the millisecond amount is divisible by kinematics time then trigger a kinematic calculation time event to subscribers
-        if(_milliSecondCounter % KINEMATICS_TIME == 0){
-            for(auto funcs : _kinematicsRateFuncs){
-                funcs(KINEMATICS_TIME);
             }
         }
 

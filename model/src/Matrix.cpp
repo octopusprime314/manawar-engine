@@ -406,7 +406,7 @@ Matrix Matrix::cameraProjection(float angleOfView, float imageAspectRatio, float
 //Prints out the result in row major
 void Matrix::display() {
     std::cout << setprecision(2) << std::setw(6) << _matrix[0] << " " << std::setw(6) << _matrix[1]
-        << " " << std::setw(6) << _matrix[2] << " " << std::setw(6) << _matrix[3] << " " << std::endl
+    << " " << std::setw(6) << _matrix[2] << " " << std::setw(6) << _matrix[3] << " " << std::endl
 
         << std::setw(6) << _matrix[4] << " " << std::setw(6) << _matrix[5] << " " << std::setw(6) <<
         _matrix[6] << " " << std::setw(6) << _matrix[7] << " " << std::endl

@@ -53,7 +53,7 @@ public:
     void               applyTransform(Matrix transform);
     void               setProjection(unsigned int viewportWidth, unsigned int viewportHeight, float nearPlaneDistance, float farPlaneDistance);
     void               setView(Matrix translation, Matrix rotation, Matrix scale);
-    
+
     ViewManagerEvents* getEventWrapper();
     void               run(); //Make this call to start glut mainloop
 

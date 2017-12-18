@@ -21,12 +21,15 @@
 
 #pragma once
 #include "Model.h"
+#include "OSP.h"
 #include <vector>
 
 class Physics {
 
+    OSP                 _octalSpacePartioner;
     std::vector<Model*> _models; //Models containing collision Geometry
     void                _physicsProcess(int milliseconds); //Physics processing thread
+    void                _slowDetection(); //Keep the slow collision detection around for testing purposes
 
 public:
     Physics();

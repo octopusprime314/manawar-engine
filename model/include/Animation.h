@@ -41,7 +41,7 @@ class Animation {
 public:
     Animation();
     ~Animation();
-    
+
     int  getFrameCount();
     void setFrames(int animationFrames);
     void nextFrame(); //set to the next animation frame

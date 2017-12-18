@@ -76,7 +76,7 @@ void SimpleContext::_drawUpdate() {
     //    _renderLock.lock();
 
     //    do {
-            SimpleContextEvents::updateDraw();
+    SimpleContextEvents::updateDraw();
     //        //Decrement trigger
     //        _renderNow--;
     //    } while(_renderNow > 0);

@@ -23,11 +23,13 @@
 #include "Vector4.h"
 class Sphere {
 
-    float _radius;
+    float   _radius;
     Vector4 _position;
+    Vector4 _modelPosition;
 public:
     Sphere(float radius, Vector4 position);
     ~Sphere();
-    float getRadius();
+    float   getRadius();
     Vector4 getPosition();
+    void    offsetPosition(Vector4 position); //Offsets the sphere's current position
 };

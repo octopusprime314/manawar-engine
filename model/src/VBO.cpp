@@ -48,7 +48,7 @@ void VBO::createVBO(RenderBuffers* renderBuffers, ModelClass classId) {
     auto indices = renderBuffers->getIndices();
     auto debugNormals = renderBuffers->getDebugNormals();
 
-     //Now flatten vertices and normals out for opengl
+    //Now flatten vertices and normals out for opengl
     size_t triBuffSize = 0;
     float* flattenVerts = nullptr; //Only include the x y and z values not w
     float* flattenNorms = nullptr; //Only include the x y and z values not w, same size as vertices

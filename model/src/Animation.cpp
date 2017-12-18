@@ -9,7 +9,7 @@ Animation::~Animation() {
 }
 
 void Animation::nextFrame(){
-    
+
     _currentAnimationFrame++; //Increment the animation frame counter for next call
 
     if (_currentAnimationFrame >= _boneTransforms.size()) {
@@ -36,11 +36,11 @@ void Animation::addBoneTransforms(std::vector<Matrix>* boneTransforms){
 std::vector<Matrix>* Animation::getBones() {
     return _boneTransforms[_currentAnimationFrame];
 }
-    
+
 std::vector<std::vector<int>>* Animation::getBoneIndexes() {
     return _boneIndexes;
 }
-    
+
 std::vector<std::vector<float>>* Animation::getBoneWeights() {
     return _boneWeights;
 }

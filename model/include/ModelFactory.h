@@ -31,7 +31,7 @@ class ModelFactory {
     static ModelFactory* _factory;
     ViewManagerEvents*   _viewEventWrapper;
 public:
- 
+
     ~ModelFactory();
     static ModelFactory* instance();
     Model*               makeModel(std::string name);

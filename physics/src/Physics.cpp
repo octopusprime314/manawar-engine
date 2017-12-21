@@ -3,7 +3,7 @@
 
 //Make OSP (Octal Space Partioner) a 2000 cubic block and ensure only 500 primitives at maximum
 //are within a subspace of the OSP
-Physics::Physics() : _octalSpacePartioner(2000, 500) {
+Physics::Physics() : _octalSpacePartioner(2000, 200) {
 
 }
 

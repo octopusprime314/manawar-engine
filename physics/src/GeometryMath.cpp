@@ -16,12 +16,10 @@ bool GeometryMath::spheresSpheresDetection(Model *spheresA, Model *spheresB) {
         for (auto sphereB : *sphereVecB) {
 
             if (sphereSphereDetection(sphereA, sphereB)) {
-
                 return true;
             }
         }
     }
-
     return false;
 }
 
@@ -40,13 +38,10 @@ bool GeometryMath::spheresTrianglesDetection(Model *spheres, Model *triangles) {
         for (auto triangle : *triangleVec) {
 
             if (sphereTriangleDetection(sphere, triangle)) {
-
                 return true;
             }
         }
     }
-
-
     return false;
 }
 
@@ -438,13 +433,10 @@ bool GeometryMath::sphereCubeDetection(Sphere *sphere, Cube *cube) {
     step = step * dist;
     q = q + step;
 
-    Vector4 hitPoint = q;
-
     Vector4 v = q - spherePosition;
 
 
     if (v.dotProduct(v) <= sphereRadius * sphereRadius) {
-        
         return true;
     }
     return false;
@@ -479,11 +471,6 @@ void GeometryMath::sphereTriangleResolution(Model* modelA, Sphere& sphere, Model
     //Friction coefficient is 0.95 for now, make this dynamic at some point
     Vector4 frictionVelocity = resultantVelocity/**0.95f*/;
     modelStateA->setLinearVelocity(frictionVelocity);
-
-    //modelStateA->setActive(false);
-
-    StateVector* modelStateB = modelB->getStateVector();
-    //modelStateB->setActive(false);
 }
 void GeometryMath::sphereSphereResolution(Model* modelA, Sphere& sphereA, Model* modelB, Sphere& sphereB) {
     //TODO but for now just halt kinematics

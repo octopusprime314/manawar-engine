@@ -24,10 +24,11 @@
 #include <unordered_map>
 #include "Model.h"
 #include <set>
+#include <vector>
 
 template<typename T>
 class OctNode {
-    OctNode* _children[8]; //8 children in an oct node
+    std::vector<OctNode*> _children; //8 children in an oct node
     T _data;
 
     //Maps models to a list of triangles in the oct node
@@ -39,9 +40,7 @@ class OctNode {
 
 public:
     OctNode(T data) : _data(data) {
-        for(int i = 0; i < 8; ++i) {
-            _children[i] = nullptr;
-        }
+        _children.resize(8, nullptr);
     }
     OctNode* insert(T data, int index) {
         _children[index] = new OctNode(data);
@@ -67,4 +66,7 @@ public:
     }
     OctNode<T>* getChild(int index) { return _children[index]; }
     T getData() { return _data; }
+
+    std::vector<OctNode<T>*>& getChildren() { return _children; }
+
 };

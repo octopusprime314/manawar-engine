@@ -1,9 +1,9 @@
 #include "MasterClock.h"
-
+#include <ctime>
+#include <iostream>
 MasterClock* MasterClock::_clock = nullptr;
 
-MasterClock::MasterClock() : _milliSecondCounter(0),
-    _frameTime(DEFAULT_FRAME_TIME),
+MasterClock::MasterClock() : _frameTime(DEFAULT_FRAME_TIME),
     _animationTime(DEFAULT_FRAME_TIME){
 
 }
@@ -28,53 +28,65 @@ void MasterClock::run(){
 }
 
 void MasterClock::_physicsProcess(){
-
+    int milliSecondCounter = 0;
     while(true){
-
+        auto start = std::chrono::high_resolution_clock::now();
         //If the millisecond amount is divisible by kinematics time then trigger a kinematic calculation time event to subscribers
-        if(_milliSecondCounter % KINEMATICS_TIME == 0){
+        if(milliSecondCounter == KINEMATICS_TIME){
+            milliSecondCounter = 0;
             for(auto funcs : _kinematicsRateFuncs){
                 funcs(KINEMATICS_TIME);
             }
         }
-
-        //Wait for a millisecond
-        std::this_thread::sleep_for(std::chrono::milliseconds(1)); //1 millisecond clock resolution
-        _milliSecondCounter++;
+        auto end = std::chrono::high_resolution_clock::now();
+        if (std::chrono::duration<double, std::milli>(end - start).count() <= 1.0f) {
+            //Wait for a millisecond
+            std::this_thread::sleep_for(std::chrono::milliseconds(1)); //1 millisecond clock resolution
+            milliSecondCounter++;
+        }
+        else {
+            //std::cout << "Extra time being used on physics calculations: " << std::chrono::duration<double, std::milli>(end - start).count() << std::endl;
+        }
     }
 }
 
 void MasterClock::_fpsProcess(){
-
+    int milliSecondCounter = 0;
     while(true){
-
+        auto start = std::chrono::high_resolution_clock::now();
         //If the millisecond amount is divisible by frame time then trigger a frame time event to subscribers
-        if(_milliSecondCounter % _frameTime == 0){
+        if(milliSecondCounter == _frameTime){
+            milliSecondCounter = 0;
             for(auto funcs : _frameRateFuncs){
                 funcs(_frameTime);
             }
         }
-
-        //Wait for a millisecond
-        std::this_thread::sleep_for(std::chrono::milliseconds(1)); //1 millisecond clock resolution
-        _milliSecondCounter++;
+        auto end = std::chrono::high_resolution_clock::now();
+        if (std::chrono::duration<double, std::milli>(end - start).count() <= 1.0f) {
+            //Wait for a millisecond
+            std::this_thread::sleep_for(std::chrono::milliseconds(1)); //1 millisecond clock resolution
+            milliSecondCounter++;
+        }
     }
 }
 
 void MasterClock::_animationProcess(){
-
+    int milliSecondCounter = 0;
     while(true){
-
+        auto start = std::chrono::high_resolution_clock::now();
         //If the millisecond amount is divisible by frame time then trigger a frame time event to subscribers
-        if(_milliSecondCounter % _animationTime == 0){
+        if(milliSecondCounter == _animationTime){
+            milliSecondCounter = 0;
             for(auto funcs : _animationRateFuncs){
                 funcs(_animationTime);
             }
         }
-
-        //Wait for a millisecond
-        std::this_thread::sleep_for(std::chrono::milliseconds(1)); //1 millisecond clock resolution
-        _milliSecondCounter++;
+        auto end = std::chrono::high_resolution_clock::now();
+        if (std::chrono::duration<double, std::milli>(end - start).count() <= 1.0f) {
+            //Wait for a millisecond
+            std::this_thread::sleep_for(std::chrono::milliseconds(1)); //1 millisecond clock resolution
+            milliSecondCounter++;
+        }
     }
 }
 

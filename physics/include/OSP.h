@@ -35,6 +35,7 @@ class OSP {
     int                          _maxGeometries; //The largest amount of geometry items in a subspace of _dimension^3
     int                          _subSpace;  //The smallest 3D cubic space a tree
     void                         _buildOctetTree(Cube* rectangle, OctNode<Cube*>* node);
+    void                         _insertSphereSubspaces(Model* model, Sphere& sphere, OctNode<Cube*>* node);
 public:
     OSP(int cubicDimension, int maxGeometries);
     ~OSP();

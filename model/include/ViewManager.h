@@ -31,32 +31,31 @@
 #include "ViewManagerEvents.h"
 
 class SimpleContext;
+class Model;
 class ViewManager : public UpdateInterface {
 
-    Matrix             _view;
-    Matrix             _projection;
-
-    Matrix             _translation; //Keep track of translation state
-    Matrix             _rotation; //Keep track of rotation state
-    Matrix             _scale; //Keep track of scale state
-
-    Matrix             _inverseRotation; //Manages how to translate based on the inverse of the actual rotation matrix
-
-    ViewManagerEvents* _viewEvents;
-
-    SimpleContext*     _glutContext;
+    Matrix              _view;
+    Matrix              _projection;
+    Matrix              _translation; //Keep track of translation state
+    Matrix              _rotation; //Keep track of rotation state
+    Matrix              _scale; //Keep track of scale state
+    Matrix              _thirdPersonTranslation;
+    Matrix              _inverseRotation; //Manages how to translate based on the inverse of the actual rotation matrix
+    ViewManagerEvents*  _viewEvents;
+    SimpleContext*      _glutContext;
+    std::vector<Model*> _modelList; //used to translate view to a model's transformation
+    int                 _modelIndex; //used to keep track of which model the view is set to
+    bool                _godState; //indicates whether the view is in god or model view point mode
 public:
-
     ViewManager();
     ViewManager(int* argc, char** argv, unsigned int viewportWidth, unsigned int viewportHeight);
     ~ViewManager();
     void               applyTransform(Matrix transform);
     void               setProjection(unsigned int viewportWidth, unsigned int viewportHeight, float nearPlaneDistance, float farPlaneDistance);
     void               setView(Matrix translation, Matrix rotation, Matrix scale);
-
+    void               setModelList(std::vector<Model*> modelList);
     ViewManagerEvents* getEventWrapper();
     void               run(); //Make this call to start glut mainloop
-
 protected:
     void               _updateKeyboard(unsigned char key, int x, int y); //Do stuff based on keyboard upate
     void               _updateMouse(int button, int state, int x, int y); //Do stuff based on mouse update

@@ -24,6 +24,7 @@
 #include "Vector4.h"
 
 const float GRAVITY = -9.8f; //meters per second squared 
+const float FRICTION = 0.95f; //friction coefficient applied 
 
 class StateVector {
     Vector4 _linearPosition;
@@ -36,6 +37,7 @@ class StateVector {
     Vector4 _torque; //angular force
     float   _mass; //mass of object used to calculate acceleration on objects
     bool    _active; //indicates whether an object is in motion or not
+    bool    _contact; //indicates a hit between another state vector has been detected
 public:
     StateVector();
     void    update(int milliSeconds);
@@ -47,6 +49,7 @@ public:
     Vector4 getAngularAcceleration();
     Vector4 getForce(); //get linear force
     Vector4 getTorque(); //get angular force
+    bool    getContact(); 
     float   getMass(); // get mass of object
     bool    getActive(); //get whether an object is in motion or not
     void    setActive(bool active); //set whether an object is in motion or not
@@ -56,4 +59,7 @@ public:
     void    setAngularVelocity(Vector4 velocity);
     void    setLinearAcceleration(Vector4 acceleration);
     void    setAngularAcceleration(Vector4 acceleration);
+    void    setForce(Vector4 force); //set linear force
+    void    setTorque(Vector4 torque); //set angular force
+    void    setContact(bool contact);
 };

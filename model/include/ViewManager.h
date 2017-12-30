@@ -29,11 +29,12 @@
 #include "Matrix.h"
 #include "Vector4.h"
 #include "ViewManagerEvents.h"
+#include <map>
 
 class SimpleContext;
 class Model;
+class FunctionState;
 class ViewManager : public UpdateInterface {
-
     Matrix              _view;
     Matrix              _projection;
     Matrix              _translation; //Keep track of translation state
@@ -46,6 +47,7 @@ class ViewManager : public UpdateInterface {
     std::vector<Model*> _modelList; //used to translate view to a model's transformation
     int                 _modelIndex; //used to keep track of which model the view is set to
     bool                _godState; //indicates whether the view is in god or model view point mode
+    std::map<unsigned char, FunctionState*> _keyboardState; 
 public:
     ViewManager();
     ViewManager(int* argc, char** argv, unsigned int viewportWidth, unsigned int viewportHeight);
@@ -58,6 +60,7 @@ public:
     void               run(); //Make this call to start glut mainloop
 protected:
     void               _updateKeyboard(unsigned char key, int x, int y); //Do stuff based on keyboard upate
+	void               _updateReleaseKeyboard(unsigned char key, int x, int y); //Do stuff based on keyboard release upate
     void               _updateMouse(int button, int state, int x, int y); //Do stuff based on mouse update
     void               _updateDraw(); //Do draw stuff
 };

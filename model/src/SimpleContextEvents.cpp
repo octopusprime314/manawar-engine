@@ -2,11 +2,15 @@
 #include "GLIncludes.h"
 
 std::vector<std::function<void(unsigned char, int, int)>> SimpleContextEvents::_keyboardFuncs;
+std::vector<std::function<void(unsigned char, int, int)>> SimpleContextEvents::_keyboardReleaseFuncs;
 std::vector<std::function<void(int, int, int, int)>> SimpleContextEvents::_mouseFuncs;
 std::vector<std::function<void()>> SimpleContextEvents::_drawFuncs;
 
 void SimpleContextEvents::subscribeToKeyboard(std::function<void(unsigned char, int, int)> func) { //Use this call to connect functions to key updates
     _keyboardFuncs.push_back(func);
+}
+void SimpleContextEvents::subscribeToReleaseKeyboard(std::function<void(unsigned char, int, int)> func) { //Use this call to connect functions to key updates
+    _keyboardReleaseFuncs.push_back(func);
 }
 void SimpleContextEvents::subscribeToMouse(std::function<void(int, int, int, int)> func) { //Use this call to connect functions to mouse updates
     _mouseFuncs.push_back(func);
@@ -23,6 +27,14 @@ void SimpleContextEvents::updateKeyboard(unsigned char key, int x, int y) {
 
     for (auto func : _keyboardFuncs) {
         func(key, x, y); //Call keyboard update
+    }
+}
+
+//All keyboard input from glut will be notified here
+void SimpleContextEvents::releaseKeyboard(unsigned char key, int x, int y) {
+
+    for (auto func : _keyboardReleaseFuncs) {
+        func(key, x, y); //Call keyboard release update
     }
 }
 

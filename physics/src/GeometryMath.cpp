@@ -1,6 +1,40 @@
 #include "GeometryMath.h"
 #include "Sphere.h"
 
+//Returns true if the sphere is not completely enclosed within a cube
+bool GeometryMath::sphereProtrudesCube(Sphere* sphere, Cube* cube) {
+
+    Vector4 sphereCenter = sphere->getPosition();
+    float sphereRadius = sphere->getRadius();
+
+    Vector4 cubeCenter = cube->getCenter();
+    float cubeWidth = cube->getWidth() / 2.0f; // x
+    float cubeHeight = cube->getHeight() / 2.0f; // y
+    float cubeLength = cube->getLength() / 2.0f; // z
+
+    Vector4 distanceCenters = sphereCenter - cubeCenter;
+    float* distance = distanceCenters.getFlatBuffer();
+    
+    //Test x and z component first because most movement will be in the xz plane not falling down with gravity in the y direction
+    //at least that is my theory to improve efficiency
+
+    //Test x component
+    if (distance[0] + sphereRadius > cubeWidth || distance[0] - sphereRadius < -cubeWidth) {
+        return true;
+    }
+    //Test z component
+    if (distance[2] + sphereRadius > cubeLength || distance[2] - sphereRadius < -cubeLength) {
+        return true;
+    }
+    //Test y component
+    if (distance[1] + sphereRadius > cubeHeight || distance[1] - sphereRadius < -cubeHeight) {
+        return true;
+    }
+
+    //Sphere is completely contained inside cube
+    return false; 
+}
+
 bool GeometryMath::spheresSpheresDetection(Model *spheresA, Model *spheresB) {
 
     Geometry* spheresGeometryA = spheresA->getGeometry();
@@ -376,7 +410,6 @@ bool GeometryMath::sphereCubeDetection(Sphere *sphere, Cube *cube) {
     Vector4 normalWidth(1, 0, 0, 1);
     Vector4 normalHeight(0, 1, 0, 1);
     Vector4 normalLength(0, 0, 1, 1);
-    //Vector4 *normals = cube->GetOrthoNormals();
 
     Vector4 d = spherePosition - rectanglePosition;
     // Start result at center of box; make steps from there
@@ -468,9 +501,9 @@ void GeometryMath::sphereTriangleResolution(Model* modelA, Sphere& sphere, Model
     //Subtract original velocity vectory with the new velocity vector along the normal
     Vector4 resultantVelocity = modelStateA->getLinearVelocity() - n;
 
-    //Friction coefficient is 0.95 for now, make this dynamic at some point
-    Vector4 frictionVelocity = resultantVelocity/**0.95f*/;
-    modelStateA->setLinearVelocity(frictionVelocity);
+    modelStateA->setLinearVelocity(resultantVelocity);
+
+    modelStateA->setContact(true);
 }
 void GeometryMath::sphereSphereResolution(Model* modelA, Sphere& sphereA, Model* modelB, Sphere& sphereB) {
     //TODO but for now just halt kinematics

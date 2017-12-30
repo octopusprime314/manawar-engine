@@ -21,6 +21,7 @@
 #pragma once
 #include "OctNode.h"
 
+
 template<typename T>
 class OctTree {
 
@@ -30,15 +31,17 @@ public:
     OctTree() {};
     ~OctTree() {};
     OctNode<T>* getRoot() { return _root; }
-    OctNode<T>* insert(OctNode<T>* parent, T data) {
+    OctNode<T>* insert(OctNode<T>* node, T data) {
 
-        if (parent != nullptr) {
-            for (int i = 0; i < 8; ++i) {
-                auto child = parent->getChild(i);
+        if (node != nullptr) {
+            std::vector<OctNode<T>*>& children = node->getChildren();
+            int childCount = 0;
+            for (OctNode<T>* child : children) {
                 if (child == nullptr) {
                     //When an open space in the oct node is found break out and return new node
-                    return parent->insert(data, i);
+                    return node->insert(data, childCount);
                 }
+                childCount++;
             }
         }
         else{
@@ -53,8 +56,9 @@ public:
             node = _root;
         }
         std::cout << node->getData() << std::endl;
-        for (int i = 0; i < 8; i++) {
-            display(node->getChild(i));
+        vector<OctNode<T>*>& children = node->getChildren();
+        for (OctNode<T>* child : children) {
+            display(child);
         }
     }
 };

@@ -141,7 +141,7 @@ void AnimationShader::runShader(Model* modelIn) {
         glUniform1iARB(_textureLocation, 0); 
 
         //Draw triangles using the bound buffer vertices at starting index 0 and number of vertices
-        glDrawArraysEXT(GL_TRIANGLES, strideLocation, (GLsizei)textureStride.second);
+        glDrawArrays(GL_TRIANGLES, strideLocation, (GLsizei)textureStride.second);
 
         strideLocation += textureStride.second;
 

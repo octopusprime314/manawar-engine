@@ -16,6 +16,14 @@ Vector4::Vector4(float x, float y, float z, float w) {
     _vec[3] = w;
 }
 
+Vector4::Vector4(const Vector4& other){
+    const float* vector = other._vec;
+    _vec[0] = vector[0];
+    _vec[1] = vector[1];
+    _vec[2] = vector[2];
+    _vec[3] = vector[3];
+}
+
 float* Vector4::getFlatBuffer() {
     return _vec;
 }

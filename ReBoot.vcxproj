@@ -145,6 +145,7 @@
     <ClInclude Include="model\include\AnimationShader.h" />
     <ClInclude Include="model\include\DebugShader.h" />
     <ClInclude Include="model\include\FbxLoader.h" />
+    <ClInclude Include="model\include\FunctionState.h" />
     <ClInclude Include="model\include\GeometryBuilder.h" />
     <ClInclude Include="model\include\glew.h" />
     <ClInclude Include="model\include\GLIncludes.h" />

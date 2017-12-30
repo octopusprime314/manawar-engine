@@ -36,7 +36,8 @@ public:
     void                run(); //Function used to run context
 
     void                subscribeToKeyboard(std::function<void(unsigned char, int, int)> func); //Use this call to connect functions up to key updates
-    void                subscribeToMouse(std::function<void(int, int, int, int)> func); //Use this call to connect functions up to mouse updates
+    void                subscribeToReleaseKeyboard(std::function<void(unsigned char, int, int)> func); //Use this call to connect functions up to key release updates
+	void                subscribeToMouse(std::function<void(int, int, int, int)> func); //Use this call to connect functions up to mouse updates
     void                subscribeToDraw(std::function<void()> func); //Use this call to connect functions up to draw updates
 
 private:
@@ -49,6 +50,7 @@ private:
 
     //All keyboard input from glut will be notified here
     static void         _keyboardUpdate(unsigned char key, int x, int y);
+	static void         _keyboardRelease(unsigned char key, int x, int y);
 
     //One frame draw update call
     static void         _drawUpdate();

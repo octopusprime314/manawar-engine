@@ -26,16 +26,17 @@
 #include "OctTree.h"
 #include "Cube.h"
 #include "Geometry.h"
+#include <map>
 
 class OSP {
-
     std::vector<OctNode<Cube*>*> _ospLeaves; //End nodes that are used for collision testing
     OctTree<Cube*>               _octTree; //Make a Cube Octary tree
     int                          _cubicDimension; //Describes the cubic 3D space dimensions of the OSP volume
     int                          _maxGeometries; //The largest amount of geometry items in a subspace of _dimension^3
     int                          _subSpace;  //The smallest 3D cubic space a tree
     void                         _buildOctetTree(Cube* rectangle, OctNode<Cube*>* node);
-    void                         _insertSphereSubspaces(Model* model, Sphere& sphere, OctNode<Cube*>* node);
+    bool                         _insertSphereSubspaces(Model* model, Sphere& sphere, OctNode<Cube*>* node);
+    std::map<Sphere*, std::set<Cube*>> _sphereCubeCache; //Caches previous list of subspace cubes for early out testing
 public:
     OSP(int cubicDimension, int maxGeometries);
     ~OSP();

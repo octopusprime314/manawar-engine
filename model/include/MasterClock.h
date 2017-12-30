@@ -27,7 +27,7 @@
 #include <thread>
 
 const int DEFAULT_FRAME_TIME = 16; //frame time in milliseconds which is 60 frames per second
-const int KINEMATICS_TIME = 1; //kinematics time in milliseconds
+const int KINEMATICS_TIME = 5; //kinematics time in milliseconds
 
 class MasterClock{
     //Make constructor/destructor private so it can't be instantiated

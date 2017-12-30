@@ -3,7 +3,7 @@
 
 //Make OSP (Octal Space Partioner) a 2000 cubic block and ensure only 500 primitives at maximum
 //are within a subspace of the OSP
-Physics::Physics() : _octalSpacePartioner(2000, 200) {
+Physics::Physics() : _octalSpacePartioner(2000, 500) {
 
 }
 
@@ -37,6 +37,12 @@ void Physics::_physicsProcess(int milliseconds) {
     //Returns the subspace partitioning node leaves to test for primitive collisions
     //The nodes necessary to test for collisions are only the end nodes of the oct tree
 
+    std::vector<bool> prevContactStates;
+    std::map<Model*, bool> newContactStates;
+    for(Model* model : _models){
+        prevContactStates.push_back(model->getStateVector()->getContact());
+    }
+
     auto ospEndNodes = _octalSpacePartioner.getOSPLeaves();
 
     for (OctNode<Cube*> * subspaceNode : *ospEndNodes) {
@@ -65,7 +71,7 @@ void Physics::_physicsProcess(int milliseconds) {
                                 //If an overlap between a sphere and a sphere is detected then process the overlap resolution
                                 if (GeometryMath::sphereSphereDetection(*sphereA, *sphereB)) {
 
-                                    GeometryMath::sphereSphereResolution(sphereMapA.first, *sphereA, sphereMapB.first, *sphereB);
+                                    //GeometryMath::sphereSphereResolution(sphereMapA.first, *sphereA, sphereMapB.first, *sphereB);
                                 }
                             }
                         }
@@ -87,21 +93,47 @@ void Physics::_physicsProcess(int milliseconds) {
                     std::set<Triangle*>& triangles = triangleMap.second;
                     std::set<Sphere*>& spheres = sphereMap.second;
 
+                   
                     for (Sphere* sphere : spheres) {
-                        for (Triangle* triangle : triangles) {
-                            //If an overlap between a sphere and a triangle is detected then process the overlap resolution
-                            if (GeometryMath::sphereTriangleDetection(*sphere, *triangle)) {
 
-                                GeometryMath::sphereTriangleResolution(sphereMap.first, *sphere, triangleMap.first, *triangle);
+                        if (GeometryMath::sphereCubeDetection(sphere, subspaceNode->getData())) {
+
+                            bool prevContactState = modelSphereState->getContact();
+                            bool newContactState = false;
+
+                            for (Triangle* triangle : triangles) {
+                                //If an overlap between a sphere and a triangle is detected then process the overlap resolution
+                                if (GeometryMath::sphereTriangleDetection(*sphere, *triangle)) {
+
+                                    GeometryMath::sphereTriangleResolution(sphereMap.first, *sphere, triangleMap.first, *triangle);
+                                    newContactState = true;
+                                }
                             }
+
+                            newContactStates[sphereMap.first] = newContactState;
+                            ////If there was a previous contact and now there is no contact then set contact to false
+                            //if(prevContactState && !newContactState) {
+                            //    modelSphereState->setContact(false);
+                            //}
                         }
-                    }
+                        else{
+                            //Remove geometry from osp node
+                            subspaceNode->removeGeometry(sphereMap.first, sphere);
+                        }
+                    }                
                 }
             }
         }
 
         //Triangle on triangle detections...probably will NOT implement...maybe some day
 
+    }
+
+    int i = 0;
+    for(Model* model : _models){
+        if(prevContactStates[i++] && !newContactStates[model]){
+            model->getStateVector()->setContact(false);
+        }
     }
 }
 

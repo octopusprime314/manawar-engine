@@ -26,9 +26,12 @@ class GeometryMath {
 
     static float   _max(float a, float b);
     static float   _min(float a, float b);
-    static Vector4 _closestPoint(Sphere* sphere, Triangle* triangle) ;
+    static Vector4 _closestPoint(Sphere* sphere, Triangle* triangle);
 public:
-    //COLLISION DETECTION
+    //Early out collision helper functions
+    static bool sphereProtrudesCube(Sphere* sphere, Cube* cube); //Returns true if the sphere is not completely enclosed within a cube
+
+    //Collision detection functions
     static bool spheresSpheresDetection(Model *spheresA, Model *spheresB); //Test all model A's spheres against all model B's spheres
     static bool spheresTrianglesDetection(Model *spheres, Model *triangles); //Test all model A's spheres against all model B's triangles
     static bool sphereCubeDetection(Sphere *sphere, Cube *cube); //Test a single sphere against a single cube
@@ -36,7 +39,7 @@ public:
     static bool sphereTriangleDetection(Sphere& sphere, Triangle& triangle); //Returns true if a sphere and triangle overlap
     static bool sphereSphereDetection(Sphere& sphereA, Sphere& sphereB); //Returns true if a sphere and a sphere overlap
 
-    //COLLISION RESOLUTION
+    //Collision resolution functions
     static void sphereTriangleResolution(Model* modelA, Sphere& sphere, Model* modelB, Triangle& triangle); //Resolve collision math
     static void sphereSphereResolution(Model* modelA, Sphere& sphereA, Model* modelB, Sphere& sphereB); //resolve collision math
 };

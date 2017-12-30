@@ -39,14 +39,17 @@ void MasterClock::_physicsProcess(){
             }
         }
         auto end = std::chrono::high_resolution_clock::now();
-        if (std::chrono::duration<double, std::milli>(end - start).count() <= 1.0f) {
-            //Wait for a millisecond
-            std::this_thread::sleep_for(std::chrono::milliseconds(1)); //1 millisecond clock resolution
-            milliSecondCounter++;
+		double milliseconds = std::chrono::duration<double, std::milli>(end - start).count();
+		int deltaTime = static_cast<int>(static_cast<double>(KINEMATICS_TIME) - milliseconds);
+        if (deltaTime > 0) {
+			//std::cout << "left over time: " << deltaTime << std::endl;
+            //Wait for remaining milliseconds
+            std::this_thread::sleep_for(std::chrono::milliseconds(deltaTime));
         }
-        else {
-            //std::cout << "Extra time being used on physics calculations: " << std::chrono::duration<double, std::milli>(end - start).count() << std::endl;
+        else if(deltaTime < 0) {
+            //std::cout << "Extra time being used on physics calculations: " << milliseconds - KINEMATICS_TIME << std::endl;
         }
+		milliSecondCounter += KINEMATICS_TIME;
     }
 }
 

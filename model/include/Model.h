@@ -67,7 +67,7 @@ public:
     size_t                      getArrayCount();
     void                        addTexture(std::string textureName, int stride);
     Texture*                    getTexture(std::string textureName);
-    std::vector<std::pair<std::string, int>> getTextureStrides();
+    std::vector<std::pair<std::string, int>>& getTextureStrides();
     GeometryType                getGeometryType();
     Geometry*                   getGeometry();
     void                        addGeometryTriangle(Triangle triangle);

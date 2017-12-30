@@ -23,11 +23,14 @@ SimpleContext::SimpleContext(int* argc, char** argv, unsigned int viewportWidth,
 
     //GLUT FUNCTION CALLBACKS
     glutKeyboardFunc(&SimpleContext::_keyboardUpdate); //Set function callback for keyboard input
+	glutKeyboardUpFunc(&SimpleContext::_keyboardRelease); //Set function callback for key release event
     glutDisplayFunc(_drawUpdate); //Set function callback for draw updates
     glutIdleFunc(_drawUpdate); //Set function callback for draw updates when no events are occuring
     glutMouseFunc(_mouseUpdate); //Set function callback for mouse press input
     glutMotionFunc(_mouseUpdate); //Set function callback for movement while pressing mouse 
     glutPassiveMotionFunc(_mouseUpdate); //Set function callback for mouse movement without press
+	glutSetKeyRepeat(GLUT_KEY_REPEAT_OFF); //Disable key repeat events, only want to keep track of original press and release
+    glutIgnoreKeyRepeat(1); //ignore repeats
 
     glewInit(); //initialize the extension gl call functionality
 
@@ -55,6 +58,9 @@ void SimpleContext::run() {
 void SimpleContext::subscribeToKeyboard(std::function<void(unsigned char, int, int)> func) { //Use this call to connect functions to key updates
     _events.subscribeToKeyboard(func);
 }
+void SimpleContext::subscribeToReleaseKeyboard(std::function<void(unsigned char, int, int)> func) { //Use this call to connect functions to key updates
+    _events.subscribeToKeyboard(func);
+}
 void SimpleContext::subscribeToMouse(std::function<void(int, int, int, int)> func) { //Use this call to connect functions to mouse updates
     _events.subscribeToMouse(func);
 }
@@ -66,6 +72,10 @@ void SimpleContext::subscribeToDraw(std::function<void()> func) { //Use this cal
 void SimpleContext::_keyboardUpdate(unsigned char key, int x, int y) {
 
     SimpleContextEvents::updateKeyboard(key, x, y);
+}
+
+void SimpleContext::_keyboardRelease(unsigned char key, int x, int y){
+	SimpleContextEvents::releaseKeyboard(key, x, y);
 }
 
 //One frame draw update call

@@ -28,6 +28,7 @@ public:
 
     Vector4();
     Vector4(float x, float y, float z, float w);
+    Vector4(const Vector4& other);
     float*  getFlatBuffer();
     void    display();
     Vector4 operator / (float scale);

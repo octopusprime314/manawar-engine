@@ -12,7 +12,7 @@ SceneManager::SceneManager(int* argc, char** argv, unsigned int viewportWidth, u
     _modelList.push_back(_modelFactory->makeModel("../models/meshes/landscape/landscape.fbx")); //Add a static model to the scene
 
     int x = -900;
-    for (int i = 0; i < 20; ++i) {
+    for (int i = 0; i < 1; ++i) {
         //_modelList.push_back(_modelFactory->makeAnimatedModel("../models/meshes/troll/troll_idle.fbx")); //Add an animated model to the scene
         //_modelList.push_back(_modelFactory->makeAnimatedModel("../models/meshes/hagraven/hagraven_idle.fbx")); //Add an animated model to the scene
         //_modelList.push_back(_modelFactory->makeAnimatedModel("../models/meshes/wolf/wolf_turnleft.fbx")); //Add an animated model to the scene
@@ -20,10 +20,9 @@ SceneManager::SceneManager(int* argc, char** argv, unsigned int viewportWidth, u
 
         //Simple kludge test to activate animated models in motion to stimulate collision detection tests
         _modelList.back()->getStateVector()->setActive(true);
-        _modelList.back()->setPosition(Vector4(x, 5, -30, 1)); //Place objects 20 meters above sea level for collision testing
-        x += 15;
-        //_modelList.back()->setVelocity(Vector4(0, 0, -5, 1)); //Place objects 20 meters above sea level for collision testing
-
+        //_modelList.back()->setPosition(Vector4(x, 30, -15, 1)); //Place objects 20 meters above sea level for collision testing
+        _modelList.back()->setPosition(Vector4(0, 5, -15, 1)); //Place objects 20 meters above sea level for collision testing
+        x += 30;
     }
     _viewManager->setProjection(viewportWidth, viewportHeight, nearPlaneDistance, farPlaneDistance); //Initializes projection matrix and broadcasts upate to all listeners
     _viewManager->setView(Matrix::cameraTranslation(0.0, 2.0, 10.0), Matrix(), Matrix()); //Place view 25 meters in +z direction

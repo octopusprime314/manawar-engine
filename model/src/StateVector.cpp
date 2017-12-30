@@ -22,7 +22,8 @@ void StateVector::update(int milliSeconds) {
             _linearAcceleration.getz() * deltaTime,
             1.0f);
         //Add to linear velocity
-        _linearVelocity = _linearVelocity + deltaLinearVelocity;
+        //If there is contact with a surface then add friction coefficient to velocity
+        _linearVelocity = (_linearVelocity + deltaLinearVelocity) * (_contact ? FRICTION : 1.0f); 
 
         //Calculate linear position changes with delta time
         Vector4 deltaLinearPosition(_linearVelocity.getx() * deltaTime,
@@ -91,6 +92,10 @@ bool StateVector::getActive() {
     return _active;
 }
 
+bool StateVector::getContact(){
+    return _contact;
+}
+
 void StateVector::setActive(bool active) {
     _active = active;
 }
@@ -117,4 +122,19 @@ void StateVector::setLinearAcceleration(Vector4 acceleration){
 
 void StateVector::setAngularAcceleration(Vector4 acceleration){
     _angularAcceleration = acceleration;
+}
+
+void StateVector::setForce(Vector4 force) {
+    //Can't set force if not touching an item to push off from i.e. in the air
+    if(_contact){
+        _force = force;
+    }
+}
+
+void StateVector::setTorque(Vector4 torque) {
+    _torque = torque;
+}
+
+void StateVector::setContact(bool contact) {
+    _contact = contact;
 }

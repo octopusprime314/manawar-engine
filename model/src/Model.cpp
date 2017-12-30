@@ -87,7 +87,6 @@ void Model::_updateDraw() {
 
 void Model::_updateKeyboard(unsigned char key, int x, int y) {
 }
-
 void Model::_updateMouse(int button, int state, int x, int y) {
 }
 
@@ -142,7 +141,7 @@ Texture* Model::getTexture(std::string textureName) {
     return _textureManager->getTexture(textureName);
 }
 
-std::vector<std::pair<std::string, int>> Model::getTextureStrides() {
+std::vector<std::pair<std::string, int>>& Model::getTextureStrides() {
     return _textureStrides;
 }
 

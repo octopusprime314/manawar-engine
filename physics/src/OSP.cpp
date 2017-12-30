@@ -51,39 +51,6 @@ void OSP::generateOSP(std::vector<Model*>& models) {
 
 void OSP::updateOSP(std::vector<Model*>& models){
 
-    
-    ////Go through all of the models and populate 
-    //for (auto model : models) {
-    //    if (model->getStateVector()->getActive()) { //Only do osp updates if the model is active
-    //        
-    //        std::vector<Sphere>* spheres = model->getGeometry()->getSpheres();
-    //        for (Sphere& sphere : *spheres) {
-
-    //            for (auto cube : _ospLeaves) {
-    //                //Grab spheres to confirm whether this sphere is in a subspace already or leaving
-    //                std::set<Sphere*>& sphereList = (*cube->getSpheres())[model];
-    //                //if sphere is in this cube
-    //                if (GeometryMath::sphereCubeDetection(&sphere, cube->getData())) {
-
-    //                    auto it = std::find (sphereList.begin(), sphereList.end(), &sphere);
-    //                    //If sphere is not is subspace already then jump out
-    //                    if(it == sphereList.end()) {
-    //                        cube->addGeometry(model, &sphere);
-    //                    }
-    //                }
-    //                //remove sphere from subspace
-    //                else{
-    //                    auto it = std::find (sphereList.begin(), sphereList.end(), &sphere);
-    //                    //If sphere is not is subspace already then jump out
-    //                    if(it != sphereList.end()) {
-    //                        cube->removeGeometry(model, &sphere);
-    //                    }
-    //                }
-    //            }
-    //        }
-    //    }
-    //}
-
     //Go through all of the models and populate 
     for (auto model : models) {
         if (model->getStateVector()->getActive()) { //Only do osp updates if the model is active
@@ -92,17 +59,26 @@ void OSP::updateOSP(std::vector<Model*>& models){
             for (Sphere& sphere : *spheres) {
 
                 ////Early out test if the sphere is completely contained within this cube,
-                ////otherwise if the sphere is somewhat outside of it's native cube then update OSP
-                //if(GeometryMath::sphereProtudesCube(sphere)) {
-                    _insertSphereSubspaces(model, sphere, _octTree.getRoot());
+                ////otherwise if the sphere is somewhat outside (protrudes) of it's native cube then update OSP
+                //std::set<Cube*>& cubes = _sphereCubeCache[&sphere];
+                //for (Cube* cube : cubes) {
+                //    if (GeometryMath::sphereProtrudesCube(&sphere, cube)) {
+                //        //_sphereCubeCache[&sphere].clear(); //Need to create a new sphere cache from scratch
+                //        _insertSphereSubspaces(model, sphere, _octTree.getRoot());
+                //    }
                 //}
+                _sphereCubeCache[&sphere].clear();
+                _insertSphereSubspaces(model, sphere, _octTree.getRoot());
             }
         }
     }
 
 }
 
-void OSP::_insertSphereSubspaces(Model* model, Sphere& sphere, OctNode<Cube*>* node) {
+bool OSP::_insertSphereSubspaces(Model* model, Sphere& sphere, OctNode<Cube*>* node) {
+
+    //Used to only insert a new cache cube location when the end of the octree is reached
+    bool inserted = false;
 
     //Grab all of the possible subspace children in the tree
     auto childrenNodes = node->getChildren();
@@ -114,12 +90,15 @@ void OSP::_insertSphereSubspaces(Model* model, Sphere& sphere, OctNode<Cube*>* n
         if(childrenNodes[i] != nullptr && GeometryMath::sphereCubeDetection(&sphere, childrenNodes[i]->getData())) {
 
             //Recursively call until end of tree is found
-            _insertSphereSubspaces(model, sphere, childrenNodes[i]);
-
+            if (!_insertSphereSubspaces(model, sphere, childrenNodes[i])) {
+                _sphereCubeCache[&sphere].insert(childrenNodes[i]->getData());
+                inserted = true;
+            }
             //Add geometry to model
             childrenNodes[i]->addGeometry(model,&sphere);
         }
     }
+    return inserted;
 }
 
 
@@ -193,6 +172,18 @@ void OSP::_buildOctetTree(Cube* cube, OctNode<Cube*>* node) {
         //If a subspace has less than _maxGeometries primitive count then add it to the leaves list for collision detection
         else {
             _ospLeaves.push_back(nodes[cubeIndex]);
+
+            //Recheck spheres location to cache their locations
+            std::unordered_map<Model*, std::set<Sphere*>>* sphereMaps = node->getSpheres();
+            for (std::pair<Model* const, std::set<Sphere*>>& sphereMap : *sphereMaps) {
+                for (Sphere* sphere : sphereMap.second) {
+                    //if geometry data is contained within the first octet then build it out
+                    if (GeometryMath::sphereCubeDetection(sphere, cube)) {
+                        //Cache the location of each sphere pointer to a set of cubes
+                        _sphereCubeCache[sphere].insert(cube);
+                    }
+                }
+            }
         }
         cubeIndex++;
     }

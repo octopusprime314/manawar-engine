@@ -48,7 +48,7 @@ void DebugShader::runShader(Model* model) {
     glUniformMatrix4fv(_projectionLocation, 1, GL_TRUE, mvp->getProjectionBuffer());
 
     //Draw normal lines using the bound buffer vertices at starting index 0 and number of lines
-    glDrawArraysEXT(GL_LINES, 0, (GLsizei)model->getArrayCount()*2); //Multiply by 2 because each normal is a line
+    glDrawArrays(GL_LINES, 0, (GLsizei)model->getArrayCount()*2); //Multiply by 2 because each normal is a line
 
     glDisableVertexAttribArray(0); //Disable vertex attribute
     glBindBuffer(GL_ARRAY_BUFFER, 0); //Unbind buffer

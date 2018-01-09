@@ -182,8 +182,8 @@ void ViewManager::_updateKeyboard(unsigned char key, int x, int y) { //Do stuff 
 
 void ViewManager::_updateMouse(int button, int state, int x, int y) { //Do stuff based on mouse update
 
-    int widthMidpoint = 1080 / 2;
-    int heightMidpoint = 1920 / 2;
+    int widthMidpoint = 1920 / 2;
+    int heightMidpoint = 1080 / 2;
 
     if (x < widthMidpoint || x > widthMidpoint) {
         if (x < widthMidpoint) { //rotate left around y axis

@@ -129,6 +129,9 @@ void StateVector::setForce(Vector4 force) {
     if(_contact){
         _force = force;
     }
+    else{
+        _force = Vector4(0.0f, 0.0f, 0.0f, 1.0f);
+    }
 }
 
 void StateVector::setTorque(Vector4 torque) {

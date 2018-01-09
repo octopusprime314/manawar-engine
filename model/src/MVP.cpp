@@ -23,6 +23,22 @@ float* MVP::getNormalBuffer() {
     return _normal.getFlatBuffer();
 }
 
+Matrix MVP::getModelMatrix() {
+    return _model;
+}
+
+Matrix MVP::getViewMatrix() {
+    return _view;
+}
+
+Matrix MVP::getProjectionMatrix() {
+    return _projection;
+}
+
+Matrix MVP::getNormalMatrix() {
+    return _normal;
+}
+
 void MVP::setModel(Matrix model) {
     _model = model;
 }

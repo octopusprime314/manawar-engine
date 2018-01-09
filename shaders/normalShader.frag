@@ -1,10 +1,9 @@
 #version 330
 
+in vec3 normalOut;			 // Passthrough
+
 void main(){
 
-	//Arbitrary color
-	vec4 color = vec4(0.0, 0.0, 1.0, 1.0);
-
-	gl_FragColor = color;
-	
+	vec3 normalizedNormal = normalize(normalOut.xyz);
+	gl_FragColor = vec4(normalizedNormal, 1.0);
 }

@@ -145,6 +145,18 @@
     <ClInclude Include="model\include\FunctionState.h">
       <Filter>model\include</Filter>
     </ClInclude>
+    <ClInclude Include="model\include\FrameBuffer.h">
+      <Filter>model\include</Filter>
+    </ClInclude>
+    <ClInclude Include="model\include\MRTFrameBuffer.h">
+      <Filter>model\include</Filter>
+    </ClInclude>
+    <ClInclude Include="model\include\DeferredRenderer.h">
+      <Filter>model\include</Filter>
+    </ClInclude>
+    <ClInclude Include="model\include\Light.h">
+      <Filter>model\include</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\normalShader.frag">
@@ -187,6 +199,30 @@
       <Filter>shaders</Filter>
     </None>
     <None Include="shaders\wolfBoneShader.vert">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shaders\debugShader.frag">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shaders\debugShader.vert">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shaders\deferredShader.frag">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shaders\deferredShader.vert">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shaders\depthShader.frag">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shaders\depthShader.vert">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shaders\diffuseShader.frag">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shaders\diffuseShader.vert">
       <Filter>shaders</Filter>
     </None>
   </ItemGroup>
@@ -292,6 +328,18 @@
     </ClCompile>
     <ClCompile Include="physics\src\OSP.cpp">
       <Filter>physics\src</Filter>
+    </ClCompile>
+    <ClCompile Include="model\src\FrameBuffer.cpp">
+      <Filter>model\src</Filter>
+    </ClCompile>
+    <ClCompile Include="model\src\MRTFrameBuffer.cpp">
+      <Filter>model\src</Filter>
+    </ClCompile>
+    <ClCompile Include="model\src\DeferredRenderer.cpp">
+      <Filter>model\src</Filter>
+    </ClCompile>
+    <ClCompile Include="model\src\Light.cpp">
+      <Filter>model\src</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

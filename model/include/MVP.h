@@ -37,6 +37,10 @@ public:
     float*                      getViewBuffer();
     float*                      getProjectionBuffer();
     float*                      getNormalBuffer();
+    Matrix                      getModelMatrix();
+    Matrix                      getViewMatrix();
+    Matrix                      getProjectionMatrix();
+    Matrix                      getNormalMatrix();
     void                        setModel(Matrix model);
     void                        setView(Matrix view);
     void                        setProjection(Matrix projection);

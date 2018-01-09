@@ -114,7 +114,7 @@ void VBO::createVBO(RenderBuffers* renderBuffers, ModelClass classId) {
         }
         i = 0; //Reset for normal indexes
         for (auto index : *indices) {
-            float *flat =  (*vertices)[index].getFlatBuffer();
+            float *flat =  (*normals)[index].getFlatBuffer();
             flattenNorms[i++] = flat[0];
             flattenNorms[i++] = flat[1];
             flattenNorms[i++] = flat[2];

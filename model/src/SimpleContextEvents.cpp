@@ -5,6 +5,8 @@ std::vector<std::function<void(unsigned char, int, int)>> SimpleContextEvents::_
 std::vector<std::function<void(unsigned char, int, int)>> SimpleContextEvents::_keyboardReleaseFuncs;
 std::vector<std::function<void(int, int, int, int)>> SimpleContextEvents::_mouseFuncs;
 std::vector<std::function<void()>> SimpleContextEvents::_drawFuncs;
+std::function<void()> SimpleContextEvents::_preDrawCallback;
+std::function<void()> SimpleContextEvents::_postDrawCallback;
 
 void SimpleContextEvents::subscribeToKeyboard(std::function<void(unsigned char, int, int)> func) { //Use this call to connect functions to key updates
     _keyboardFuncs.push_back(func);
@@ -17,6 +19,13 @@ void SimpleContextEvents::subscribeToMouse(std::function<void(int, int, int, int
 }
 void SimpleContextEvents::subscribeToDraw(std::function<void()> func) { //Use this call to connect functions to draw updates
     _drawFuncs.push_back(func);
+}
+
+void SimpleContextEvents::setPreDrawCallback(std::function<void()> func) {
+    _preDrawCallback = func;
+}
+void SimpleContextEvents::setPostDrawCallback(std::function<void()> func) {
+    _postDrawCallback = func;
 }
 
 //All keyboard input from glut will be notified here
@@ -41,11 +50,17 @@ void SimpleContextEvents::releaseKeyboard(unsigned char key, int x, int y) {
 //One frame draw update call
 void SimpleContextEvents::updateDraw() {
 
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); //Clear depth and color info before new frame
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    //Call scene manager to go any global operations before drawing
+    _preDrawCallback();
 
     for (auto func : _drawFuncs) {
         func(); //Call draw update method
     }
+
+    //Call scene manager to go any global operations after drawing
+    _postDrawCallback();
 
     glutSwapBuffers(); // Double buffering
 }

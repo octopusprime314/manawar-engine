@@ -44,4 +44,10 @@ public:
     virtual ~Shader();
     virtual void build(std::string shaderName = "shaders/simpleShader");
     virtual void runShader(Model* model);
+    GLint        getShaderContext();
+    GLint        getViewLocation();
+    GLint        getModelLocation();
+    GLint        getProjectionLocation();
+    GLint        getNormalLocation();
+    GLint        getTextureLocation();
 };

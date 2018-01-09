@@ -1,5 +1,6 @@
 #include "SceneManager.h"
 #include "MasterClock.h"
+#include "SimpleContextEvents.h"
 
 SceneManager::SceneManager(int* argc, char** argv, unsigned int viewportWidth, unsigned int viewportHeight, float nearPlaneDistance, float farPlaneDistance) {
 
@@ -8,6 +9,13 @@ SceneManager::SceneManager(int* argc, char** argv, unsigned int viewportWidth, u
     _modelFactory = ModelFactory::instance(); //grab static instance
 
     _modelFactory->setViewWrapper(_viewManager); //Set the reference to the view model event interface
+
+    _deferredRenderer = new DeferredRenderer();
+    _deferredRenderer->build("");
+
+    //Setup pre and post draw callback events received when a draw call is issued
+    SimpleContextEvents::setPreDrawCallback(std::bind(&SceneManager::_preDraw, this));
+    SimpleContextEvents::setPostDrawCallback(std::bind(&SceneManager::_postDraw, this));
 
     _modelList.push_back(_modelFactory->makeModel("../models/meshes/landscape/landscape.fbx")); //Add a static model to the scene
 
@@ -20,16 +28,19 @@ SceneManager::SceneManager(int* argc, char** argv, unsigned int viewportWidth, u
 
         //Simple kludge test to activate animated models in motion to stimulate collision detection tests
         _modelList.back()->getStateVector()->setActive(true);
-        //_modelList.back()->setPosition(Vector4(x, 30, -15, 1)); //Place objects 20 meters above sea level for collision testing
         _modelList.back()->setPosition(Vector4(0, 5, -15, 1)); //Place objects 20 meters above sea level for collision testing
         x += 30;
     }
     _viewManager->setProjection(viewportWidth, viewportHeight, nearPlaneDistance, farPlaneDistance); //Initializes projection matrix and broadcasts upate to all listeners
-    _viewManager->setView(Matrix::cameraTranslation(0.0, 2.0, 10.0), Matrix(), Matrix()); //Place view 25 meters in +z direction
+    _viewManager->setView(Matrix::cameraTranslation(0.0, 2.0, -20.0), Matrix(), Matrix()); //Place view 25 meters in +z direction
     _viewManager->setModelList(_modelList);
 
     _physics.addModels(_modelList); //Gives physics a pointer to all models which allows access to underlying geometry
     _physics.run(); //Dispatch physics to start kinematics 
+
+    Light::setViewWrapper(_viewManager->getEventWrapper());
+    //Add a directional light pointing down in the negative x axis
+    _lightList.push_back(new Light(Vector4(0.0f, -1.0f, 0.0f, 0.0f)));
 
     MasterClock::instance()->run(); //Scene manager kicks off the clock event manager
 
@@ -42,4 +53,18 @@ SceneManager::~SceneManager() {
     }
     delete _modelFactory;
     delete _viewManager;
+}
+
+void SceneManager::_preDraw() {
+
+    //Establish an offscreen Frame Buffer Object to generate G buffers for deferred shading
+    _deferredRenderer->bind();
+}
+void SceneManager::_postDraw() {
+
+    //unbind fbo
+    _deferredRenderer->unbind();
+
+    //Pass lights to deferred shading pass
+    _deferredRenderer->runShader(_lightList);
 }

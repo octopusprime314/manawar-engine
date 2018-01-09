@@ -1,15 +1,14 @@
 #version 330
 
-in vec3 vertexIn;			   // Each vertex supplied 
-in vec3 normalIn;			   // Each normal supplied 
-in vec2 textureCoordinateIn;   // Each texture coordinate supplied
-in vec4 indexes1;              // First 4 bone indexes
-in vec4 indexes2;              // Second 4 bone indexes
-in vec4 weights1;              // First 4 bone weights
-in vec4 weights2;              // Second 4 bone weights
+layout(location = 0) in vec3 vertexIn;			   // Each vertex supplied 
+layout(location = 1) in vec3 normalIn;			   // Each normal supplied 
+layout(location = 2) in vec2 textureCoordinateIn;   // Each texture coordinate supplied
+layout(location = 3) in vec4 indexes1;              // First 4 bone indexes
+layout(location = 4) in vec4 indexes2;              // Second 4 bone indexes
+layout(location = 5) in vec4 weights1;              // First 4 bone weights
+layout(location = 6) in vec4 weights2;              // Second 4 bone weights
 
 out vec3 normalOut;			   // Transformed normal based on the normal matrix transform
-out vec3 directionalLight;     // Negated directional light to be used in fragment shader for dot product testing
 out vec2 textureCoordinateOut; // Passthrough
 
 uniform mat4 model;		 // Model and World transformation matrix
@@ -33,11 +32,6 @@ void main(){
 	normalOut = vec3((normal * animationTransform * vec4(normalIn.xyz, 0.0)).xyz); //Transform normal coordinate in with the normal matrix
 	
 	textureCoordinateOut = textureCoordinateIn; //Passthrough
-	
-	//Fake directional light test pointing in the -x direction
-	vec4 light = vec4(0.0, -1.0, 0.0, 1.0); //Directional light vector
-	vec3 transformedLight = vec3((normal * light).xyz); //Transform light vector with normal matrix
-	directionalLight = vec3(-transformedLight.x, -transformedLight.y, -transformedLight.z); //negate the directional light for normal computations
 	
 	//Pass the transformed vertex to the fragment shader
 	gl_Position = transformedVert; 

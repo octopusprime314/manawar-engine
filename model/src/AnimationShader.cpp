@@ -21,7 +21,6 @@ void AnimationShader::build(std::string shaderName) {
 
 void AnimationShader::runShader(Model* modelIn) {
 
-
     AnimatedModel* model = static_cast<AnimatedModel*>(modelIn);
 
     //LOAD IN SHADER
@@ -152,6 +151,8 @@ void AnimationShader::runShader(Model* modelIn) {
     glDisableVertexAttribArray(2); //Disable texture attribute
     glDisableVertexAttribArray(3); //Disable indexes attribute
     glDisableVertexAttribArray(4); //Disable weight attribute
+    glDisableVertexAttribArray(5); //Disable indexes2 attribute
+    glDisableVertexAttribArray(6); //Disable weight2 attribute
     glBindBuffer(GL_ARRAY_BUFFER, 0); //Unbind buffer
     glUseProgram(0);//end using this shader
 }

@@ -30,7 +30,9 @@ class SimpleContextEvents {
 	static std::vector<std::function<void(unsigned char, int, int)>> _keyboardReleaseFuncs;
     static std::vector<std::function<void(int, int, int, int)>>      _mouseFuncs;
     static std::vector<std::function<void()>>                        _drawFuncs;
-
+    static std::function<void()>                                     _preDrawCallback; //Prior to drawing objects call this function
+    static std::function<void()>                                     _postDrawCallback; //Post of drawing objects call this function
+    
 public:
     static void subscribeToKeyboard(std::function<void(unsigned char, int, int)> func); //Use this call to connect functions up to key updates
 	static void subscribeToReleaseKeyboard(std::function<void(unsigned char, int, int)> func); //Use this call to connect functions up to key updates
@@ -42,4 +44,7 @@ public:
     static void updateDraw();
     static void updateMouse(int button, int state, int x, int y);
     static void updateMouse(int x, int y);
+
+    static void setPreDrawCallback(std::function<void()> func);
+    static void setPostDrawCallback(std::function<void()> func);
 };

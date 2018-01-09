@@ -123,6 +123,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <None Include="shaders\debugShader.frag" />
+    <None Include="shaders\debugShader.vert" />
+    <None Include="shaders\deferredShader.frag" />
+    <None Include="shaders\deferredShader.vert" />
+    <None Include="shaders\depthShader.frag" />
+    <None Include="shaders\depthShader.vert" />
+    <None Include="shaders\diffuseShader.frag" />
+    <None Include="shaders\diffuseShader.vert" />
     <None Include="shaders\hagravenBoneShader.frag" />
     <None Include="shaders\hagravenBoneShader.vert" />
     <None Include="shaders\humanBoneShader.frag" />
@@ -144,16 +152,20 @@
     <ClInclude Include="model\include\AnimationBuilder.h" />
     <ClInclude Include="model\include\AnimationShader.h" />
     <ClInclude Include="model\include\DebugShader.h" />
+    <ClInclude Include="model\include\DeferredRenderer.h" />
     <ClInclude Include="model\include\FbxLoader.h" />
+    <ClInclude Include="model\include\FrameBuffer.h" />
     <ClInclude Include="model\include\FunctionState.h" />
     <ClInclude Include="model\include\GeometryBuilder.h" />
     <ClInclude Include="model\include\glew.h" />
     <ClInclude Include="model\include\GLIncludes.h" />
     <ClInclude Include="model\include\glut.h" />
+    <ClInclude Include="model\include\Light.h" />
     <ClInclude Include="model\include\MasterClock.h" />
     <ClInclude Include="model\include\Matrix.h" />
     <ClInclude Include="model\include\Model.h" />
     <ClInclude Include="model\include\ModelFactory.h" />
+    <ClInclude Include="model\include\MRTFrameBuffer.h" />
     <ClInclude Include="model\include\MVP.h" />
     <ClInclude Include="model\include\RenderBuffers.h" />
     <ClInclude Include="model\include\SceneManager.h" />
@@ -186,12 +198,16 @@
     <ClCompile Include="model\src\AnimationBuilder.cpp" />
     <ClCompile Include="model\src\AnimationShader.cpp" />
     <ClCompile Include="model\src\DebugShader.cpp" />
+    <ClCompile Include="model\src\DeferredRenderer.cpp" />
     <ClCompile Include="model\src\FbxLoader.cpp" />
+    <ClCompile Include="model\src\FrameBuffer.cpp" />
+    <ClCompile Include="model\src\Light.cpp" />
     <ClCompile Include="model\src\main.cpp" />
     <ClCompile Include="model\src\MasterClock.cpp" />
     <ClCompile Include="model\src\Matrix.cpp" />
     <ClCompile Include="model\src\Model.cpp" />
     <ClCompile Include="model\src\ModelFactory.cpp" />
+    <ClCompile Include="model\src\MRTFrameBuffer.cpp" />
     <ClCompile Include="model\src\MVP.cpp" />
     <ClCompile Include="model\src\RenderBuffers.cpp" />
     <ClCompile Include="model\src\SceneManager.cpp" />

@@ -24,12 +24,19 @@
 #include "ModelFactory.h"
 #include <vector>
 #include "Physics.h"
+#include "Light.h"
+#include "DeferredRenderer.h"
 
 class SceneManager {
     ViewManager*        _viewManager; //manages the view/camera matrix from the user's perspective
     std::vector<Model*> _modelList; //Contains models active in scene
+    std::vector<Light*> _lightList; //Contains all lights in a scene
     ModelFactory*       _modelFactory; //Creates new models
     Physics             _physics; //Manages physical interactions between models
+    DeferredRenderer*   _deferredRenderer; //Manages deferred shading g buffers
+
+    void _preDraw(); //Prior to drawing objects call this function
+    void _postDraw(); //Post of drawing objects call this function
 public:
     SceneManager(int* argc, char** argv, unsigned int viewportWidth, unsigned int viewportHeight, 
         float nearPlaneDistance, float farPlaneDistance);

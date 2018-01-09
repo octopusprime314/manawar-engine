@@ -222,3 +222,27 @@ GLhandleARB Shader::_compile(char* filename, unsigned int type)
 
     return handle;
 }
+
+GLint Shader::getShaderContext() {
+    return _shaderContext;
+}
+
+GLint Shader::getViewLocation() {
+    return _viewLocation;
+}
+
+GLint Shader::getModelLocation() {
+    return _modelLocation;
+}
+
+GLint Shader::getProjectionLocation() {
+    return _projectionLocation;
+}
+
+GLint Shader::getNormalLocation() {
+    return _normalLocation;
+}
+
+GLint Shader::getTextureLocation() {
+    return _textureLocation;
+}

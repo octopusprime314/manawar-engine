@@ -19,10 +19,6 @@ Model::Model(std::string name, ViewManagerEvents* eventWrapper, ModelClass class
         //disable debug mode
         _debugMode = false;
 
-        //Load default shader
-        _shaderProgram = new Shader();
-        _shaderProgram->build();
-
         //Load debug shader
         _debugShaderProgram = new DebugShader();
         _debugShaderProgram->build();
@@ -41,6 +37,10 @@ Model::Model(std::string name, ViewManagerEvents* eventWrapper, ModelClass class
         //otherwise let derived class clean up _fbxLoader object
         //because the derived class may need to access data from it still
         if (_classId == ModelClass::ModelType) {
+
+			//Load default shader
+			_shaderProgram = new Shader();
+			_shaderProgram->build();
 
             //If the object is a standard model then it is modeled with triangles
             _geometryType = GeometryType::Triangle;

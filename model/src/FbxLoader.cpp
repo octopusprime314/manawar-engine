@@ -382,26 +382,26 @@ void FbxLoader::_loadVertices(FbxMesh* meshNode, std::vector<Vector4>& vertices)
 void FbxLoader::_buildModelData(Model* model, FbxMesh* meshNode, FbxNode* childNode, std::vector<Vector4>& vertices, 
                                 std::vector<Vector4>& normals, std::vector<Texture2>& textures) {
 
-                                    RenderBuffers* renderBuffers = model->getRenderBuffers();
-                                    int numVerts = meshNode->GetControlPointsCount();
-                                    //Load in models differently based on type
-                                    if (model->getClassType() == ModelClass::AnimatedModelType) {
-                                        //Load vertices and normals into model
-                                        for (int i = 0; i < numVerts; i++) {
-                                            renderBuffers->addVertex(vertices[i]); 
-                                            renderBuffers->addNormal(normals[i]); 
-                                            renderBuffers->addDebugNormal(vertices[i]);
-                                            renderBuffers->addDebugNormal(vertices[i] + normals[i]);
-                                        }
-                                        //Load texture coordinates
-                                        for (int i = 0; i < textures.size(); i++) {
-                                            renderBuffers->addTexture(textures[i]);
-                                        }
-                                    }
-                                    else if (model->getClassType() == ModelClass::ModelType) {
-                                        //Load in the entire model once if the data is not animated
-                                        _buildTriangles(model, vertices, normals, textures, *renderBuffers->getIndices(), childNode);
-                                    }
+    RenderBuffers* renderBuffers = model->getRenderBuffers();
+    int numVerts = meshNode->GetControlPointsCount();
+    //Load in models differently based on type
+    if (model->getClassType() == ModelClass::AnimatedModelType) {
+        //Load vertices and normals into model
+        for (int i = 0; i < numVerts; i++) {
+            renderBuffers->addVertex(vertices[i]); 
+            renderBuffers->addNormal(normals[i]); 
+            renderBuffers->addDebugNormal(vertices[i]);
+            renderBuffers->addDebugNormal(vertices[i] + normals[i]);
+        }
+        //Load texture coordinates
+        for (int i = 0; i < textures.size(); i++) {
+            renderBuffers->addTexture(textures[i]);
+        }
+    }
+    else if (model->getClassType() == ModelClass::ModelType) {
+        //Load in the entire model once if the data is not animated
+        _buildTriangles(model, vertices, normals, textures, *renderBuffers->getIndices(), childNode);
+    }
 }
 
 void FbxLoader::_loadNormals(FbxMesh* meshNode, int* indices, std::vector<Vector4>& normals){

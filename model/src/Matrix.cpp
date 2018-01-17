@@ -403,6 +403,26 @@ Matrix Matrix::cameraProjection(float angleOfView, float imageAspectRatio, float
     return Matrix(result);
 }
 
+Matrix Matrix::cameraOrtho(float orthoWidth, float orthoHeight, float n, float f) {
+    
+    float result[16];
+
+    //Setup components of projection
+    float r = orthoWidth / 2.0f;   //Right
+    float l = -r;                  //Left
+    float t = orthoHeight / 2.0f;  //Top
+    float b = -t;                  //Bottom
+
+    // Ortho Matrix
+    result[0] = 2.0f / (r - l), result[1] = 0.0, result[2] = 0.0, result[3] = -(r + l) / (r - l);
+    result[4] = 0.0, result[5] = 2.0 / (t - b), result[6] = 0.0, result[7] = -(t + b) / (t - b);
+    result[8] = 0.0, result[9] = 0.0, result[10] = -2.0f / (f - n), result[11] = -(f + n) / (f - n);
+    result[12] = 0.0, result[13] = 0.0, result[14] = 0.0, result[15] = 1.0;
+
+    return Matrix(result);
+
+}
+
 //Prints out the result in row major
 void Matrix::display() {
     std::cout << setprecision(2) << std::setw(6) << _matrix[0] << " " << std::setw(6) << _matrix[1]

@@ -13,6 +13,8 @@ SceneManager::SceneManager(int* argc, char** argv, unsigned int viewportWidth, u
     _deferredRenderer = new DeferredRenderer();
     _deferredRenderer->build("");
 
+    _shadowRenderer = new ShadowRenderer();
+
     //Setup pre and post draw callback events received when a draw call is issued
     SimpleContextEvents::setPreDrawCallback(std::bind(&SceneManager::_preDraw, this));
     SimpleContextEvents::setPostDrawCallback(std::bind(&SceneManager::_postDraw, this));
@@ -28,7 +30,7 @@ SceneManager::SceneManager(int* argc, char** argv, unsigned int viewportWidth, u
 
         //Simple kludge test to activate animated models in motion to stimulate collision detection tests
         _modelList.back()->getStateVector()->setActive(true);
-        _modelList.back()->setPosition(Vector4(0, 5, -15, 1)); //Place objects 20 meters above sea level for collision testing
+        _modelList.back()->setPosition(Vector4(0, 5, 0, 1)); //Place objects 20 meters above sea level for collision testing
         x += 30;
     }
     _viewManager->setProjection(viewportWidth, viewportHeight, nearPlaneDistance, farPlaneDistance); //Initializes projection matrix and broadcasts upate to all listeners
@@ -57,6 +59,9 @@ SceneManager::~SceneManager() {
 
 void SceneManager::_preDraw() {
 
+    //send all vbo data to shadow shader pre pass
+    _shadowRenderer->generateShadowBuffer(_modelList);
+
     //Establish an offscreen Frame Buffer Object to generate G buffers for deferred shading
     _deferredRenderer->bind();
 }
@@ -64,7 +69,6 @@ void SceneManager::_postDraw() {
 
     //unbind fbo
     _deferredRenderer->unbind();
-
     //Pass lights to deferred shading pass
-    _deferredRenderer->runShader(_lightList);
+    _deferredRenderer->deferredLighting(_shadowRenderer, _lightList, _viewManager);
 }

@@ -1,5 +1,5 @@
 /*
-* MRTFrameBuffer is part of the ReBoot distribution (https://github.com/octopusprime314/ReBoot.git).
+* ShadowFrameBuffer is part of the ReBoot distribution (https://github.com/octopusprime314/ReBoot.git).
 * Copyright (c) 2017 Peter Morley.
 *
 * ReBoot is free software: you can redistribute it and/or modify
@@ -16,8 +16,8 @@
 */
 
 /**
-*  MRTFrameBuffer class. Handles multiple render targets and creates multiple color
-*  attachments to a single frame buffer object
+*  ShadowFrameBuffer class. SFB will contain a render texture target for depth and a 
+*  render buffer target
 */
 
 #pragma once
@@ -25,14 +25,14 @@
 #include <iostream>
 #include <vector>
 
-class MRTFrameBuffer {
+class ShadowFrameBuffer {
 
     GLuint _frameBufferContext;
-    std::vector<GLuint> _fbTextureContexts; //Use for color attachments in framebuffer
+    GLuint _shadowTextureContext; //Use for depth attachment in framebuffer
 
 public:
-    MRTFrameBuffer(int colorAttachments);
-    ~MRTFrameBuffer();
+    ShadowFrameBuffer();
+    ~ShadowFrameBuffer();
     GLuint getFrameBufferContext();
-    std::vector<GLuint> getTextureContexts();
+    GLuint getTextureContext();
 };

@@ -25,3 +25,6 @@
 #include <Windows.h>
 #include "glew.h"
 #include "glut.h"
+
+const int screenPixelWidth = 1920;
+const int screenPixelHeight = 1080;

@@ -25,6 +25,8 @@ ViewManager::ViewManager(int* argc, char** argv, unsigned int viewportWidth, uns
     _modelIndex = 0; //Start at index 0
 
     _thirdPersonTranslation = Matrix::cameraTranslation(0, 5, 10);
+
+    _viewState = ViewManager::ViewState::DIFFUSE;
 }
 
 ViewManager::~ViewManager() {
@@ -49,7 +51,6 @@ void ViewManager::setProjection(unsigned int viewportWidth, unsigned int viewpor
     //Broadcast perspective matrix once to all subscribers
     _viewEvents->updateProjection(_projection);
 
-
 }
 
 void ViewManager::setView(Matrix translation, Matrix rotation, Matrix scale){
@@ -58,6 +59,18 @@ void ViewManager::setView(Matrix translation, Matrix rotation, Matrix scale){
     _translation = translation;
     _view = _view * _scale * _rotation * _translation;
     _viewEvents->updateView(_view);
+}
+
+Matrix& ViewManager::getProjection(){
+    return _projection;
+}
+    
+Matrix& ViewManager::getView(){
+    return _view;
+}
+
+ViewManager::ViewState ViewManager::getViewState(){
+    return _viewState;
 }
 
 void ViewManager::setModelList(std::vector<Model*> modelList) {
@@ -81,6 +94,25 @@ void ViewManager::_updateReleaseKeyboard(unsigned char key, int x, int y) { //Do
 }
 
 void ViewManager::_updateKeyboard(unsigned char key, int x, int y) { //Do stuff based on keyboard update
+
+    if (key == 49) {
+        _viewState = ViewState::DIFFUSE;
+    }
+    else if (key == 50) {
+        _viewState = ViewState::LIGHT_DEPTH;
+    }
+    else if (key == 51) {
+        _viewState = ViewState::SHADOW_MAPPING;
+    }
+    else if (key == 52) {
+        _viewState = ViewState::NORMAL;
+    }
+     else if (key == 53) {
+        _viewState = ViewState::POSITION;
+    }
+    else if (key == 54) {
+        _viewState = ViewState::DIFFUSE_SHADOW;
+    }
 
     if (key == 119 || key == 115 || key == 97 || key == 100) {
 
@@ -142,7 +174,7 @@ void ViewManager::_updateKeyboard(unsigned char key, int x, int y) { //Do stuff 
             //state->setAngularPosition(_rotation * Vector4(0, 0, 0, 0)); //Set angular (rotation) position vector based on view rotation
         }
         else{
-            _translation = Matrix::cameraTranslation(temp[0], temp[1], temp[2]) * _translation; //Update the translation state matrix
+            _translation = Matrix::cameraTranslation(temp[0]/100.0, temp[1]/100.0, temp[2]/100.0) * _translation; //Update the translation state matrix
             _view = _rotation * _translation; //translate then rotate around point
         }
         _viewEvents->updateView(_view); //Send out event to all listeners

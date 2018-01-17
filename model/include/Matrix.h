@@ -104,4 +104,5 @@ public:
     static Matrix cameraRotationAroundZ(float degrees); //Build rotation matrix around the z axis
     static Matrix cameraTranslation(float x, float y, float z); //Build translation matrix
     static Matrix cameraProjection(float angleOfView, float aspectRatio, float near, float far);
+    static Matrix cameraOrtho(float orthoWidth, float orthoHeight, float n, float f);
 };

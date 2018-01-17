@@ -157,6 +157,12 @@
     <ClInclude Include="model\include\Light.h">
       <Filter>model\include</Filter>
     </ClInclude>
+    <ClInclude Include="model\include\ShadowFrameBuffer.h">
+      <Filter>model\include</Filter>
+    </ClInclude>
+    <ClInclude Include="model\include\ShadowRenderer.h">
+      <Filter>model\include</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\normalShader.frag">
@@ -223,6 +229,18 @@
       <Filter>shaders</Filter>
     </None>
     <None Include="shaders\diffuseShader.vert">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shaders\mrtShader.frag">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shaders\mrtShader.vert">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shaders\shadowShader.frag">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shaders\shadowShader.vert">
       <Filter>shaders</Filter>
     </None>
   </ItemGroup>
@@ -339,6 +357,12 @@
       <Filter>model\src</Filter>
     </ClCompile>
     <ClCompile Include="model\src\Light.cpp">
+      <Filter>model\src</Filter>
+    </ClCompile>
+    <ClCompile Include="model\src\ShadowFrameBuffer.cpp">
+      <Filter>model\src</Filter>
+    </ClCompile>
+    <ClCompile Include="model\src\ShadowRenderer.cpp">
       <Filter>model\src</Filter>
     </ClCompile>
   </ItemGroup>

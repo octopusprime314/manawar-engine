@@ -26,6 +26,7 @@
 #include "Physics.h"
 #include "Light.h"
 #include "DeferredRenderer.h"
+#include "ShadowRenderer.h"
 
 class SceneManager {
     ViewManager*        _viewManager; //manages the view/camera matrix from the user's perspective
@@ -34,6 +35,7 @@ class SceneManager {
     ModelFactory*       _modelFactory; //Creates new models
     Physics             _physics; //Manages physical interactions between models
     DeferredRenderer*   _deferredRenderer; //Manages deferred shading g buffers
+    ShadowRenderer*     _shadowRenderer;   //Manages shadow rendering
 
     void _preDraw(); //Prior to drawing objects call this function
     void _postDraw(); //Post of drawing objects call this function

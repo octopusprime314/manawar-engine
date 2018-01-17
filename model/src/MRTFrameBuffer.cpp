@@ -51,6 +51,24 @@ MRTFrameBuffer::MRTFrameBuffer(int colorAttachments) {
     //the texture will be used in later shader texture sampling
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + 1, GL_TEXTURE_2D, _fbTextureContexts[1], 0);
 
+    //Bind current texture context normal
+    glBindTexture(GL_TEXTURE_2D, _fbTextureContexts[2]);
+
+    //spell out texture format, 1920 x 1080 texture, RGB format but can use RGB, data pointer is null 
+    //because the frame buffer is responsible for allocating and populating texture data
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, screenPixelWidth, screenPixelHeight, 0, GL_RGBA, GL_FLOAT, NULL);
+
+    //texture filter parameters
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    //remove texture context
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    //Finally attach the texture to the previously generated frame buffer
+    //the texture will be used in later shader texture sampling
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + 2, GL_TEXTURE_2D, _fbTextureContexts[2], 0);
+
     //Needs to attach a depth render buffer to the frame buffer object!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     //I got hosed on this super hard!!!!!!!!!!!!!!!!!!!!!!!!!
     GLuint depth_rb;

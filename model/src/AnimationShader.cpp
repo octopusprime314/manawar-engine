@@ -12,7 +12,7 @@ AnimationShader::~AnimationShader() {
 void AnimationShader::build(std::string shaderName) {
 
     //Call main build
-    Shader::build(shaderName);
+    Shader::build("shaders/animationShader"/*shaderName*/);
 
     //Boen uniforms glUniform mat4 
     _bonesLocation = glGetUniformLocation(_shaderContext, "bones");
@@ -119,8 +119,8 @@ void AnimationShader::runShader(Model* modelIn) {
     auto bones = model->getBones();
     float* bonesArray = new float[ 16 * bones->size() ]; //4x4 times number of bones
     int bonesArrayIndex = 0;
-    for(auto bone : *bones){
-        for(int i = 0; i < 16; i++){
+    for(auto bone : *bones) {
+        for(int i = 0; i < 16; i++) {
             float* buff = bone.getFlatBuffer();
             bonesArray[bonesArrayIndex++] = buff[i];
         }

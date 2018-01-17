@@ -35,6 +35,16 @@ class SimpleContext;
 class Model;
 class FunctionState;
 class ViewManager : public UpdateInterface {
+
+    enum class ViewState{
+        DIFFUSE = 0,
+        LIGHT_DEPTH,
+        SHADOW_MAPPING, 
+        NORMAL,
+        POSITION,
+        DIFFUSE_SHADOW
+    };
+    ViewState           _viewState;
     Matrix              _view;
     Matrix              _projection;
     Matrix              _translation; //Keep track of translation state
@@ -56,6 +66,9 @@ public:
     void               setProjection(unsigned int viewportWidth, unsigned int viewportHeight, float nearPlaneDistance, float farPlaneDistance);
     void               setView(Matrix translation, Matrix rotation, Matrix scale);
     void               setModelList(std::vector<Model*> modelList);
+    Matrix&            getProjection();
+    Matrix&            getView();
+    ViewState          getViewState();
     ViewManagerEvents* getEventWrapper();
     void               run(); //Make this call to start glut mainloop
 protected:

@@ -135,8 +135,12 @@
     <None Include="shaders\hagravenBoneShader.vert" />
     <None Include="shaders\humanBoneShader.frag" />
     <None Include="shaders\humanBoneShader.vert" />
+    <None Include="shaders\mrtShader.frag" />
+    <None Include="shaders\mrtShader.vert" />
     <None Include="shaders\normalShader.frag" />
     <None Include="shaders\normalShader.vert" />
+    <None Include="shaders\shadowShader.frag" />
+    <None Include="shaders\shadowShader.vert" />
     <None Include="shaders\simpleShader.frag" />
     <None Include="shaders\simpleShader.vert" />
     <None Include="shaders\trollBoneShader.frag" />
@@ -170,6 +174,8 @@
     <ClInclude Include="model\include\RenderBuffers.h" />
     <ClInclude Include="model\include\SceneManager.h" />
     <ClInclude Include="model\include\Shader.h" />
+    <ClInclude Include="model\include\ShadowFrameBuffer.h" />
+    <ClInclude Include="model\include\ShadowRenderer.h" />
     <ClInclude Include="model\include\SimpleContext.h" />
     <ClInclude Include="model\include\SimpleContextEvents.h" />
     <ClInclude Include="model\include\SkinningData.h" />
@@ -212,6 +218,8 @@
     <ClCompile Include="model\src\RenderBuffers.cpp" />
     <ClCompile Include="model\src\SceneManager.cpp" />
     <ClCompile Include="model\src\Shader.cpp" />
+    <ClCompile Include="model\src\ShadowFrameBuffer.cpp" />
+    <ClCompile Include="model\src\ShadowRenderer.cpp" />
     <ClCompile Include="model\src\SimpleContext.cpp" />
     <ClCompile Include="model\src\SimpleContextEvents.cpp" />
     <ClCompile Include="model\src\SkinningData.cpp" />

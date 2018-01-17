@@ -28,6 +28,8 @@
 #include "Shader.h"
 #include "FrameBuffer.h"
 #include "MRTFrameBuffer.h"
+#include "ShadowRenderer.h"
+#include "ViewManager.h"
 #include "Light.h"
 class Model;
 
@@ -37,15 +39,18 @@ class DeferredRenderer {
     MRTFrameBuffer _mrtFBO;
     GLuint         _normalTextureLocation;
     GLuint         _diffuseTextureLocation;
+    GLuint         _positionTextureLocation;
+    GLuint         _depthTextureLocation;
     GLuint         _quadBufferContext;
     GLuint         _textureBufferContext;
     GLuint         _lightLocation;
-    void           _deferredRender(std::vector<Light*>& lights);
+    GLuint         _lightViewLocation;
+    GLuint         _viewsLocation;
 
 public:
     DeferredRenderer();
     ~DeferredRenderer();
-    void runShader(std::vector<Light*>& lights);
+    void deferredLighting(ShadowRenderer* shadowRenderer, std::vector<Light*>& lights, ViewManager* viewManager);
     void build(std::string shaderName);
     void bind();
     void unbind();

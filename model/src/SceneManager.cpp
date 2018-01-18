@@ -40,9 +40,11 @@ SceneManager::SceneManager(int* argc, char** argv, unsigned int viewportWidth, u
     _physics.addModels(_modelList); //Gives physics a pointer to all models which allows access to underlying geometry
     _physics.run(); //Dispatch physics to start kinematics 
 
-    Light::setViewWrapper(_viewManager->getEventWrapper());
-    //Add a directional light pointing down in the negative x axis
-    _lightList.push_back(new Light(Vector4(0.0f, -1.0f, 0.0f, 0.0f)));
+    //Add a directional light pointing down in the negative y axis
+    MVP lightMVP;
+    lightMVP.setView(Matrix::cameraTranslation(0.0, 0.0, 25.0) * Matrix::cameraRotationAroundX(-90.0f));
+    lightMVP.setProjection(Matrix::cameraOrtho(50.0, 50.0, 0.1, 100.0));
+    _lightList.push_back(new Light(lightMVP, LightType::DIRECTIONAL));
 
     MasterClock::instance()->run(); //Scene manager kicks off the clock event manager
 
@@ -60,7 +62,7 @@ SceneManager::~SceneManager() {
 void SceneManager::_preDraw() {
 
     //send all vbo data to shadow shader pre pass
-    _shadowRenderer->generateShadowBuffer(_modelList);
+    _shadowRenderer->generateShadowBuffer(_modelList, _lightList);
 
     //Establish an offscreen Frame Buffer Object to generate G buffers for deferred shading
     _deferredRenderer->bind();

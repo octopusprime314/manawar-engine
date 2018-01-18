@@ -1,35 +1,25 @@
 #include "Light.h"
-ViewManagerEvents* Light::_viewEventWrapper;
 
-Light::Light(Vector4 lightDir) {
+Light::Light(MVP mvp, LightType type) {
+    
+    _type = type;
+    _mvp = mvp;
 
-    _lightDir = lightDir;
+    //Extract light position from view matrix
+    float* inverseView = _mvp.getViewMatrix().inverse().getFlatBuffer();
+    _position = Vector4(inverseView[3], inverseView[7], inverseView[11], 1.0);
+}
 
-    //Subscribe to view updates to transform lights properly
-    _viewEventWrapper->subscribeToView(std::bind(&Light::_updateView, this, std::placeholders::_1));
+MVP& Light::getMVP() {
+    return _mvp;
+}
+
+Vector4& Light::getPosition() {
+    return _position;
+}
+
+LightType Light::getType(){
+    return _type;
 }
 
 
-void Light::_updateView(Matrix view) {
-
-    _mvp.setView(view); //Receive updates when the view matrix has changed
-
-    //If view changes then change our normal matrix
-    _mvp.setNormal(view.inverse().transpose());
-}
-
-Vector4 Light::getLightDirection() {
-    return _lightDir;
-}
-
-float* Light::getNormalBuffer() {
-    return _mvp.getNormalBuffer();
-}
-
-Matrix Light::getNormalMatrix(){
-    return _mvp.getNormalMatrix();
-}
-
-void Light::setViewWrapper(ViewManagerEvents* wrapper){
-    _viewEventWrapper = wrapper;
-}

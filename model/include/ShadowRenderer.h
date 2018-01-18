@@ -30,20 +30,14 @@ class Model;
 
 class ShadowRenderer {
 
-    Shader            _staticShadowShader;
-    Shader            _animatedShadowShader;
-    GLuint            _bonesLocation;
-    ShadowFrameBuffer _shadowFBO;
-    Matrix            _lightShadowView;
-    Vector4           _lightPosition;
-    Matrix            _orthographicProjection;
+    Shader            _staticShadowShader;   //Shader that generates static geometry shadows
+    Shader            _animatedShadowShader; //Shader that generates animated geometry shadows
+    GLuint            _bonesLocation;        //Used in animated geometry rendering   
+    ShadowFrameBuffer _shadowFBO;            //Depth frame buffer object
 
 public:
     ShadowRenderer();
     ~ShadowRenderer();
-    void generateShadowBuffer(std::vector<Model*> modelList);
+    void generateShadowBuffer(std::vector<Model*> modelList, std::vector<Light*>& lights);
     GLuint getDepthTexture();
-    Matrix getLightShadowView();
-    Matrix getLightShadowProjection();
-    Vector4 getLightPosition();
 };

@@ -55,85 +55,88 @@ void DeferredRenderer::build(std::string shaderName) {
 
 void DeferredRenderer::deferredLighting(ShadowRenderer* shadowRenderer, std::vector<Light*>& lights, ViewManager* viewManager) {
 
-    //Take the generated texture data and do deferred shading
-    //LOAD IN SHADER
-    glUseProgram(_deferredShader.getShaderContext()); //use context for loaded shader
+    for(Light* light : lights){
+        //Take the generated texture data and do deferred shading
+        //LOAD IN SHADER
+        glUseProgram(_deferredShader.getShaderContext()); //use context for loaded shader
 
-                                                      //LOAD IN VBO BUFFERS 
-                                                      //Bind vertex buff context to current buffer
-    glBindBuffer(GL_ARRAY_BUFFER, _quadBufferContext);
+                                                          //LOAD IN VBO BUFFERS 
+                                                          //Bind vertex buff context to current buffer
+        glBindBuffer(GL_ARRAY_BUFFER, _quadBufferContext);
 
-    //Say that the vertex data is associated with attribute 0 in the context of a shader program
-    //Each vertex contains 3 floats per vertex
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+        //Say that the vertex data is associated with attribute 0 in the context of a shader program
+        //Each vertex contains 3 floats per vertex
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
 
-    //Now enable vertex buffer at location 0
-    glEnableVertexAttribArray(0);
+        //Now enable vertex buffer at location 0
+        glEnableVertexAttribArray(0);
 
-    //Bind texture coordinate buff context to current buffer
-    glBindBuffer(GL_ARRAY_BUFFER, _textureBufferContext);
+        //Bind texture coordinate buff context to current buffer
+        glBindBuffer(GL_ARRAY_BUFFER, _textureBufferContext);
 
-    //Say that the texture coordinate data is associated with attribute 2 in the context of a shader program
-    //Each texture coordinate contains 2 floats per texture
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, 0);
+        //Say that the texture coordinate data is associated with attribute 2 in the context of a shader program
+        //Each texture coordinate contains 2 floats per texture
+        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, 0);
 
-    //Now enable texture buffer at location 2
-    glEnableVertexAttribArray(1);
+        //Now enable texture buffer at location 2
+        glEnableVertexAttribArray(1);
 
-    //Compute directional light on cpu side
-    Vector4 transformedLight = shadowRenderer->getLightPosition();
-    float* buff = transformedLight.getFlatBuffer();
-    glUniform3f(_lightLocation, buff[0], buff[1], buff[2]);
+        //Get light position
+        Vector4 transformedLight = light->getPosition();
+        float* buff = transformedLight.getFlatBuffer();
+        glUniform3f(_lightLocation, buff[0], buff[1], buff[2]);
 
-    //Change of basis from camera view position back to world position
-    Matrix cameraToLightSpace = shadowRenderer->getLightShadowProjection() * 
-        shadowRenderer->getLightShadowView() * 
-        viewManager->getView().inverse();
+        //Change of basis from camera view position back to world position
+        MVP lightMVP = light->getMVP();
+        Matrix cameraToLightSpace = lightMVP.getProjectionMatrix() * 
+            lightMVP.getViewMatrix() * 
+            viewManager->getView().inverse();
 
-    //glUniform mat4 view matrix, GL_TRUE is telling GL we are passing in the matrix as row major
-    glUniformMatrix4fv(_lightViewLocation, 1, GL_TRUE, cameraToLightSpace.getFlatBuffer());
+        //glUniform mat4 view matrix, GL_TRUE is telling GL we are passing in the matrix as row major
+        glUniformMatrix4fv(_lightViewLocation, 1, GL_TRUE, cameraToLightSpace.getFlatBuffer());
 
-    //glUniform mat4 view matrix, GL_TRUE is telling GL we are passing in the matrix as row major
-    glUniformMatrix4fv(_deferredShader.getProjectionLocation(), 1, GL_TRUE, viewManager->getProjection().getFlatBuffer());
+        //glUniform mat4 view matrix, GL_TRUE is telling GL we are passing in the matrix as row major
+        glUniformMatrix4fv(_deferredShader.getProjectionLocation(), 1, GL_TRUE, viewManager->getProjection().getFlatBuffer());
 
-    //glUniform mat4 view matrix, GL_TRUE is telling GL we are passing in the matrix as row major
-    glUniformMatrix4fv(_deferredShader.getViewLocation(), 1, GL_TRUE, viewManager->getView().getFlatBuffer());
+        //glUniform mat4 view matrix, GL_TRUE is telling GL we are passing in the matrix as row major
+        glUniformMatrix4fv(_deferredShader.getViewLocation(), 1, GL_TRUE, viewManager->getView().getFlatBuffer());
 
-    glUniform1i(_viewsLocation, static_cast<GLint>(viewManager->getViewState()));
+        glUniform1i(_viewsLocation, static_cast<GLint>(viewManager->getViewState()));
 
-    auto textures = _mrtFBO.getTextureContexts();
+        auto textures = _mrtFBO.getTextureContexts();
 
-    //Diffuse texture
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, textures[0]);
-    //glUniform texture 
-    glUniform1iARB(_diffuseTextureLocation, 0);
+        //Diffuse texture
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, textures[0]);
+        //glUniform texture 
+        glUniform1iARB(_diffuseTextureLocation, 0);
 
-    //Normal texture
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, textures[1]);
-    //glUniform texture 
-    glUniform1iARB(_normalTextureLocation, 1);
+        //Normal texture
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, textures[1]);
+        //glUniform texture 
+        glUniform1iARB(_normalTextureLocation, 1);
 
-    //Position texture
-    glActiveTexture(GL_TEXTURE2);
-    glBindTexture(GL_TEXTURE_2D, textures[2]);
-    //glUniform texture 
-    glUniform1iARB(_positionTextureLocation, 2);
+        //Position texture
+        glActiveTexture(GL_TEXTURE2);
+        glBindTexture(GL_TEXTURE_2D, textures[2]);
+        //glUniform texture 
+        glUniform1iARB(_positionTextureLocation, 2);
 
-    //Depth texture
-    glActiveTexture(GL_TEXTURE3);
-    glBindTexture(GL_TEXTURE_2D, shadowRenderer->getDepthTexture());
-    //glUniform texture 
-    glUniform1iARB(_depthTextureLocation, 3);
+        //Depth texture
+        glActiveTexture(GL_TEXTURE3);
+        glBindTexture(GL_TEXTURE_2D, shadowRenderer->getDepthTexture());
+        //glUniform texture 
+        glUniform1iARB(_depthTextureLocation, 3);
 
-    //Draw triangles using the bound buffer vertices at starting index 0 and number of vertices
-    glDrawArrays(GL_TRIANGLES, 0, (GLsizei)6);
+        //Draw triangles using the bound buffer vertices at starting index 0 and number of vertices
+        glDrawArrays(GL_TRIANGLES, 0, (GLsizei)6);
 
-    glDisableVertexAttribArray(0); //Disable vertex attribute
-    glDisableVertexAttribArray(1); //Disable texture attribute
-    glBindBuffer(GL_ARRAY_BUFFER, 0); //Unbind buffer
-    glUseProgram(0);//end using this shader
+        glDisableVertexAttribArray(0); //Disable vertex attribute
+        glDisableVertexAttribArray(1); //Disable texture attribute
+        glBindBuffer(GL_ARRAY_BUFFER, 0); //Unbind buffer
+        glUseProgram(0);//end using this shader
+    }
 
 }
 

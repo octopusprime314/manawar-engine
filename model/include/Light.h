@@ -16,24 +16,26 @@
 */
 
 /**
-*  Light class. Describes a model that emits light and subscribes to view changes
+*  Light class. Describes a model that emits light
 */
 
 #pragma once
-#include "ViewManagerEvents.h"
 #include "MVP.h"
-class Light : public ViewManagerEvents {
-    MVP                         _mvp; //Model view matrix container
-    Vector4                     _lightDir; //Directional light vector
-    static ViewManagerEvents*   _viewEventWrapper;
 
-protected:
-    void                        _updateView(Matrix view); //Get view matrix updates
+enum class LightType{
+        DIRECTIONAL = 0,
+        POINT,
+        SPOTLIGHT
+    };
+
+class Light{
+    MVP                     _mvp; //Model view matrix container
+    Vector4                 _position; //Position of light
+    LightType               _type; //Light type enum
 
 public:
-    Light(Vector4 lightDir);
-    Vector4                     getLightDirection();
-    float*                      getNormalBuffer();
-    Matrix                      getNormalMatrix();
-    static void                 setViewWrapper(ViewManagerEvents* wrapper);
+    Light(MVP mvp, LightType type);
+    MVP&                        getMVP();
+    Vector4&                    getPosition();
+    LightType                   getType();
 };

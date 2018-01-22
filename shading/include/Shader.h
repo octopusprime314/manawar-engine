@@ -16,9 +16,8 @@
 */
 
 /**
-*  Shader class. Basic shader class that stores uniform location and operates
-*  on model objects when rendering is done.  Contains a vertex and fragment
-*  shader implementation.
+*  Shader class. Basic shader class that is responsible only for compilation and 
+*  storing the gl context of the shader
 */
 
 #pragma once
@@ -27,27 +26,23 @@
 #include "GLIncludes.h"
 
 class Model;
+class Light;
+
+const std::string SHADERS_LOCATION = "shading/shaders/";
 
 //Simple shader loading class that should be derived from to create more complex shaders
 class Shader {
+
 protected:
     GLuint      _shaderContext; //keeps track of the shader context
-    GLint       _viewLocation;
-    GLint       _modelLocation;
-    GLint       _projectionLocation;
-    GLint       _normalLocation;
-    GLint       _textureLocation;
+	std::string _shaderName;
     GLhandleARB _compile(char* filename, unsigned int type);
     void        _link(GLhandleARB vertexShaderHandle, GLhandleARB fragmentShaderHandle);
+	void		_build();
+
 public:
-    Shader();
-    virtual ~Shader();
-    virtual void build(std::string shaderName = "shaders/simpleShader");
-    virtual void runShader(Model* model);
+    Shader(std::string shaderName);
+    virtual      ~Shader();
     GLint        getShaderContext();
-    GLint        getViewLocation();
-    GLint        getModelLocation();
-    GLint        getProjectionLocation();
-    GLint        getNormalLocation();
-    GLint        getTextureLocation();
+    
 };

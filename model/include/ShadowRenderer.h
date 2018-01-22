@@ -20,7 +20,7 @@
 */
 
 #pragma once
-#include "Shader.h"
+#include "ShadowAnimatedShader.h"
 #include "ShadowFrameBuffer.h"
 #include "Light.h"
 #include "Model.h"
@@ -30,10 +30,10 @@ class Model;
 
 class ShadowRenderer {
 
-    Shader            _staticShadowShader;   //Shader that generates static geometry shadows
-    Shader            _animatedShadowShader; //Shader that generates animated geometry shadows
-    GLuint            _bonesLocation;        //Used in animated geometry rendering   
-    ShadowFrameBuffer _shadowFBO;            //Depth frame buffer object
+    ShadowStaticShader   _staticShadowShader;   //Shader that generates static geometry shadows
+    ShadowAnimatedShader _animatedShadowShader; //Shader that generates animated geometry shadows
+    GLuint               _boesLocation;        //Used in animated geometry rendering   
+    ShadowFrameBuffer    _shadowFBO;            //Depth frame buffer object
 
 public:
     ShadowRenderer();

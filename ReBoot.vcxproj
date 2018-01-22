@@ -82,7 +82,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\fbx-sdk\include;..\freeimage\include;model\include;physics\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\fbx-sdk\include;..\freeimage\include;model\include;physics\include;shading\include</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
@@ -111,7 +111,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>..\fbx-sdk\include;..\freeimage\include;model\include;physics\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\fbx-sdk\include;..\freeimage\include;model\include;physics\include;shading\include</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
@@ -123,39 +123,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <None Include="shaders\debugShader.frag" />
-    <None Include="shaders\debugShader.vert" />
-    <None Include="shaders\deferredShader.frag" />
-    <None Include="shaders\deferredShader.vert" />
-    <None Include="shaders\depthShader.frag" />
-    <None Include="shaders\depthShader.vert" />
-    <None Include="shaders\diffuseShader.frag" />
-    <None Include="shaders\diffuseShader.vert" />
-    <None Include="shaders\hagravenBoneShader.frag" />
-    <None Include="shaders\hagravenBoneShader.vert" />
-    <None Include="shaders\humanBoneShader.frag" />
-    <None Include="shaders\humanBoneShader.vert" />
-    <None Include="shaders\mrtShader.frag" />
-    <None Include="shaders\mrtShader.vert" />
-    <None Include="shaders\normalShader.frag" />
-    <None Include="shaders\normalShader.vert" />
-    <None Include="shaders\shadowShader.frag" />
-    <None Include="shaders\shadowShader.vert" />
-    <None Include="shaders\simpleShader.frag" />
-    <None Include="shaders\simpleShader.vert" />
-    <None Include="shaders\trollBoneShader.frag" />
-    <None Include="shaders\trollBoneShader.vert" />
-    <None Include="shaders\werewolfBoneShader.frag" />
-    <None Include="shaders\werewolfBoneShader.vert" />
-    <None Include="shaders\wolfBoneShader.frag" />
-    <None Include="shaders\wolfBoneShader.vert" />
-  </ItemGroup>
-  <ItemGroup>
     <ClInclude Include="model\include\AnimatedModel.h" />
     <ClInclude Include="model\include\Animation.h" />
     <ClInclude Include="model\include\AnimationBuilder.h" />
-    <ClInclude Include="model\include\AnimationShader.h" />
-    <ClInclude Include="model\include\DebugShader.h" />
     <ClInclude Include="model\include\DeferredRenderer.h" />
     <ClInclude Include="model\include\FbxLoader.h" />
     <ClInclude Include="model\include\FrameBuffer.h" />
@@ -173,7 +143,6 @@
     <ClInclude Include="model\include\MVP.h" />
     <ClInclude Include="model\include\RenderBuffers.h" />
     <ClInclude Include="model\include\SceneManager.h" />
-    <ClInclude Include="model\include\Shader.h" />
     <ClInclude Include="model\include\ShadowFrameBuffer.h" />
     <ClInclude Include="model\include\ShadowRenderer.h" />
     <ClInclude Include="model\include\SimpleContext.h" />
@@ -197,13 +166,20 @@
     <ClInclude Include="physics\include\Physics.h" />
     <ClInclude Include="physics\include\Sphere.h" />
     <ClInclude Include="physics\include\Triangle.h" />
+    <ClInclude Include="shading\include\AnimationShader.h" />
+    <ClInclude Include="shading\include\DebugShader.h" />
+    <ClInclude Include="shading\include\DeferredShader.h" />
+    <ClInclude Include="shading\include\RenderShader.h" />
+    <ClInclude Include="shading\include\Shader.h" />
+    <ClInclude Include="shading\include\ShadowAnimatedShader.h" />
+    <ClInclude Include="shading\include\ShadowShader.h" />
+    <ClInclude Include="shading\include\ShadowStaticShader.h" />
+    <ClInclude Include="shading\include\StaticShader.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="model\src\AnimatedModel.cpp" />
     <ClCompile Include="model\src\Animation.cpp" />
     <ClCompile Include="model\src\AnimationBuilder.cpp" />
-    <ClCompile Include="model\src\AnimationShader.cpp" />
-    <ClCompile Include="model\src\DebugShader.cpp" />
     <ClCompile Include="model\src\DeferredRenderer.cpp" />
     <ClCompile Include="model\src\FbxLoader.cpp" />
     <ClCompile Include="model\src\FrameBuffer.cpp" />
@@ -217,7 +193,6 @@
     <ClCompile Include="model\src\MVP.cpp" />
     <ClCompile Include="model\src\RenderBuffers.cpp" />
     <ClCompile Include="model\src\SceneManager.cpp" />
-    <ClCompile Include="model\src\Shader.cpp" />
     <ClCompile Include="model\src\ShadowFrameBuffer.cpp" />
     <ClCompile Include="model\src\ShadowRenderer.cpp" />
     <ClCompile Include="model\src\SimpleContext.cpp" />
@@ -239,6 +214,29 @@
     <ClCompile Include="physics\src\Physics.cpp" />
     <ClCompile Include="physics\src\Sphere.cpp" />
     <ClCompile Include="physics\src\Triangle.cpp" />
+    <ClCompile Include="shading\src\AnimationShader.cpp" />
+    <ClCompile Include="shading\src\DebugShader.cpp" />
+    <ClCompile Include="shading\src\DeferredShader.cpp" />
+    <ClCompile Include="shading\src\RenderShader.cpp" />
+    <ClCompile Include="shading\src\Shader.cpp" />
+    <ClCompile Include="shading\src\ShadowAnimatedShader.cpp" />
+    <ClCompile Include="shading\src\ShadowStaticShader.cpp" />
+    <ClCompile Include="shading\src\ShadowShader.cpp" />
+    <ClCompile Include="shading\src\StaticShader.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="shading\shaders\animatedShadowShader.frag" />
+    <None Include="shading\shaders\animatedShadowShader.vert" />
+    <None Include="shading\shaders\animationShader.frag" />
+    <None Include="shading\shaders\animationShader.vert" />
+    <None Include="shading\shaders\debugShader.frag" />
+    <None Include="shading\shaders\debugShader.vert" />
+    <None Include="shading\shaders\deferredShader.frag" />
+    <None Include="shading\shaders\deferredShader.vert" />
+    <None Include="shading\shaders\staticShader.frag" />
+    <None Include="shading\shaders\staticShader.vert" />
+    <None Include="shading\shaders\staticShadowShader.frag" />
+    <None Include="shading\shaders\staticShadowShader.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -1,5 +1,5 @@
 /*
-* ShadowShader is part of the ReBoot distribution (https://github.com/octopusprime314/ReBoot.git).
+* DebugShader is part of the ReBoot distribution (https://github.com/octopusprime314/ReBoot.git).
 * Copyright (c) 2017 Peter Morley.
 *
 * ReBoot is free software: you can redistribute it and/or modify
@@ -16,20 +16,15 @@
 */
 
 /**
-*  AnimationShader class. Derived shader class that implements animation boneing.
+*  DebugShader class. Visualizes a model's normal vectors for lighting tests
 */
 
 #pragma once
 #include "Shader.h"
-class Model;
 
-class AnimationShader : public Shader {
-
-    GLint _bonesLocation;
+class DebugShader : public Shader {
 
 public:
-    AnimationShader();
-    ~AnimationShader();
-    void runShader(Model* modelIn);
-    void build(std::string shaderName);
+    DebugShader(std::string shaderName);
+    void runShader(Model* model);
 };

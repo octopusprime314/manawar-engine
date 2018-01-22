@@ -20,8 +20,7 @@ Model::Model(std::string name, ViewManagerEvents* eventWrapper, ModelClass class
         _debugMode = false;
 
         //Load debug shader
-        _debugShaderProgram = new DebugShader();
-        _debugShaderProgram->build();
+        _debugShaderProgram = new DebugShader("debugShader");
 
         //Load in fbx object 
         _fbxLoader = new FbxLoader(name);
@@ -39,8 +38,7 @@ Model::Model(std::string name, ViewManagerEvents* eventWrapper, ModelClass class
         if (_classId == ModelClass::ModelType) {
 
 			//Load default shader
-			_shaderProgram = new Shader();
-			_shaderProgram->build();
+			_shaderProgram = new StaticShader("staticShader");
 
             //If the object is a standard model then it is modeled with triangles
             _geometryType = GeometryType::Triangle;

@@ -1,10 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="shaders">
-      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
-      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
-    </Filter>
     <Filter Include="model">
       <UniqueIdentifier>{ea9353b3-1d3c-4735-b35e-32f8be356e3a}</UniqueIdentifier>
     </Filter>
@@ -23,6 +19,18 @@
     <Filter Include="physics\src">
       <UniqueIdentifier>{b07fbf16-6ec8-4cbe-8df1-f5fd513db0f7}</UniqueIdentifier>
     </Filter>
+    <Filter Include="shading">
+      <UniqueIdentifier>{2d8b04b6-da9d-47b1-82c7-4ecb59e04837}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="shading\shaders">
+      <UniqueIdentifier>{f891f07b-969d-4da8-83b3-d9de7d2e0095}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="shading\include">
+      <UniqueIdentifier>{952f8213-c1e0-4b68-b03f-df5564a5fec8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="shading\src">
+      <UniqueIdentifier>{2700c048-5930-40cd-a166-adf8251f425e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="model\include\AnimatedModel.h">
@@ -32,12 +40,6 @@
       <Filter>model\include</Filter>
     </ClInclude>
     <ClInclude Include="model\include\AnimationBuilder.h">
-      <Filter>model\include</Filter>
-    </ClInclude>
-    <ClInclude Include="model\include\AnimationShader.h">
-      <Filter>model\include</Filter>
-    </ClInclude>
-    <ClInclude Include="model\include\DebugShader.h">
       <Filter>model\include</Filter>
     </ClInclude>
     <ClInclude Include="model\include\FbxLoader.h">
@@ -68,9 +70,6 @@
       <Filter>model\include</Filter>
     </ClInclude>
     <ClInclude Include="model\include\SceneManager.h">
-      <Filter>model\include</Filter>
-    </ClInclude>
-    <ClInclude Include="model\include\Shader.h">
       <Filter>model\include</Filter>
     </ClInclude>
     <ClInclude Include="model\include\SimpleContext.h">
@@ -163,86 +162,33 @@
     <ClInclude Include="model\include\ShadowRenderer.h">
       <Filter>model\include</Filter>
     </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="shaders\normalShader.frag">
-      <Filter>shaders</Filter>
-    </None>
-    <None Include="shaders\normalShader.vert">
-      <Filter>shaders</Filter>
-    </None>
-    <None Include="shaders\simpleShader.frag">
-      <Filter>shaders</Filter>
-    </None>
-    <None Include="shaders\simpleShader.vert">
-      <Filter>shaders</Filter>
-    </None>
-    <None Include="shaders\hagravenBoneShader.frag">
-      <Filter>shaders</Filter>
-    </None>
-    <None Include="shaders\hagravenBoneShader.vert">
-      <Filter>shaders</Filter>
-    </None>
-    <None Include="shaders\trollBoneShader.frag">
-      <Filter>shaders</Filter>
-    </None>
-    <None Include="shaders\trollBoneShader.vert">
-      <Filter>shaders</Filter>
-    </None>
-    <None Include="shaders\humanBoneShader.frag">
-      <Filter>shaders</Filter>
-    </None>
-    <None Include="shaders\humanBoneShader.vert">
-      <Filter>shaders</Filter>
-    </None>
-    <None Include="shaders\werewolfBoneShader.frag">
-      <Filter>shaders</Filter>
-    </None>
-    <None Include="shaders\werewolfBoneShader.vert">
-      <Filter>shaders</Filter>
-    </None>
-    <None Include="shaders\wolfBoneShader.frag">
-      <Filter>shaders</Filter>
-    </None>
-    <None Include="shaders\wolfBoneShader.vert">
-      <Filter>shaders</Filter>
-    </None>
-    <None Include="shaders\debugShader.frag">
-      <Filter>shaders</Filter>
-    </None>
-    <None Include="shaders\debugShader.vert">
-      <Filter>shaders</Filter>
-    </None>
-    <None Include="shaders\deferredShader.frag">
-      <Filter>shaders</Filter>
-    </None>
-    <None Include="shaders\deferredShader.vert">
-      <Filter>shaders</Filter>
-    </None>
-    <None Include="shaders\depthShader.frag">
-      <Filter>shaders</Filter>
-    </None>
-    <None Include="shaders\depthShader.vert">
-      <Filter>shaders</Filter>
-    </None>
-    <None Include="shaders\diffuseShader.frag">
-      <Filter>shaders</Filter>
-    </None>
-    <None Include="shaders\diffuseShader.vert">
-      <Filter>shaders</Filter>
-    </None>
-    <None Include="shaders\mrtShader.frag">
-      <Filter>shaders</Filter>
-    </None>
-    <None Include="shaders\mrtShader.vert">
-      <Filter>shaders</Filter>
-    </None>
-    <None Include="shaders\shadowShader.frag">
-      <Filter>shaders</Filter>
-    </None>
-    <None Include="shaders\shadowShader.vert">
-      <Filter>shaders</Filter>
-    </None>
+    <ClInclude Include="shading\include\Shader.h">
+      <Filter>shading\include</Filter>
+    </ClInclude>
+    <ClInclude Include="shading\include\DebugShader.h">
+      <Filter>shading\include</Filter>
+    </ClInclude>
+    <ClInclude Include="shading\include\StaticShader.h">
+      <Filter>shading\include</Filter>
+    </ClInclude>
+    <ClInclude Include="shading\include\ShadowAnimatedShader.h">
+      <Filter>shading\include</Filter>
+    </ClInclude>
+    <ClInclude Include="shading\include\ShadowStaticShader.h">
+      <Filter>shading\include</Filter>
+    </ClInclude>
+    <ClInclude Include="shading\include\AnimationShader.h">
+      <Filter>shading\include</Filter>
+    </ClInclude>
+    <ClInclude Include="shading\include\DeferredShader.h">
+      <Filter>shading\include</Filter>
+    </ClInclude>
+    <ClInclude Include="shading\include\RenderShader.h">
+      <Filter>shading\include</Filter>
+    </ClInclude>
+    <ClInclude Include="shading\include\ShadowShader.h">
+      <Filter>shading\include</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="model\src\AnimatedModel.cpp">
@@ -252,12 +198,6 @@
       <Filter>model\src</Filter>
     </ClCompile>
     <ClCompile Include="model\src\AnimationBuilder.cpp">
-      <Filter>model\src</Filter>
-    </ClCompile>
-    <ClCompile Include="model\src\AnimationShader.cpp">
-      <Filter>model\src</Filter>
-    </ClCompile>
-    <ClCompile Include="model\src\DebugShader.cpp">
       <Filter>model\src</Filter>
     </ClCompile>
     <ClCompile Include="model\src\FbxLoader.cpp">
@@ -279,9 +219,6 @@
       <Filter>model\src</Filter>
     </ClCompile>
     <ClCompile Include="model\src\SceneManager.cpp">
-      <Filter>model\src</Filter>
-    </ClCompile>
-    <ClCompile Include="model\src\Shader.cpp">
       <Filter>model\src</Filter>
     </ClCompile>
     <ClCompile Include="model\src\SimpleContext.cpp">
@@ -365,5 +302,70 @@
     <ClCompile Include="model\src\ShadowRenderer.cpp">
       <Filter>model\src</Filter>
     </ClCompile>
+    <ClCompile Include="shading\src\Shader.cpp">
+      <Filter>shading\src</Filter>
+    </ClCompile>
+    <ClCompile Include="shading\src\DebugShader.cpp">
+      <Filter>shading\src</Filter>
+    </ClCompile>
+    <ClCompile Include="shading\src\StaticShader.cpp">
+      <Filter>shading\src</Filter>
+    </ClCompile>
+    <ClCompile Include="shading\src\ShadowAnimatedShader.cpp">
+      <Filter>shading\src</Filter>
+    </ClCompile>
+    <ClCompile Include="shading\src\ShadowStaticShader.cpp">
+      <Filter>shading\src</Filter>
+    </ClCompile>
+    <ClCompile Include="shading\src\AnimationShader.cpp">
+      <Filter>shading\src</Filter>
+    </ClCompile>
+    <ClCompile Include="shading\src\DeferredShader.cpp">
+      <Filter>shading\src</Filter>
+    </ClCompile>
+    <ClCompile Include="shading\src\RenderShader.cpp">
+      <Filter>shading\src</Filter>
+    </ClCompile>
+    <ClCompile Include="shading\src\ShadowShader.cpp">
+      <Filter>shading\src</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="shading\shaders\animatedShadowShader.frag">
+      <Filter>shading\shaders</Filter>
+    </None>
+    <None Include="shading\shaders\animatedShadowShader.vert">
+      <Filter>shading\shaders</Filter>
+    </None>
+    <None Include="shading\shaders\animationShader.frag">
+      <Filter>shading\shaders</Filter>
+    </None>
+    <None Include="shading\shaders\animationShader.vert">
+      <Filter>shading\shaders</Filter>
+    </None>
+    <None Include="shading\shaders\debugShader.frag">
+      <Filter>shading\shaders</Filter>
+    </None>
+    <None Include="shading\shaders\debugShader.vert">
+      <Filter>shading\shaders</Filter>
+    </None>
+    <None Include="shading\shaders\deferredShader.frag">
+      <Filter>shading\shaders</Filter>
+    </None>
+    <None Include="shading\shaders\deferredShader.vert">
+      <Filter>shading\shaders</Filter>
+    </None>
+    <None Include="shading\shaders\staticShader.frag">
+      <Filter>shading\shaders</Filter>
+    </None>
+    <None Include="shading\shaders\staticShader.vert">
+      <Filter>shading\shaders</Filter>
+    </None>
+    <None Include="shading\shaders\staticShadowShader.frag">
+      <Filter>shading\shaders</Filter>
+    </None>
+    <None Include="shading\shaders\staticShadowShader.vert">
+      <Filter>shading\shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

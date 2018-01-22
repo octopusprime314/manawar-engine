@@ -27,7 +27,7 @@
 #include <vector>
 #include "UpdateInterface.h"
 #include "GLIncludes.h"
-#include "Shader.h"
+#include "StaticShader.h"
 #include "DebugShader.h"
 #include <iostream>
 #include "FbxLoader.h"
@@ -80,7 +80,7 @@ protected:
     RenderBuffers               _renderBuffers; //Manages vertex, normal and texture data
     VBO                         _vbo; //Vbo container
     MVP                         _mvp; //Model view matrix container
-    Shader*                     _shaderProgram; //Container object of the Model's shader
+    RenderShader*               _shaderProgram; //Container object of the Model's shader
     DebugShader*                _debugShaderProgram; //Container object of the normal line shader
     bool                        _debugMode; //Runs an extra shader with debug information include normals
     FbxLoader*                  _fbxLoader; //Used to load fbx data and parse it into engine format

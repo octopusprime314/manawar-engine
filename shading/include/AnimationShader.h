@@ -1,5 +1,5 @@
 /*
-* DebugShader is part of the ReBoot distribution (https://github.com/octopusprime314/ReBoot.git).
+* AnimationShader is part of the ReBoot distribution (https://github.com/octopusprime314/ReBoot.git).
 * Copyright (c) 2017 Peter Morley.
 *
 * ReBoot is free software: you can redistribute it and/or modify
@@ -16,16 +16,21 @@
 */
 
 /**
-*  DebugShader class. Visualizes a model's normal vectors for lighting tests
+*  AnimationShader class. Derives off of the Static Shader class and is solely
+*  responsible for defining additional uniforms should be in the animated shader model
+*  If a uniform does not exist in the shader code there will be an error.
 */
 
 #pragma once
-#include "Shader.h"
+#include "StaticShader.h"
+class Model;
 
-class DebugShader : public Shader {
+class AnimationShader : public StaticShader {
+
+    GLint _bonesLocation;
 
 public:
-    DebugShader();
-    void build();
-    void runShader(Model* model);
+    AnimationShader(std::string shaderName);
+    ~AnimationShader();
+    void runShader(Model* modelIn);
 };

@@ -1,21 +1,14 @@
 #include "AnimationShader.h"
 #include "AnimatedModel.h"
 
-AnimationShader::AnimationShader() {
+AnimationShader::AnimationShader(std::string shaderName) : StaticShader(shaderName) {
+	//Grab uniforms needed in a staticshader
 
+    //glUniform mat4 combined model and world matrix
+    _bonesLocation = glGetUniformLocation(_shaderContext, "bones");
 }
 
 AnimationShader::~AnimationShader() {
-
-}
-
-void AnimationShader::build(std::string shaderName) {
-
-    //Call main build
-    Shader::build("shaders/animationShader"/*shaderName*/);
-
-    //Boen uniforms glUniform mat4 
-    _bonesLocation = glGetUniformLocation(_shaderContext, "bones");
 
 }
 

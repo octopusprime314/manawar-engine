@@ -16,7 +16,6 @@ AnimatedModel::AnimatedModel(std::string name, ViewManagerEvents* eventWrapper) 
         //Done with fbx loader so close all handles to fbx scene instance
         delete _fbxLoader;
 
-
         std::string modelName = _getModelName(name);
         std::string colliderName = "../models/meshes/";
         colliderName.append(modelName).append("/collider.fbx");
@@ -26,11 +25,7 @@ AnimatedModel::AnimatedModel(std::string name, ViewManagerEvents* eventWrapper) 
         geometryLoader.loadGeometry(this, geometryLoader.getScene()->GetRootNode());
 
         //Override default shader with a bone animation shader
-        _shaderProgram = new AnimationShader();
-
-        std::string shaderName = "shaders/";
-        shaderName.append(modelName).append("BoneShader");
-        _shaderProgram->build(shaderName);
+        _shaderProgram = new AnimationShader("animatedShader");
 
         _currBones = _animations[_currentAnimation]->getBones();
 

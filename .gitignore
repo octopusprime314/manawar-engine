@@ -51,3 +51,7 @@ Temporary Items
 *.log
 *.lastbuildstate
 *.idb
+*.dll
+ReBoot.v11.suo
+*.exe
+*.ilk

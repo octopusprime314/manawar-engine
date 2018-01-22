@@ -11,7 +11,6 @@ SceneManager::SceneManager(int* argc, char** argv, unsigned int viewportWidth, u
     _modelFactory->setViewWrapper(_viewManager); //Set the reference to the view model event interface
 
     _deferredRenderer = new DeferredRenderer();
-    _deferredRenderer->build("");
 
     _shadowRenderer = new ShadowRenderer();
 

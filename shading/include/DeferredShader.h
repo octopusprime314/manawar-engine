@@ -39,11 +39,14 @@ class DeferredShader : public Shader{
     GLuint         _normalTextureLocation;
     GLuint         _diffuseTextureLocation;
     GLuint         _positionTextureLocation;
-    GLuint         _depthTextureLocation;
+    GLuint         _staticDepthTextureLocation;
+    GLuint         _animatedDepthTextureLocation;
+    GLuint         _mapDepthTextureLocation;
     GLuint         _quadBufferContext;
     GLuint         _textureBufferContext;
     GLuint         _lightLocation;
     GLuint         _lightViewLocation;
+    GLuint         _lightMapViewLocation;
     GLuint         _viewsLocation;
 public:
     DeferredShader(std::string shaderName);

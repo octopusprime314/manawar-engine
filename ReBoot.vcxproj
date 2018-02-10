@@ -82,7 +82,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\fbx-sdk\include;..\freeimage\include;model\include;physics\include;shading\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\glut-3.7.6\include\GL;..\fbx-sdk\include;..\freeimage\include;model\include;physics\include;shading\include</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
@@ -111,7 +111,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>..\fbx-sdk\include;..\freeimage\include;model\include;physics\include;shading\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\glut-3.7.6\include\GL;..\fbx-sdk\include;..\freeimage\include;model\include;physics\include;shading\include</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
@@ -131,9 +131,7 @@
     <ClInclude Include="model\include\FrameBuffer.h" />
     <ClInclude Include="model\include\FunctionState.h" />
     <ClInclude Include="model\include\GeometryBuilder.h" />
-    <ClInclude Include="model\include\glew.h" />
     <ClInclude Include="model\include\GLIncludes.h" />
-    <ClInclude Include="model\include\glut.h" />
     <ClInclude Include="model\include\Light.h" />
     <ClInclude Include="model\include\MasterClock.h" />
     <ClInclude Include="model\include\Matrix.h" />

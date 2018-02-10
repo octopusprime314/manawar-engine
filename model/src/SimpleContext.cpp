@@ -14,7 +14,12 @@ SimpleContext::SimpleContext(int* argc, char** argv, unsigned int viewportWidth,
     RGBA color
     Alpha components supported
     Depth buffer */
-    glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_ALPHA | GLUT_ACCUM | GLUT_DEPTH);
+    glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_ALPHA | GLUT_ACCUM | GLUT_DEPTH/* | GLUT_3_2_CORE_PROFILE*/);
+
+    //Used to get Renderdoc to work which needs core profile set and openGL version 3
+    glutInitContextVersion( 3, 0 );
+    glutInitContextFlags( GLUT_DEBUG );
+    glutInitContextProfile( GLUT_CORE_PROFILE );
 
     //WINDOW CONTEXT SETTINGS
     glutInitWindowPosition(0, 0); //Position it at the top
@@ -32,7 +37,15 @@ SimpleContext::SimpleContext(int* argc, char** argv, unsigned int viewportWidth,
 	glutSetKeyRepeat(GLUT_KEY_REPEAT_OFF); //Disable key repeat events, only want to keep track of original press and release
     glutIgnoreKeyRepeat(1); //ignore repeats
 
-    glewInit(); //initialize the extension gl call functionality
+    GLenum err = glewInit(); //initialize the extension gl call functionality
+
+    if (GLEW_OK != err){
+        fprintf(stderr, "Error: %s\n", glewGetErrorString(err));
+    }
+    fprintf(stdout, "Status: Using GLEW %s\n", glewGetString(GLEW_VERSION));
+    if (GLEW_VERSION_3_2) {
+        fprintf(stdout, "OpenGL 3.2 ready", glewGetString(GLEW_VERSION));
+    }
 
     //PER SAMPLE PROCESSING DEFAULTS
     glEnable(GL_TEXTURE_2D); //Enable use of textures

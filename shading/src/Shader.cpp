@@ -14,8 +14,8 @@ Shader::~Shader() {
 }
 
 void Shader::_build() {
-    GLhandleARB vertexShaderHandle;
-    GLhandleARB fragmentShaderHandle;
+    unsigned int vertexShaderHandle;
+    unsigned int fragmentShaderHandle;
 
     std::string fileNameVert = SHADERS_LOCATION + _shaderName;
     fileNameVert.append(".vert");
@@ -30,13 +30,13 @@ void Shader::_build() {
     _link(vertexShaderHandle, fragmentShaderHandle);
 }
 
-void Shader::_link(GLhandleARB vertexShaderHandle, GLhandleARB fragmentShaderHandle) {
-    _shaderContext = glCreateProgramObjectARB();
+void Shader::_link(unsigned int vertexShaderHandle, unsigned int fragmentShaderHandle) {
+    _shaderContext = glCreateProgram();
 
-    glAttachObjectARB(_shaderContext, vertexShaderHandle);
-    glAttachObjectARB(_shaderContext, fragmentShaderHandle);
+    glAttachShader(_shaderContext, vertexShaderHandle);
+    glAttachShader(_shaderContext, fragmentShaderHandle);
 
-    glLinkProgramARB(_shaderContext);
+    glLinkProgram(_shaderContext);
 
     GLint      successfully_linked = 0;
     glGetProgramiv(_shaderContext, GL_LINK_STATUS, &successfully_linked);
@@ -69,11 +69,11 @@ void Shader::_link(GLhandleARB vertexShaderHandle, GLhandleARB fragmentShaderHan
 }
 
 // Loading shader function
-GLhandleARB Shader::_compile(char* filename, unsigned int type)
+unsigned int Shader::_compile(char* filename, unsigned int type)
 {
     FILE *pfile;
-    GLhandleARB handle;
-    const GLcharARB* files[1];
+    unsigned int handle;
+    const GLchar* files[1];
 
     // shader Compilation variable
     GLint result;				// Compilation code result
@@ -95,24 +95,24 @@ GLhandleARB Shader::_compile(char* filename, unsigned int type)
 
     fclose(pfile);
 
-    handle = glCreateShaderObjectARB(type);
+    handle = glCreateShader(type);
     if (!handle) {
         //We have failed creating the vertex shader object.
         printf("Failed creating vertex shader object from file: %s.", filename);
         return 0;
     }
 
-    files[0] = (const GLcharARB*)buffer;
-    glShaderSourceARB(
+    files[0] = (const GLchar*)buffer;
+    glShaderSource(
         handle, //The handle to our shader
         1, //The number of files.
         files, //An array of const char * data, which represents the source code of theshaders
         nullptr);
 
-    glCompileShaderARB(handle);
+    glCompileShader(handle);
 
     //Compilation checking.
-    glGetObjectParameterivARB(handle, GL_OBJECT_COMPILE_STATUS_ARB, &result);
+    glGetShaderiv(handle, GL_COMPILE_STATUS, &result);
 
     // If an error was detected.
     if (!result) {
@@ -120,13 +120,13 @@ GLhandleARB Shader::_compile(char* filename, unsigned int type)
         printf("Shader '%s' failed compilation.\n", filename);
 
         //Attempt to get the length of our error log.
-        glGetObjectParameterivARB(handle, GL_OBJECT_INFO_LOG_LENGTH_ARB, &errorLoglength);
+        glGetShaderiv(handle, GL_INFO_LOG_LENGTH, &errorLoglength);
 
         //Create a buffer to read compilation error message
         errorLogText = (char*)malloc(sizeof(char) * errorLoglength);
 
         //Used to get the final length of the log.
-        glGetInfoLogARB(handle, errorLoglength, &actualErrorLogLength, errorLogText);
+        glGetShaderInfoLog(handle, errorLoglength, &actualErrorLogLength, errorLogText);
 
         // Display errors.
         printf("%s\n", errorLogText);

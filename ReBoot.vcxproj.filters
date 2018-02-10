@@ -48,13 +48,7 @@
     <ClInclude Include="model\include\GeometryBuilder.h">
       <Filter>model\include</Filter>
     </ClInclude>
-    <ClInclude Include="model\include\glew.h">
-      <Filter>model\include</Filter>
-    </ClInclude>
     <ClInclude Include="model\include\GLIncludes.h">
-      <Filter>model\include</Filter>
-    </ClInclude>
-    <ClInclude Include="model\include\glut.h">
       <Filter>model\include</Filter>
     </ClInclude>
     <ClInclude Include="model\include\MasterClock.h">

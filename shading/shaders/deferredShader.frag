@@ -3,9 +3,12 @@
 uniform sampler2D diffuseTexture;   //Diffuse texture data array
 uniform sampler2D normalTexture;    //Normal texture data array
 uniform sampler2D positionTexture;  //Position texture data array
-uniform sampler2D depthTexture;     //depth texture data array with values 1.0 to 0.0, with 1.0 being closer
+uniform sampler2D staticDepthTexture;     //depth texture data array with values 1.0 to 0.0, with 1.0 being closer
+uniform sampler2D animatedDepthTexture;     //depth texture data array with values 1.0 to 0.0, with 1.0 being closer
+uniform sampler2D mapDepthTexture;     //depth texture data array with values 1.0 to 0.0, with 1.0 being closer
 
 uniform mat4 lightViewMatrix;     	//Light perspective's view matrix
+uniform mat4 lightMapViewMatrix;     	//Light perspective's view matrix
 uniform mat4 projection;     		//Light perspective's projection matrix
 uniform mat4 view;     				//Camera perspective's view matrix
 uniform vec3 cameraPosition;
@@ -37,12 +40,18 @@ void main(){
 		gl_FragColor = vec4(diffuse.rgb, 1.0);
 	}
 	else if(views == 1){
-		vec4 depth = texture(depthTexture, textureCoordinateOut);
+	
+		vec4 shadowMappingMap = lightMapViewMatrix * vec4(position.xyz, 1.0);
+		shadowMappingMap = shadowMappingMap/shadowMappingMap.w; 
+		vec2 shadowTextureCoordinatesMap = shadowMappingMap.xy * vec2(0.5,0.5) + vec2(0.5,0.5);
+		vec4 depth = texture(mapDepthTexture, textureCoordinateOut);
 		gl_FragColor = vec4(depth.xyz, 1.0);
 	}
 	else if(views == 2){
+	
 		if(shadowTextureCoordinates.x <= 1.0 && shadowTextureCoordinates.x >= 0.0 && shadowTextureCoordinates.y <= 1.0 && shadowTextureCoordinates.y >= 0.0){
-			vec4 depth = texture(depthTexture, shadowTextureCoordinates);
+			vec4 depthMap = texture(staticDepthTexture, shadowTextureCoordinates);
+			vec4 depth = depthMap;
 			gl_FragColor = vec4(depth.xyz, 1.0);
 		}
 		else{
@@ -59,10 +68,21 @@ void main(){
 	else if(views == 5){
 	
 		const float bias = 0.0001; //removes shadow acne by adding a small bias
+		
+		
+		
 		//Only shadow in textures space
 		if(shadowTextureCoordinates.x <= 1.0 && shadowTextureCoordinates.x >= 0.0 && shadowTextureCoordinates.y <= 1.0 && shadowTextureCoordinates.y >= 0.0){
-			vec4 depth = texture(depthTexture, shadowTextureCoordinates);
-			float depthValue = depth.z + bias;
+			vec4 depthStatic = texture(staticDepthTexture, shadowTextureCoordinates);
+			vec4 depthAnimated = texture(animatedDepthTexture, shadowTextureCoordinates);
+			float depthValue = 0.0;
+			if(depthStatic.z <= depthAnimated.z || depthAnimated.z == 0.0){
+				depthValue = depthStatic.z;
+			}
+			else if(depthStatic.z > depthAnimated.z || depthStatic.z == 0.0){
+				depthValue = depthAnimated.z;
+			}
+			depthValue = depthValue + bias;
 			float shadow = 0.2;
 			if((shadowMapping.z * 0.5 + 0.5) < depthValue){
 				shadow = 1.0;
@@ -70,7 +90,19 @@ void main(){
 			gl_FragColor = vec4(diffuse.rgb * shadow * illumination, 1.0);
 		}
 		else{
-			gl_FragColor = vec4(diffuse.rgb * illumination, 1.0);
+			vec4 shadowMappingMap = lightMapViewMatrix * vec4(position.xyz, 1.0);
+			shadowMappingMap = shadowMappingMap/shadowMappingMap.w; 
+			vec2 shadowTextureCoordinatesMap = shadowMappingMap.xy * vec2(0.5,0.5) + vec2(0.5,0.5);
+			
+			vec4 depth = texture(mapDepthTexture, shadowTextureCoordinatesMap);
+			
+			float depthValue = depth.z + bias;
+			float shadow = 0.2;
+			if((shadowMappingMap.z * 0.5 + 0.5) < depthValue){
+				shadow = 1.0;
+			}
+			gl_FragColor = vec4(diffuse.rgb * shadow * illumination, 1.0);
+			
 		}
 	}
 }

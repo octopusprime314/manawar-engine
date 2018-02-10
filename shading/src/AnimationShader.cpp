@@ -130,7 +130,7 @@ void AnimationShader::runShader(Model* modelIn) {
         glBindTexture(GL_TEXTURE_2D, model->getTexture(textureStride.first)->getContext()); //grab first texture of model and return context
         //glUniform texture 
         //The second parameter has to be equal to GL_TEXTURE(X) so X must be 0 because we activated texture GL_TEXTURE0 two calls before
-        glUniform1iARB(_textureLocation, 0); 
+        glUniform1i(_textureLocation, 0); 
 
         //Draw triangles using the bound buffer vertices at starting index 0 and number of vertices
         glDrawArrays(GL_TRIANGLES, strideLocation, (GLsizei)textureStride.second);

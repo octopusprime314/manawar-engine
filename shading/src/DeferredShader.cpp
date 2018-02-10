@@ -37,9 +37,12 @@ DeferredShader::DeferredShader(std::string shaderName) : Shader(shaderName) {
     _diffuseTextureLocation = glGetUniformLocation(_shaderContext, "diffuseTexture");
     _normalTextureLocation = glGetUniformLocation(_shaderContext, "normalTexture");
     _positionTextureLocation = glGetUniformLocation(_shaderContext, "positionTexture");
-    _depthTextureLocation = glGetUniformLocation(_shaderContext, "depthTexture");
+    _staticDepthTextureLocation = glGetUniformLocation(_shaderContext, "staticDepthTexture");
+    _animatedDepthTextureLocation = glGetUniformLocation(_shaderContext, "animatedDepthTexture");
+    _mapDepthTextureLocation = glGetUniformLocation(_shaderContext, "mapDepthTexture");
     _lightLocation = glGetUniformLocation(_shaderContext, "light");
     _lightViewLocation = glGetUniformLocation(_shaderContext, "lightViewMatrix");
+    _lightMapViewLocation = glGetUniformLocation(_shaderContext, "lightMapViewMatrix");
     _viewsLocation = glGetUniformLocation(_shaderContext, "views");
 
 	//glUniform mat4 combined model and world matrix
@@ -64,7 +67,7 @@ void DeferredShader::runShader(ShadowRenderer* shadowRenderer,
 							   ViewManager* viewManager,
 							   MRTFrameBuffer& mrtFBO) {
 
-    for(Light* light : lights){
+    //for(Light* light : lights){
         //Take the generated texture data and do deferred shading
         //LOAD IN SHADER
         glUseProgram(_shaderContext); //use context for loaded shader
@@ -91,18 +94,27 @@ void DeferredShader::runShader(ShadowRenderer* shadowRenderer,
         glEnableVertexAttribArray(1);
 
         //Get light position
-        Vector4 transformedLight = light->getPosition();
+        Vector4 transformedLight = lights[0]->getPosition();
         float* buff = transformedLight.getFlatBuffer();
         glUniform3f(_lightLocation, buff[0], buff[1], buff[2]);
 
         //Change of basis from camera view position back to world position
-        MVP lightMVP = light->getMVP();
+        MVP lightMVP = lights[0]->getMVP();
         Matrix cameraToLightSpace = lightMVP.getProjectionMatrix() * 
             lightMVP.getViewMatrix() * 
             viewManager->getView().inverse();
 
         //glUniform mat4 view matrix, GL_TRUE is telling GL we are passing in the matrix as row major
         glUniformMatrix4fv(_lightViewLocation, 1, GL_TRUE, cameraToLightSpace.getFlatBuffer());
+
+        //Change of basis from camera view position back to world position
+        MVP lightMapMVP = lights[1]->getMVP();
+        Matrix cameraToLightMapSpace = lightMapMVP.getProjectionMatrix() * 
+            lightMapMVP.getViewMatrix() * 
+            viewManager->getView().inverse();
+
+        //glUniform mat4 view matrix, GL_TRUE is telling GL we are passing in the matrix as row major
+        glUniformMatrix4fv(_lightMapViewLocation, 1, GL_TRUE, cameraToLightMapSpace.getFlatBuffer());
 
         //glUniform mat4 view matrix, GL_TRUE is telling GL we are passing in the matrix as row major
         glUniformMatrix4fv(_projectionLocation, 1, GL_TRUE, viewManager->getProjection().getFlatBuffer());
@@ -118,25 +130,37 @@ void DeferredShader::runShader(ShadowRenderer* shadowRenderer,
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, textures[0]);
         //glUniform texture 
-        glUniform1iARB(_diffuseTextureLocation, 0);
+        glUniform1i(_diffuseTextureLocation, 0);
 
         //Normal texture
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, textures[1]);
         //glUniform texture 
-        glUniform1iARB(_normalTextureLocation, 1);
+        glUniform1i(_normalTextureLocation, 1);
 
         //Position texture
         glActiveTexture(GL_TEXTURE2);
         glBindTexture(GL_TEXTURE_2D, textures[2]);
         //glUniform texture 
-        glUniform1iARB(_positionTextureLocation, 2);
+        glUniform1i(_positionTextureLocation, 2);
 
         //Depth texture
         glActiveTexture(GL_TEXTURE3);
-        glBindTexture(GL_TEXTURE_2D, shadowRenderer->getDepthTexture());
+        glBindTexture(GL_TEXTURE_2D, shadowRenderer->getStaticDepthTexture());
         //glUniform texture 
-        glUniform1iARB(_depthTextureLocation, 3);
+        glUniform1i(_staticDepthTextureLocation, 3);
+
+        //Depth texture
+        glActiveTexture(GL_TEXTURE4);
+        glBindTexture(GL_TEXTURE_2D, shadowRenderer->getAnimatedDepthTexture());
+        //glUniform texture 
+        glUniform1i(_animatedDepthTextureLocation, 4);
+
+        //Depth texture
+        glActiveTexture(GL_TEXTURE5);
+        glBindTexture(GL_TEXTURE_2D, shadowRenderer->getMapDepthTexture());
+        //glUniform texture 
+        glUniform1i(_mapDepthTextureLocation, 5);
 
         //Draw triangles using the bound buffer vertices at starting index 0 and number of vertices
         glDrawArrays(GL_TRIANGLES, 0, (GLsizei)6);
@@ -145,5 +169,5 @@ void DeferredShader::runShader(ShadowRenderer* shadowRenderer,
         glDisableVertexAttribArray(1); //Disable texture attribute
         glBindBuffer(GL_ARRAY_BUFFER, 0); //Unbind buffer
         glUseProgram(0);//end using this shader
-    }
+    //}
 }

@@ -34,11 +34,11 @@ const std::string SHADERS_LOCATION = "shading/shaders/";
 class Shader {
 
 protected:
-    GLuint      _shaderContext; //keeps track of the shader context
-	std::string _shaderName;
-    GLhandleARB _compile(char* filename, unsigned int type);
-    void        _link(GLhandleARB vertexShaderHandle, GLhandleARB fragmentShaderHandle);
-	void		_build();
+    GLuint       _shaderContext; //keeps track of the shader context
+	std::string  _shaderName;
+    unsigned int _compile(char* filename, unsigned int type);
+    void         _link(unsigned int vertexShaderHandle, unsigned int fragmentShaderHandle);
+    void         _build();
 
 public:
     Shader(std::string shaderName);

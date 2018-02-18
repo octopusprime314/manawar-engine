@@ -30,7 +30,8 @@ class AnimatedModel : public Model {
 
 protected:
     void                    _updateKeyboard(unsigned char key, int x, int y); //Do stuff based on keyboard update
-    void                    _updateMouse(int button, int state, int x, int y); //Do stuff based on mouse update
+    void                    _updateReleaseKeyboard(int key, int x, int y);
+    void                    _updateMouse(double x, double y); //Do stuff based on mouse update
     void                    _updateDraw();
     std::vector<Animation*> _animations;
     int                     _currentAnimation;

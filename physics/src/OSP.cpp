@@ -1,7 +1,7 @@
 #include "OSP.h"
 #include "GeometryMath.h"
 
-OSP::OSP(int cubicDimension, int maxGeometries) :
+OSP::OSP(float cubicDimension, int maxGeometries) :
     _cubicDimension(cubicDimension),
     _maxGeometries(maxGeometries) {
 
@@ -19,7 +19,7 @@ void OSP::generateOSP(std::vector<Model*>& models) {
 
 
     //Initialize a octary tree with a rectangle of cubicDimension located at the origin of the axis
-    Cube* rootCube = new Cube(_cubicDimension, _cubicDimension, _cubicDimension, Vector4(0, 0, 0, 1));
+    Cube* rootCube = new Cube(_cubicDimension, _cubicDimension, _cubicDimension, Vector4(0.0f, 0.0f, 0.0f, 1.0f));
     OctNode<Cube*>* node = _octTree.insert(nullptr, rootCube);
 
     //Go through all of the models and populate 

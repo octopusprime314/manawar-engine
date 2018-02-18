@@ -4,58 +4,50 @@
 
 int         SimpleContext::_renderNow = 0;
 std::mutex  SimpleContext::_renderLock;   
+GLFWwindow* SimpleContext::_window;
+bool        SimpleContext::_quit = false;
 
 SimpleContext::SimpleContext(int* argc, char** argv, unsigned int viewportWidth, unsigned int viewportHeight) {
 
-    glutInit(argc, argv); //initialize glut
+    //Initialize glfw for window creation
+    glfwInit(); 
 
-    /* Select type of Display mode:
-    Double buffer
-    RGBA color
-    Alpha components supported
-    Depth buffer */
-    glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_ALPHA | GLUT_ACCUM | GLUT_DEPTH/* | GLUT_3_2_CORE_PROFILE*/);
+    //Make opengl core profile 3.0
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
 
-    //Used to get Renderdoc to work which needs core profile set and openGL version 3
-    glutInitContextVersion( 3, 0 );
-    glutInitContextFlags( GLUT_DEBUG );
-    glutInitContextProfile( GLUT_CORE_PROFILE );
-
-    //WINDOW CONTEXT SETTINGS
-    glutInitWindowPosition(0, 0); //Position it at the top
-    glutInitWindowSize(viewportWidth, viewportHeight); //viewport pixel width and height
-    glutCreateWindow("ReBoot!"); //create a window called ReBoot
-
-    //GLUT FUNCTION CALLBACKS
-    glutKeyboardFunc(&SimpleContext::_keyboardUpdate); //Set function callback for keyboard input
-	glutKeyboardUpFunc(&SimpleContext::_keyboardRelease); //Set function callback for key release event
-    glutDisplayFunc(_drawUpdate); //Set function callback for draw updates
-    glutIdleFunc(_drawUpdate); //Set function callback for draw updates when no events are occuring
-    glutMouseFunc(_mouseUpdate); //Set function callback for mouse press input
-    glutMotionFunc(_mouseUpdate); //Set function callback for movement while pressing mouse 
-    glutPassiveMotionFunc(_mouseUpdate); //Set function callback for mouse movement without press
-	glutSetKeyRepeat(GLUT_KEY_REPEAT_OFF); //Disable key repeat events, only want to keep track of original press and release
-    glutIgnoreKeyRepeat(1); //ignore repeats
-
-    GLenum err = glewInit(); //initialize the extension gl call functionality
-
-    if (GLEW_OK != err){
-        fprintf(stderr, "Error: %s\n", glewGetErrorString(err));
+    //Create a glfw window for a context
+    _window = glfwCreateWindow(screenPixelWidth, screenPixelHeight, "ReBoot", NULL, NULL);
+    if (!_window) {
+        // Window or OpenGL context creation failed
+        std::cout << "You failed me!" << std::endl;
     }
-    fprintf(stdout, "Status: Using GLEW %s\n", glewGetString(GLEW_VERSION));
-    if (GLEW_VERSION_3_2) {
-        fprintf(stdout, "OpenGL 3.2 ready", glewGetString(GLEW_VERSION));
+    glfwMakeContextCurrent(_window); //Make current opengl context current
+
+    //Callbacks
+    glfwSetKeyCallback(_window, &SimpleContext::_keyboardUpdate);
+    glfwSetCursorPosCallback(_window, &SimpleContext::_mouseUpdate);
+
+    //Sets atleast one extra render buffer for double buffering to prevent screen tearing
+    glfwSwapInterval(1);
+
+    if (gl3wInit()) {
+        std::cout << "failed to initialize OpenGL\n" << std::endl;
     }
+    if (!gl3wIsSupported(3, 0)) {
+        std::cout << "OpenGL 3.2 not supported\n" << std::endl;
+    }
+    printf("OpenGL %s, GLSL %s\n", glGetString(GL_VERSION),
+        glGetString(GL_SHADING_LANGUAGE_VERSION));
 
     //PER SAMPLE PROCESSING DEFAULTS
     glEnable(GL_TEXTURE_2D); //Enable use of textures
-    glutSetCursor(GLUT_CURSOR_NONE); //Disable cursor icon
     glClearDepth(1.0); //Enables Clearing Of The Depth Buffer
-    glShadeModel(GL_SMOOTH); //Shade models smoothly
     glEnable(GL_DEPTH_TEST); //Ensure depth test happens
-    glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST); //Ask for nicest perspective correction
     glDepthFunc(GL_LESS); //Keep the fragment closest
-    glEnable(GL_LIGHTING); //Lighting enabled
+
+    //Disable mouse cursor view
+    glfwSetInputMode(_window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
 
     MasterClock* masterClock = MasterClock::instance();
     masterClock->setFrameRate(60); //Establishes the frame rate of the draw context
@@ -65,16 +57,16 @@ SimpleContext::SimpleContext(int* argc, char** argv, unsigned int viewportWidth,
 
 void SimpleContext::run() {
 
-    glutMainLoop();
+    _drawUpdate();
 }
 
-void SimpleContext::subscribeToKeyboard(std::function<void(unsigned char, int, int)> func) { //Use this call to connect functions to key updates
+void SimpleContext::subscribeToKeyboard(std::function<void(int, int, int)> func) { //Use this call to connect functions to key updates
     _events.subscribeToKeyboard(func);
 }
-void SimpleContext::subscribeToReleaseKeyboard(std::function<void(unsigned char, int, int)> func) { //Use this call to connect functions to key updates
+void SimpleContext::subscribeToReleaseKeyboard(std::function<void(int, int, int)> func) { //Use this call to connect functions to key updates
     _events.subscribeToKeyboard(func);
 }
-void SimpleContext::subscribeToMouse(std::function<void(int, int, int, int)> func) { //Use this call to connect functions to mouse updates
+void SimpleContext::subscribeToMouse(std::function<void(double, double)> func) { //Use this call to connect functions to mouse updates
     _events.subscribeToMouse(func);
 }
 void SimpleContext::subscribeToDraw(std::function<void()> func) { //Use this call to connect functions to draw updates
@@ -82,42 +74,52 @@ void SimpleContext::subscribeToDraw(std::function<void()> func) { //Use this cal
 }
 
 //All keyboard input from glut will be notified here
-void SimpleContext::_keyboardUpdate(unsigned char key, int x, int y) {
+void SimpleContext::_keyboardUpdate(GLFWwindow* window, int key, int scancode, int action, int mods) {
 
-    SimpleContextEvents::updateKeyboard(key, x, y);
-}
+    if(action == GLFW_PRESS){
 
-void SimpleContext::_keyboardRelease(unsigned char key, int x, int y){
-	SimpleContextEvents::releaseKeyboard(key, x, y);
+        if (key == GLFW_KEY_ESCAPE) { //Escape key pressed, hard exit no cleanup, TODO FIX THIS!!!!
+            glfwDestroyWindow(_window);
+            glfwTerminate();
+            _quit = true;
+            exit(0);
+        }
+
+        SimpleContextEvents::updateKeyboard(key, 0, 0);
+    }
+    else if(action == GLFW_RELEASE){
+        SimpleContextEvents::releaseKeyboard(key, 0, 0);
+    }
+    
 }
 
 //One frame draw update call
 void SimpleContext::_drawUpdate() {
+    
+    while (!_quit) {
 
-    ////Only draw when a framerate trigger event has been received from the master clock
-    //if(_renderNow > 0){
-    //    _renderLock.lock();
+        ////Only draw when a framerate trigger event has been received from the master clock
+        //if(_renderNow > 0){
+        //    _renderLock.lock();
 
-    //    do {
-    SimpleContextEvents::updateDraw();
-    //        //Decrement trigger
-    //        _renderNow--;
-    //    } while(_renderNow > 0);
+        //    do {
+        SimpleContextEvents::updateDraw(_window);
+        //        //Decrement trigger
+        //        _renderNow--;
+        //    } while(_renderNow > 0);
 
-    //    _renderLock.unlock();
-    //}
+        //    _renderLock.unlock();
+        //}
+    }
 }
 
-//All mouse input presses from glut will be notified here
-void SimpleContext::_mouseUpdate(int button, int state, int x, int y) {
-
-    SimpleContextEvents::updateMouse(button, state, x, y);
-}
-
-//All passive mouse movement input from glut will be notified here
-void SimpleContext::_mouseUpdate(int x, int y) {
+//All mouse input will be notified here
+void SimpleContext::_mouseUpdate(GLFWwindow* window, double x, double y) {
 
     SimpleContextEvents::updateMouse(x, y);
+
+    //Bring cursor back to center position
+    glfwSetCursorPos(_window, screenPixelWidth/2, screenPixelHeight/2); 
 }
 
 void SimpleContext::_frameRateTrigger(int milliSeconds){

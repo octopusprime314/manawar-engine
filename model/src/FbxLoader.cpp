@@ -191,7 +191,7 @@ void FbxLoader::buildAnimationFrames(AnimatedModel* model, std::vector<SkinningD
     int boneIndex = 0;
     for (SkinningData skin : skins) { //Dereference vertices
         std::vector<int>*    indexes = skin.getIndexes(); //Get all of the vertex indexes that are affected by this skinning data
-        std::vector<double>* weights = skin.getWeights(); //Get all of the vertex weights that are affected by this skinning data
+        std::vector<float>* weights = skin.getWeights(); //Get all of the vertex weights that are affected by this skinning data
         int subSkinIndex = 0;
         for (int index : *indexes) { //Derefence indexes
 
@@ -269,9 +269,11 @@ void FbxLoader::_buildGeometryData(Model* model, std::vector<Vector4>& vertices,
     FbxDouble* SBuff = node->EvaluateGlobalTransform().GetS().Buffer();
 
     //Compute x, y and z rotation vectors by multiplying through
-    Matrix rotation = Matrix::rotationAroundX(RBuff[0]) * Matrix::rotationAroundY(RBuff[1]) * Matrix::rotationAroundZ(RBuff[2]);
-    Matrix translation = Matrix::translation(TBuff[0], TBuff[1], TBuff[2]);
-    Matrix scale = Matrix::scale(SBuff[0], SBuff[1], SBuff[2]);
+    Matrix rotation = Matrix::rotationAroundX(static_cast<float>(RBuff[0])) * 
+        Matrix::rotationAroundY(static_cast<float>(RBuff[1])) * 
+        Matrix::rotationAroundZ(static_cast<float>(RBuff[2]));
+    Matrix translation = Matrix::translation(static_cast<float>(TBuff[0]), static_cast<float>(TBuff[1]), static_cast<float>(TBuff[2]));
+    Matrix scale = Matrix::scale(static_cast<float>(SBuff[0]), static_cast<float>(SBuff[1]), static_cast<float>(SBuff[2]));
 
     int triCount = 0;
     Matrix transformation = translation * rotation * scale;
@@ -462,7 +464,7 @@ void FbxLoader::_loadTextureUVs(FbxMesh* meshNode, std::vector<Texture2>& textur
         for(int textureCounter = 0; textureCounter < numTextures; textureCounter++) {
             //Get the normal for this vertex
             FbxVector2 uvTexture = leUV->GetDirectArray().GetAt(textureCounter);
-            textures.push_back(Texture2(uvTexture[0], uvTexture[1]));
+            textures.push_back(Texture2(static_cast<float>(uvTexture[0]), static_cast<float>(uvTexture[1])));
         }
     }
     else if(refMode == FbxLayerElement::EReferenceMode::eIndexToDirect) {
@@ -471,7 +473,7 @@ void FbxLoader::_loadTextureUVs(FbxMesh* meshNode, std::vector<Texture2>& textur
             //Get the normal for this vertex
             indexUV = leUV->GetIndexArray().GetAt(i);
             FbxVector2 uvTexture = leUV->GetDirectArray().GetAt(indexUV);
-            textures.push_back(Texture2(uvTexture[0], uvTexture[1]));
+            textures.push_back(Texture2(static_cast<float>(uvTexture[0]), static_cast<float>(uvTexture[1])));
         }
     }
 }
@@ -597,72 +599,74 @@ void FbxLoader::_loadTextures(Model* model, FbxMesh* meshNode, FbxNode* childNod
 }
 
 void FbxLoader::_buildTriangles(Model* model, std::vector<Vector4>& vertices, std::vector<Vector4>& normals,
-                                std::vector<Texture2>& textures, std::vector<int>& indices, FbxNode* node) {
+    std::vector<Texture2>& textures, std::vector<int>& indices, FbxNode* node) {
 
-                                    RenderBuffers* renderBuffers = model->getRenderBuffers();
-                                    //Global transform
-                                    FbxDouble* TBuff = node->EvaluateGlobalTransform().GetT().Buffer();
-                                    FbxDouble* RBuff = node->EvaluateGlobalTransform().GetR().Buffer();
-                                    FbxDouble* SBuff = node->EvaluateGlobalTransform().GetS().Buffer();
+    RenderBuffers* renderBuffers = model->getRenderBuffers();
+    //Global transform
+    FbxDouble* TBuff = node->EvaluateGlobalTransform().GetT().Buffer();
+    FbxDouble* RBuff = node->EvaluateGlobalTransform().GetR().Buffer();
+    FbxDouble* SBuff = node->EvaluateGlobalTransform().GetS().Buffer();
 
-                                    //Compute x, y and z rotation vectors by multiplying through
-                                    Matrix rotation = Matrix::rotationAroundX(RBuff[0]) * Matrix::rotationAroundY(RBuff[1]) * Matrix::rotationAroundZ(RBuff[2]);
-                                    Matrix translation = Matrix::translation(TBuff[0], TBuff[1], TBuff[2]);
-                                    Matrix scale = Matrix::scale(SBuff[0], SBuff[1], SBuff[2]);
+    //Compute x, y and z rotation vectors by multiplying through
+    Matrix rotation = Matrix::rotationAroundX(static_cast<float>(RBuff[0])) *
+        Matrix::rotationAroundY(static_cast<float>(RBuff[1])) * 
+        Matrix::rotationAroundZ(static_cast<float>(RBuff[2]));
+    Matrix translation = Matrix::translation(static_cast<float>(TBuff[0]), static_cast<float>(TBuff[1]), static_cast<float>(TBuff[2]));
+    Matrix scale = Matrix::scale(static_cast<float>(SBuff[0]), static_cast<float>(SBuff[1]), static_cast<float>(SBuff[2]));
 
-                                    int triCount = 0;
-                                    Matrix transformation = translation * rotation * scale;
+    int triCount = 0;
+    Matrix transformation = translation * rotation * scale;
 
-                                    size_t totalTriangles = indices.size() / 3; //Each index represents one vertex and a triangle is 3 vertices
-                                    //Read each triangle vertex indices and store them in triangle array
-                                    for (int i = 0; i < totalTriangles; i++) {
-                                        Vector4 A(vertices[indices[triCount]].getx(),
-                                            vertices[indices[triCount]].gety(),
-                                            vertices[indices[triCount]].getz(),
-                                            1.0);
-                                        renderBuffers->addVertex(transformation * A); //Scale then rotate vertex
+    size_t totalTriangles = indices.size() / 3; //Each index represents one vertex and a triangle is 3 vertices
+    //Read each triangle vertex indices and store them in triangle array
+    for (int i = 0; i < totalTriangles; i++) {
+        Vector4 A(vertices[indices[triCount]].getx(),
+            vertices[indices[triCount]].gety(),
+            vertices[indices[triCount]].getz(),
+            1.0);
+        renderBuffers->addVertex(transformation * A); //Scale then rotate vertex
 
-                                        Vector4 AN(normals[indices[triCount]].getx(),
-                                            normals[indices[triCount]].gety(),
-                                            normals[indices[triCount]].getz(),
-                                            1.0);
-                                        renderBuffers->addNormal(rotation * AN); //Scale then rotate normal
-                                        renderBuffers->addTexture(textures[triCount]);
-                                        renderBuffers->addDebugNormal(transformation * A);
-                                        renderBuffers->addDebugNormal((transformation * A) + (rotation * AN));
-                                        triCount++;
+        Vector4 AN(normals[indices[triCount]].getx(),
+            normals[indices[triCount]].gety(),
+            normals[indices[triCount]].getz(),
+            1.0);
+        renderBuffers->addNormal(rotation * AN); //Scale then rotate normal
+        renderBuffers->addTexture(textures[triCount]);
+        renderBuffers->addDebugNormal(transformation * A);
+        renderBuffers->addDebugNormal((transformation * A) + (rotation * AN));
+        triCount++;
 
-                                        Vector4 B(vertices[indices[triCount]].getx(),
-                                            vertices[indices[triCount]].gety(),
-                                            vertices[indices[triCount]].getz(),
-                                            1.0);
-                                        renderBuffers->addVertex(transformation * B); //Scale then rotate vertex
+        Vector4 B(vertices[indices[triCount]].getx(),
+            vertices[indices[triCount]].gety(),
+            vertices[indices[triCount]].getz(),
+            1.0);
+        renderBuffers->addVertex(transformation * B); //Scale then rotate vertex
 
-                                        Vector4 BN(normals[indices[triCount]].getx(),
-                                            normals[indices[triCount]].gety(),
-                                            normals[indices[triCount]].getz(),
-                                            1.0);
-                                        renderBuffers->addNormal(rotation * BN); //Scale then rotate normal
-                                        renderBuffers->addTexture(textures[triCount]);
-                                        renderBuffers->addDebugNormal(transformation * B);
-                                        renderBuffers->addDebugNormal((transformation * B) + (rotation * BN));
-                                        triCount++;
+        Vector4 BN(normals[indices[triCount]].getx(),
+            normals[indices[triCount]].gety(),
+            normals[indices[triCount]].getz(),
+            1.0);
+        renderBuffers->addNormal(rotation * BN); //Scale then rotate normal
+        renderBuffers->addTexture(textures[triCount]);
+        renderBuffers->addDebugNormal(transformation * B);
+        renderBuffers->addDebugNormal((transformation * B) + (rotation * BN));
+        triCount++;
 
-                                        Vector4 C(vertices[indices[triCount]].getx(),
-                                            vertices[indices[triCount]].gety(),
-                                            vertices[indices[triCount]].getz(),
-                                            1.0);
-                                        renderBuffers->addVertex(transformation * C); //Scale then rotate vertex
+        Vector4 C(vertices[indices[triCount]].getx(),
+            vertices[indices[triCount]].gety(),
+            vertices[indices[triCount]].getz(),
+            1.0);
+        renderBuffers->addVertex(transformation * C); //Scale then rotate vertex
 
-                                        Vector4 CN(normals[indices[triCount]].getx(),
-                                            normals[indices[triCount]].gety(),
-                                            normals[indices[triCount]].getz(),
-                                            1.0);
-                                        renderBuffers->addNormal(rotation * CN); //Scale then rotate normal
-                                        renderBuffers->addTexture(textures[triCount]);
-                                        renderBuffers->addDebugNormal(transformation * C);
-                                        renderBuffers->addDebugNormal((transformation * C) + (rotation * CN));
-                                        triCount++;
-                                    }
+        Vector4 CN(normals[indices[triCount]].getx(),
+            normals[indices[triCount]].gety(),
+            normals[indices[triCount]].getz(),
+            1.0);
+        renderBuffers->addNormal(rotation * CN); //Scale then rotate normal
+        renderBuffers->addTexture(textures[triCount]);
+        renderBuffers->addDebugNormal(transformation * C);
+        renderBuffers->addDebugNormal((transformation * C) + (rotation * CN));
+        triCount++;
+    }
 }
 

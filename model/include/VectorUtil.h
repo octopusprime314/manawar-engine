@@ -1,5 +1,5 @@
 /*
-* GLIncludes is part of the ReBoot distribution (https://github.com/octopusprime314/ReBoot.git).
+* VectorUtil is part of the ReBoot distribution (https://github.com/octopusprime314/ReBoot.git).
 * Copyright (c) 2017 Peter Morley.
 *
 * ReBoot is free software: you can redistribute it and/or modify
@@ -16,14 +16,25 @@
 */
 
 /**
-*  GLIncludes. Manages gl based include files
+*  Loose functions for converting arrays into vectors
 */
-
 #pragma once
+#include <algorithm>
+#include <vector>
+#include <iterator>
 
-#include "GL/gl3w.h"
-#include "GL/glfw3.h"
+namespace VectorUtil {
 
+    template<typename T> 
+    struct CastToFloat
+    {
+        float operator()(T value) const { return static_cast<float>(value);}
+    };
 
-const int screenPixelWidth = 1920;
-const int screenPixelHeight = 1080;
+    template<typename T>
+    void toFloat(T* arr, int size, std::vector<float>& refVec){
+
+        std::transform(arr, arr + size, std::back_inserter(refVec), CastToFloat<T>());
+    }
+
+}

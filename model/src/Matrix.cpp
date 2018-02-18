@@ -414,10 +414,10 @@ Matrix Matrix::cameraOrtho(float orthoWidth, float orthoHeight, float n, float f
     float b = -t;                  //Bottom
 
     // Ortho Matrix
-    result[0] = 2.0f / (r - l), result[1] = 0.0, result[2] = 0.0, result[3] = -(r + l) / (r - l);
-    result[4] = 0.0, result[5] = 2.0 / (t - b), result[6] = 0.0, result[7] = -(t + b) / (t - b);
-    result[8] = 0.0, result[9] = 0.0, result[10] = -2.0f / (f - n), result[11] = -(f + n) / (f - n);
-    result[12] = 0.0, result[13] = 0.0, result[14] = 0.0, result[15] = 1.0;
+    result[0] = 2.0f / (r - l), result[1] = 0.0f, result[2] = 0.0f, result[3] = -(r + l) / (r - l);
+    result[4] = 0.0f, result[5] = 2.0f / (t - b), result[6] = 0.0f, result[7] = -(t + b) / (t - b);
+    result[8] = 0.0f, result[9] = 0.0f, result[10] = -2.0f / (f - n), result[11] = -(f + n) / (f - n);
+    result[12] = 0.0f, result[13] = 0.0f, result[14] = 0.0f, result[15] = 1.0f;
 
     return Matrix(result);
 

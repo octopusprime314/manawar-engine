@@ -49,16 +49,6 @@ Texture::Texture(std::string textureName){
 
     //Bind the generated reference context to load texture data
     glBindTexture(GL_TEXTURE_2D, _textureContext);
-    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR_MIPMAP_LINEAR);
-
-    //Enable anisotropic filtering which prevent bluring of low res mip map textures
-    //Preserves high texture resolution regardless
-    float aniso = 0.0f;
-    glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &aniso);
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, aniso); 
 
     unsigned int imageSize = FreeImage_GetMemorySize(dib);
     unsigned int byteSize = width*height*4;
@@ -70,41 +60,76 @@ Texture::Texture(std::string textureName){
 
     //Use mip maps to prevent anti aliasing issues
     if(textureName.substr(textureName.find_last_of('.')) == ".tif" && alphaValues) {
-        gluBuild2DMipmaps(GL_TEXTURE_2D, 4, width, height, GL_BGRA, GL_UNSIGNED_BYTE, bits); 
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_BGRA, GL_UNSIGNED_BYTE, bits);
+        glGenerateMipmap(GL_TEXTURE_2D); //Allocate mipmaps
+        //gluBuild2DMipmaps(GL_TEXTURE_2D, 4, width, height, GL_BGRA, GL_UNSIGNED_BYTE, bits); 
     }
     else if(textureName.substr(textureName.find_last_of('.')) == ".tif" && !alphaValues) {
-        gluBuild2DMipmaps(GL_TEXTURE_2D, 3, width, height, GL_BGR, GL_UNSIGNED_BYTE, bits); 
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, width, height, 0, GL_BGR, GL_UNSIGNED_BYTE, bits);
+        glGenerateMipmap(GL_TEXTURE_2D); //Allocate mipmaps
+        //gluBuild2DMipmaps(GL_TEXTURE_2D, 3, width, height, GL_BGR, GL_UNSIGNED_BYTE, bits); 
     }
     else if(textureName.substr(textureName.find_last_of('.')) == ".dds" && alphaValues) {
-        gluBuild2DMipmaps(GL_TEXTURE_2D, 4, width, height, GL_BGRA, GL_UNSIGNED_BYTE, bits); 
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_BGRA, GL_UNSIGNED_BYTE, bits);
+        glGenerateMipmap(GL_TEXTURE_2D); //Allocate mipmaps
+        //gluBuild2DMipmaps(GL_TEXTURE_2D, 4, width, height, GL_BGRA, GL_UNSIGNED_BYTE, bits); 
     }
     else if(textureName.substr(textureName.find_last_of('.')) == ".dds" && !alphaValues) {
-        gluBuild2DMipmaps(GL_TEXTURE_2D, 3, width, height, GL_BGR, GL_UNSIGNED_BYTE, bits); 
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, width, height, 0,  GL_BGR, GL_UNSIGNED_BYTE, bits);
+        glGenerateMipmap(GL_TEXTURE_2D); //Allocate mipmaps
+        //gluBuild2DMipmaps(GL_TEXTURE_2D, 3, width, height, GL_BGR, GL_UNSIGNED_BYTE, bits); 
     }
     else if(textureName.substr(textureName.find_last_of('.')) == ".tga" && alphaValues) {
-        gluBuild2DMipmaps(GL_TEXTURE_2D, 4, width, height, GL_BGRA, GL_UNSIGNED_BYTE, bits); 
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_BGRA, GL_UNSIGNED_BYTE, bits);
+        glGenerateMipmap(GL_TEXTURE_2D); //Allocate mipmaps
+        //gluBuild2DMipmaps(GL_TEXTURE_2D, 4, width, height, GL_BGRA, GL_UNSIGNED_BYTE, bits); 
     }
     else if(textureName.substr(textureName.find_last_of('.')) == ".tga" && !alphaValues) {
-        gluBuild2DMipmaps(GL_TEXTURE_2D, 3, width, height, GL_BGR, GL_UNSIGNED_BYTE, bits); 
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, width, height, 0, GL_BGR, GL_UNSIGNED_BYTE, bits);
+        glGenerateMipmap(GL_TEXTURE_2D); //Allocate mipmaps
+        //gluBuild2DMipmaps(GL_TEXTURE_2D, 3, width, height, GL_BGR, GL_UNSIGNED_BYTE, bits); 
     }
     else if(textureName.substr(textureName.find_last_of('.')) == ".jpg" && alphaValues) {
-        gluBuild2DMipmaps(GL_TEXTURE_2D, 4, width, height, GL_BGRA, GL_UNSIGNED_BYTE, bits); 
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_BGRA, GL_UNSIGNED_BYTE, bits);
+        glGenerateMipmap(GL_TEXTURE_2D); //Allocate mipmaps
+        //gluBuild2DMipmaps(GL_TEXTURE_2D, 4, width, height, GL_BGRA, GL_UNSIGNED_BYTE, bits); 
     }
     else if(textureName.substr(textureName.find_last_of('.')) == ".jpg" && !alphaValues) {
-        gluBuild2DMipmaps(GL_TEXTURE_2D, 3, width, height, GL_BGR, GL_UNSIGNED_BYTE, bits); 
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, width, height, 0,  GL_BGR, GL_UNSIGNED_BYTE, bits);
+        glGenerateMipmap(GL_TEXTURE_2D); //Allocate mipmaps
+        //gluBuild2DMipmaps(GL_TEXTURE_2D, 3, width, height, GL_BGR, GL_UNSIGNED_BYTE, bits); 
     }
     else if(textureName.substr(textureName.find_last_of('.')) == ".bmp" && alphaValues) {
-        gluBuild2DMipmaps(GL_TEXTURE_2D, 4, width, height, GL_BGRA, GL_UNSIGNED_BYTE, bits); 
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_BGRA, GL_UNSIGNED_BYTE, bits);
+        glGenerateMipmap(GL_TEXTURE_2D); //Allocate mipmaps
+        //gluBuild2DMipmaps(GL_TEXTURE_2D, 4, width, height, GL_BGRA, GL_UNSIGNED_BYTE, bits); 
     }
     else if(textureName.substr(textureName.find_last_of('.')) == ".bmp" && !alphaValues) {
-        gluBuild2DMipmaps(GL_TEXTURE_2D, 3, width, height, GL_BGR, GL_UNSIGNED_BYTE, bits); 
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, width, height, 0, GL_BGR, GL_UNSIGNED_BYTE, bits);
+        glGenerateMipmap(GL_TEXTURE_2D); //Allocate mipmaps
+        //gluBuild2DMipmaps(GL_TEXTURE_2D, 3, width, height, GL_BGR, GL_UNSIGNED_BYTE, bits); 
     }
     else if(textureName.substr(textureName.find_last_of('.')) == ".png" && alphaValues) {
-        gluBuild2DMipmaps(GL_TEXTURE_2D, 4, width, height, GL_RGBA, GL_UNSIGNED_BYTE, bits); 
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, bits);
+        glGenerateMipmap(GL_TEXTURE_2D); //Allocate mipmaps
+        //gluBuild2DMipmaps(GL_TEXTURE_2D, 4, width, height, GL_RGBA, GL_UNSIGNED_BYTE, bits); 
     }
     else if(textureName.substr(textureName.find_last_of('.')) == ".png" && !alphaValues) {
-        gluBuild2DMipmaps(GL_TEXTURE_2D, 3, width, height, GL_RGB, GL_UNSIGNED_BYTE, bits); 
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, bits);
+        glGenerateMipmap(GL_TEXTURE_2D); //Allocate mipmaps
+        //gluBuild2DMipmaps(GL_TEXTURE_2D, 3, width, height, GL_RGB, GL_UNSIGNED_BYTE, bits); 
     }
+
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR_MIPMAP_LINEAR);
+
+    //Enable anisotropic filtering which prevent bluring of low res mip map textures
+    //Preserves high texture resolution regardless
+    float aniso = 0.0f;
+    glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY, &aniso);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY, aniso); 
 
     //Free FreeImage's copy of the data
     FreeImage_Unload(dib);

@@ -26,7 +26,7 @@
 class SkinningData {
 
     std::vector<int>          _indexes;
-    std::vector<double>       _weights;
+    std::vector<float>        _weights;
     std::vector<Matrix>       _frameVertexTransforms;
     int                       _indexOffset;
 
@@ -35,7 +35,7 @@ public:
     ~SkinningData();
 
     std::vector<int>*          getIndexes();
-    std::vector<double>*       getWeights();
+    std::vector<float>*        getWeights();
     std::vector<Matrix>*       getFrameVertexTransforms();
     int                        getIndexOffset();
 };

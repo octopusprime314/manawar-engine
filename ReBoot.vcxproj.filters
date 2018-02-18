@@ -31,6 +31,9 @@
     <Filter Include="shading\src">
       <UniqueIdentifier>{2700c048-5930-40cd-a166-adf8251f425e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="glw">
+      <UniqueIdentifier>{df68f6d3-1d0e-4eea-a82d-c1d0ce25a7c7}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="model\include\AnimatedModel.h">
@@ -183,6 +186,9 @@
     <ClInclude Include="shading\include\ShadowShader.h">
       <Filter>shading\include</Filter>
     </ClInclude>
+    <ClInclude Include="model\include\VectorUtil.h">
+      <Filter>model\include</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="model\src\AnimatedModel.cpp">
@@ -322,6 +328,9 @@
     </ClCompile>
     <ClCompile Include="shading\src\ShadowShader.cpp">
       <Filter>shading\src</Filter>
+    </ClCompile>
+    <ClCompile Include="glfw\src\gl3w.c">
+      <Filter>glw</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

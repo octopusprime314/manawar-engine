@@ -20,7 +20,7 @@ FrameBuffer::FrameBuffer() {
     glBindTexture(GL_TEXTURE_2D, 0);
 
     //Generate a context for the frame buffer
-    glGenFramebuffersEXT(1, &_frameBufferContext);
+    glGenFramebuffers(1, &_frameBufferContext);
 
     //Bind the frame buffer context to complete operations on it
     glBindFramebuffer(GL_FRAMEBUFFER, _frameBufferContext);

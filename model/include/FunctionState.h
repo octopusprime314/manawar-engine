@@ -39,7 +39,7 @@ class FunctionState{
     bool        _terminate;
 public:
 
-	FunctionState(std::function<void(Vector4)> functionPointer, std::function<Vector4(double)> equationLambda,
+	FunctionState(std::function<void(Vector4)> functionPointer, std::function<Vector4(float)> equationLambda,
         int milliseconds, int duration = INT_MAX) : _terminate(false){ 
 
         //time, function pointer and milliseconds timer update
@@ -51,7 +51,7 @@ public:
             do {
 
                 //compute milliseconds to a fraction
-                float seconds = static_cast<float>(t) / 1000.0f;
+                float seconds = t / 1000.0f;
 
                 //Calculate new equation value
                 ft = equationLambda(seconds);

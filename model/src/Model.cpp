@@ -83,9 +83,11 @@ void Model::_updateDraw() {
 
 }
 
-void Model::_updateKeyboard(unsigned char key, int x, int y) {
+void Model::_updateKeyboard(int key, int x, int y) {
 }
-void Model::_updateMouse(int button, int state, int x, int y) {
+void Model::_updateReleaseKeyboard(int key, int x, int y) {
+}
+void Model::_updateMouse(double x, double y) {
 }
 
 void Model::_updateView(Matrix view) {

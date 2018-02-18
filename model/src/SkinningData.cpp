@@ -1,5 +1,6 @@
 #include "SkinningData.h"
 #include <iterator>
+#include "VectorUtil.h"
 
 SkinningData::SkinningData(FbxCluster* skinData, FbxNode* node, int animationFrames, int indexOffset) {
 
@@ -8,7 +9,8 @@ SkinningData::SkinningData(FbxCluster* skinData, FbxNode* node, int animationFra
     auto weights = skinData->GetControlPointWeights();
 
     std::copy(&indices[0], &indices[skinningPoints], back_inserter(_indexes));
-    std::copy(&weights[0], &weights[skinningPoints], back_inserter(_weights));
+    //Safely converts double templated array type to float vector type
+    VectorUtil::toFloat<double>(weights, skinningPoints, _weights);
 
     FbxVector4 T = node->GetGeometricTranslation(FbxNode::eSourcePivot);
     FbxVector4 R = node->GetGeometricRotation(FbxNode::eSourcePivot);
@@ -49,7 +51,7 @@ SkinningData::~SkinningData() {
 std::vector<int>* SkinningData::getIndexes() {
     return &_indexes;
 }
-std::vector<double>* SkinningData::getWeights() {
+std::vector<float>* SkinningData::getWeights() {
     return &_weights;
 }
 std::vector<Matrix>* SkinningData::getFrameVertexTransforms() {
@@ -58,3 +60,4 @@ std::vector<Matrix>* SkinningData::getFrameVertexTransforms() {
 int SkinningData::getIndexOffset(){
     return _indexOffset;
 }
+

@@ -93,8 +93,9 @@ protected:
     Geometry                    _geometry; //Geometry object that contains all collision information for a model
 
     std::string                 _getModelName(std::string name);
-    void                        _updateKeyboard(unsigned char key, int x, int y); //Do stuff based on keyboard upate
-    void                        _updateMouse(int button, int state, int x, int y); //Do stuff based on mouse update
+    void                        _updateKeyboard(int key, int x, int y); //Do stuff based on keyboard upate
+    void                        _updateReleaseKeyboard(int key, int x, int y);
+    void                        _updateMouse(double x, double y); //Do stuff based on mouse update
     void                        _updateDraw(); //Do draw stuff
     void                        _updateView(Matrix view); //Get view matrix updates
     void                        _updateProjection(Matrix projection); //Get projection matrix updates

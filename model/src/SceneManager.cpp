@@ -29,7 +29,7 @@ SceneManager::SceneManager(int* argc, char** argv, unsigned int viewportWidth, u
 
         //Simple kludge test to activate animated models in motion to stimulate collision detection tests
         _modelList.back()->getStateVector()->setActive(true);
-        _modelList.back()->setPosition(Vector4(0, 5, -20, 1)); //Place objects 20 meters above sea level for collision testing
+        _modelList.back()->setPosition(Vector4(0.0f, 5.0f, -20.0f, 1.0f)); //Place objects 20 meters above sea level for collision testing
         x += 30;
     }
     _viewManager->setProjection(viewportWidth, viewportHeight, nearPlaneDistance, farPlaneDistance); //Initializes projection matrix and broadcasts upate to all listeners
@@ -41,13 +41,13 @@ SceneManager::SceneManager(int* argc, char** argv, unsigned int viewportWidth, u
 
     //Add a directional light pointing down in the negative y axis
     MVP lightMVP;
-    lightMVP.setView(Matrix::cameraTranslation(0.0, 0.0, 25.0) * Matrix::cameraRotationAroundX(-90.0f));
-    lightMVP.setProjection(Matrix::cameraOrtho(50.0, 50.0, 0.1, 100.0));
+    lightMVP.setView(Matrix::cameraTranslation(0.0f, 0.0f, 25.0f) * Matrix::cameraRotationAroundX(-90.0f));
+    lightMVP.setProjection(Matrix::cameraOrtho(50.0f, 50.0f, 0.1f, 100.0f));
     _lightList.push_back(new Light(lightMVP, LightType::DIRECTIONAL));
 
     MVP lightMapMVP;
-    lightMapMVP.setView(Matrix::cameraTranslation(0.0, 0.0, 300.0) * Matrix::cameraRotationAroundX(-90.0f));
-    lightMapMVP.setProjection(Matrix::cameraOrtho(300.0, 300.0, 0.1, 600.0));
+    lightMapMVP.setView(Matrix::cameraTranslation(0.0f, 0.0f, 300.0f) * Matrix::cameraRotationAroundX(-90.0f));
+    lightMapMVP.setProjection(Matrix::cameraOrtho(300.0f, 300.0f, 0.1f, 600.0f));
     _lightList.push_back(new Light(lightMapMVP, LightType::DIRECTIONAL));
 
     MasterClock::instance()->run(); //Scene manager kicks off the clock event manager

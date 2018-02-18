@@ -85,7 +85,7 @@ ViewManagerEvents* ViewManager::getEventWrapper() {
     return _viewEvents;
 }
 
-void ViewManager::_updateReleaseKeyboard(unsigned char key, int x, int y) { //Do stuff based on keyboard release update
+void ViewManager::_updateReleaseKeyboard(int key, int x, int y) { //Do stuff based on keyboard release update
     //If function state exists
     if(_keyboardState.find(key) != _keyboardState.end()){
         delete _keyboardState[key];
@@ -93,28 +93,28 @@ void ViewManager::_updateReleaseKeyboard(unsigned char key, int x, int y) { //Do
     }
 }
 
-void ViewManager::_updateKeyboard(unsigned char key, int x, int y) { //Do stuff based on keyboard update
+void ViewManager::_updateKeyboard(int key, int x, int y) { //Do stuff based on keyboard update
 
-    if (key == 49) {
+    if (key == GLFW_KEY_1) {
         _viewState = ViewState::DIFFUSE;
     }
-    else if (key == 50) {
+    else if (key == GLFW_KEY_2) {
         _viewState = ViewState::LIGHT_DEPTH;
     }
-    else if (key == 51) {
+    else if (key == GLFW_KEY_3) {
         _viewState = ViewState::SHADOW_MAPPING;
     }
-    else if (key == 52) {
+    else if (key == GLFW_KEY_4) {
         _viewState = ViewState::NORMAL;
     }
-     else if (key == 53) {
+     else if (key == GLFW_KEY_5) {
         _viewState = ViewState::POSITION;
     }
-    else if (key == 54) {
+    else if (key == GLFW_KEY_6) {
         _viewState = ViewState::DIFFUSE_SHADOW;
     }
 
-    if (key == 119 || key == 115 || key == 97 || key == 100) {
+    if (key == GLFW_KEY_W || key == GLFW_KEY_S || key == GLFW_KEY_A || key == GLFW_KEY_D) {
 
         float * temp = nullptr;
         Vector4 *trans = nullptr;
@@ -122,22 +122,22 @@ void ViewManager::_updateKeyboard(unsigned char key, int x, int y) { //Do stuff 
 		//const float velMagnitude = 100.0f;
         const float velMagnitude = 500.0f;
 
-        if (key == 119) { //forward w
+        if (key == GLFW_KEY_W) { //forward w
 			force = Vector4(0.0, 0.0, -velMagnitude, 1.0);
             trans = new Vector4(_inverseRotation * force); //Apply transformation based off inverse rotation
             temp = trans->getFlatBuffer();
         }
-        else if (key == 115) { //backward s
+        else if (key == GLFW_KEY_S) { //backward s
 			force = Vector4(0.0, 0.0, velMagnitude, 1.0);
             trans = new Vector4(_inverseRotation * force); //Apply transformation based off inverse rotation
             temp = trans->getFlatBuffer();
         }
-        else if (key == 97) { //left a
+        else if (key == GLFW_KEY_A) { //left a
 			force = Vector4(-velMagnitude, 0.0, 0.0, 1.0);
             trans = new Vector4(_inverseRotation * force); //Apply transformation based off inverse rotation
             temp = trans->getFlatBuffer();
         }
-        else if (key == 100) { //right d
+        else if (key == GLFW_KEY_D) { //right d
 			force = Vector4(velMagnitude, 0.0, 0.0, 1.0);
             trans = new Vector4(_inverseRotation * force); //Apply transformation based off inverse rotation
             temp = trans->getFlatBuffer();
@@ -152,7 +152,7 @@ void ViewManager::_updateKeyboard(unsigned char key, int x, int y) { //Do stuff 
             _view = _thirdPersonTranslation * _rotation * _translation; //translate then rotate around point
 			
             //Define lambda equation
-            auto lamdaEq = [=](double t) -> Vector4 { 
+            auto lamdaEq = [=](float t) -> Vector4 { 
                 if(t > 1.0f){
                     return static_cast<Vector4>(force);
                 }
@@ -174,21 +174,21 @@ void ViewManager::_updateKeyboard(unsigned char key, int x, int y) { //Do stuff 
             //state->setAngularPosition(_rotation * Vector4(0, 0, 0, 0)); //Set angular (rotation) position vector based on view rotation
         }
         else{
-            _translation = Matrix::cameraTranslation(temp[0]/100.0, temp[1]/100.0, temp[2]/100.0) * _translation; //Update the translation state matrix
+            _translation = Matrix::cameraTranslation(temp[0]/100.0f, temp[1]/100.0f, temp[2]/100.0f) * _translation; //Update the translation state matrix
             _view = _rotation * _translation; //translate then rotate around point
         }
         _viewEvents->updateView(_view); //Send out event to all listeners
 
         if (trans != nullptr) delete trans;
     }
-    else if (key == 103) { //God's eye view change g
+    else if (key == GLFW_KEY_G) { //God's eye view change g
         _godState = true;
         _translation = Matrix::cameraTranslation(0, 5, 0); //Reset to 0,5,0 view position
         _rotation = Matrix(); //Set rotation matrix to identity
         _view = _rotation * _translation; //translate then rotate around point
         _viewEvents->updateView(_view); //Send out event to all listeners to offset locations essentially
     }
-    else if (key == 113) { //Cycle through model's view point q
+    else if (key == GLFW_KEY_Q) { //Cycle through model's view point q
 
         _modelIndex++; //increment to the next model when q is pressed again
         if (_modelIndex >= _modelList.size()) {
@@ -212,19 +212,19 @@ void ViewManager::_updateKeyboard(unsigned char key, int x, int y) { //Do stuff 
     }
 }
 
-void ViewManager::_updateMouse(int button, int state, int x, int y) { //Do stuff based on mouse update
+void ViewManager::_updateMouse(double x, double y) { //Do stuff based on mouse update
 
     int widthMidpoint = 1920 / 2;
     int heightMidpoint = 1080 / 2;
 
     if (x < widthMidpoint || x > widthMidpoint) {
         if (x < widthMidpoint) { //rotate left around y axis
-            _rotation = _rotation * Matrix::cameraRotationAroundY(0.4); //Update the rotation state matrix
-            _inverseRotation = _inverseRotation * Matrix::cameraRotationAroundY(-0.4); //Inverse rotation for translation updates
+            _rotation = _rotation * Matrix::cameraRotationAroundY(0.4f); //Update the rotation state matrix
+            _inverseRotation = _inverseRotation * Matrix::cameraRotationAroundY(-0.4f); //Inverse rotation for translation updates
         }
         else if (x > widthMidpoint) { //rotate right around y axis
-            _rotation = _rotation * Matrix::cameraRotationAroundY(-0.4); //Update the rotation state matrix
-            _inverseRotation = _inverseRotation * Matrix::cameraRotationAroundY(0.4); //Inverse rotation for translation updates
+            _rotation = _rotation * Matrix::cameraRotationAroundY(-0.4f); //Update the rotation state matrix
+            _inverseRotation = _inverseRotation * Matrix::cameraRotationAroundY(0.4f); //Inverse rotation for translation updates
         }
 
         _view = _rotation * _translation; //translate then rotate around point
@@ -233,7 +233,6 @@ void ViewManager::_updateMouse(int button, int state, int x, int y) { //Do stuff
             _view = _thirdPersonTranslation * _view;
         }
         _viewEvents->updateView(_view); //Send out event to all listeners
-        glutWarpPointer(widthMidpoint, heightMidpoint);  //Bring cursor back to center position
     }
 }
 void ViewManager::_updateDraw() { //Do draw stuff

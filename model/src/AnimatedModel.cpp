@@ -41,14 +41,14 @@ AnimatedModel::AnimatedModel(std::string name, ViewManagerEvents* eventWrapper) 
         int i = 0; //iterates through vertices indexes
         for (auto vertexIndex : *indices) {
             auto indexes = (*boneIndexes)[vertexIndex];
-            flattenIndexes[i++] = indexes[0];
-            flattenIndexes[i++] = indexes[1];
-            flattenIndexes[i++] = indexes[2];
-            flattenIndexes[i++] = indexes[3];
-            flattenIndexes[i++] = indexes[4];
-            flattenIndexes[i++] = indexes[5];
-            flattenIndexes[i++] = indexes[6];
-            flattenIndexes[i++] = indexes[7];
+            flattenIndexes[i++] = static_cast<float>(indexes[0]);
+            flattenIndexes[i++] = static_cast<float>(indexes[1]);
+            flattenIndexes[i++] = static_cast<float>(indexes[2]);
+            flattenIndexes[i++] = static_cast<float>(indexes[3]);
+            flattenIndexes[i++] = static_cast<float>(indexes[4]);
+            flattenIndexes[i++] = static_cast<float>(indexes[5]);
+            flattenIndexes[i++] = static_cast<float>(indexes[6]);
+            flattenIndexes[i++] = static_cast<float>(indexes[7]);
         }
         i = 0; //Reset for normal indexes
         for (auto vertexIndex : *indices) {
@@ -110,12 +110,14 @@ void AnimatedModel::_updateKeyboard(unsigned char key, int x, int y) {
     //Call base class keyboard handling
     Model::_updateKeyboard(key, x, y);
 }
+void AnimatedModel::_updateReleaseKeyboard(int key, int x, int y) {
+}
 
-void AnimatedModel::_updateMouse(int button, int state, int x, int y) {
+void AnimatedModel::_updateMouse(double x, double y) {
     //Invoke an animation 
 
     //Call base class keyboard handling
-    Model::_updateMouse(button, state, x, y);
+    Model::_updateMouse(x, y);
 }
 
 void AnimatedModel::addAnimation(Animation* animation) {

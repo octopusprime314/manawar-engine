@@ -1,6 +1,6 @@
 #include "MVP.h"
 
-MVP::MVP(){
+MVP::MVP() {
 
 }
 MVP::~MVP(){

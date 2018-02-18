@@ -21,9 +21,11 @@
 
 #pragma once
 #include "Matrix.h"
+#include <mutex>
 
 class MVP {
 
+    std::mutex*                 _mtx;   
     Matrix                      _model; //Object and World Space Matrix i.e. how the model is centered around the origin and 
     //where it is placed in the context of the game World
     Matrix                      _view;  //View matrix updates from ViewManager/Camera 

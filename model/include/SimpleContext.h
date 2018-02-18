@@ -35,9 +35,9 @@ public:
 
     void                run(); //Function used to run context
 
-    void                subscribeToKeyboard(std::function<void(unsigned char, int, int)> func); //Use this call to connect functions up to key updates
-    void                subscribeToReleaseKeyboard(std::function<void(unsigned char, int, int)> func); //Use this call to connect functions up to key release updates
-	void                subscribeToMouse(std::function<void(int, int, int, int)> func); //Use this call to connect functions up to mouse updates
+    void                subscribeToKeyboard(std::function<void(int, int, int)> func); //Use this call to connect functions up to key updates
+    void                subscribeToReleaseKeyboard(std::function<void(int, int, int)> func); //Use this call to connect functions up to key release updates
+	void                subscribeToMouse(std::function<void(double, double)> func); //Use this call to connect functions up to mouse updates
     void                subscribeToDraw(std::function<void()> func); //Use this call to connect functions up to draw updates
 
 private:
@@ -47,18 +47,15 @@ private:
     unsigned int        _viewportHeight; //Height dimension of glut window context in pixel units
     static int          _renderNow;      //Internal flag that coordinates with the framerate
     static std::mutex   _renderLock;     //Prevents write/write collisions with renderNow on a frame tick trigger
+    static GLFWwindow*  _window;         //Glfw window
+    static bool         _quit;           //Notifies render loop that game is over
 
     //All keyboard input from glut will be notified here
-    static void         _keyboardUpdate(unsigned char key, int x, int y);
-	static void         _keyboardRelease(unsigned char key, int x, int y);
-
+    static void         _keyboardUpdate(GLFWwindow* window, int key, int scancode, int action, int mods);
     //One frame draw update call
     static void         _drawUpdate();
-
-    //All mouse press input from glut will be notified here
-    static void         _mouseUpdate(int button, int state, int x, int y);
-    //All mouse movement input from glut will be notified here
-    static void         _mouseUpdate(int x, int y);
+    //All mouse movement input will be notified here
+    static void         _mouseUpdate(GLFWwindow* window, double x, double y);
     //Simple context synchronizes frame rate using the MasterClock tuning capability
     static void         _frameRateTrigger(int milliSeconds);
 };

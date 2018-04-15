@@ -10,7 +10,7 @@ SkinningData::SkinningData(FbxCluster* skinData, FbxNode* node, int animationFra
 
     std::copy(&indices[0], &indices[skinningPoints], back_inserter(_indexes));
     //Safely converts double templated array type to float vector type
-    VectorUtil::toFloat<double>(weights, skinningPoints, _weights);
+    VectorUtil::toType<double, float>(weights, skinningPoints, _weights);
 
     FbxVector4 T = node->GetGeometricTranslation(FbxNode::eSourcePivot);
     FbxVector4 R = node->GetGeometricRotation(FbxNode::eSourcePivot);

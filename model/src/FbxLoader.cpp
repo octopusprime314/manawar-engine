@@ -527,7 +527,7 @@ bool FbxLoader::_loadTexture(Model* model, int textureStride, FbxFileTexture* te
         // Then, you can get all the properties of the texture, including its name
         std::string textureName = textureFbx->GetFileName();
         std::string textureNameTemp = textureName; //Used a temporary storage to not overwrite textureName
-        std::string texturePath = "..\\models\\textures";
+        std::string texturePath = TEXTURE_LOCATION;
         //Finds second to last position of string and use that for file access name
         texturePath.append(textureName.substr(textureNameTemp.substr(0, textureNameTemp.find_last_of("/\\")).find_last_of("/\\")));
         model->addTexture(texturePath, textureStride);

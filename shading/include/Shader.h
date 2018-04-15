@@ -28,7 +28,7 @@
 class Model;
 class Light;
 
-const std::string SHADERS_LOCATION = "shading/shaders/";
+const std::string SHADERS_LOCATION = "../shading/shaders/";
 
 //Simple shader loading class that should be derived from to create more complex shaders
 class Shader {

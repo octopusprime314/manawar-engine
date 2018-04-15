@@ -5,6 +5,8 @@
 
 TextureBroker* Model::_textureManager = TextureBroker::instance();
 
+
+
 Model::Model() {
 
 }
@@ -23,7 +25,7 @@ Model::Model(std::string name, ViewManagerEvents* eventWrapper, ModelClass class
         _debugShaderProgram = new DebugShader("debugShader");
 
         //Load in fbx object 
-        _fbxLoader = new FbxLoader(name);
+        _fbxLoader = new FbxLoader(MESH_LOCATION + name);
         //Populate model with fbx file data and recursivelty search with the root node of the scene
         _fbxLoader->loadModel(this, _fbxLoader->getScene()->GetRootNode());
 
@@ -46,7 +48,7 @@ Model::Model(std::string name, ViewManagerEvents* eventWrapper, ModelClass class
             delete _fbxLoader;
 
             std::string modelName = _getModelName(name);
-            std::string colliderName = "../models/meshes/";
+            std::string colliderName = MESH_LOCATION;
             colliderName.append(modelName).append("/collider.fbx");
             //Load in geometry fbx object 
             FbxLoader geometryLoader(colliderName);
@@ -159,9 +161,6 @@ void Model::addGeometrySphere(Sphere sphere) {
 
 std::string Model::_getModelName(std::string name) {
     std::string modelName = name;
-    for (int j = 0; j < 3; ++j) { //Strip off the beginning of the file location
-        modelName = modelName.substr(modelName.find_first_of("/") + 1);
-    }
     modelName = modelName.substr(0, modelName.find_first_of("/"));
     return modelName;
 }

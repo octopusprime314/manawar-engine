@@ -55,3 +55,6 @@ Temporary Items
 ReBoot.v11.suo
 *.exe
 *.ilk
+assets
+libs
+build

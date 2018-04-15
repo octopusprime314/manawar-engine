@@ -50,8 +50,12 @@ enum class GeometryType {
     Sphere = 1
 };
 
-class Model : public UpdateInterface {
 
+const std::string ASSET_LOCATION = "../assets/";
+const std::string MESH_LOCATION = ASSET_LOCATION + "meshes/";
+const std::string TEXTURE_LOCATION = ASSET_LOCATION + "textures/";
+
+class Model : public UpdateInterface {
 
 public:
 
@@ -100,5 +104,6 @@ protected:
     void                        _updateView(Matrix view); //Get view matrix updates
     void                        _updateProjection(Matrix projection); //Get projection matrix updates
     void                        _updateKinematics(int milliSeconds);
+
 
 };

@@ -25,16 +25,15 @@
 
 namespace VectorUtil {
 
-    template<typename T> 
-    struct CastToFloat
-    {
-        float operator()(T value) const { return static_cast<float>(value);}
+#define DEDUCE_TYPE(ptr) std::remove_pointer<decltype(ptr)>::type
+
+    template<typename FromType, typename ToType> 
+    struct CastTo {
+        ToType operator()(FromType value) const { return static_cast<ToType>(value);}
     };
 
-    template<typename T>
-    void toFloat(T* arr, int size, std::vector<float>& refVec){
-
-        std::transform(arr, arr + size, std::back_inserter(refVec), CastToFloat<T>());
+    template<typename FromType, typename ToType>
+    void toType(FromType* arr, int size, std::vector<ToType>& refVec) {
+        std::transform(arr, arr + size, std::back_inserter(refVec), CastTo<FromType, ToType>());
     }
-
 }

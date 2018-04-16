@@ -2,8 +2,6 @@ cmake_minimum_required(VERSION 2.5)
 project(ReBoot)
 set(VS_STARTUP_VERSION ReBoot)
 
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
-
 if (NOT IS_DIRECTORY "${CMAKE_SOURCE_DIR}/libs/glfw")
     message(WARNING "Missing directory ${CMAKE_SOURCE_DIR}/libs/glfw")
 endif()

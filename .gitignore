@@ -1,3 +1,8 @@
+.vs/
+_build*/
+/include/GL/*
+/models/
+
 # Windows image file caches
 Thumbs.db
 ehthumbs.db

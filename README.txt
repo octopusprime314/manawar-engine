@@ -16,7 +16,7 @@ Windows:
     cmake --build . --config Release
 
 Copy contents of extracted zip folder called RebootData.zip at the root directory level located below.
-https://drive.google.com/file/d/1lKbdHNk6VPbdErN0kWIBnY0zfLpthXHJ/view?usp=sharing
+https://drive.google.com/file/d/1qrpVgCAD7Lhe3V4zeRT4DSmgfp3Wg2aW/view?usp=sharing
 
 Copy the libs/freeimage/lib/FreeImage.dll into the executable directory.
 

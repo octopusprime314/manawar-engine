@@ -52,6 +52,7 @@ add_executable(ReBoot
 
 target_compile_features(ReBoot PRIVATE cxx_range_for)
 
+target_link_libraries(ReBoot legacy_stdio_definitions.lib)
 target_link_libraries(ReBoot ${CMAKE_SOURCE_DIR}/libs/FreeImage/lib/FreeImage.lib)
 target_link_libraries(ReBoot ${CMAKE_SOURCE_DIR}/libs/glfw/lib/glfw3.lib)
 target_link_libraries(ReBoot debug     ${CMAKE_SOURCE_DIR}/libs/fbx-sdk/lib/debug/libfbxsdk-md.lib)

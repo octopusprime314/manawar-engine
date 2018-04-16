@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 2.5)
 project(ReBoot)
+set(VS_STARTUP_VERSION ReBoot)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 

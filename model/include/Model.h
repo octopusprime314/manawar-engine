@@ -22,7 +22,7 @@
 
 #pragma once
 #include "Matrix.h"
-#include "Texture2.h"
+#include "Tex2.h"
 #include "StateVector.h"
 #include <vector>
 #include "UpdateInterface.h"

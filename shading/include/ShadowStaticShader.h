@@ -22,11 +22,11 @@
 */
 
 #pragma once
-#include "ShadowShader.h"
+#include "Shader.h"
 #include "Model.h"
 #include "Light.h"
 
-class ShadowStaticShader : public ShadowShader{
+class ShadowStaticShader : public Shader{
 
 protected:
     GLint       _viewLocation;

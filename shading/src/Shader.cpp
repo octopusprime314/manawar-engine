@@ -1,6 +1,8 @@
 #include "Shader.h"
 #include "Model.h"
 #include "Light.h"
+#include <iostream>
+#include <fstream>
 
 Shader::Shader(std::string shaderName) {
 	//set name
@@ -13,6 +15,11 @@ Shader::~Shader() {
 
 }
 
+inline bool fileExists(const std::string& name) {
+    std::ifstream f(name.c_str());
+    return f.good();
+}
+
 void Shader::_build() {
     unsigned int vertexShaderHandle;
     unsigned int fragmentShaderHandle;
@@ -23,8 +30,18 @@ void Shader::_build() {
     fileNameFrag.append(".frag");
 
     //Compile each shader
-    vertexShaderHandle = _compile((char*)fileNameVert.c_str(), GL_VERTEX_SHADER);
-    fragmentShaderHandle = _compile((char*)fileNameFrag.c_str(), GL_FRAGMENT_SHADER);
+    if (fileExists(fileNameVert)) {
+        vertexShaderHandle = _compile((char*)fileNameVert.c_str(), GL_VERTEX_SHADER);
+    }
+    else {
+        vertexShaderHandle = -1;
+    }
+    if (fileExists(fileNameVert)) {
+        fragmentShaderHandle = _compile((char*)fileNameFrag.c_str(), GL_FRAGMENT_SHADER);
+    }
+    else {
+        fragmentShaderHandle = -1;
+    }
 
     //Link the two compiled binaries
     _link(vertexShaderHandle, fragmentShaderHandle);
@@ -33,8 +50,12 @@ void Shader::_build() {
 void Shader::_link(unsigned int vertexShaderHandle, unsigned int fragmentShaderHandle) {
     _shaderContext = glCreateProgram();
 
-    glAttachShader(_shaderContext, vertexShaderHandle);
-    glAttachShader(_shaderContext, fragmentShaderHandle);
+    if (vertexShaderHandle != -1) {
+        glAttachShader(_shaderContext, vertexShaderHandle);
+    }
+    if (fragmentShaderHandle != -1) {
+        glAttachShader(_shaderContext, fragmentShaderHandle);
+    }
 
     glLinkProgram(_shaderContext);
 
@@ -85,8 +106,7 @@ unsigned int Shader::_compile(char* filename, unsigned int type)
     memset(buffer, 0, 400000);
 
     errno_t err = fopen_s(&pfile, filename, "rb");
-    if (err != 0)
-    {
+    if (err != 0) {
         printf("Sorry, can't open file: '%s'.\n", filename);
         return 0;
     }

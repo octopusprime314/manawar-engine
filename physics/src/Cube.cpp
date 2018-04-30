@@ -12,10 +12,10 @@ float Cube::getLength() {
     return _length;
 }
 float Cube::getHeight() {
-    return _length;
+    return _height;
 }
 float Cube::getWidth() {
-    return _length;
+    return _width;
 }
 Vector4 Cube::getCenter() {
     return _center;

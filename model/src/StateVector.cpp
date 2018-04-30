@@ -12,7 +12,6 @@ void StateVector::update(int milliSeconds) {
         float deltaTime = static_cast<float>(milliSeconds) / 1000.0f; //Convert to fraction of a second
 
         //Calculate accelerations based on external forces
-
         _linearAcceleration = _force / _mass;
         _angularAcceleration = _torque / _mass;
 

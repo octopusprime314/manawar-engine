@@ -21,25 +21,25 @@
 
 #pragma once
 #include "ShadowAnimatedShader.h"
-#include "ShadowFrameBuffer.h"
 #include "Light.h"
 #include "Model.h"
 #include "AnimatedModel.h"
 #include <vector>
+#include "DepthFrameBuffer.h"
 class Model;
+class ViewManager;
 
 class ShadowRenderer {
 
     ShadowStaticShader   _staticShadowShader;   //Shader that generates static geometry shadows
     ShadowAnimatedShader _animatedShadowShader; //Shader that generates animated geometry shadows
-    GLuint               _boesLocation;         //Used in animated geometry rendering   
-    ShadowFrameBuffer    _staticShadowFBO;      //Depth frame buffer object for static objects that do not change
-    ShadowFrameBuffer    _animatedShadowFBO;    //Depth frame buffer object for animated objects that change
-    ShadowFrameBuffer    _mapShadowFBO;         //Low resolution shadow mapping for the entire map
+    DepthFrameBuffer     _staticShadowFBO;      //Depth frame buffer object for static objects that do not change
+    DepthFrameBuffer     _animatedShadowFBO;    //Depth frame buffer object for animated objects that change
+    DepthFrameBuffer     _mapShadowFBO;         //Low resolution shadow mapping for the entire map
     bool                 _staticRendered;       //boolean to only get static object shadows at startupqsssssq
 
 public:
-    ShadowRenderer();
+    ShadowRenderer(GLuint width, GLuint height);
     ~ShadowRenderer();
     void generateShadowBuffer(std::vector<Model*> modelList, std::vector<Light*>& lights);
     GLuint getStaticDepthTexture();

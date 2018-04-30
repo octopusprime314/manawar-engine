@@ -1,6 +1,6 @@
 #include "ShadowStaticShader.h"
 
-ShadowStaticShader::ShadowStaticShader(std::string shaderName) : ShadowShader(shaderName) {
+ShadowStaticShader::ShadowStaticShader(std::string shaderName) : Shader(shaderName) {
 
 	//Grab uniforms needed in a staticshader
 

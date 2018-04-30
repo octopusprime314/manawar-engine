@@ -30,27 +30,28 @@
 #include "Light.h"
 #include "ViewManager.h"
 
-class DeferredShader : public Shader{
+class DeferredShader : public Shader {
 
-	GLuint         _viewLocation;
-    GLuint         _modelLocation;
-    GLuint         _projectionLocation;
-    GLuint         _normalLocation;
-    GLuint         _normalTextureLocation;
-    GLuint         _diffuseTextureLocation;
-    GLuint         _positionTextureLocation;
-    GLuint         _staticDepthTextureLocation;
-    GLuint         _animatedDepthTextureLocation;
-    GLuint         _mapDepthTextureLocation;
-    GLuint         _quadBufferContext;
-    GLuint         _textureBufferContext;
-    GLuint         _lightLocation;
-    GLuint         _lightViewLocation;
-    GLuint         _lightMapViewLocation;
-    GLuint         _viewsLocation;
+    GLuint _normalTextureLocation;
+    GLuint _diffuseTextureLocation;
+    GLuint _positionTextureLocation;
+    GLuint _cameraDepthTextureLocation;
+    GLuint _mapDepthTextureLocation;
+    GLuint _quadBufferContext;
+    GLuint _textureBufferContext;
+    GLuint _lightLocation;
+    GLuint _lightViewLocation;
+    GLuint _lightMapViewLocation;
+    GLuint _viewsLocation;
+    GLuint _pointLightCountLocation;
+    GLuint _pointLightPositionsLocation;
+    GLuint _pointLightColorsLocation;
+    GLuint _pointLightRangesLocation;
+
 public:
     DeferredShader(std::string shaderName);
     virtual ~DeferredShader();
-	void runShader(Model* model){};
-	void runShader(ShadowRenderer* shadowRenderer, std::vector<Light*>& lights, ViewManager* viewManager, MRTFrameBuffer& mrtFBO);
+    void runShader(Model* model) {};
+    void runShader(ShadowRenderer* shadowRenderer, std::vector<Light*>& lights, 
+        ViewManager* viewManager, MRTFrameBuffer& mrtFBO);
 };

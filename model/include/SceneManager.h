@@ -21,10 +21,9 @@
 
 #pragma once
 #include "ViewManager.h"
-#include "ModelFactory.h"
+#include "Factory.h"
 #include <vector>
 #include "Physics.h"
-#include "Light.h"
 #include "DeferredRenderer.h"
 #include "ShadowRenderer.h"
 
@@ -32,7 +31,6 @@ class SceneManager {
     ViewManager*        _viewManager; //manages the view/camera matrix from the user's perspective
     std::vector<Model*> _modelList; //Contains models active in scene
     std::vector<Light*> _lightList; //Contains all lights in a scene
-    ModelFactory*       _modelFactory; //Creates new models
     Physics             _physics; //Manages physical interactions between models
     DeferredRenderer*   _deferredRenderer; //Manages deferred shading g buffers
     ShadowRenderer*     _shadowRenderer;   //Manages shadow rendering

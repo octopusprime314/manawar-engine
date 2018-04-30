@@ -16,7 +16,7 @@ ViewManager::ViewManager(int* argc, char** argv, unsigned int viewportWidth, uns
 
     //Create instance of glut wrapper class context
     //GLUT context can only run on main thread!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    //PLEASE DO NOT THREAD GLUT CALLS
+    //DO NOT THREAD GLUT CALLS
     _glutContext = new SimpleContext(argc, argv, viewportWidth, viewportHeight);
 
     _viewEvents = new ViewManagerEvents();
@@ -53,23 +53,23 @@ void ViewManager::setProjection(unsigned int viewportWidth, unsigned int viewpor
 
 }
 
-void ViewManager::setView(Matrix translation, Matrix rotation, Matrix scale){
+void ViewManager::setView(Matrix translation, Matrix rotation, Matrix scale) {
     _scale = scale;
-    _rotation = rotation; 
+    _rotation = rotation;
     _translation = translation;
     _view = _view * _scale * _rotation * _translation;
     _viewEvents->updateView(_view);
 }
 
-Matrix& ViewManager::getProjection(){
+Matrix& ViewManager::getProjection() {
     return _projection;
 }
-    
-Matrix& ViewManager::getView(){
+
+Matrix& ViewManager::getView() {
     return _view;
 }
 
-ViewManager::ViewState ViewManager::getViewState(){
+ViewManager::ViewState ViewManager::getViewState() {
     return _viewState;
 }
 
@@ -87,7 +87,7 @@ ViewManagerEvents* ViewManager::getEventWrapper() {
 
 void ViewManager::_updateReleaseKeyboard(int key, int x, int y) { //Do stuff based on keyboard release update
     //If function state exists
-    if(_keyboardState.find(key) != _keyboardState.end()){
+    if (_keyboardState.find(key) != _keyboardState.end()) {
         delete _keyboardState[key];
         _keyboardState.erase(key); //erase by keyq
     }
@@ -105,76 +105,92 @@ void ViewManager::_updateKeyboard(int key, int x, int y) { //Do stuff based on k
         _viewState = ViewState::SHADOW_MAPPING;
     }
     else if (key == GLFW_KEY_4) {
+        _viewState = ViewState::DIFFUSE_DIR_LIGHT;
+    }
+    else if (key == GLFW_KEY_5) {
         _viewState = ViewState::NORMAL;
     }
-     else if (key == GLFW_KEY_5) {
+    else if (key == GLFW_KEY_6) {
         _viewState = ViewState::POSITION;
     }
-    else if (key == GLFW_KEY_6) {
+    else if (key == GLFW_KEY_7) {
         _viewState = ViewState::DIFFUSE_SHADOW;
     }
+    else if (key == GLFW_KEY_8) {
+        _viewState = ViewState::POINT_LIGHTS;
+    }
 
-    if (key == GLFW_KEY_W || key == GLFW_KEY_S || key == GLFW_KEY_A || key == GLFW_KEY_D) {
+    if (key == GLFW_KEY_W || key == GLFW_KEY_S || key == GLFW_KEY_A || key == GLFW_KEY_D || key == GLFW_KEY_E) {
 
         float * temp = nullptr;
         Vector4 *trans = nullptr;
-		Vector4 force;
-		//const float velMagnitude = 100.0f;
+        Vector4 force;
+        //const float velMagnitude = 100.0f;
         const float velMagnitude = 500.0f;
 
         if (key == GLFW_KEY_W) { //forward w
-			force = Vector4(0.0, 0.0, -velMagnitude, 1.0);
+            force = Vector4(0.0, 0.0, -velMagnitude, 1.0);
             trans = new Vector4(_inverseRotation * force); //Apply transformation based off inverse rotation
             temp = trans->getFlatBuffer();
         }
         else if (key == GLFW_KEY_S) { //backward s
-			force = Vector4(0.0, 0.0, velMagnitude, 1.0);
+            force = Vector4(0.0, 0.0, velMagnitude, 1.0);
             trans = new Vector4(_inverseRotation * force); //Apply transformation based off inverse rotation
             temp = trans->getFlatBuffer();
         }
         else if (key == GLFW_KEY_A) { //left a
-			force = Vector4(-velMagnitude, 0.0, 0.0, 1.0);
+            force = Vector4(-velMagnitude, 0.0, 0.0, 1.0);
             trans = new Vector4(_inverseRotation * force); //Apply transformation based off inverse rotation
             temp = trans->getFlatBuffer();
         }
         else if (key == GLFW_KEY_D) { //right d
-			force = Vector4(velMagnitude, 0.0, 0.0, 1.0);
+            force = Vector4(velMagnitude, 0.0, 0.0, 1.0);
+            trans = new Vector4(_inverseRotation * force); //Apply transformation based off inverse rotation
+            temp = trans->getFlatBuffer();
+        }
+        else if (key == GLFW_KEY_D) { //right d
+            force = Vector4(velMagnitude, 0.0, 0.0, 1.0);
+            trans = new Vector4(_inverseRotation * force); //Apply transformation based off inverse rotation
+            temp = trans->getFlatBuffer();
+        }
+        else if (key == GLFW_KEY_E) { //up e
+            force = Vector4(velMagnitude, 0.0, 1.0, 0.0);
             trans = new Vector4(_inverseRotation * force); //Apply transformation based off inverse rotation
             temp = trans->getFlatBuffer();
         }
 
         //If not in god camera view mode then push view changes to the model for full control of a model's movements
         if (!_godState && _modelIndex < _modelList.size()) {
-            
-			StateVector* state = _modelList[_modelIndex]->getStateVector();
-			float* pos = state->getLinearPosition().getFlatBuffer();
-			_translation = Matrix::cameraTranslation(pos[0], pos[1], pos[2]); //Update the translation state matrix
+
+            StateVector* state = _modelList[_modelIndex]->getStateVector();
+            float* pos = state->getLinearPosition().getFlatBuffer();
+            _translation = Matrix::cameraTranslation(pos[0], pos[1], pos[2]); //Update the translation state matrix
             _view = _thirdPersonTranslation * _rotation * _translation; //translate then rotate around point
-			
+
             //Define lambda equation
-            auto lamdaEq = [=](float t) -> Vector4 { 
-                if(t > 1.0f){
+            auto lamdaEq = [=](float t) -> Vector4 {
+                if (t > 1.0f) {
                     return static_cast<Vector4>(force);
                 }
-                else{
-                        return static_cast<Vector4>(force) * t;
+                else {
+                    return static_cast<Vector4>(force) * t;
                 }
-                    
+
             };
             //lambda function container that manages force model
             //Last forever in intervals of 5 milliseconds
-		    FunctionState* func = new FunctionState(std::bind(&StateVector::setForce, state, std::placeholders::_1), 
-                lamdaEq, 
-                5); 
-            
+            FunctionState* func = new FunctionState(std::bind(&StateVector::setForce, state, std::placeholders::_1),
+                lamdaEq,
+                5);
+
             //Keep track to kill function when key is released
             _keyboardState[key] = func;
 
             //TODO rotation 
             //state->setAngularPosition(_rotation * Vector4(0, 0, 0, 0)); //Set angular (rotation) position vector based on view rotation
         }
-        else{
-            _translation = Matrix::cameraTranslation(temp[0]/100.0f, temp[1]/100.0f, temp[2]/100.0f) * _translation; //Update the translation state matrix
+        else {
+            _translation = Matrix::cameraTranslation(temp[0] / 100.0f, temp[1] / 100.0f, temp[2] / 100.0f) * _translation; //Update the translation state matrix
             _view = _rotation * _translation; //translate then rotate around point
         }
         _viewEvents->updateView(_view); //Send out event to all listeners
@@ -208,7 +224,7 @@ void ViewManager::_updateKeyboard(int key, int x, int y) { //Do stuff based on k
         //Last transform to be applied to achieve third person view
         _view = _thirdPersonTranslation * _rotation * _translation; //translate then rotate around point
         _viewEvents->updateView(_view); //Send out event to all listeners to offset locations essentially
-        
+
     }
 }
 
@@ -229,7 +245,7 @@ void ViewManager::_updateMouse(double x, double y) { //Do stuff based on mouse u
 
         _view = _rotation * _translation; //translate then rotate around point
         //If not in god camera view mode then push view changes to the model for full control of a model's movements
-        if (!_godState){
+        if (!_godState) {
             _view = _thirdPersonTranslation * _view;
         }
         _viewEvents->updateView(_view); //Send out event to all listeners
@@ -237,14 +253,14 @@ void ViewManager::_updateMouse(double x, double y) { //Do stuff based on mouse u
 }
 void ViewManager::_updateDraw() { //Do draw stuff
 
-	//If not in god camera view mode then push view changes to the model for full control of a model's movements
+    //If not in god camera view mode then push view changes to the model for full control of a model's movements
     if (!_godState && _modelIndex < _modelList.size()) {
-            
-		StateVector* state = _modelList[_modelIndex]->getStateVector();
-		float* pos = state->getLinearPosition().getFlatBuffer();
-		_translation = Matrix::cameraTranslation(pos[0], pos[1], pos[2]); //Update the translation state matrix
 
-		 //Last transform to be applied to achieve third person view
+        StateVector* state = _modelList[_modelIndex]->getStateVector();
+        float* pos = state->getLinearPosition().getFlatBuffer();
+        _translation = Matrix::cameraTranslation(pos[0], pos[1], pos[2]); //Update the translation state matrix
+
+         //Last transform to be applied to achieve third person view
         _view = _thirdPersonTranslation * _rotation * _translation; //translate then rotate around point
         _viewEvents->updateView(_view); //Send out event to all listeners to offset locations essentially
 

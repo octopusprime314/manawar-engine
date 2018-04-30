@@ -21,21 +21,41 @@
 
 #pragma once
 #include "MVP.h"
+#include "UpdateInterface.h"
 
 enum class LightType{
-        DIRECTIONAL = 0,
+        CAMERA_DIRECTIONAL = 0,
+        MAP_DIRECTIONAL,
         POINT,
         SPOTLIGHT
     };
 
-class Light{
+class Light : UpdateInterface{
     MVP                     _mvp; //Model view matrix container
+    Matrix                  _view; //tracks camera view matrix
+    Matrix                  _projection; //tracks camera projection matrix
     Vector4                 _position; //Position of light
     LightType               _type; //Light type enum
+    Vector4                 _color; //Light color
+    float                   _range; //Light range for point lights, etc
 
 public:
-    Light(MVP mvp, LightType type);
-    MVP&                        getMVP();
-    Vector4&                    getPosition();
+    Light(ViewManagerEvents* eventWrapper, 
+        MVP mvp, 
+        LightType type, 
+        Vector4 color = { 1.0f, 1.0f, 1.0f, 1.0f }, 
+        float range = 0.0f);
+    MVP                         getMVP();
+    Vector4                     getPosition();
     LightType                   getType();
+    Vector4&                    getColor();
+    float                       getRange();
+
+protected:
+    void                        _updateKeyboard(int key, int x, int y); //Do stuff based on keyboard upate
+    void                        _updateReleaseKeyboard(int key, int x, int y);
+    void                        _updateMouse(double x, double y); //Do stuff based on mouse update
+    void                        _updateDraw(); //Do draw stuff
+    void                        _updateView(Matrix view); //Get view matrix updates
+    void                        _updateProjection(Matrix projection); //Get projection matrix updates
 };

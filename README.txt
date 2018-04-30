@@ -1,18 +1,10 @@
 ReBoot is a graphics and physics engine framework.
 
-PREREQS:
-
-cmake version 2.5 or higher 
-c++11 compatible compiler
-python 2.7 to run parallel serial jobs
-Visual Studio 2012 or 2015 if building in Windows
-
 BUILD INSTRUCTIONS:
 
-Windows:
     create a build folder at root directory
     cd into build
-    cmake -G "Visual Studio 11 2012 Win64" ..   OR    cmake -G "Visual Studio 14 2015 Win64" ..
+    cmake -G "Visual Studio 14 2015 Win64" ..   OR    cmake -G "Visual Studio 15 2017 Win64" ..
     cmake --build . --config Release
 
 Copy contents of extracted zip folder called RebootData.zip at the root directory level located below.

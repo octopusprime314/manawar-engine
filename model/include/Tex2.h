@@ -16,21 +16,21 @@
 */
 
 /**
-*  Texture2 class.  Handles texture coordinate transforms.
+*  Tex2 class.  Handles texture coordinate transforms.
 */
 
 #pragma once
 
-class Texture2 {
+class Tex2 {
     float _st[2];
 public:
 
-    Texture2();
-    Texture2(float s, float t);
+    Tex2();
+    Tex2(float s, float t);
     float*  getFlatBuffer();
     void    display();
-    Texture2 operator / (float scale);
-    Texture2 operator + (Texture2 other);
+    Tex2    operator / (float scale);
+    Tex2    operator + (Tex2 other);
     float   gets();
     float   gett();
 };

@@ -45,5 +45,5 @@ public:
     float   getw();
     float   getMagnitude();
     void    normalize();
-    friend std::ostream &operator << (std::ostream& output, Vector4 &other);
+    friend  std::ostream &operator << (std::ostream& output, Vector4 &other);
 };

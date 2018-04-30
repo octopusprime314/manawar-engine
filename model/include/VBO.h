@@ -23,28 +23,28 @@
 #include "GLIncludes.h"
 #include <vector>
 #include "Vector4.h"
-#include "Texture2.h"
+#include "Tex2.h"
 #include "RenderBuffers.h"
 
 enum class ModelClass; //Forward declaration of enumerated type while not including Model class
 
 class VBO {
 
-    GLuint                      _vertexBufferContext; //Used as the vertex attribute vbo context
-    GLuint                      _normalBufferContext; //Used as the normal attribute vbo context
-    GLuint                      _textureBufferContext; //Used as the texture coordinate attribute vbo context
-    GLuint                      _debugNormalBufferContext; //Used as the debug normal line attribute vbo context
+    GLuint  _vertexBufferContext; //Used as the vertex attribute vbo context
+    GLuint  _normalBufferContext; //Used as the normal attribute vbo context
+    GLuint  _textureBufferContext; //Used as the texture coordinate attribute vbo context
+    GLuint  _debugNormalBufferContext; //Used as the debug normal line attribute vbo context
 
 public:
     VBO();
     ~VBO();
-    GLuint                      getVertexContext();
-    GLuint                      getNormalContext();
-    GLuint                      getTextureContext();
-    GLuint                      getNormalDebugContext();
-    void                        setVertexContext(GLuint context);
-    void                        setNormalContext(GLuint context);
-    void                        setTextureContext(GLuint context);
-    void                        setNormalDebugContext(GLuint context);
-    void                        createVBO(RenderBuffers* renderBuffers, ModelClass classId);
+    GLuint  getVertexContext();
+    GLuint  getNormalContext();
+    GLuint  getTextureContext();
+    GLuint  getNormalDebugContext();
+    void    setVertexContext(GLuint context);
+    void    setNormalContext(GLuint context);
+    void    setTextureContext(GLuint context);
+    void    setNormalDebugContext(GLuint context);
+    void    createVBO(RenderBuffers* renderBuffers, ModelClass classId);
 };

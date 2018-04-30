@@ -1,6 +1,7 @@
-#include "FrameBuffer.h"
+#include "DepthFrameBuffer.h"
 
-FrameBuffer::FrameBuffer() {
+DepthFrameBuffer::DepthFrameBuffer(unsigned int width, unsigned int height) :
+    _width(width), _height(height) {
 
     //Create the frame buffer texture context
     glGenTextures(1, &_fbTextureContext);
@@ -8,9 +9,9 @@ FrameBuffer::FrameBuffer() {
     //Bind current texture context
     glBindTexture(GL_TEXTURE_2D, _fbTextureContext);
 
-    //spell out texture format, 1920 x 1080 texture, RGBA format but can use RGB, data pointer is null 
+    //spell out texture format, width x height texture, Depth 24 bit format, data pointer is null 
     //because the frame buffer is responsible for allocating and populating texture data
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1920, 1080, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24, _width, _height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
 
     //texture filter parameters
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -27,7 +28,7 @@ FrameBuffer::FrameBuffer() {
 
     //Finally attach the texture to the previously generated frame buffer
     //the texture will be used in later shader texture sampling
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _fbTextureContext, 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, _fbTextureContext, 0);
 
     //check the frame buffer's health
     GLuint status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
@@ -40,14 +41,19 @@ FrameBuffer::FrameBuffer() {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-FrameBuffer::~FrameBuffer() {
+DepthFrameBuffer::~DepthFrameBuffer() {
 
 }
 
-GLuint FrameBuffer::getFrameBufferContext() {
+GLuint DepthFrameBuffer::getFrameBufferContext() {
     return _frameBufferContext;
 }
-
-GLuint FrameBuffer::getTextureContext() {
+GLuint DepthFrameBuffer::getTextureContext() {
     return _fbTextureContext;
+}
+GLuint DepthFrameBuffer::getWidth() {
+    return _width;
+}
+GLuint DepthFrameBuffer::getHeight() {
+    return _height;
 }

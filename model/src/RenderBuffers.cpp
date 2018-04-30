@@ -15,7 +15,7 @@ std::vector<Vector4>* RenderBuffers::getNormals() {
     return &_normals;
 }
 
-std::vector<Texture2>* RenderBuffers::getTextures() {
+std::vector<Tex2>* RenderBuffers::getTextures() {
     return &_textures;
 }
 
@@ -31,7 +31,7 @@ void RenderBuffers::addNormal(Vector4 normal) {
     _normals.push_back(normal);
 }
 
-void RenderBuffers::addTexture(Texture2 texture){
+void RenderBuffers::addTexture(Tex2 texture){
     _textures.push_back(texture);
 }
 

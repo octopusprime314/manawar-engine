@@ -1,5 +1,5 @@
 /*
-* ShadowFrameBuffer is part of the ReBoot distribution (https://github.com/octopusprime314/ReBoot.git).
+* FrameBuffer is part of the ReBoot distribution (https://github.com/octopusprime314/ReBoot.git).
 * Copyright (c) 2017 Peter Morley.
 *
 * ReBoot is free software: you can redistribute it and/or modify
@@ -16,23 +16,26 @@
 */
 
 /**
-*  ShadowFrameBuffer class. SFB will contain a render texture target for depth and a 
-*  render buffer target
+*  DepthFrameBuffer class. Stores framebuffer depth 
+   into a texture format for post processing and offscreen rendering
 */
 
 #pragma once
 #include "GLIncludes.h"
 #include <iostream>
-#include <vector>
 
-class ShadowFrameBuffer {
+class DepthFrameBuffer {
 
     GLuint _frameBufferContext;
-    GLuint _shadowTextureContext; //Use for depth attachment in framebuffer
+    GLuint _fbTextureContext;
+    GLuint _width;
+    GLuint _height;
 
 public:
-    ShadowFrameBuffer();
-    ~ShadowFrameBuffer();
+    DepthFrameBuffer(unsigned int width, unsigned int height);
+    ~DepthFrameBuffer();
     GLuint getFrameBufferContext();
     GLuint getTextureContext();
+    GLuint getWidth();
+    GLuint getHeight();
 };

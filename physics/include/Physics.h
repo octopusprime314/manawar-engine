@@ -34,7 +34,7 @@ class Physics {
 public:
     Physics();
     ~Physics();
-    void run();
-    void addModels(std::vector<Model*> models);
-    void addModel(Model* model);
+    void                run();
+    void                addModels(std::vector<Model*> models);
+    void                addModel(Model* model);
 };

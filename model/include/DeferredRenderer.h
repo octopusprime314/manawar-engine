@@ -26,7 +26,7 @@
 
 #pragma once
 #include "DeferredShader.h"
-#include "FrameBuffer.h"
+#include "DepthFrameBuffer.h"
 #include "MRTFrameBuffer.h"
 #include "ShadowRenderer.h"
 #include "ViewManager.h"
@@ -41,7 +41,8 @@ class DeferredRenderer {
 public:
     DeferredRenderer();
     ~DeferredRenderer();
-    void deferredLighting(ShadowRenderer* shadowRenderer, std::vector<Light*>& lights, ViewManager* viewManager);
+    void deferredLighting(ShadowRenderer* shadowRenderer, 
+        std::vector<Light*>& lights, ViewManager* viewManager);
     void bind();
     void unbind();
 };

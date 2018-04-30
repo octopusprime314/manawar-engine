@@ -40,9 +40,11 @@ class ViewManager : public UpdateInterface {
         DIFFUSE = 0,
         LIGHT_DEPTH,
         SHADOW_MAPPING, 
+        DIFFUSE_DIR_LIGHT,
         NORMAL,
         POSITION,
-        DIFFUSE_SHADOW
+        DIFFUSE_SHADOW,
+        POINT_LIGHTS
     };
     ViewState           _viewState;
     Matrix              _view;

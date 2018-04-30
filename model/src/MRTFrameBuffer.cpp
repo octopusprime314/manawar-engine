@@ -31,7 +31,7 @@ MRTFrameBuffer::MRTFrameBuffer(int colorAttachments) {
 
     //Finally attach the texture to the previously generated frame buffer
     //the texture will be used in later shader texture sampling
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + 0, GL_TEXTURE_2D, _fbTextureContexts[0], 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _fbTextureContexts[0], 0);
 
     //Bind current texture context normal
     glBindTexture(GL_TEXTURE_2D, _fbTextureContexts[1]);
@@ -49,7 +49,7 @@ MRTFrameBuffer::MRTFrameBuffer(int colorAttachments) {
 
     //Finally attach the texture to the previously generated frame buffer
     //the texture will be used in later shader texture sampling
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + 1, GL_TEXTURE_2D, _fbTextureContexts[1], 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, _fbTextureContexts[1], 0);
 
     //Bind current texture context normal
     glBindTexture(GL_TEXTURE_2D, _fbTextureContexts[2]);
@@ -67,7 +67,7 @@ MRTFrameBuffer::MRTFrameBuffer(int colorAttachments) {
 
     //Finally attach the texture to the previously generated frame buffer
     //the texture will be used in later shader texture sampling
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + 2, GL_TEXTURE_2D, _fbTextureContexts[2], 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, _fbTextureContexts[2], 0);
 
     //Needs to attach a depth render buffer to the frame buffer object!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     //I got hosed on this super hard!!!!!!!!!!!!!!!!!!!!!!!!!

@@ -1,6 +1,6 @@
 /*
-* ShadowShader is part of the ReBoot distribution (https://github.com/octopusprime314/ReBoot.git).
-* Copyright (c) 2017 Peter Morley.
+* CubeMap is part of the ReBoot distribution (https://github.com/octopusprime314/ReBoot.git).
+* Copyright (c) 2018 Peter Morley.
 *
 * ReBoot is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -16,18 +16,19 @@
 */
 
 /**
-*  ShadowShader class. Generates the depth buffer
+*  CubeMap class. Generic cube map that can be used for point shadows, skybox or reflection maps.
 */
 
 #pragma once
-#include "Shader.h"
 
-//Simple shader loading class that should be derived from to create more complex shaders
-class ShadowShader : public Shader{
+
+class CubeMap {
+
 
 public:
-    ShadowShader(std::string shaderName);
-    virtual      ~ShadowShader();
-    virtual void runShader(Model* model, Light* light) = 0;
-    
+    CubeMap();
+    ~CubeMap();
+
+
 };
+

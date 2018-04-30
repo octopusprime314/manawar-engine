@@ -6,26 +6,24 @@ SceneManager::SceneManager(int* argc, char** argv, unsigned int viewportWidth, u
 
     _viewManager = new ViewManager(argc, argv, viewportWidth, viewportHeight);
 
-    _modelFactory = ModelFactory::instance(); //grab static instance
-
-    _modelFactory->setViewWrapper(_viewManager); //Set the reference to the view model event interface
+    Factory::setViewWrapper(_viewManager); //Set the reference to the view model event interface
 
     _deferredRenderer = new DeferredRenderer();
 
-    _shadowRenderer = new ShadowRenderer();
+    _shadowRenderer = new ShadowRenderer(2000, 2000/*viewportWidth, viewportHeight*/);
 
     //Setup pre and post draw callback events received when a draw call is issued
     SimpleContextEvents::setPreDrawCallback(std::bind(&SceneManager::_preDraw, this));
     SimpleContextEvents::setPostDrawCallback(std::bind(&SceneManager::_postDraw, this));
 
-    _modelList.push_back(_modelFactory->makeModel("landscape/landscape.fbx")); //Add a static model to the scene
+    _modelList.push_back(Factory::make<Model>("landscape/landscape.fbx")); //Add a static model to the scene
 
     int x = -900;
     for (int i = 0; i < 1; ++i) {
         //_modelList.push_back(_modelFactory->makeAnimatedModel("troll/troll_idle.fbx")); //Add an animated model to the scene
         //_modelList.push_back(_modelFactory->makeAnimatedModel("hagraven/hagraven_idle.fbx")); //Add an animated model to the scene
         //_modelList.push_back(_modelFactory->makeAnimatedModel("wolf/wolf_turnleft.fbx")); //Add an animated model to the scene
-        _modelList.push_back(_modelFactory->makeAnimatedModel("werewolf/werewolf_jump.fbx")); //Add an animated model to the scene
+        _modelList.push_back(Factory::make<AnimatedModel>("werewolf/werewolf_jump.fbx")); //Add an animated model to the scene
 
         //Simple kludge test to activate animated models in motion to stimulate collision detection tests
         _modelList.back()->getStateVector()->setActive(true);
@@ -41,14 +39,27 @@ SceneManager::SceneManager(int* argc, char** argv, unsigned int viewportWidth, u
 
     //Add a directional light pointing down in the negative y axis
     MVP lightMVP;
-    lightMVP.setView(Matrix::cameraTranslation(0.0f, 0.0f, 25.0f) * Matrix::cameraRotationAroundX(-90.0f));
-    lightMVP.setProjection(Matrix::cameraOrtho(50.0f, 50.0f, 0.1f, 100.0f));
-    _lightList.push_back(new Light(lightMVP, LightType::DIRECTIONAL));
+    lightMVP.setView(Matrix::cameraTranslation(0.0f, 0.0f, 100.0f) * Matrix::cameraRotationAroundX(-90.0f));
+    lightMVP.setProjection(Matrix::cameraOrtho(200.0f, 200.0f, 0.1f, 200.0f));
+    _lightList.push_back(Factory::make<Light>(lightMVP, LightType::CAMERA_DIRECTIONAL));
 
     MVP lightMapMVP;
-    lightMapMVP.setView(Matrix::cameraTranslation(0.0f, 0.0f, 300.0f) * Matrix::cameraRotationAroundX(-90.0f));
-    lightMapMVP.setProjection(Matrix::cameraOrtho(300.0f, 300.0f, 0.1f, 600.0f));
-    _lightList.push_back(new Light(lightMapMVP, LightType::DIRECTIONAL));
+    lightMapMVP.setView(Matrix::cameraTranslation(0.0f, 0.0f, 100.0f) * Matrix::cameraRotationAroundX(-90.0f));
+    lightMapMVP.setProjection(Matrix::cameraOrtho(600.0f, 600.0f, 0.1f, 200.0f));
+    _lightList.push_back(Factory::make<Light>(lightMapMVP, LightType::MAP_DIRECTIONAL));
+
+
+    MVP pointLightMVP;
+    pointLightMVP.setView(Matrix::cameraTranslation(0.0f, 25.0f, 0.0f));
+    _lightList.push_back(Factory::make<Light>(pointLightMVP, LightType::POINT, Vector4(1.0f, 0.0f, 0.0f, 1.0f), 50.0f));
+    pointLightMVP.setView(Matrix::cameraTranslation(0.0f, 25.0f, 100.0f));
+    _lightList.push_back(Factory::make<Light>(pointLightMVP, LightType::POINT, Vector4(0.0f, 1.0f, 0.0f, 1.0f), 50.0f));
+    pointLightMVP.setView(Matrix::cameraTranslation(100.0f, 25.0f, 0.0f));
+    _lightList.push_back(Factory::make<Light>(pointLightMVP, LightType::POINT, Vector4(0.0f, 0.0f, 1.0f, 1.0f), 50.0f));
+    pointLightMVP.setView(Matrix::cameraTranslation(0.0f, 25.0f, -100.0f));
+    _lightList.push_back(Factory::make<Light>(pointLightMVP, LightType::POINT, Vector4(1.0f, 1.0f, 1.0f, 1.0f), 50.0f));
+    pointLightMVP.setView(Matrix::cameraTranslation(-100.0f, 25.0f, 0.0f));
+    _lightList.push_back(Factory::make<Light>(pointLightMVP, LightType::POINT, Vector4(1.0f, 0.0f, 1.0f, 1.0f), 50.0f));
 
     MasterClock::instance()->run(); //Scene manager kicks off the clock event manager
 
@@ -59,7 +70,6 @@ SceneManager::~SceneManager() {
     for (auto model : _modelList) {
         delete model;
     }
-    delete _modelFactory;
     delete _viewManager;
 }
 

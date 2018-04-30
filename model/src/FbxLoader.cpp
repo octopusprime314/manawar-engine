@@ -251,7 +251,7 @@ void FbxLoader::loadModelData(Model* model, FbxMesh* meshNode, FbxNode* childNod
     _loadNormals(meshNode, indices, normals);
 
     //Get the textures UV/ST coordinates from the mesh
-    std::vector<Texture2> textures;
+    std::vector<Tex2> textures;
     _loadTextureUVs(meshNode, textures);
 
     //Send texture image data to GPU
@@ -382,7 +382,7 @@ void FbxLoader::_loadVertices(FbxMesh* meshNode, std::vector<Vector4>& vertices)
 }
 
 void FbxLoader::_buildModelData(Model* model, FbxMesh* meshNode, FbxNode* childNode, std::vector<Vector4>& vertices, 
-                                std::vector<Vector4>& normals, std::vector<Texture2>& textures) {
+                                std::vector<Vector4>& normals, std::vector<Tex2>& textures) {
 
     RenderBuffers* renderBuffers = model->getRenderBuffers();
     int numVerts = meshNode->GetControlPointsCount();
@@ -449,7 +449,7 @@ void FbxLoader::_loadNormals(FbxMesh* meshNode, int* indices, std::vector<Vector
     }
 }
 
-void FbxLoader::_loadTextureUVs(FbxMesh* meshNode, std::vector<Texture2>& textures){
+void FbxLoader::_loadTextureUVs(FbxMesh* meshNode, std::vector<Tex2>& textures){
 
     int numIndices = meshNode->GetPolygonVertexCount();
 
@@ -464,7 +464,7 @@ void FbxLoader::_loadTextureUVs(FbxMesh* meshNode, std::vector<Texture2>& textur
         for(int textureCounter = 0; textureCounter < numTextures; textureCounter++) {
             //Get the normal for this vertex
             FbxVector2 uvTexture = leUV->GetDirectArray().GetAt(textureCounter);
-            textures.push_back(Texture2(static_cast<float>(uvTexture[0]), static_cast<float>(uvTexture[1])));
+            textures.push_back(Tex2(static_cast<float>(uvTexture[0]), static_cast<float>(uvTexture[1])));
         }
     }
     else if(refMode == FbxLayerElement::EReferenceMode::eIndexToDirect) {
@@ -473,7 +473,7 @@ void FbxLoader::_loadTextureUVs(FbxMesh* meshNode, std::vector<Texture2>& textur
             //Get the normal for this vertex
             indexUV = leUV->GetIndexArray().GetAt(i);
             FbxVector2 uvTexture = leUV->GetDirectArray().GetAt(indexUV);
-            textures.push_back(Texture2(static_cast<float>(uvTexture[0]), static_cast<float>(uvTexture[1])));
+            textures.push_back(Tex2(static_cast<float>(uvTexture[0]), static_cast<float>(uvTexture[1])));
         }
     }
 }
@@ -599,7 +599,7 @@ void FbxLoader::_loadTextures(Model* model, FbxMesh* meshNode, FbxNode* childNod
 }
 
 void FbxLoader::_buildTriangles(Model* model, std::vector<Vector4>& vertices, std::vector<Vector4>& normals,
-    std::vector<Texture2>& textures, std::vector<int>& indices, FbxNode* node) {
+    std::vector<Tex2>& textures, std::vector<int>& indices, FbxNode* node) {
 
     RenderBuffers* renderBuffers = model->getRenderBuffers();
     //Global transform

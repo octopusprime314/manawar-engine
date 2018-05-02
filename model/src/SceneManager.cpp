@@ -29,8 +29,11 @@ SceneManager::SceneManager(int* argc, char** argv, unsigned int viewportWidth, u
     if (result == FMOD_ERR_FILE_NOTFOUND) {
         // Unable to load assets.
         MessageBoxA(nullptr, "Unable to load " THEME_MP3 ".", "Unable to find assets", MB_OK);
-    } else
-    if (result != FMOD_OK) { __debugbreak(); }
+    } else if (result != FMOD_OK) {
+        MessageBoxA(nullptr, "Unable to create background theme.",
+                             "Error Creating Background Theme",
+                             MB_OK);
+    }
     #undef THEME_MP3
 
     //Setup pre and post draw callback events received when a draw call is issued

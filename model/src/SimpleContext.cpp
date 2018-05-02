@@ -29,7 +29,8 @@ SimpleContext::SimpleContext(int* argc, char** argv, unsigned int viewportWidth,
     glfwSetCursorPosCallback(_window, &SimpleContext::_mouseUpdate);
 
     //Sets atleast one extra render buffer for double buffering to prevent screen tearing
-    glfwSwapInterval(1);
+    //glfwSwapInterval(1); //Enables 60 hz vsync
+    glfwSwapInterval(0); //Disables 60 hz vsync
 
     if (gl3wInit()) {
         std::cout << "failed to initialize OpenGL\n" << std::endl;

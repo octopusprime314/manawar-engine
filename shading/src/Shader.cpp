@@ -36,7 +36,7 @@ void Shader::_build() {
     else {
         vertexShaderHandle = -1;
     }
-    if (fileExists(fileNameVert)) {
+    if (fileExists(fileNameFrag)) {
         fragmentShaderHandle = _compile((char*)fileNameFrag.c_str(), GL_FRAGMENT_SHADER);
     }
     else {

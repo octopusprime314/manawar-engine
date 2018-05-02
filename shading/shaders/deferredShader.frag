@@ -26,6 +26,8 @@ vec2 poissonDisk[4] = vec2[](
   vec2( 0.34495938, 0.29387760 )
 );
 
+float ambient = 0.4;
+
 void main(){
 
 	//extract normal from normal texture
@@ -36,7 +38,9 @@ void main(){
 	vec4 position = texture(positionTexture, textureCoordinateOut.xy);
 	
 	//Directional light calculation
-	vec3 normalizedLight = normalize(light);
+	//NEED to invert light vector other a normal surface pointing up with a light pointing
+	//down would result in a negative dot product of the two vecs, inverting gives us positive numbers!
+	vec3 normalizedLight = normalize(-light);
 	float illumination = dot(normalizedLight, normalizedNormal);
 	
 	//Convert from camera space vertex to light clip space vertex
@@ -56,7 +60,7 @@ void main(){
 		gl_FragColor = vec4(depth, depth, depth, 1.0);
 	}
 	else if(views == 3){
-		gl_FragColor = vec4(diffuse.rgb * illumination, 1.0);
+		gl_FragColor = vec4(diffuse.rgb * min(illumination + ambient, 1.0), 1.0);
 	}
 	else if(views == 4){
 		gl_FragColor = vec4(normalizedNormal.xyz, 1.0);
@@ -72,14 +76,9 @@ void main(){
 			
 			float shadow = 1.0;
 			if ( texture( cameraDepthTexture, shadowTextureCoordinates).x < (shadowMapping.z * 0.5 + 0.5) - bias){
-					shadow = 0.4;
-			}		
-			//for(int i = 0; i < 4; i++) {
-			//	if ( texture( staticDepthTexture, vec3(shadowTextureCoordinates + poissonDisk[i]/700.0,  ((shadowMapping.z * 0.5 + 0.5)-bias)/shadowMapping.w)) <  (shadowMapping.z * 0.5 + 0.5) - bias){
-			//		shadow -= 0.1;
-			//	}
-			//}			
-			gl_FragColor = vec4(diffuse.rgb * shadow * illumination, 1.0);
+					shadow = ambient;
+			}	
+			gl_FragColor = vec4(diffuse.rgb * shadow * min(illumination + ambient, 1.0), 1.0);
 		}
 		else{
 			vec4 shadowMappingMap = lightMapViewMatrix * vec4(position.xyz, 1.0);
@@ -88,15 +87,10 @@ void main(){
 			
 			float shadow = 1.0;
 			if ( texture( mapDepthTexture, shadowTextureCoordinatesMap).x < (shadowMappingMap.z * 0.5 + 0.5) - bias){
-					shadow = 0.4;
+					shadow = ambient;
 			}	
-			//float shadow = 1.0;
-			//for(int i = 0; i < 4; i++) {
-			//	if ( texture( mapDepthTexture, shadowTextureCoordinatesMap + poissonDisk[i]/700.0).x <  //(shadowMappingMap.z * 0.5 + 0.5) - bias){
-			//		shadow -= 0.1;
-			//	}
-			//}
-			gl_FragColor = vec4(diffuse.rgb * shadow * illumination, 1.0);
+			
+			gl_FragColor = vec4(diffuse.rgb * shadow * min(illumination + ambient, 1.0), 1.0);
 		}
 	}
 	//Show light positions

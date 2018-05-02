@@ -6,7 +6,7 @@ DeferredShader::DeferredShader(std::string shaderName) : Shader(shaderName) {
 	const float length = 1.0f; 
     const float depth = 0.0f; 
     //2 triangles in screen space 
-    float triangles[] = { -length, -length, depth,
+    float triangles[] = {-length, -length, depth,
                          -length, length, depth,
                          length, length, depth,
 
@@ -20,7 +20,7 @@ DeferredShader::DeferredShader(std::string shaderName) : Shader(shaderName) {
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     //2 texture coordinates in screen space 
-    float textures[] = { 0.0, 0.0,
+    float textures[] = {  0.0, 0.0,
                           0.0, 1.0,
                           1.0, 1.0,
 
@@ -83,10 +83,10 @@ void DeferredShader::runShader(ShadowRenderer* shadowRenderer,
     //Now enable texture buffer at location 2
     glEnableVertexAttribArray(1);
 
-    //Get light position
-    Vector4 transformedLight = lights[0]->getPosition();
-    float* buff = transformedLight.getFlatBuffer();
-    glUniform3f(_lightLocation, buff[0], buff[1], buff[2]);
+    //Get light view matrix "look at" vector which is located in the third column
+    //of the inner rotation matrix at index 2,6,10
+    auto viewMatrix = lights[0]->getMVP().getViewBuffer();
+    glUniform3f(_lightLocation, viewMatrix[2], viewMatrix[6], viewMatrix[10]);
 
     //Get point light positions
     //TODO add max point light constant

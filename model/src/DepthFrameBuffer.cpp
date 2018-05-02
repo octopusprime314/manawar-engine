@@ -32,8 +32,7 @@ DepthFrameBuffer::DepthFrameBuffer(unsigned int width, unsigned int height) :
 
     //check the frame buffer's health
     GLuint status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-    if (status != GL_FRAMEBUFFER_COMPLETE)
-    {
+    if (status != GL_FRAMEBUFFER_COMPLETE) {
         std::cout << "Frame buffer cannot be generated! Status: " << status << std::endl;
     }
 

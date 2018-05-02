@@ -123,40 +123,35 @@ void ViewManager::_updateKeyboard(int key, int x, int y) { //Do stuff based on k
     if (key == GLFW_KEY_W || key == GLFW_KEY_S || key == GLFW_KEY_A || key == GLFW_KEY_D || key == GLFW_KEY_E) {
 
         float * temp = nullptr;
-        Vector4 *trans = nullptr;
+        Vector4 trans;
         Vector4 force;
         //const float velMagnitude = 100.0f;
         const float velMagnitude = 500.0f;
 
         if (key == GLFW_KEY_W) { //forward w
             force = Vector4(0.0, 0.0, -velMagnitude, 1.0);
-            trans = new Vector4(_inverseRotation * force); //Apply transformation based off inverse rotation
-            temp = trans->getFlatBuffer();
+            trans = Vector4(_inverseRotation * force); //Apply transformation based off inverse rotation
+            temp = trans.getFlatBuffer();
         }
         else if (key == GLFW_KEY_S) { //backward s
             force = Vector4(0.0, 0.0, velMagnitude, 1.0);
-            trans = new Vector4(_inverseRotation * force); //Apply transformation based off inverse rotation
-            temp = trans->getFlatBuffer();
+            trans = Vector4(_inverseRotation * force); //Apply transformation based off inverse rotation
+            temp = trans.getFlatBuffer();
         }
         else if (key == GLFW_KEY_A) { //left a
             force = Vector4(-velMagnitude, 0.0, 0.0, 1.0);
-            trans = new Vector4(_inverseRotation * force); //Apply transformation based off inverse rotation
-            temp = trans->getFlatBuffer();
+            trans = Vector4(_inverseRotation * force); //Apply transformation based off inverse rotation
+            temp = trans.getFlatBuffer();
         }
         else if (key == GLFW_KEY_D) { //right d
             force = Vector4(velMagnitude, 0.0, 0.0, 1.0);
-            trans = new Vector4(_inverseRotation * force); //Apply transformation based off inverse rotation
-            temp = trans->getFlatBuffer();
-        }
-        else if (key == GLFW_KEY_D) { //right d
-            force = Vector4(velMagnitude, 0.0, 0.0, 1.0);
-            trans = new Vector4(_inverseRotation * force); //Apply transformation based off inverse rotation
-            temp = trans->getFlatBuffer();
+            trans = Vector4(_inverseRotation * force); //Apply transformation based off inverse rotation
+            temp = trans.getFlatBuffer();
         }
         else if (key == GLFW_KEY_E) { //up e
-            force = Vector4(velMagnitude, 0.0, 1.0, 0.0);
-            trans = new Vector4(_inverseRotation * force); //Apply transformation based off inverse rotation
-            temp = trans->getFlatBuffer();
+            force = Vector4(0.0, -velMagnitude, 0.0, 1.0);
+            trans = Vector4(_inverseRotation * force); //Apply transformation based off inverse rotation
+            temp = trans.getFlatBuffer();
         }
 
         //If not in god camera view mode then push view changes to the model for full control of a model's movements
@@ -170,10 +165,10 @@ void ViewManager::_updateKeyboard(int key, int x, int y) { //Do stuff based on k
             //Define lambda equation
             auto lamdaEq = [=](float t) -> Vector4 {
                 if (t > 1.0f) {
-                    return static_cast<Vector4>(force);
+                    return trans;
                 }
                 else {
-                    return static_cast<Vector4>(force) * t;
+                    return static_cast<Vector4>(trans) * t;
                 }
 
             };
@@ -194,13 +189,12 @@ void ViewManager::_updateKeyboard(int key, int x, int y) { //Do stuff based on k
             _view = _rotation * _translation; //translate then rotate around point
         }
         _viewEvents->updateView(_view); //Send out event to all listeners
-
-        if (trans != nullptr) delete trans;
     }
     else if (key == GLFW_KEY_G) { //God's eye view change g
         _godState = true;
         _translation = Matrix::cameraTranslation(0, 5, 0); //Reset to 0,5,0 view position
         _rotation = Matrix(); //Set rotation matrix to identity
+        _inverseRotation = Matrix(); 
         _view = _rotation * _translation; //translate then rotate around point
         _viewEvents->updateView(_view); //Send out event to all listeners to offset locations essentially
     }
@@ -220,6 +214,7 @@ void ViewManager::_updateKeyboard(int key, int x, int y) { //Do stuff based on k
         Matrix rotX = Matrix::cameraRotationAroundX(rotation[0]); //Set rotation around X
         Matrix rotZ = Matrix::cameraRotationAroundZ(rotation[2]); //Set rotation around Z
         _rotation = rotZ * rotX * rotY;
+        _inverseRotation = Matrix();
 
         //Last transform to be applied to achieve third person view
         _view = _thirdPersonTranslation * _rotation * _translation; //translate then rotate around point
@@ -232,15 +227,16 @@ void ViewManager::_updateMouse(double x, double y) { //Do stuff based on mouse u
 
     int widthMidpoint = 1920 / 2;
     int heightMidpoint = 1080 / 2;
+    static const float mouseSensitivity = 1.5f;
 
     if (x < widthMidpoint || x > widthMidpoint) {
         if (x < widthMidpoint) { //rotate left around y axis
-            _rotation = _rotation * Matrix::cameraRotationAroundY(0.4f); //Update the rotation state matrix
-            _inverseRotation = _inverseRotation * Matrix::cameraRotationAroundY(-0.4f); //Inverse rotation for translation updates
+            _rotation = _rotation * Matrix::cameraRotationAroundY(mouseSensitivity); //Update the rotation state matrix
+            _inverseRotation = _inverseRotation * Matrix::cameraRotationAroundY(-mouseSensitivity); //Inverse rotation for translation updates
         }
         else if (x > widthMidpoint) { //rotate right around y axis
-            _rotation = _rotation * Matrix::cameraRotationAroundY(-0.4f); //Update the rotation state matrix
-            _inverseRotation = _inverseRotation * Matrix::cameraRotationAroundY(0.4f); //Inverse rotation for translation updates
+            _rotation = _rotation * Matrix::cameraRotationAroundY(-mouseSensitivity); //Update the rotation state matrix
+            _inverseRotation = _inverseRotation * Matrix::cameraRotationAroundY(mouseSensitivity); //Inverse rotation for translation updates
         }
 
         _view = _rotation * _translation; //translate then rotate around point

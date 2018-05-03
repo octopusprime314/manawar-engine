@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdint.h>
+#include <string.h>
 
 // TODO: Get python rand?
 // Useful for finding new seeds.
@@ -8,21 +9,21 @@
 // print(hex(s))
 static constexpr uint32_t kRngSeed = 0x8d1;
 
-struct Noise {
+struct ValueNoise2D {
     float data[128][128];
 
     // Don't use this - it's not implemented yet.
-    explicit Noise(uint32_t seed = 0x8d1);
+    explicit ValueNoise2D(uint32_t seed = 0x8d1);
 
-    explicit Noise(const float data[128][128])
+    explicit ValueNoise2D(const float data[128][128])
     {
         memcpy(this->data, data, sizeof(this->data));
     }
 
-    ~Noise() = default;
+    ~ValueNoise2D() = default;
 
     float noise(float x, float y);
     float turbulence(float x, float y, uint8_t octaves);
 };
 
-extern Noise kNoise;
+extern ValueNoise2D kNoise;

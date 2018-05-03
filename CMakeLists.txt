@@ -20,35 +20,45 @@ endif()
 if (NOT IS_DIRECTORY "${CMAKE_SOURCE_DIR}/shading")
     message(WARNING "Missing directory ${CMAKE_SOURCE_DIR}/shading")
 endif()
+if (NOT IS_DIRECTORY "${CMAKE_SOURCE_DIR}/libs/fmod")
+    message(WARNING "Missing directory ${CMAKE_SOURCE_DIR}/libs/fmod")
+endif()
 
 include_directories("${CMAKE_SOURCE_DIR}/libs/glfw/include")
 include_directories("${CMAKE_SOURCE_DIR}/libs/fbx-sdk/include")
 include_directories("${CMAKE_SOURCE_DIR}/libs/freeimage/include")
+include_directories("${CMAKE_SOURCE_DIR}/libs/fmod/lowlevel/inc")
 include_directories("${CMAKE_SOURCE_DIR}/model/include")
 include_directories("${CMAKE_SOURCE_DIR}/physics/include")
 include_directories("${CMAKE_SOURCE_DIR}/shading/include")
+include_directories("${CMAKE_SOURCE_DIR}/audio/include")
 
 FILE(GLOB MODEL_HEADER_FILES ${CMAKE_SOURCE_DIR}/model/include/*.h)
 FILE(GLOB PHYSICS_HEADER_FILES ${CMAKE_SOURCE_DIR}/physics/include/*.h)
 FILE(GLOB SHADING_HEADER_FILES ${CMAKE_SOURCE_DIR}/shading/include/*.h)
+FILE(GLOB AUDIO_HEADER_FILES ${CMAKE_SOURCE_DIR}/audio/include/BackgroundTheme.h)
 FILE(GLOB MODEL_SRC_FILES ${CMAKE_SOURCE_DIR}/model/src/*.cpp)
 FILE(GLOB PHYSICS_SRC_FILES ${CMAKE_SOURCE_DIR}/physics/src/*.cpp)
 FILE(GLOB SHADING_SRC_FILES ${CMAKE_SOURCE_DIR}/shading/src/*.cpp)
 FILE(GLOB GLFWPROC_SRC_FILES ${CMAKE_SOURCE_DIR}/glfw/src/*.c)
+FILE(GLOB AUDIO_SRC_FILES ${CMAKE_SOURCE_DIR}/audio/source/BackgroundTheme.cpp)
 
 source_group("model"   FILES ${MODEL_HEADER_FILES} ${MODEL_SRC_FILES})
 source_group("physics" FILES ${PHYSICS_HEADER_FILES} ${PHYSICS_SRC_FILES})
 source_group("shading" FILES ${SHADING_HEADER_FILES} ${SHADING_SRC_FILES})
 source_group("glfw"    FILES ${GLFWPROC_SRC_FILES})
+source_group("audio"   FILES ${AUDIO_HEADER_FILES} ${AUDIO_SRC_FILES})
 
 add_executable(ReBoot
                 ${MODEL_SRC_FILES}
                 ${PHYSICS_SRC_FILES}
                 ${SHADING_SRC_FILES}
                 ${GLFWPROC_SRC_FILES}
+                ${AUDIO_SRC_FILES}
                 ${MODEL_HEADER_FILES}
                 ${PHYSICS_HEADER_FILES}
-                ${SHADING_HEADER_FILES})
+                ${SHADING_HEADER_FILES}
+                ${AUDIO_HEADER_FILES})
 
 target_compile_features(ReBoot PRIVATE cxx_range_for)
 
@@ -57,3 +67,4 @@ target_link_libraries(ReBoot ${CMAKE_SOURCE_DIR}/libs/FreeImage/lib/FreeImage.li
 target_link_libraries(ReBoot ${CMAKE_SOURCE_DIR}/libs/glfw/lib/glfw3.lib)
 target_link_libraries(ReBoot debug     ${CMAKE_SOURCE_DIR}/libs/fbx-sdk/lib/debug/libfbxsdk-md.lib)
 target_link_libraries(ReBoot optimized ${CMAKE_SOURCE_DIR}/libs/fbx-sdk/lib/release/libfbxsdk-md.lib)
+target_link_libraries(ReBoot ${CMAKE_SOURCE_DIR}/libs/fmod/lowlevel/lib/fmod64_vc.lib)

@@ -2,6 +2,8 @@
 #include "MasterClock.h"
 #include "SimpleContextEvents.h"
 
+#include "BackgroundTheme.h"
+
 SceneManager::SceneManager(int* argc, char** argv, unsigned int viewportWidth, unsigned int viewportHeight, float nearPlaneDistance, float farPlaneDistance) {
 
     _viewManager = new ViewManager(argc, argv, viewportWidth, viewportHeight);
@@ -11,6 +13,28 @@ SceneManager::SceneManager(int* argc, char** argv, unsigned int viewportWidth, u
     _deferredRenderer = new DeferredRenderer();
 
     _shadowRenderer = new ShadowRenderer(2000, 2000/*viewportWidth, viewportHeight*/);
+
+    // Setup audio subsystem
+    FMOD_RESULT result;
+    FMOD::System* pAudioSystem = nullptr;
+    result = FMOD::System_Create(&pAudioSystem);
+    if (result != FMOD_OK) { __debugbreak(); }
+
+    result = pAudioSystem->init(1, FMOD_INIT_NORMAL, /*extra*/ nullptr);
+    if (result != FMOD_OK) { __debugbreak(); }
+
+    BackgroundTheme backgroundTheme;
+    #define THEME_MP3 "assets/audio/Theme.mp3"
+    result = BackgroundTheme::Create(pAudioSystem, THEME_MP3, &backgroundTheme);
+    if (result == FMOD_ERR_FILE_NOTFOUND) {
+        // Unable to load assets.
+        MessageBoxA(nullptr, "Unable to load " THEME_MP3 ".", "Unable to find assets", MB_OK);
+    } else if (result != FMOD_OK) {
+        MessageBoxA(nullptr, "Unable to create background theme.",
+                             "Error Creating Background Theme",
+                             MB_OK);
+    }
+    #undef THEME_MP3
 
     //Setup pre and post draw callback events received when a draw call is issued
     SimpleContextEvents::setPreDrawCallback(std::bind(&SceneManager::_preDraw, this));
@@ -35,7 +59,7 @@ SceneManager::SceneManager(int* argc, char** argv, unsigned int viewportWidth, u
     _viewManager->setModelList(_modelList);
 
     _physics.addModels(_modelList); //Gives physics a pointer to all models which allows access to underlying geometry
-    _physics.run(); //Dispatch physics to start kinematics 
+    _physics.run(); //Dispatch physics to start kinematics
 
     //Add a directional light pointing down in the negative y axis
     MVP lightMVP;
@@ -62,6 +86,8 @@ SceneManager::SceneManager(int* argc, char** argv, unsigned int viewportWidth, u
     _lightList.push_back(Factory::make<Light>(pointLightMVP, LightType::POINT, Vector4(1.0f, 0.0f, 1.0f, 1.0f), 50.0f));
 
     MasterClock::instance()->run(); //Scene manager kicks off the clock event manager
+
+    backgroundTheme.PlayInBackground(pAudioSystem);
 
     _viewManager->run(); //Enables the glut main loop
 }

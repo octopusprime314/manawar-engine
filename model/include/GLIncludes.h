@@ -24,6 +24,5 @@
 #include "GL/gl3w.h"
 #include "GL/glfw3.h"
 
-
 const int screenPixelWidth = 1920;
 const int screenPixelHeight = 1080;

@@ -9,7 +9,8 @@ FMOD_RESULT BackgroundTheme::Create(FMOD::System* pSystem,
                                  &pBg->pSound);
 }
 
-BackgroundTheme::~BackgroundTheme() {
+BackgroundTheme::~BackgroundTheme()
+{
     // lol i dunno
 }
 

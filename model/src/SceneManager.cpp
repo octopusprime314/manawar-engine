@@ -2,7 +2,12 @@
 #include "MasterClock.h"
 #include "SimpleContextEvents.h"
 
-#include "BackgroundTheme.h"
+#include "ViewManager.h"
+#include "Factory.h"
+#include "DeferredRenderer.h"
+#include "ShadowRenderer.h"
+
+#include "AudioManager.h"
 
 SceneManager::SceneManager(int* argc, char** argv, unsigned int viewportWidth, unsigned int viewportHeight, float nearPlaneDistance, float farPlaneDistance) {
 
@@ -14,27 +19,7 @@ SceneManager::SceneManager(int* argc, char** argv, unsigned int viewportWidth, u
 
     _shadowRenderer = new ShadowRenderer(2000, 2000/*viewportWidth, viewportHeight*/);
 
-    // Setup audio subsystem
-    FMOD_RESULT result;
-    FMOD::System* pAudioSystem = nullptr;
-    result = FMOD::System_Create(&pAudioSystem);
-    if (result != FMOD_OK) { __debugbreak(); }
-
-    result = pAudioSystem->init(1, FMOD_INIT_NORMAL, /*extra*/ nullptr);
-    if (result != FMOD_OK) { __debugbreak(); }
-
-    BackgroundTheme backgroundTheme;
-    #define THEME_MP3 "assets/audio/Theme.mp3"
-    result = BackgroundTheme::Create(pAudioSystem, THEME_MP3, &backgroundTheme);
-    if (result == FMOD_ERR_FILE_NOTFOUND) {
-        // Unable to load assets.
-        MessageBoxA(nullptr, "Unable to load " THEME_MP3 ".", "Unable to find assets", MB_OK);
-    } else if (result != FMOD_OK) {
-        MessageBoxA(nullptr, "Unable to create background theme.",
-                             "Error Creating Background Theme",
-                             MB_OK);
-    }
-    #undef THEME_MP3
+    _audioManager = new AudioManager();
 
     //Setup pre and post draw callback events received when a draw call is issued
     SimpleContextEvents::setPreDrawCallback(std::bind(&SceneManager::_preDraw, this));
@@ -87,7 +72,8 @@ SceneManager::SceneManager(int* argc, char** argv, unsigned int viewportWidth, u
 
     MasterClock::instance()->run(); //Scene manager kicks off the clock event manager
 
-    backgroundTheme.PlayInBackground(pAudioSystem);
+    // TODO: This should look cleaner.
+    _audioManager->GetBackgroundTheme().PlayInBackground(_audioManager->GetAudioSystem());
 
     _viewManager->run(); //Enables the glut main loop
 }
@@ -96,7 +82,10 @@ SceneManager::~SceneManager() {
     for (auto model : _modelList) {
         delete model;
     }
+    delete _shadowRenderer;
+    delete _deferredRenderer;
     delete _viewManager;
+    delete _audioManager;
 }
 
 void SceneManager::_preDraw() {

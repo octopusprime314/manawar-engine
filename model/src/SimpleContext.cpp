@@ -17,7 +17,7 @@ SimpleContext::SimpleContext(int* argc, char** argv, unsigned int viewportWidth,
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
 
     //Create a glfw window for a context
-    _window = glfwCreateWindow(screenPixelWidth, screenPixelHeight, "ReBoot", NULL, NULL);
+    _window = glfwCreateWindow(viewportWidth, viewportHeight, "ReBoot", NULL, NULL);
     if (!_window) {
         // Window or OpenGL context creation failed
         std::cout << "You failed me!" << std::endl;

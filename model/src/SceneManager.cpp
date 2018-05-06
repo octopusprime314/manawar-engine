@@ -19,7 +19,7 @@ Model* GenerateLandscape()
     // Generate geometry
     std::vector<Triangle> triangles;
     {
-        constexpr int S = 100;
+        constexpr int S = 150;
         constexpr int minX = 0;
         constexpr int maxX = +S;
         constexpr int minZ = 0;
@@ -74,16 +74,18 @@ Model* GenerateLandscape()
                 if (y < 0.f) {
                     y = -1;
                 }
+                x -= S / 2.f;
+                z -= S / 2.f;
+                y -= 20;
             }
         }
     }
 
-    Model* pLandscape = new Model();
+    Model* pLandscape = new Model(Factory::_viewEventWrapper, ModelClass::ModelType);
 
     // These should probably go in a default constructor for Model...
     pLandscape->_fbxLoader = nullptr;
     pLandscape->_clock = MasterClock::instance();
-    pLandscape->_classId = ModelClass::ModelType;
     pLandscape->_debugMode = false;
     pLandscape->_debugShaderProgram = new DebugShader("debugShader");
 

@@ -19,10 +19,10 @@ Model* GenerateLandscape()
     // Generate geometry
     std::vector<Triangle> triangles;
     {
-        constexpr int S = 50;
-        constexpr int minX = -S;
+        constexpr int S = 100;
+        constexpr int minX = 0;
         constexpr int maxX = +S;
-        constexpr int minZ = -S;
+        constexpr int minZ = 0;
         constexpr int maxZ = +S;
 
         static_assert(minX <= maxX, "Check X min/max bounds");
@@ -53,8 +53,27 @@ Model* GenerateLandscape()
                 auto& x = position.getFlatBuffer()[0];
                 auto& y = position.getFlatBuffer()[1];
                 auto& z = position.getFlatBuffer()[2];
-                // Make smooth changing values in [-3.00, 15.0]
-                y = 15.f * (1.2f * kNoise.turbulence(2.50f * x + 400, 3.25f * z + 400, 9) - 0.2f);
+                constexpr float scale = 15.f;
+                constexpr float max   = 1.7f * scale;
+                constexpr float min   = -2.f * scale;
+                // We want to color things with bounds like this. Ish.
+                // Scale 'start' by 'scale' first.
+                //  gradient = [
+                //       Start   Color
+                //      (-1.000, (0, 0, 128)),        # deep water
+                //      (-0.150, (0, 0, 255)),        # shallow water
+                //      (-0.050, (0, 128, 255)),      # shore
+                //      (0.000,  (0xFF, 0xEC, 0x96)), # sand
+                //      (0.060,  (32, 160, 0)),       # grass
+                //      (0.400,  (128, 128, 128)),    # rock
+                //      (0.500,  (96, 96, 96)),       # rock
+                //      (0.600,  (255, 255, 255)),    # snow
+                //  ]
+                y = (max - min) * kNoise.turbulence(2500.f*x / S, 3250.f*z / S + 400, 9) + min;
+                // Make "water" visible more easily for now.
+                if (y < 0.f) {
+                    y = -1;
+                }
             }
         }
     }
@@ -70,25 +89,31 @@ Model* GenerateLandscape()
 
     std::vector<Vector4>& verts = *pLandscape->_renderBuffers.getVertices();
     std::vector<Vector4>& normals = *pLandscape->_renderBuffers.getNormals();
+    std::vector<Tex2>& texs = *pLandscape->_renderBuffers.getTextures();
     for (auto& triangle : triangles) {
         auto& positions = triangle.getTrianglePoints();
         verts.emplace_back(positions[0]);
         verts.emplace_back(positions[1]);
         verts.emplace_back(positions[2]);
 
-        Vector4 normal = positions[0];
-        normal = normal.crossProduct(positions[1]);
+        Vector4 normal = positions[0].crossProduct(positions[1]);
+        normal.normalize();
         normals.emplace_back(normal);
         normals.emplace_back(normal);
         normals.emplace_back(normal);
+
+        // Use location as text coords. We may want to scale this.
+        // Eventually, we want the height to color terrain?
+        texs.emplace_back(positions[0].getx(), positions[0].getz());
+        texs.emplace_back(positions[1].getx(), positions[1].getz());
+        texs.emplace_back(positions[2].getx(), positions[2].getz());
     }
-    *pLandscape->_renderBuffers.getTextures() = std::vector<Tex2>(verts.size(), Tex2(0.5f, 0.5f));
+    *pLandscape->_renderBuffers.getDebugNormals() = normals;
     std::vector<int>& indices = *pLandscape->_renderBuffers.getIndices();
     indices.reserve(verts.size());
     for (int i = 0; i < static_cast<int>(verts.size()); i += 1) {
         indices.emplace_back(i);
     }
-    *pLandscape->_renderBuffers.getDebugNormals() = normals;
 
     pLandscape->_vbo.createVBO(&pLandscape->_renderBuffers, pLandscape->_classId);
     pLandscape->_shaderProgram = new StaticShader("staticShader");

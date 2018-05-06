@@ -10,6 +10,104 @@
 #include "SSAO.h"
 #include "EnvironmentMap.h"
 
+#include <Noise.h>
+#include <Triangle.h>
+
+// TODO: Put this somewhere else.
+Model* GenerateLandscape()
+{
+    // Generate geometry
+    std::vector<Triangle> triangles;
+    {
+        constexpr int S = 50;
+        constexpr int minX = -S;
+        constexpr int maxX = +S;
+        constexpr int minZ = -S;
+        constexpr int maxZ = +S;
+
+        static_assert(minX <= maxX, "Check X min/max bounds");
+        static_assert(minZ <= maxZ, "Check Z min/max bounds");
+
+        // 2 triangles per quad * (min-max and zero)
+        triangles.reserve(2 * (maxX-minX + 1) * (maxZ-minZ + 1));
+        for (int x = minX; x <= maxX; x += 1) {
+            for (int z = minZ; z <= maxZ; z += 1) {
+                Vector4 base = Vector4((float)x, 0, (float)z, 1.f);
+                auto tri1 = Triangle(base + Vector4(0.f, 0.f, 0.f, 1.f),
+                                     base + Vector4(1.f, 0.f, 0.f, 1.f),
+                                     base + Vector4(1.f, 0.f, 1.f, 1.f)
+                );
+                auto tri2 = Triangle(base + Vector4(1.f, 0.f, 1.f, 1.f),
+                                     base + Vector4(0.f, 0.f, 1.f, 1.f),
+                                     base + Vector4(0.f, 0.f, 0.f, 1.f)
+                );
+                // Insert quads as pairs of triangles
+                triangles.emplace_back(tri1);
+                triangles.emplace_back(tri2);
+            }
+        }
+
+        for (auto& triangle : triangles) {
+            // This works without the typedef... but it's easier to read this way.
+            using Vector4x3 = Vector4[3];
+            Vector4x3& positions = *reinterpret_cast<Vector4x3*>(triangle.getTrianglePoints());
+            for (auto& position : positions) {
+                auto& x = position.getFlatBuffer()[0];
+                auto& y = position.getFlatBuffer()[1];
+                auto& z = position.getFlatBuffer()[2];
+                // Make smooth changing values in [-3.00, 15.0]
+                y = 15.f * (1.2f * kNoise.turbulence(2.500 * x + 400, 3.250 * z + 400, 9) - 0.2f);
+            }
+        }
+    }
+
+    Model* pLandscape = new Model();
+
+    // These should probably go in a default constructor for Model...
+    pLandscape->_fbxLoader = nullptr;
+    pLandscape->_clock = MasterClock::instance();
+    pLandscape->_classId = ModelClass::ModelType;
+    pLandscape->_debugMode = false;
+    pLandscape->_debugShaderProgram = new DebugShader("debugShader");
+
+    std::vector<Vector4>& verts = *pLandscape->_renderBuffers.getVertices();
+    std::vector<Vector4>& normals = *pLandscape->_renderBuffers.getNormals();
+    for (auto& triangle : triangles) {
+        // This works without the typedef... but it's easier to read this way.
+        using Vector4x3 = Vector4[3];
+        const Vector4x3& positions = *reinterpret_cast<const Vector4x3*>(triangle.getTrianglePoints());
+        verts.emplace_back(positions[0]);
+        verts.emplace_back(positions[1]);
+        verts.emplace_back(positions[2]);
+
+        Vector4 normal = positions[0];
+        normal = normal.crossProduct(positions[1]);
+        normals.emplace_back(normal);
+        normals.emplace_back(normal);
+        normals.emplace_back(normal);
+    }
+    *pLandscape->_renderBuffers.getTextures() = std::vector<Tex2>(verts.size(), Tex2(0.5f, 0.5f));
+    std::vector<int>& indices = *pLandscape->_renderBuffers.getIndices();
+    indices.reserve(verts.size());
+    for (int i = 0; i < static_cast<int>(verts.size()); i += 1) {
+        indices.emplace_back(i);
+    }
+    *pLandscape->_renderBuffers.getDebugNormals() = normals;
+
+    pLandscape->_vbo.createVBO(&pLandscape->_renderBuffers, pLandscape->_classId);
+    pLandscape->_shaderProgram = new StaticShader("staticShader");
+    pLandscape->_geometryType = GeometryType::Triangle;
+    for (const auto& triangle : triangles) {
+        pLandscape->_geometry.addTriangle(triangle);
+    }
+    pLandscape->addTexture("../assets/textures/landscape/sunbeams01.dds",
+                           3 * static_cast<int>(triangles.size()));
+    pLandscape->_clock->subscribeKinematicsRate(std::bind(&Model::_updateKinematics,
+                                                          pLandscape,
+                                                          std::placeholders::_1));
+    return pLandscape;
+}
+
 SceneManager::SceneManager(int* argc, char** argv, unsigned int viewportWidth, unsigned int viewportHeight, float nearPlaneDistance, float farPlaneDistance) {
 
     _viewManager = new ViewManager(argc, argv, viewportWidth, viewportHeight);
@@ -33,7 +131,7 @@ SceneManager::SceneManager(int* argc, char** argv, unsigned int viewportWidth, u
     SimpleContextEvents::setPreDrawCallback(std::bind(&SceneManager::_preDraw, this));
     SimpleContextEvents::setPostDrawCallback(std::bind(&SceneManager::_postDraw, this));
 
-    _modelList.push_back(Factory::make<Model>("landscape/landscape.fbx")); //Add a static model to the scene
+    _modelList.push_back(GenerateLandscape());
 
     //int x = -900;
     //for (int i = 0; i < 1; ++i) {
@@ -47,7 +145,6 @@ SceneManager::SceneManager(int* argc, char** argv, unsigned int viewportWidth, u
     //    _modelList.back()->setPosition(Vector4(0.0f, 5.0f, -20.0f, 1.0f)); //Place objects 20 meters above sea level for collision testing
     //    x += 30;
     //}
-
 
     //_physics.addModels(_modelList); //Gives physics a pointer to all models which allows access to underlying geometry
     //_physics.run(); //Dispatch physics to start kinematics

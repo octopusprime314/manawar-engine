@@ -78,6 +78,9 @@ public:
     void                        setPosition(Vector4 position);
     void                        setVelocity(Vector4 velocity);
 
+    // TODO: Remove this
+    friend Model* GenerateLandscape();
+
 protected:
     StateVector                 _state; //Kinematics
     RenderBuffers               _renderBuffers; //Manages vertex, normal and texture data

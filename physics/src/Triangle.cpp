@@ -10,6 +10,6 @@ Triangle::~Triangle() {
 
 }
 
-Vector4* Triangle::getTrianglePoints(){
+Vector4x3 Triangle::getTrianglePoints(){
     return _points;
 }

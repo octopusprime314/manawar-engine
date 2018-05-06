@@ -48,15 +48,13 @@ Model* GenerateLandscape()
         }
 
         for (auto& triangle : triangles) {
-            // This works without the typedef... but it's easier to read this way.
-            using Vector4x3 = Vector4[3];
-            Vector4x3& positions = *reinterpret_cast<Vector4x3*>(triangle.getTrianglePoints());
+            auto& positions = triangle.getTrianglePoints();
             for (auto& position : positions) {
                 auto& x = position.getFlatBuffer()[0];
                 auto& y = position.getFlatBuffer()[1];
                 auto& z = position.getFlatBuffer()[2];
                 // Make smooth changing values in [-3.00, 15.0]
-                y = 15.f * (1.2f * kNoise.turbulence(2.500 * x + 400, 3.250 * z + 400, 9) - 0.2f);
+                y = 15.f * (1.2f * kNoise.turbulence(2.50f * x + 400, 3.25f * z + 400, 9) - 0.2f);
             }
         }
     }
@@ -73,9 +71,7 @@ Model* GenerateLandscape()
     std::vector<Vector4>& verts = *pLandscape->_renderBuffers.getVertices();
     std::vector<Vector4>& normals = *pLandscape->_renderBuffers.getNormals();
     for (auto& triangle : triangles) {
-        // This works without the typedef... but it's easier to read this way.
-        using Vector4x3 = Vector4[3];
-        const Vector4x3& positions = *reinterpret_cast<const Vector4x3*>(triangle.getTrianglePoints());
+        auto& positions = triangle.getTrianglePoints();
         verts.emplace_back(positions[0]);
         verts.emplace_back(positions[1]);
         verts.emplace_back(positions[2]);

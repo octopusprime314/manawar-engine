@@ -73,7 +73,7 @@ SceneManager::SceneManager(int* argc, char** argv, unsigned int viewportWidth, u
     MasterClock::instance()->run(); //Scene manager kicks off the clock event manager
 
     // TODO: This should look cleaner.
-    _audioManager->GetBackgroundTheme().PlayInBackground(_audioManager->GetAudioSystem());
+    _audioManager->StartAll();
 
     _viewManager->run(); //Enables the glut main loop
 }

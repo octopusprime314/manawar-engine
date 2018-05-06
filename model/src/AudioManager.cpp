@@ -16,8 +16,7 @@ AudioManager::AudioManager()
     if (result != FMOD_OK) { __debugbreak(); }
 
     // Background theme
-    BackgroundTheme backgroundTheme;
-    result = BackgroundTheme::Create(m_pSystem, THEME_MP3, &backgroundTheme);
+    result = BackgroundTheme::Create(m_pSystem, THEME_MP3, &m_backgroundTheme);
     if (result == FMOD_ERR_FILE_NOTFOUND) {
         MessageBoxA(nullptr, "Unable to load " THEME_MP3 ".", "Unable to find assets", MB_OK);
     } else if (result != FMOD_OK) {
@@ -31,4 +30,9 @@ AudioManager::~AudioManager()
 {
     m_pSystem->release();
     m_pSystem = nullptr;
+}
+
+FMOD_RESULT AudioManager::StartAll()
+{
+    return m_backgroundTheme.PlayInBackground(m_pSystem);
 }

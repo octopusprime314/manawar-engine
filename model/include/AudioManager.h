@@ -11,7 +11,9 @@ public:
     ~AudioManager();
 
     FMOD::System* GetAudioSystem() { return m_pSystem; }
-    BackgroundTheme& GetBackgroundTheme() { return m_backgroundTheme;  }
+    BackgroundTheme& GetBackgroundTheme() { return m_backgroundTheme; }
+
+    FMOD_RESULT StartAll();
 
 private:
     FMOD::System* m_pSystem;

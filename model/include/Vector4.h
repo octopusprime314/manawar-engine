@@ -35,6 +35,7 @@ public:
     Vector4 operator * (float scale);
     Vector4 operator + (Vector4 other);
     Vector4 operator - (Vector4 other);
+    Vector4 operator - ();
     bool    operator == (Vector4 other);
     bool    operator != (Vector4 other);
     Vector4 crossProduct(Vector4 other);

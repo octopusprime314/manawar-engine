@@ -70,6 +70,16 @@ Vector4 Vector4::operator - (Vector4 other) {
     return result;
 }
 
+Vector4 Vector4::operator - () {
+    Vector4 result;
+    float* vector = result.getFlatBuffer();
+    vector[0] = -_vec[0];
+    vector[1] = -_vec[1];
+    vector[2] = -_vec[2];
+    return result;
+}
+
+
 Vector4 Vector4::crossProduct(Vector4 other) {
     Vector4 result;
     float* vector = result.getFlatBuffer();
@@ -81,8 +91,9 @@ Vector4 Vector4::crossProduct(Vector4 other) {
     //z = x1*y2 - y1*x2
     //result = x - y + z
     vector[0] =  (_vec[1] * vector2[2]) - (_vec[2] * vector2[1]);
-    vector[1] = -(_vec[0] * vector2[2]) - (_vec[2] * vector2[0]);
+    vector[1] = -(_vec[0] * vector2[2]) + (_vec[2] * vector2[0]);
     vector[2] =  (_vec[0] * vector2[1]) - (_vec[1] * vector2[0]);
+    vector[3] = 0.f;
     return result;
 }
 

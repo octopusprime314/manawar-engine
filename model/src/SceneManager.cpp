@@ -28,24 +28,25 @@ Model* GenerateLandscape()
         static_assert(minX <= maxX, "Check X min/max bounds");
         static_assert(minZ <= maxZ, "Check Z min/max bounds");
 
-        // 2 triangles per quad * (min-max and zero)
-        triangles.reserve(2 * (maxX-minX + 1) * (maxZ-minZ + 1));
-        for (int x = minX; x <= maxX; x += 1) {
-            for (int z = minZ; z <= maxZ; z += 1) {
-                Vector4 base = Vector4((float)x, 0, (float)z, 1.f);
+        // 2 triangles per quad * (min-max and zero) ish
+        triangles.reserve(2 * (int)(maxX-minX + 1) * (int)(maxZ-minZ + 1));
+        for (float x = minX; x <= maxX; x += 0.5f) {
+            for (float z = minZ; z <= maxZ; z += 0.5f) {
+                Vector4 base = Vector4((float)x, 0.f, (float)z, 1.f);
+
+                // Insert quads as pairs of triangles
                 auto tri1 = Triangle(base + Vector4(0.f, 0.f, 0.f, 1.f),
                                      base + Vector4(1.f, 0.f, 0.f, 1.f),
-                                     base + Vector4(1.f, 0.f, 1.f, 1.f)
-                );
+                                     base + Vector4(1.f, 0.f, 1.f, 1.f));
+                triangles.emplace_back(tri1);
+
                 auto tri2 = Triangle(base + Vector4(1.f, 0.f, 1.f, 1.f),
                                      base + Vector4(0.f, 0.f, 1.f, 1.f),
-                                     base + Vector4(0.f, 0.f, 0.f, 1.f)
-                );
-                // Insert quads as pairs of triangles
-                triangles.emplace_back(tri1);
+                                     base + Vector4(0.f, 0.f, 0.f, 1.f));
                 triangles.emplace_back(tri2);
             }
         }
+        printf("Terrain Triangle Count: %zu", triangles.size());
 
         for (auto& triangle : triangles) {
             auto& positions = triangle.getTrianglePoints();
@@ -76,7 +77,6 @@ Model* GenerateLandscape()
                 }
                 x -= S / 2.f;
                 z -= S / 2.f;
-                y -= 20;
             }
         }
     }
@@ -99,7 +99,14 @@ Model* GenerateLandscape()
         verts.emplace_back(positions[2]);
 
         Vector4 normal = positions[0].crossProduct(positions[1]);
+        if (normal.gety() < 0.f) {
+            float* n = normal.getFlatBuffer();
+            n[0] = -n[0];
+            n[1] = -n[1];
+            n[2] = -n[2];
+        }
         normal.normalize();
+
         normals.emplace_back(normal);
         normals.emplace_back(normal);
         normals.emplace_back(normal);
@@ -117,7 +124,7 @@ Model* GenerateLandscape()
         indices.emplace_back(i);
     }
 
-    pLandscape->_vbo.createVBO(&pLandscape->_renderBuffers, pLandscape->_classId);
+    pLandscape->_vao.createVAO(&pLandscape->_renderBuffers, pLandscape->_classId);
     pLandscape->_shaderProgram = new StaticShader("staticShader");
     pLandscape->_geometryType = GeometryType::Triangle;
     for (const auto& triangle : triangles) {
@@ -155,19 +162,6 @@ SceneManager::SceneManager(int* argc, char** argv, unsigned int viewportWidth, u
     SimpleContextEvents::setPostDrawCallback(std::bind(&SceneManager::_postDraw, this));
 
     _modelList.push_back(GenerateLandscape());
-
-    //int x = -900;
-    //for (int i = 0; i < 1; ++i) {
-    //    //_modelList.push_back(_modelFactory->makeAnimatedModel("troll/troll_idle.fbx")); //Add an animated model to the scene
-    //    //_modelList.push_back(_modelFactory->makeAnimatedModel("hagraven/hagraven_idle.fbx")); //Add an animated model to the scene
-    //    //_modelList.push_back(_modelFactory->makeAnimatedModel("wolf/wolf_turnleft.fbx")); //Add an animated model to the scene
-    //    _modelList.push_back(Factory::make<AnimatedModel>("werewolf/werewolf_jump.fbx")); //Add an animated model to the scene
-
-    //    //Simple kludge test to activate animated models in motion to stimulate collision detection tests
-    //    _modelList.back()->getStateVector()->setActive(true);
-    //    _modelList.back()->setPosition(Vector4(0.0f, 5.0f, -20.0f, 1.0f)); //Place objects 20 meters above sea level for collision testing
-    //    x += 30;
-    //}
 
     //_physics.addModels(_modelList); //Gives physics a pointer to all models which allows access to underlying geometry
     //_physics.run(); //Dispatch physics to start kinematics

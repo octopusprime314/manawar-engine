@@ -9,9 +9,9 @@ DepthFrameBuffer::DepthFrameBuffer(unsigned int width, unsigned int height) :
     //Bind current texture context
     glBindTexture(GL_TEXTURE_2D, _fbTextureContext);
 
-    //spell out texture format, width x height texture, Depth 24 bit format, data pointer is null 
+    //spell out texture format, width x height texture, Depth 32 bit format, data pointer is null 
     //because the frame buffer is responsible for allocating and populating texture data
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24, _width, _height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, _width, _height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
 
     //texture filter parameters
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -29,6 +29,10 @@ DepthFrameBuffer::DepthFrameBuffer(unsigned int width, unsigned int height) :
     //Finally attach the texture to the previously generated frame buffer
     //the texture will be used in later shader texture sampling
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, _fbTextureContext, 0);
+
+    //Tells opengl that the frame buffer will not have a color buffer
+    glDrawBuffer(GL_NONE);
+    glReadBuffer(GL_NONE);
 
     //check the frame buffer's health
     GLuint status = glCheckFramebufferStatus(GL_FRAMEBUFFER);

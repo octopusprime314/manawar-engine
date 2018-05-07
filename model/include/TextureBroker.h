@@ -32,5 +32,6 @@ public:
     static TextureBroker*           instance();
     ~TextureBroker();
     void                            addTexture(std::string textureName);
+    void                            addCubeTexture(std::string textureName);
     Texture*                        getTexture(std::string textureName);
 };

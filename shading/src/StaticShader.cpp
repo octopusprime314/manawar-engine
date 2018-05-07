@@ -93,6 +93,7 @@ void StaticShader::runShader(Model* model) {
     glDisableVertexAttribArray(1); //Disable normal attribute
     glDisableVertexAttribArray(2); //Disable texture attribute
     glBindBuffer(GL_ARRAY_BUFFER, 0); //Unbind buffer
+    glBindTexture(GL_TEXTURE_2D, 0); //Unbind texture
     glUseProgram(0);//end using this shader
 }
 

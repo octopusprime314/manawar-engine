@@ -9,8 +9,9 @@ DeferredRenderer::~DeferredRenderer() {
 
 }
 
-void DeferredRenderer::deferredLighting(ShadowRenderer* shadowRenderer, std::vector<Light*>& lights, ViewManager* viewManager) {
-	_deferredShader.runShader(shadowRenderer, lights, viewManager, _mrtFBO);
+void DeferredRenderer::deferredLighting(ShadowRenderer* shadowRenderer, std::vector<Light*>& lights, ViewManager* viewManager,
+    PointShadowRenderer* pointShadowRenderer) {
+	_deferredShader.runShader(shadowRenderer, lights, viewManager, _mrtFBO, pointShadowRenderer);
 }
 
 void DeferredRenderer::bind() {

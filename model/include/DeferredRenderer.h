@@ -42,7 +42,8 @@ public:
     DeferredRenderer();
     ~DeferredRenderer();
     void deferredLighting(ShadowRenderer* shadowRenderer, 
-        std::vector<Light*>& lights, ViewManager* viewManager);
+        std::vector<Light*>& lights, ViewManager* viewManager,
+        PointShadowRenderer* pointShadowRenderer);
     void bind();
     void unbind();
 };

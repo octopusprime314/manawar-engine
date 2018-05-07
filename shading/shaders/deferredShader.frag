@@ -5,9 +5,11 @@ uniform sampler2D normalTexture;    //Normal texture data array
 uniform sampler2D positionTexture;  //Position texture data array
 uniform sampler2D cameraDepthTexture;   //depth texture data array with values 1.0 to 0.0, with 0.0 being closer
 uniform sampler2D mapDepthTexture;      //depth texture data array with values 1.0 to 0.0, with 0.0 being closer
+uniform samplerCube depthMap;		//cube depth map for point light shadows
 
 uniform mat4 lightViewMatrix;     	//Light perspective's view matrix
-uniform mat4 lightMapViewMatrix;     	//Light perspective's view matrix
+uniform mat4 lightMapViewMatrix;    //Light perspective's view matrix
+uniform mat4 viewToModelMatrix;		//Inverse camera view space matrix
 
 uniform vec3 pointLightPositions[20];//max lights is 20 for now
 uniform vec3 pointLightColors[20]; //max lights is 20 for now
@@ -56,8 +58,14 @@ void main(){
 		gl_FragColor = vec4(depth, depth, depth, 1.0);
 	}
 	else if(views == 2){		
-		float depth = texture(cameraDepthTexture, textureCoordinateOut).x;
-		gl_FragColor = vec4(depth, depth, depth, 1.0);
+		//float depth = texture(cameraDepthTexture, textureCoordinateOut).x;
+		//gl_FragColor = vec4(depth, depth, depth, 1.0);
+		
+		vec3 cubeMapTexCoords = (viewToModelMatrix * vec4(position.xyz,1.0)).xyz - pointLightPositions[0].xyz;
+		float cubeDepth = texture(depthMap, normalize(cubeMapTexCoords.xyz)).x;
+		gl_FragColor = vec4(vec3(cubeDepth), 1.0);
+		//Records cube map texture indexing to look at in Renderdoc
+		//gl_FragColor = vec4(cubeMapTexCoords, 1.0);
 	}
 	else if(views == 3){
 		gl_FragColor = vec4(diffuse.rgb * min(illumination + ambient, 1.0), 1.0);
@@ -96,17 +104,25 @@ void main(){
 	//Show light positions
 	else if(views == 7){
 	
+		
+		
 		float lightAccumulation = 0.0;
 		vec3 pointLighting = vec3(0.0, 0.0, 0.0);
-		for(int i = 0; i < numPointLights; i++){
-			vec3 pointLightDir = pointLightPositions[i].xyz - position.xyz;
+		//for(int i = 0; i < numPointLights; i++){
+			vec3 pointLightDir = (viewToModelMatrix * vec4(position.xyz,1.0)).xyz - pointLightPositions[0].xyz;
 			float distanceFromLight = length(pointLightDir);
-			if(distanceFromLight <= pointLightRanges[i]){
-				vec3 pointLightDirNorm = normalize(pointLightDir);
-				pointLighting += (dot(pointLightDirNorm, normalizedNormal)) * (1.0 - (distanceFromLight/pointLightRanges[i])) * pointLightColors[i];
+			if(distanceFromLight <= pointLightRanges[0]){
+				vec3 pointLightDirNorm = normalize(-pointLightDir);
+				pointLighting += (dot(pointLightDirNorm, normalizedNormal)) * (1.0 - (4.0*distanceFromLight/pointLightRanges[0])) * pointLightColors[0];
 			}
-		}
-		//Point light color plus ambient white color
-		gl_FragColor = vec4(diffuse.rgb * pointLighting, 1.0) + vec4(diffuse.rgb * 0.2, 1.0);
+		//}
+		
+		vec3 cubeMapTexCoords = (viewToModelMatrix * vec4(position.xyz,1.0)).xyz - pointLightPositions[0].xyz;
+		float distance = length(cubeMapTexCoords);
+		float cubeDepth = texture(depthMap, normalize(cubeMapTexCoords.xyz)).x*pointLightRanges[0];
+		float bias = 0.05; 
+		float shadow = distance - bias > cubeDepth ? ambient : 1.0;
+		//gl_FragColor = vec4(diffuse.rgb * shadow * min(pointLighting + ambient, 1.0), 1.0);
+		gl_FragColor = vec4(diffuse.rgb * shadow * min(ambient, 1.0), 1.0);
 	}
 }

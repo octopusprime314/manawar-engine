@@ -1,5 +1,5 @@
 /*
-* GLIncludes is part of the ReBoot distribution (https://github.com/octopusprime314/ReBoot.git).
+* SkyBoxShader is part of the ReBoot distribution (https://github.com/octopusprime314/ReBoot.git).
 * Copyright (c) 2017 Peter Morley.
 *
 * ReBoot is free software: you can redistribute it and/or modify
@@ -16,19 +16,22 @@
 */
 
 /**
-*  GLIncludes. Manages gl based include files
+*  SkyboxShader class. Shader that accesses a 3d cube map texture with regular screen space
+*  coordinates.
 */
 
 #pragma once
+#include "Shader.h"
+#include "GLIncludes.h"
+class SkyBox;
 
-#include "GL/gl3w.h"
-#include "GL/glfw3.h"
-#include <string>
+class SkyboxShader : public Shader {
 
-
-const int screenPixelWidth = 1920;
-const int screenPixelHeight = 1080;
-
-const std::string ASSET_LOCATION = "../assets/";
-const std::string MESH_LOCATION = ASSET_LOCATION + "meshes/";
-const std::string TEXTURE_LOCATION = ASSET_LOCATION + "textures/";
+    GLint _viewLocation;
+    GLint _projectionLocation;
+    GLint _cubeMapLocation;
+public:
+    SkyboxShader(std::string shaderName);
+    ~SkyboxShader();
+    void runShader(SkyBox* skybox);
+};

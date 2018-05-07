@@ -50,11 +50,6 @@ enum class GeometryType {
     Sphere = 1
 };
 
-
-const std::string ASSET_LOCATION = "../assets/";
-const std::string MESH_LOCATION = ASSET_LOCATION + "meshes/";
-const std::string TEXTURE_LOCATION = ASSET_LOCATION + "textures/";
-
 class Model : public UpdateInterface {
 
 public:

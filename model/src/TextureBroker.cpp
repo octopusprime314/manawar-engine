@@ -21,6 +21,12 @@ void TextureBroker::addTexture(std::string textureName) {
     }
 }
 
+void TextureBroker::addCubeTexture(std::string textureName) {
+    if (_textures.find(textureName) == _textures.end()) {
+        _textures[textureName] = new Texture(textureName, true);
+    }
+}
+
 Texture* TextureBroker::getTexture(std::string textureName) {
     return _textures[textureName];
 }

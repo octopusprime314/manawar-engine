@@ -1,15 +1,14 @@
 #include "Light.h"
 
 Light::Light(ViewManagerEvents* eventWrapper, 
-    MVP mvp, LightType type, Vector4 color, float range) :
+    MVP mvp, LightType type, Vector4 color) :
     UpdateInterface(eventWrapper),
     _type(type),
-    _mvp(mvp),
-    _color(color),
-    _range(range) {
+    _lightMVP(mvp),
+    _color(color) {
     
     //Extract light position from view matrix
-    float* inverseView = _mvp.getViewMatrix().inverse().getFlatBuffer();
+    float* inverseView = _lightMVP.getViewMatrix().inverse().getFlatBuffer();
     _position = Vector4(inverseView[3], inverseView[7], inverseView[11], 1.0);
 }
 
@@ -19,19 +18,22 @@ MVP Light::getMVP() {
     //the large map directional light that is used for low resolution 
     //shadow map generation
     if (_type == LightType::MAP_DIRECTIONAL) {
-        return _mvp;
+        return _lightMVP;
     }
     else {
-        MVP temp = _mvp;
-        float* inverseView = _view.inverse().getFlatBuffer();
-        temp.setView(_mvp.getViewMatrix() *
+        MVP temp = _lightMVP;
+       float* inverseView = _cameraMVP.getViewMatrix().inverse().getFlatBuffer();
+        temp.setView(_lightMVP.getViewMatrix() *
             Matrix::cameraTranslation(inverseView[3], inverseView[7], inverseView[11]));
         return temp;
     }
 }
 
 Vector4 Light::getPosition() {
-    return _view * _position;
+    //Extract light position from model matrix
+    float* inverseModel = _lightMVP.getModelMatrix().getFlatBuffer();
+    _position = Vector4(inverseModel[3], inverseModel[7], inverseModel[11], 1.0);
+    return _position;
 }
 
 LightType Light::getType(){
@@ -43,7 +45,15 @@ Vector4& Light::getColor() {
 }
 
 float Light::getRange() {
-    return _range;
+
+    auto projMatrix = _lightMVP.getProjectionBuffer();
+    float nearVal = (2.0f*projMatrix[11]) / (2.0f*projMatrix[10] - 2.0f);
+    float farVal = ((projMatrix[10] - 1.0f)*nearVal) / (projMatrix[10] + 1.0f);
+    return farVal;
+}
+
+void Light::setMVP(MVP mvp){
+    _lightMVP = mvp;
 }
 
 void Light::_updateDraw() {
@@ -56,11 +66,11 @@ void Light::_updateMouse(double x, double y) {
 }
 
 void Light::_updateView(Matrix view) {
-    _view = view;
+    _cameraMVP.setView(view);
 }
 
 void Light::_updateProjection(Matrix projection) {
-    _projection = projection;
+    _cameraMVP.setProjection(projection);
 }
 
 

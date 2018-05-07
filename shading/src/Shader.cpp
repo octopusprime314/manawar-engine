@@ -21,40 +21,52 @@ inline bool fileExists(const std::string& name) {
 }
 
 void Shader::_build() {
-    unsigned int vertexShaderHandle;
-    unsigned int fragmentShaderHandle;
+    unsigned int vertexSH;
+    unsigned int fragmentSH;
+    unsigned int geomSH;
 
     std::string fileNameVert = SHADERS_LOCATION + _shaderName;
     fileNameVert.append(".vert");
     std::string fileNameFrag = SHADERS_LOCATION + _shaderName;
     fileNameFrag.append(".frag");
+    std::string fileNameGeom = SHADERS_LOCATION + _shaderName;
+    fileNameGeom.append(".geom");
 
     //Compile each shader
     if (fileExists(fileNameVert)) {
-        vertexShaderHandle = _compile((char*)fileNameVert.c_str(), GL_VERTEX_SHADER);
+        vertexSH = _compile((char*)fileNameVert.c_str(), GL_VERTEX_SHADER);
     }
     else {
-        vertexShaderHandle = -1;
+        vertexSH = -1;
     }
     if (fileExists(fileNameFrag)) {
-        fragmentShaderHandle = _compile((char*)fileNameFrag.c_str(), GL_FRAGMENT_SHADER);
+        fragmentSH = _compile((char*)fileNameFrag.c_str(), GL_FRAGMENT_SHADER);
     }
     else {
-        fragmentShaderHandle = -1;
+        fragmentSH = -1;
+    }
+    if (fileExists(fileNameGeom)) {
+        geomSH = _compile((char*)fileNameGeom.c_str(), GL_GEOMETRY_SHADER);
+    }
+    else {
+        geomSH = -1;
     }
 
-    //Link the two compiled binaries
-    _link(vertexShaderHandle, fragmentShaderHandle);
+    //Link shaders
+    _link(vertexSH, fragmentSH, geomSH);
 }
 
-void Shader::_link(unsigned int vertexShaderHandle, unsigned int fragmentShaderHandle) {
+void Shader::_link(unsigned int vertexSH, unsigned int fragmentSH, unsigned int geomSH) {
     _shaderContext = glCreateProgram();
 
-    if (vertexShaderHandle != -1) {
-        glAttachShader(_shaderContext, vertexShaderHandle);
+    if (vertexSH != -1) {
+        glAttachShader(_shaderContext, vertexSH);
     }
-    if (fragmentShaderHandle != -1) {
-        glAttachShader(_shaderContext, fragmentShaderHandle);
+    if (fragmentSH != -1) {
+        glAttachShader(_shaderContext, fragmentSH);
+    }
+    if (geomSH != -1) {
+        glAttachShader(_shaderContext, geomSH);
     }
 
     glLinkProgram(_shaderContext);

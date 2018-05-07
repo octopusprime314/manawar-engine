@@ -1,0 +1,42 @@
+/*
+* PointShadowRenderer is part of the ReBoot distribution (https://github.com/octopusprime314/ReBoot.git).
+* Copyright (c) 2018 Peter Morley.
+*
+* ReBoot is free software: you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation, version 3.
+*
+* ReBoot is distributed in the hope that it will be useful, but
+* WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+* General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program. If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/**
+*  PointShadowRenderer class. Uses a cube map texture class from point lights in the scene
+*  to generate shadows.
+*/
+
+#pragma once
+
+#include "CubeMap.h"
+#include <vector>
+#include "Light.h"
+#include "Model.h"
+#include "ShadowAnimatedPointShader.h"
+
+class PointShadowRenderer {
+
+    CubeMap                    _cubeTextureMap; //Contains 6 size for point light shadow rendering
+    ShadowPointShader          _pointShadowShader;//Shader that generates point light cube map shadows
+    ShadowAnimatedPointShader  _pointAnimatedShadowShader;//Animated Shader that generates point light cube map shadows
+public:
+    PointShadowRenderer(GLuint width, GLuint height);
+    ~PointShadowRenderer();
+
+    void generateShadowBuffer(std::vector<Model*> modelList, std::vector<Light*>& lights);
+    GLuint getCubeMapDepthTexture();
+};

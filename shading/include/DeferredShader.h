@@ -29,6 +29,7 @@
 #include "MRTFrameBuffer.h"
 #include "Light.h"
 #include "ViewManager.h"
+#include "PointShadowRenderer.h"
 
 class DeferredShader : public Shader {
 
@@ -47,11 +48,14 @@ class DeferredShader : public Shader {
     GLuint _pointLightPositionsLocation;
     GLuint _pointLightColorsLocation;
     GLuint _pointLightRangesLocation;
+    GLuint _pointLightDepthMapLocation;
+    GLuint _viewToModelSpaceMatrixLocation;
 
 public:
     DeferredShader(std::string shaderName);
     virtual ~DeferredShader();
     void runShader(Model* model) {};
     void runShader(ShadowRenderer* shadowRenderer, std::vector<Light*>& lights, 
-        ViewManager* viewManager, MRTFrameBuffer& mrtFBO);
+        ViewManager* viewManager, MRTFrameBuffer& mrtFBO, 
+        PointShadowRenderer* pointShadowRenderer);
 };

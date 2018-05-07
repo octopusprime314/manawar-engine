@@ -147,5 +147,6 @@ void AnimationShader::runShader(Model* modelIn) {
     glDisableVertexAttribArray(5); //Disable indexes2 attribute
     glDisableVertexAttribArray(6); //Disable weight2 attribute
     glBindBuffer(GL_ARRAY_BUFFER, 0); //Unbind buffer
+    glBindTexture(GL_TEXTURE_2D, 0); //Unbind texture
     glUseProgram(0);//end using this shader
 }

@@ -1,5 +1,5 @@
 /*
-* GLIncludes is part of the ReBoot distribution (https://github.com/octopusprime314/ReBoot.git).
+* SkyBox is part of the ReBoot distribution (https://github.com/octopusprime314/ReBoot.git).
 * Copyright (c) 2017 Peter Morley.
 *
 * ReBoot is free software: you can redistribute it and/or modify
@@ -16,19 +16,27 @@
 */
 
 /**
-*  GLIncludes. Manages gl based include files
+*  SkyBox class. Displays far away background scenes and derives from CubeMap class
 */
 
 #pragma once
+#include "CubeMap.h"
+#include "GLIncludes.h"
+#include "TextureBroker.h"  
+#include "MVP.h"
+#include "VBO.h"
+#include "SkyboxShader.h"
 
-#include "GL/gl3w.h"
-#include "GL/glfw3.h"
-#include <string>
+class SkyBox {
 
-
-const int screenPixelWidth = 1920;
-const int screenPixelHeight = 1080;
-
-const std::string ASSET_LOCATION = "../assets/";
-const std::string MESH_LOCATION = ASSET_LOCATION + "meshes/";
-const std::string TEXTURE_LOCATION = ASSET_LOCATION + "textures/";
+    MVP _mvp;
+    VBO _vbo;
+    SkyboxShader _skyboxShader;
+    Texture* _cubeMapTexture;
+public:
+    SkyBox(std::string folder);
+    ~SkyBox();
+    MVP* getMVP();
+    VBO* getVBO();
+    Texture* getCubeMapTexture();
+};

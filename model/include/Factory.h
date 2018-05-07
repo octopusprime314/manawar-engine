@@ -40,9 +40,8 @@ namespace Factory {
     template<class T>
     T* make(MVP mvp,
         LightType type,
-        Vector4 color = { 1.0f, 1.0f, 1.0f, 1.0f },
-        float range = 0.0f) {
-        return new T(_viewEventWrapper, mvp, type, color, range);
+        Vector4 color = { 1.0f, 1.0f, 1.0f, 1.0f }) {
+        return new T(_viewEventWrapper, mvp, type, color);
     }
 
     //Sets the reference to the view model's event object

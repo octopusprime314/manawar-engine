@@ -25,10 +25,21 @@
 #include "FreeImage.h"
 
 class Texture{
-    GLuint _textureContext;
+
     Texture(); //Make the default constructor private which forces coder to allocate a Texture with a string name
+    void _build2DTexture(std::string textureName);
+    void _buildCubeMapTexture(std::string skyboxName);
+    bool _getTextureData(std::string textureName);
+
+
+    GLuint    _textureContext;
+    int       _width;
+    int       _height;
+    BYTE*     _bits;
+    bool      _alphaValues;
+    FIBITMAP* _dib;
 public:
-    Texture(std::string textureName);
+    Texture(std::string textureName, bool cubeMap = false); //if true then it is a special cube map
     ~Texture();
     GLuint getContext();
 };

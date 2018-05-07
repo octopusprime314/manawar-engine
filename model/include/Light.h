@@ -31,25 +31,23 @@ enum class LightType{
     };
 
 class Light : UpdateInterface{
-    MVP                     _mvp; //Model view matrix container
-    Matrix                  _view; //tracks camera view matrix
-    Matrix                  _projection; //tracks camera projection matrix
+    MVP                     _cameraMVP; //Camera's model view matrix container
+    MVP                     _lightMVP; //Light's Model view matrix for light
     Vector4                 _position; //Position of light
     LightType               _type; //Light type enum
     Vector4                 _color; //Light color
-    float                   _range; //Light range for point lights, etc
 
 public:
     Light(ViewManagerEvents* eventWrapper, 
         MVP mvp, 
         LightType type, 
-        Vector4 color = { 1.0f, 1.0f, 1.0f, 1.0f }, 
-        float range = 0.0f);
+        Vector4 color = { 1.0f, 1.0f, 1.0f, 1.0f });
     MVP                         getMVP();
     Vector4                     getPosition();
     LightType                   getType();
     Vector4&                    getColor();
     float                       getRange();
+    void                        setMVP(MVP mvp);
 
 protected:
     void                        _updateKeyboard(int key, int x, int y); //Do stuff based on keyboard upate

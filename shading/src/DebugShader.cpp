@@ -6,5 +6,4 @@ DebugShader::DebugShader(std::string shaderName) : Shader(shaderName)  {
 }
 void DebugShader::runShader(Model* model) {
 
-  
 }

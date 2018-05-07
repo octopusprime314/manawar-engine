@@ -149,7 +149,7 @@ void ViewManager::_updateKeyboard(int key, int x, int y) { //Do stuff based on k
             temp = trans.getFlatBuffer();
         }
         else if (key == GLFW_KEY_E) { //up e
-            force = Vector4(0.0, -velMagnitude, 0.0, 1.0);
+            force = Vector4(0.0, velMagnitude, 0.0, 1.0);
             trans = Vector4(_inverseRotation * force); //Apply transformation based off inverse rotation
             temp = trans.getFlatBuffer();
         }

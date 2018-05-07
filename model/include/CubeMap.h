@@ -20,15 +20,25 @@
 */
 
 #pragma once
-
+#include <vector>
+#include "Vector4.h"
+#include "Matrix.h"
 
 class CubeMap {
 
-
+protected:
+    unsigned int _depthCubemap; //Cube texture reference
+    unsigned int _cubeFrameBuffer; //Cube frame buffer used for render to cube texture
+    //Width and height are used to change viewport when rendering
+    unsigned int _width; //Width of texture 
+    unsigned int _height; //Height of texture
 public:
-    CubeMap();
+    CubeMap(unsigned int width, unsigned int height);
     ~CubeMap();
 
-
+    unsigned int getWidth();
+    unsigned int getHeight();
+    unsigned int getCubeDepthFrameBufferContext();
+    unsigned int getCubeDepthMapContext();
 };
 

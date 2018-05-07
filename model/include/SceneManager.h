@@ -26,6 +26,8 @@
 #include "Physics.h"
 #include "DeferredRenderer.h"
 #include "ShadowRenderer.h"
+#include "PointShadowRenderer.h"
+#include "SkyBox.h"
 
 class SceneManager {
     ViewManager*        _viewManager; //manages the view/camera matrix from the user's perspective
@@ -34,6 +36,8 @@ class SceneManager {
     Physics             _physics; //Manages physical interactions between models
     DeferredRenderer*   _deferredRenderer; //Manages deferred shading g buffers
     ShadowRenderer*     _shadowRenderer;   //Manages shadow rendering
+    PointShadowRenderer* _pointShadowRenderer; //Manages point shadow lights
+    SkyBox*              _skybox; //Faraway display scene object
 
     void _preDraw(); //Prior to drawing objects call this function
     void _postDraw(); //Post of drawing objects call this function

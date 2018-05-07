@@ -10,7 +10,11 @@ SceneManager::SceneManager(int* argc, char** argv, unsigned int viewportWidth, u
 
     _deferredRenderer = new DeferredRenderer();
 
-    _shadowRenderer = new ShadowRenderer(2000, 2000/*viewportWidth, viewportHeight*/);
+    _shadowRenderer = new ShadowRenderer(2000, 2000);
+
+    _pointShadowRenderer = new PointShadowRenderer(2000, 2000);
+
+    _skybox = new SkyBox("skybox");
 
     //Setup pre and post draw callback events received when a draw call is issued
     SimpleContextEvents::setPreDrawCallback(std::bind(&SceneManager::_preDraw, this));
@@ -34,8 +38,8 @@ SceneManager::SceneManager(int* argc, char** argv, unsigned int viewportWidth, u
     _viewManager->setView(Matrix::cameraTranslation(0.0, 2.0, -20.0), Matrix(), Matrix()); //Place view 25 meters in +z direction
     _viewManager->setModelList(_modelList);
 
-    _physics.addModels(_modelList); //Gives physics a pointer to all models which allows access to underlying geometry
-    _physics.run(); //Dispatch physics to start kinematics 
+    //_physics.addModels(_modelList); //Gives physics a pointer to all models which allows access to underlying geometry
+    //_physics.run(); //Dispatch physics to start kinematics 
 
     //Add a directional light pointing down in the negative y axis
     MVP lightMVP;
@@ -49,17 +53,24 @@ SceneManager::SceneManager(int* argc, char** argv, unsigned int viewportWidth, u
     _lightList.push_back(Factory::make<Light>(lightMapMVP, LightType::MAP_DIRECTIONAL));
 
 
+    //Model view projection matrix for point light additions
     MVP pointLightMVP;
-    pointLightMVP.setView(Matrix::cameraTranslation(0.0f, 25.0f, 0.0f));
-    _lightList.push_back(Factory::make<Light>(pointLightMVP, LightType::POINT, Vector4(1.0f, 0.0f, 0.0f, 1.0f), 50.0f));
-    pointLightMVP.setView(Matrix::cameraTranslation(0.0f, 25.0f, 100.0f));
-    _lightList.push_back(Factory::make<Light>(pointLightMVP, LightType::POINT, Vector4(0.0f, 1.0f, 0.0f, 1.0f), 50.0f));
+
+    //point light projection has a 90 degree view angle with a 1 aspect ratio for generating square shadow maps
+    //with a near z value of 1 and far z value of 100
+    pointLightMVP.setProjection(Matrix::cameraProjection(90.0f, 1.0f, 1.0f, 100.0f));
+
+    //Placing the lights in equidistant locations for testing
+    pointLightMVP.setModel(Matrix::translation(0.0f, 50.0f, 0.0f));
+    _lightList.push_back(Factory::make<Light>(pointLightMVP, LightType::POINT, Vector4(1.0f, 1.0f, 1.0f, 1.0f)));
+    /*pointLightMVP.setView(Matrix::cameraTranslation(0.0f, 25.0f, 100.0f));
+    _lightList.push_back(Factory::make<Light>(pointLightMVP, LightType::POINT, Vector4(0.0f, 1.0f, 0.0f, 1.0f)));
     pointLightMVP.setView(Matrix::cameraTranslation(100.0f, 25.0f, 0.0f));
-    _lightList.push_back(Factory::make<Light>(pointLightMVP, LightType::POINT, Vector4(0.0f, 0.0f, 1.0f, 1.0f), 50.0f));
+    _lightList.push_back(Factory::make<Light>(pointLightMVP, LightType::POINT, Vector4(0.0f, 0.0f, 1.0f, 1.0f)));
     pointLightMVP.setView(Matrix::cameraTranslation(0.0f, 25.0f, -100.0f));
-    _lightList.push_back(Factory::make<Light>(pointLightMVP, LightType::POINT, Vector4(1.0f, 1.0f, 1.0f, 1.0f), 50.0f));
+    _lightList.push_back(Factory::make<Light>(pointLightMVP, LightType::POINT, Vector4(1.0f, 1.0f, 1.0f, 1.0f)));
     pointLightMVP.setView(Matrix::cameraTranslation(-100.0f, 25.0f, 0.0f));
-    _lightList.push_back(Factory::make<Light>(pointLightMVP, LightType::POINT, Vector4(1.0f, 0.0f, 1.0f, 1.0f), 50.0f));
+    _lightList.push_back(Factory::make<Light>(pointLightMVP, LightType::POINT, Vector4(1.0f, 0.0f, 1.0f, 1.0f)));*/
 
     MasterClock::instance()->run(); //Scene manager kicks off the clock event manager
 
@@ -78,6 +89,9 @@ void SceneManager::_preDraw() {
     //send all vbo data to shadow shader pre pass
     _shadowRenderer->generateShadowBuffer(_modelList, _lightList);
 
+    //send all vbo data to point light shadow pre pass
+    _pointShadowRenderer->generateShadowBuffer(_modelList, _lightList);
+
     //Establish an offscreen Frame Buffer Object to generate G buffers for deferred shading
     _deferredRenderer->bind();
 }
@@ -86,5 +100,5 @@ void SceneManager::_postDraw() {
     //unbind fbo
     _deferredRenderer->unbind();
     //Pass lights to deferred shading pass
-    _deferredRenderer->deferredLighting(_shadowRenderer, _lightList, _viewManager);
+    _deferredRenderer->deferredLighting(_shadowRenderer, _lightList, _viewManager, _pointShadowRenderer);
 }

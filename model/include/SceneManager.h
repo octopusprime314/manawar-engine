@@ -20,14 +20,15 @@
 */
 
 #pragma once
-#include "ViewManager.h"
-#include "Factory.h"
 #include <vector>
 #include "Physics.h"
-#include "DeferredRenderer.h"
-#include "ShadowRenderer.h"
-#include "PointShadowRenderer.h"
-#include "SkyBox.h"
+
+class ViewManager;
+class DeferredRenderer;
+class ShadowRenderer;
+class AudioManager;
+class SkyBox;
+class PointShadowRenderer;
 
 class SceneManager {
     ViewManager*        _viewManager; //manages the view/camera matrix from the user's perspective
@@ -38,11 +39,12 @@ class SceneManager {
     ShadowRenderer*     _shadowRenderer;   //Manages shadow rendering
     PointShadowRenderer* _pointShadowRenderer; //Manages point shadow lights
     SkyBox*              _skybox; //Faraway display scene object
+    AudioManager*       _audioManager;  // Manages audio playback
 
     void _preDraw(); //Prior to drawing objects call this function
     void _postDraw(); //Post of drawing objects call this function
 public:
-    SceneManager(int* argc, char** argv, unsigned int viewportWidth, unsigned int viewportHeight, 
+    SceneManager(int* argc, char** argv, unsigned int viewportWidth, unsigned int viewportHeight,
         float nearPlaneDistance, float farPlaneDistance);
     ~SceneManager();
 };

@@ -99,17 +99,17 @@ void SimpleContext::_drawUpdate() {
     while (!_quit) {
 
         //Only draw when a framerate trigger event has been received from the master clock
-        if(_renderNow > 0){
-            _renderLock.lock();
+        //if(_renderNow > 0){
+            //_renderLock.lock();
 
-            do {
+            //do {
                 SimpleContextEvents::updateDraw(_window);
                 //Decrement trigger
-                _renderNow--;
-            } while(_renderNow > 0);
+                //_renderNow--;
+            //} while(_renderNow > 0);
 
-            _renderLock.unlock();
-        }
+            //_renderLock.unlock();
+        //}
     }
 }
 

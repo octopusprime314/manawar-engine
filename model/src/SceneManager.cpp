@@ -20,9 +20,9 @@ SceneManager::SceneManager(int* argc, char** argv, unsigned int viewportWidth, u
 
     _pointShadowRenderer = new PointShadowRenderer(2000, 2000);
 
-    _skybox = new SkyBox("skybox");
+    _skybox = new SkyBox("skybox", _viewManager->getEventWrapper());
 
-    _audioManager = new AudioManager();
+    //_audioManager = new AudioManager();
 
     //Setup pre and post draw callback events received when a draw call is issued
     SimpleContextEvents::setPreDrawCallback(std::bind(&SceneManager::_preDraw, this));
@@ -83,7 +83,7 @@ SceneManager::SceneManager(int* argc, char** argv, unsigned int viewportWidth, u
     MasterClock::instance()->run(); //Scene manager kicks off the clock event manager
 
     // TODO: This should look cleaner.
-    _audioManager->StartAll();
+    //_audioManager->StartAll();
 
     _viewManager->run(); //Enables the glut main loop
 }
@@ -115,4 +115,7 @@ void SceneManager::_postDraw() {
     _deferredRenderer->unbind();
     //Pass lights to deferred shading pass
     _deferredRenderer->deferredLighting(_shadowRenderer, _lightList, _viewManager, _pointShadowRenderer);
+    //draw skybox
+    _skybox->render();
+
 }

@@ -30,7 +30,7 @@ class Texture{
     void _build2DTexture(std::string textureName);
     void _buildCubeMapTexture(std::string skyboxName);
     bool _getTextureData(std::string textureName);
-
+    void _decodeTexture(std::string textureName, unsigned int textureType);
 
     GLuint    _textureContext;
     int       _width;

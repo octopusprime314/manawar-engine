@@ -26,17 +26,27 @@
 #include "MVP.h"
 #include "VBO.h"
 #include "SkyboxShader.h"
+#include "UpdateInterface.h"
 
-class SkyBox {
+class SkyBox :public UpdateInterface{
 
-    MVP _mvp;
-    VBO _vbo;
+    MVP          _mvp;
+    VBO          _vbo;
     SkyboxShader _skyboxShader;
-    Texture* _cubeMapTexture;
+    Texture*     _cubeMapTexture;
 public:
-    SkyBox(std::string folder);
+    SkyBox(std::string folder, ViewManagerEvents* eventWrapper);
     ~SkyBox();
-    MVP* getMVP();
-    VBO* getVBO();
-    Texture* getCubeMapTexture();
+    MVP*         getMVP();
+    VBO*         getVBO();
+    Texture*     getCubeMapTexture();
+    void         render();
+protected:
+    void         _updateKeyboard(int key, int x, int y); //Do stuff based on keyboard upate
+    void         _updateReleaseKeyboard(int key, int x, int y);
+    void         _updateMouse(double x, double y); //Do stuff based on mouse update
+    void         _updateDraw(); //Do draw stuff
+    void         _updateView(Matrix view); //Get view matrix updates
+    void         _updateProjection(Matrix projection); //Get projection matrix updates
+
 };

@@ -192,5 +192,6 @@ void DeferredShader::runShader(ShadowRenderer* shadowRenderer,
     glDisableVertexAttribArray(1); //Disable texture attribute
     glBindBuffer(GL_ARRAY_BUFFER, 0); //Unbind buffer
     glBindTexture(GL_TEXTURE_2D, 0); //Unbind texture
+    glBindTexture(GL_TEXTURE_CUBE_MAP, 0); //Unbind texture
     glUseProgram(0);//end using this shader
 }

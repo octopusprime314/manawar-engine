@@ -33,55 +33,7 @@ void Texture::_build2DTexture(std::string textureName) {
     //Bind the generated reference context to load texture data
     glBindTexture(GL_TEXTURE_2D, _textureContext);
     
-    //Use mip maps to prevent anti aliasing issues
-    if (textureName.substr(textureName.find_last_of('.')) == ".tif" && _alphaValues) {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, _width, _height, 0, GL_BGRA, GL_UNSIGNED_BYTE, _bits);
-        glGenerateMipmap(GL_TEXTURE_2D); //Allocate mipmaps 
-    }
-    else if (textureName.substr(textureName.find_last_of('.')) == ".tif" && !_alphaValues) {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, _width, _height, 0, GL_BGR, GL_UNSIGNED_BYTE, _bits);
-        glGenerateMipmap(GL_TEXTURE_2D); //Allocate mipmaps
-    }
-    else if (textureName.substr(textureName.find_last_of('.')) == ".dds" && _alphaValues) {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, _width, _height, 0, GL_BGRA, GL_UNSIGNED_BYTE, _bits);
-        glGenerateMipmap(GL_TEXTURE_2D); //Allocate mipmaps
-    }
-    else if (textureName.substr(textureName.find_last_of('.')) == ".dds" && !_alphaValues) {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, _width, _height, 0, GL_BGR, GL_UNSIGNED_BYTE, _bits);
-        glGenerateMipmap(GL_TEXTURE_2D); //Allocate mipmaps
-    }
-    else if (textureName.substr(textureName.find_last_of('.')) == ".tga" && _alphaValues) {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, _width, _height, 0, GL_BGRA, GL_UNSIGNED_BYTE, _bits);
-        glGenerateMipmap(GL_TEXTURE_2D); //Allocate mipmaps
-    }
-    else if (textureName.substr(textureName.find_last_of('.')) == ".tga" && !_alphaValues) {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, _width, _height, 0, GL_BGR, GL_UNSIGNED_BYTE, _bits);
-        glGenerateMipmap(GL_TEXTURE_2D); //Allocate mipmaps
-    }
-    else if (textureName.substr(textureName.find_last_of('.')) == ".jpg" && _alphaValues) {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, _width, _height, 0, GL_BGRA, GL_UNSIGNED_BYTE, _bits);
-        glGenerateMipmap(GL_TEXTURE_2D); //Allocate mipmaps
-    }
-    else if (textureName.substr(textureName.find_last_of('.')) == ".jpg" && !_alphaValues) {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, _width, _height, 0, GL_BGR, GL_UNSIGNED_BYTE, _bits);
-        glGenerateMipmap(GL_TEXTURE_2D); //Allocate mipmaps
-    }
-    else if (textureName.substr(textureName.find_last_of('.')) == ".bmp" && _alphaValues) {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, _width, _height, 0, GL_BGRA, GL_UNSIGNED_BYTE, _bits);
-        glGenerateMipmap(GL_TEXTURE_2D); //Allocate mipmaps
-    }
-    else if (textureName.substr(textureName.find_last_of('.')) == ".bmp" && !_alphaValues) {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, _width, _height, 0, GL_BGR, GL_UNSIGNED_BYTE, _bits);
-        glGenerateMipmap(GL_TEXTURE_2D); //Allocate mipmaps
-    }
-    else if (textureName.substr(textureName.find_last_of('.')) == ".png" && _alphaValues) {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, _width, _height, 0, GL_RGBA, GL_UNSIGNED_BYTE, _bits);
-        glGenerateMipmap(GL_TEXTURE_2D); //Allocate mipmaps
-    }
-    else if (textureName.substr(textureName.find_last_of('.')) == ".png" && !_alphaValues) {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, _width, _height, 0, GL_RGB, GL_UNSIGNED_BYTE, _bits);
-        glGenerateMipmap(GL_TEXTURE_2D); //Allocate mipmaps
-    }
+    _decodeTexture(textureName, GL_TEXTURE_2D);
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
@@ -105,27 +57,33 @@ void Texture::_buildCubeMapTexture(std::string skyboxName) {
     //Bind the texture and create 6 sides of a texture cube
     glBindTexture(GL_TEXTURE_CUBE_MAP, _textureContext);
     for (unsigned int i = 0; i < 6; ++i) {
+        std::string textureName = "";
         if (i == 0) {
-            _getTextureData(skyboxName + "/top.tga");
+            textureName = skyboxName + "/front.jpg";
+            _getTextureData(textureName);
         }
         else  if (i == 1) {
-            _getTextureData(skyboxName + "/bottom.tga");
+            textureName = skyboxName + "/back.jpg";
+            _getTextureData(textureName);
         }
         else if (i == 2) {
-            _getTextureData(skyboxName + "/right.tga");
+            textureName = skyboxName + "/top.jpg";
+            _getTextureData(textureName);
         }
         else if (i == 3) {
-            _getTextureData(skyboxName + "/left.tga");
+            textureName = skyboxName + "/bottom.jpg";
+            _getTextureData(textureName);
         }
         else if (i == 4) {
-            _getTextureData(skyboxName + "/front.tga");
+            textureName = skyboxName + "/right.jpg";
+            _getTextureData(textureName);
         }
         else if (i == 5) {
-            _getTextureData(skyboxName + "/back.tga");
+            textureName = skyboxName + "/left.jpg";
+            _getTextureData(textureName);
         }
 
-        glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, _width, _height,
-            0, GL_RGB, GL_UNSIGNED_BYTE, _bits);
+        _decodeTexture(textureName, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i);
 
         //Free FreeImage's copy of the data
         FreeImage_Unload(_dib);
@@ -183,5 +141,59 @@ bool Texture::_getTextureData(std::string textureName) {
     }
 
     return true;
+}
+
+void Texture::_decodeTexture(std::string textureName, unsigned int textureType) {
+    
+    //Use mip maps to prevent anti aliasing issues
+    if (textureName.substr(textureName.find_last_of('.')) == ".tif" && _alphaValues) {
+        glTexImage2D(textureType, 0, GL_RGBA8, _width, _height, 0, GL_BGRA, GL_UNSIGNED_BYTE, _bits);
+        glGenerateMipmap(textureType); //Allocate mipmaps 
+    }
+    else if (textureName.substr(textureName.find_last_of('.')) == ".tif" && !_alphaValues) {
+        glTexImage2D(textureType, 0, GL_RGB8, _width, _height, 0, GL_BGR, GL_UNSIGNED_BYTE, _bits);
+        glGenerateMipmap(textureType); //Allocate mipmaps
+    }
+    else if (textureName.substr(textureName.find_last_of('.')) == ".dds" && _alphaValues) {
+        glTexImage2D(textureType, 0, GL_RGBA8, _width, _height, 0, GL_BGRA, GL_UNSIGNED_BYTE, _bits);
+        glGenerateMipmap(textureType); //Allocate mipmaps
+    }
+    else if (textureName.substr(textureName.find_last_of('.')) == ".dds" && !_alphaValues) {
+        glTexImage2D(textureType, 0, GL_RGB8, _width, _height, 0, GL_BGR, GL_UNSIGNED_BYTE, _bits);
+        glGenerateMipmap(textureType); //Allocate mipmaps
+    }
+    else if (textureName.substr(textureName.find_last_of('.')) == ".tga" && _alphaValues) {
+        glTexImage2D(textureType, 0, GL_RGBA8, _width, _height, 0, GL_RGBA, GL_UNSIGNED_BYTE, _bits);
+        glGenerateMipmap(textureType); //Allocate mipmaps
+    }
+    else if (textureName.substr(textureName.find_last_of('.')) == ".tga" && !_alphaValues) {
+        glTexImage2D(textureType, 0, GL_RGB8, _width, _height, 0, GL_BGR, GL_UNSIGNED_BYTE, _bits);
+        glGenerateMipmap(textureType); //Allocate mipmaps
+    }
+    else if (textureName.substr(textureName.find_last_of('.')) == ".jpg" && _alphaValues) {
+        glTexImage2D(textureType, 0, GL_RGBA8, _width, _height, 0, GL_BGRA, GL_UNSIGNED_BYTE, _bits);
+        glGenerateMipmap(textureType); //Allocate mipmaps
+    }
+    else if (textureName.substr(textureName.find_last_of('.')) == ".jpg" && !_alphaValues) {
+        glTexImage2D(textureType, 0, GL_RGB8, _width, _height, 0, GL_BGR, GL_UNSIGNED_BYTE, _bits);
+        glGenerateMipmap(textureType); //Allocate mipmaps
+    }
+    else if (textureName.substr(textureName.find_last_of('.')) == ".bmp" && _alphaValues) {
+        glTexImage2D(textureType, 0, GL_RGBA8, _width, _height, 0, GL_BGRA, GL_UNSIGNED_BYTE, _bits);
+        glGenerateMipmap(textureType); //Allocate mipmaps
+    }
+    else if (textureName.substr(textureName.find_last_of('.')) == ".bmp" && !_alphaValues) {
+        glTexImage2D(textureType, 0, GL_RGB8, _width, _height, 0, GL_BGR, GL_UNSIGNED_BYTE, _bits);
+        glGenerateMipmap(textureType); //Allocate mipmaps
+    }
+    else if (textureName.substr(textureName.find_last_of('.')) == ".png" && _alphaValues) {
+        glTexImage2D(textureType, 0, GL_RGBA8, _width, _height, 0, GL_RGBA, GL_UNSIGNED_BYTE, _bits);
+        glGenerateMipmap(textureType); //Allocate mipmaps
+    }
+    else if (textureName.substr(textureName.find_last_of('.')) == ".png" && !_alphaValues) {
+        glTexImage2D(textureType, 0, GL_RGB8, _width, _height, 0, GL_RGB, GL_UNSIGNED_BYTE, _bits);
+        glGenerateMipmap(textureType); //Allocate mipmaps
+    }
+
 }
 

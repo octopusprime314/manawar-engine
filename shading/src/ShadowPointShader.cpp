@@ -74,6 +74,5 @@ void ShadowPointShader::runShader(Model* model, Light* light, std::vector<Matrix
 
     glDisableVertexAttribArray(0); //Disable vertex attribute
     glBindBuffer(GL_ARRAY_BUFFER, 0); //Unbind buffer
-    glBindTexture(GL_TEXTURE_2D, 0); //Unbind texture
     glUseProgram(0);//end using this shader
 }

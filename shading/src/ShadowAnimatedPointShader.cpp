@@ -75,7 +75,6 @@ void ShadowAnimatedPointShader::runShader(Model* model, Light* light, std::vecto
     //Now enable weight buffer at location 4
     glEnableVertexAttribArray(4);
 
-
     //glUniform mat4 combined model and world matrix, GL_TRUE is telling GL we are passing in the matrix as row major
     glUniformMatrix4fv(_modelLocation, 1, GL_TRUE, modelMVP->getModelBuffer());
 
@@ -134,6 +133,5 @@ void ShadowAnimatedPointShader::runShader(Model* model, Light* light, std::vecto
     glDisableVertexAttribArray(3); //Disable indexes2 attribute
     glDisableVertexAttribArray(4); //Disable weight2 attribute
     glBindBuffer(GL_ARRAY_BUFFER, 0); //Unbind buffer
-    glBindTexture(GL_TEXTURE_2D, 0); //Unbind texture
     glUseProgram(0);//end using this shader
 }

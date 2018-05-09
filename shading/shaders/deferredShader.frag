@@ -32,12 +32,17 @@ float ambient = 0.4;
 
 void main(){
 
+	//extract position from position texture
+	vec4 position = texture(positionTexture, textureCoordinateOut.xy);
+	
+	if(position.x == 0.0 && position.y == 0.0 && position.z == 0.0){
+		discard;
+	}
+	
 	//extract normal from normal texture
 	vec3 normalizedNormal = normalize(texture(normalTexture, textureCoordinateOut.xy).xyz); 
 	//extract color from diffuse texture
 	vec4 diffuse = texture(diffuseTexture, textureCoordinateOut.xy);
-	//extract position from position texture
-	vec4 position = texture(positionTexture, textureCoordinateOut.xy);
 	
 	//Directional light calculation
 	//NEED to invert light vector other a normal surface pointing up with a light pointing
@@ -125,4 +130,5 @@ void main(){
 		//gl_FragColor = vec4(diffuse.rgb * shadow * min(pointLighting + ambient, 1.0), 1.0);
 		gl_FragColor = vec4(diffuse.rgb * shadow * min(ambient, 1.0), 1.0);
 	}
+	gl_FragDepth = 0.0;
 }

@@ -34,7 +34,7 @@ void ShadowRenderer::generateShadowBuffer(std::vector<Model*> modelList, std::ve
     Light* light = nullptr;
 
     //Only render static objects once to generate depth texture
-    if(!_staticRendered){
+    //if(!_staticRendered){
   
         //Bind frame buffer
         glBindFramebuffer(GL_FRAMEBUFFER, _mapShadowFBO.getFrameBufferContext());
@@ -59,7 +59,7 @@ void ShadowRenderer::generateShadowBuffer(std::vector<Model*> modelList, std::ve
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         _staticRendered = true;
 
-    }
+    //}
 
     //Bind frame buffer
     glBindFramebuffer(GL_FRAMEBUFFER, _staticShadowFBO.getFrameBufferContext());

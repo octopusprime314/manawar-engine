@@ -17,6 +17,20 @@ GLuint PointShadowRenderer::getCubeMapDepthTexture() {
 
 void PointShadowRenderer::generateShadowBuffer(std::vector<Model*> modelList, std::vector<Light*>& lights) {
 
+    // Specify what to render an start acquiring
+    GLenum buffers[] = { GL_DEPTH_ATTACHMENT };
+
+    //Need to change viewport to the resolution of the shadow texture
+    glViewport(0, 0, _cubeTextureMap.getWidth(), _cubeTextureMap.getHeight());
+
+    //Bind frame buffer
+    glBindFramebuffer(GL_FRAMEBUFFER, _cubeTextureMap.getCubeDepthFrameBufferContext());
+
+    //Clear depth buffer
+    glClear(GL_DEPTH_BUFFER_BIT);
+
+    glDrawBuffers(1, buffers);
+
     for (Light* light : lights) {
 
         if (light->getType() == LightType::POINT) {
@@ -43,19 +57,19 @@ void PointShadowRenderer::generateShadowBuffer(std::vector<Model*> modelList, st
             //Need to rotate 180 degrees around z axis to align cube map texture correctly
             lightTransforms.push_back(lightProj * Matrix::rotationAroundZ(180.0f) * lightTrans);
 
-            // Specify what to render an start acquiring
-            GLenum buffers[] = { GL_DEPTH_ATTACHMENT };
+            //// Specify what to render an start acquiring
+            //GLenum buffers[] = { GL_DEPTH_ATTACHMENT };
 
-            //Need to change viewport to the resolution of the shadow texture
-            glViewport(0, 0, _cubeTextureMap.getWidth(), _cubeTextureMap.getHeight());
+            ////Need to change viewport to the resolution of the shadow texture
+            //glViewport(0, 0, _cubeTextureMap.getWidth(), _cubeTextureMap.getHeight());
 
-            //Bind frame buffer
-            glBindFramebuffer(GL_FRAMEBUFFER, _cubeTextureMap.getCubeDepthFrameBufferContext());
+            ////Bind frame buffer
+            //glBindFramebuffer(GL_FRAMEBUFFER, _cubeTextureMap.getCubeDepthFrameBufferContext());
 
-            //Clear depth bufferg8
-            glClear(GL_DEPTH_BUFFER_BIT);
+            ////Clear depth buffer
+            //glClear(GL_DEPTH_BUFFER_BIT);
 
-            glDrawBuffers(1, buffers);
+            //glDrawBuffers(1, buffers);
 
             for (Model* model : modelList) {
                 if (model->getClassType() == ModelClass::ModelType) {
@@ -66,10 +80,13 @@ void PointShadowRenderer::generateShadowBuffer(std::vector<Model*> modelList, st
                 }
             }
 
-            //remove framebuffer context
-            glBindFramebuffer(GL_FRAMEBUFFER, 0);
+            ////remove framebuffer context
+            //glBindFramebuffer(GL_FRAMEBUFFER, 0);
         }
     }
+
+    //remove framebuffer context
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     //Need to change viewport to the resolution of the window size
     glViewport(0, 0, screenPixelWidth, screenPixelHeight);

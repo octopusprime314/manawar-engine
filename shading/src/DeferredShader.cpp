@@ -49,6 +49,20 @@ DeferredShader::DeferredShader(std::string shaderName) : Shader(shaderName) {
     _pointLightPositionsLocation = glGetUniformLocation(_shaderContext, "pointLightPositions");
     _pointLightDepthMapLocation = glGetUniformLocation(_shaderContext, "depthMap");
     _viewToModelSpaceMatrixLocation = glGetUniformLocation(_shaderContext, "viewToModelMatrix");
+
+    _inverseViewLocation = glGetUniformLocation(_shaderContext, "inverseView");
+    _inverseProjectionLocation = glGetUniformLocation(_shaderContext, "inverseProjection");
+    _skyboxTextureLocation = glGetUniformLocation(_shaderContext, "skyboxTexture");
+
+    //Get skybox texture
+    TextureBroker* textureManager = TextureBroker::instance();
+    //Day sky box
+    textureManager->addCubeTexture(TEXTURE_LOCATION + "skybox-day");
+    _skyBoxDayTexture = textureManager->getTexture(TEXTURE_LOCATION + "skybox-day");
+
+    //Night sky box
+    textureManager->addCubeTexture(TEXTURE_LOCATION + "skybox-night");
+    _skyBoxNightTexture = textureManager->getTexture(TEXTURE_LOCATION + "skybox-night");
 }
 
 DeferredShader::~DeferredShader() {
@@ -60,6 +74,8 @@ void DeferredShader::runShader(ShadowRenderer* shadowRenderer,
 							   ViewManager* viewManager,
 							   MRTFrameBuffer& mrtFBO,
                                PointShadowRenderer* pointShadowRenderer) {
+
+    glDisable(GL_DEPTH_TEST); //No need to do depth test in deferred pass
 
     //Take the generated texture data and do deferred shading
     //LOAD IN SHADER
@@ -108,7 +124,7 @@ void DeferredShader::runShader(ShadowRenderer* shadowRenderer,
         //If point light then add to uniforms
         if (light->getType() == LightType::POINT) {
             //Point lights need to remain stationary so move lights with camera space changes
-            auto pos = light->getPosition();
+            auto pos = viewManager->getView() * light->getPosition();
             float* posBuff = pos.getFlatBuffer();
             float* colorBuff = light->getColor().getFlatBuffer();
             for (int i = 0; i < 3; i++) {
@@ -149,6 +165,11 @@ void DeferredShader::runShader(ShadowRenderer* shadowRenderer,
     //glUniform mat4 view matrix, GL_TRUE is telling GL we are passing in the matrix as row major
     glUniformMatrix4fv(_viewToModelSpaceMatrixLocation, 1, GL_TRUE, viewToModelSpace.getFlatBuffer());
 
+    //glUniform mat4 view matrix, GL_TRUE is telling GL we are passing in the matrix as row major
+    glUniformMatrix4fv(_inverseViewLocation, 1, GL_TRUE, viewManager->getView().inverse().getFlatBuffer());
+    //glUniform mat4 view matrix, GL_TRUE is telling GL we are passing in the matrix as row major
+    glUniformMatrix4fv(_inverseProjectionLocation, 1, GL_TRUE, viewManager->getProjection().inverse().getFlatBuffer());
+    
     glUniform1i(_viewsLocation, static_cast<GLint>(viewManager->getViewState()));
 
     auto textures = mrtFBO.getTextureContexts();
@@ -160,6 +181,7 @@ void DeferredShader::runShader(ShadowRenderer* shadowRenderer,
     glUniform1i(_cameraDepthTextureLocation, 3);
     glUniform1i(_mapDepthTextureLocation, 4);
     glUniform1i(_pointLightDepthMapLocation, 5);
+    glUniform1i(_skyboxTextureLocation, 6);
 
     //Diffuse texture
     glActiveTexture(GL_TEXTURE0);
@@ -185,6 +207,16 @@ void DeferredShader::runShader(ShadowRenderer* shadowRenderer,
     glActiveTexture(GL_TEXTURE5);
     glBindTexture(GL_TEXTURE_CUBE_MAP, pointShadowRenderer->getCubeMapDepthTexture());
 
+    //Skybox texture
+    glActiveTexture(GL_TEXTURE6);
+    if (viewMatrix[6] <= 0.0) {
+        glBindTexture(GL_TEXTURE_CUBE_MAP, _skyBoxDayTexture->getContext());
+    }
+    else {
+        glBindTexture(GL_TEXTURE_CUBE_MAP, _skyBoxNightTexture->getContext());
+    }
+
+
     //Draw triangles using the bound buffer vertices at starting index 0 and number of vertices
     glDrawArrays(GL_TRIANGLES, 0, (GLsizei)6);
 
@@ -194,4 +226,6 @@ void DeferredShader::runShader(ShadowRenderer* shadowRenderer,
     glBindTexture(GL_TEXTURE_2D, 0); //Unbind texture
     glBindTexture(GL_TEXTURE_CUBE_MAP, 0); //Unbind texture
     glUseProgram(0);//end using this shader
+
+    glEnable(GL_DEPTH_TEST); //No need to do depth test in deferred pass
 }

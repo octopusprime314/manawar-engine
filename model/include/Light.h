@@ -36,6 +36,8 @@ class Light : UpdateInterface{
     Vector4                 _position; //Position of light
     LightType               _type; //Light type enum
     Vector4                 _color; //Light color
+    void                    _updateTime(int time);
+    uint64_t                _milliSecondTime;
 
 public:
     Light(ViewManagerEvents* eventWrapper, 

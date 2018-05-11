@@ -51,6 +51,12 @@ class DeferredShader : public Shader {
     GLuint _pointLightDepthMapLocation;
     GLuint _viewToModelSpaceMatrixLocation;
 
+    GLuint _skyboxTextureLocation;
+    GLuint _inverseViewLocation;
+    GLuint _inverseProjectionLocation;
+    Texture* _skyBoxDayTexture;
+    Texture* _skyBoxNightTexture;
+
 public:
     DeferredShader(std::string shaderName);
     virtual ~DeferredShader();

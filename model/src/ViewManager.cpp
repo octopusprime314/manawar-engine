@@ -26,7 +26,7 @@ ViewManager::ViewManager(int* argc, char** argv, unsigned int viewportWidth, uns
 
     _thirdPersonTranslation = Matrix::cameraTranslation(0, 5, 10);
 
-    _viewState = ViewManager::ViewState::DIFFUSE_SHADOW;
+    _viewState = ViewManager::ViewState::POINT_LIGHTS;
 }
 
 ViewManager::~ViewManager() {

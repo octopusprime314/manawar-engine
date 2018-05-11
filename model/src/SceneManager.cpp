@@ -1,7 +1,6 @@
 #include "SceneManager.h"
 #include "MasterClock.h"
 #include "SimpleContextEvents.h"
-#include "SkyBox.h"
 #include "ViewManager.h"
 #include "Factory.h"
 #include "DeferredRenderer.h"
@@ -19,8 +18,6 @@ SceneManager::SceneManager(int* argc, char** argv, unsigned int viewportWidth, u
     _shadowRenderer = new ShadowRenderer(2000, 2000);
 
     _pointShadowRenderer = new PointShadowRenderer(2000, 2000);
-
-    _skybox = new SkyBox("skybox", _viewManager->getEventWrapper());
 
     //_audioManager = new AudioManager();
 
@@ -46,8 +43,8 @@ SceneManager::SceneManager(int* argc, char** argv, unsigned int viewportWidth, u
     _viewManager->setView(Matrix::cameraTranslation(0.0, 2.0, -20.0), Matrix(), Matrix()); //Place view 25 meters in +z direction
     _viewManager->setModelList(_modelList);
 
-    _physics.addModels(_modelList); //Gives physics a pointer to all models which allows access to underlying geometry
-    _physics.run(); //Dispatch physics to start kinematics 
+    //_physics.addModels(_modelList); //Gives physics a pointer to all models which allows access to underlying geometry
+    //_physics.run(); //Dispatch physics to start kinematics 
 
     //Add a directional light pointing down in the negative y axis
     MVP lightMVP;
@@ -69,15 +66,15 @@ SceneManager::SceneManager(int* argc, char** argv, unsigned int viewportWidth, u
     pointLightMVP.setProjection(Matrix::cameraProjection(90.0f, 1.0f, 1.0f, 100.0f));
 
     //Placing the lights in equidistant locations for testing
-    pointLightMVP.setModel(Matrix::translation(0.0f, 50.0f, 0.0f));
+    pointLightMVP.setModel(Matrix::translation(0.0f, 40, 0.0f));
+    _lightList.push_back(Factory::make<Light>(pointLightMVP, LightType::POINT, Vector4(1.0f, 1.0f, 0.0f, 1.0f)));
+    //pointLightMVP.setModel(Matrix::translation(0.0f, 40, 50.0f));
+    //_lightList.push_back(Factory::make<Light>(pointLightMVP, LightType::POINT, Vector4(0.0f, 1.0f, 0.0f, 1.0f)));
+    //pointLightMVP.setModel(Matrix::translation(0.0f, 40, -50.0f));
+    //_lightList.push_back(Factory::make<Light>(pointLightMVP, LightType::POINT, Vector4(0.0f, 0.0f, 1.0f, 1.0f)));
+    /*pointLightMVP.setModel(Matrix::translation(0.0f, 25.0f, -100.0f));
     _lightList.push_back(Factory::make<Light>(pointLightMVP, LightType::POINT, Vector4(1.0f, 1.0f, 1.0f, 1.0f)));
-    /*pointLightMVP.setView(Matrix::cameraTranslation(0.0f, 25.0f, 100.0f));
-    _lightList.push_back(Factory::make<Light>(pointLightMVP, LightType::POINT, Vector4(0.0f, 1.0f, 0.0f, 1.0f)));
-    pointLightMVP.setView(Matrix::cameraTranslation(100.0f, 25.0f, 0.0f));
-    _lightList.push_back(Factory::make<Light>(pointLightMVP, LightType::POINT, Vector4(0.0f, 0.0f, 1.0f, 1.0f)));
-    pointLightMVP.setView(Matrix::cameraTranslation(0.0f, 25.0f, -100.0f));
-    _lightList.push_back(Factory::make<Light>(pointLightMVP, LightType::POINT, Vector4(1.0f, 1.0f, 1.0f, 1.0f)));
-    pointLightMVP.setView(Matrix::cameraTranslation(-100.0f, 25.0f, 0.0f));
+    pointLightMVP.setModel(Matrix::translation(-100.0f, 25.0f, 0.0f));
     _lightList.push_back(Factory::make<Light>(pointLightMVP, LightType::POINT, Vector4(1.0f, 0.0f, 1.0f, 1.0f)));*/
 
     MasterClock::instance()->run(); //Scene manager kicks off the clock event manager
@@ -115,7 +112,4 @@ void SceneManager::_postDraw() {
     _deferredRenderer->unbind();
     //Pass lights to deferred shading pass
     _deferredRenderer->deferredLighting(_shadowRenderer, _lightList, _viewManager, _pointShadowRenderer);
-    //draw skybox
-    _skybox->render();
-
 }

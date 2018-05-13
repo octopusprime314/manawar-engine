@@ -139,11 +139,27 @@ void Model::addTexture(std::string textureName, int stride) {
     _textureManager->addTexture(textureName);
 }
 
+void Model::addLayeredTexture(std::vector<std::string> textureNames, int stride) {
+    
+    //Encode layered into string to notify shader what type of texture is used
+    std::string sumString = "Layered";
+    for (auto& str : textureNames) {
+        sumString += str;
+    }
+    //Create sum string for later identification
+    _textureStrides.push_back(std::pair<std::string, int>(sumString, stride));
+    _textureManager->addLayeredTexture(textureNames);
+}
+
 Texture* Model::getTexture(std::string textureName) {
     return _textureManager->getTexture(textureName);
 }
 
-std::vector<std::pair<std::string, int>>& Model::getTextureStrides() {
+LayeredTexture* Model::getLayeredTexture(std::string textureName) {
+    return _textureManager->getLayeredTexture(textureName);
+}
+
+TextureMetaData& Model::getTextureStrides() {
     return _textureStrides;
 }
 

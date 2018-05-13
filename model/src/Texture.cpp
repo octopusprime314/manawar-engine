@@ -6,6 +6,8 @@ Texture::Texture(){
 
 Texture::Texture(std::string textureName, bool cubeMap){
 
+    _name = textureName;
+
     if (!cubeMap) {
         if (_getTextureData(textureName)) {
             _build2DTexture(textureName);

@@ -21,6 +21,17 @@ void TextureBroker::addTexture(std::string textureName) {
     }
 }
 
+void TextureBroker::addLayeredTexture(std::vector<std::string> textureNames) {
+    
+    std::string sumString = "Layered";
+    for (auto& str : textureNames) {
+        sumString += str;
+    }
+    if (_layeredTextures.find(sumString) == _layeredTextures.end()) {
+        _layeredTextures[sumString] = new LayeredTexture(textureNames);
+    }
+}
+
 void TextureBroker::addCubeTexture(std::string textureName) {
     if (_textures.find(textureName) == _textures.end()) {
         _textures[textureName] = new Texture(textureName, true);
@@ -29,4 +40,8 @@ void TextureBroker::addCubeTexture(std::string textureName) {
 
 Texture* TextureBroker::getTexture(std::string textureName) {
     return _textures[textureName];
+}
+
+LayeredTexture* TextureBroker::getLayeredTexture(std::string textureName) {
+    return _layeredTextures[textureName];
 }

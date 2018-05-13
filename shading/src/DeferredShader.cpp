@@ -52,7 +52,8 @@ DeferredShader::DeferredShader(std::string shaderName) : Shader(shaderName) {
 
     _inverseViewLocation = glGetUniformLocation(_shaderContext, "inverseView");
     _inverseProjectionLocation = glGetUniformLocation(_shaderContext, "inverseProjection");
-    _skyboxTextureLocation = glGetUniformLocation(_shaderContext, "skyboxTexture");
+    _skyboxDayTextureLocation = glGetUniformLocation(_shaderContext, "skyboxDayTexture");
+    _skyboxNightTextureLocation = glGetUniformLocation(_shaderContext, "skyboxNightTexture");
 
     //Get skybox texture
     TextureBroker* textureManager = TextureBroker::instance();
@@ -181,7 +182,8 @@ void DeferredShader::runShader(ShadowRenderer* shadowRenderer,
     glUniform1i(_cameraDepthTextureLocation, 3);
     glUniform1i(_mapDepthTextureLocation, 4);
     glUniform1i(_pointLightDepthMapLocation, 5);
-    glUniform1i(_skyboxTextureLocation, 6);
+    glUniform1i(_skyboxDayTextureLocation, 6);
+    glUniform1i(_skyboxNightTextureLocation, 7);
 
     //Diffuse texture
     glActiveTexture(GL_TEXTURE0);
@@ -207,14 +209,12 @@ void DeferredShader::runShader(ShadowRenderer* shadowRenderer,
     glActiveTexture(GL_TEXTURE5);
     glBindTexture(GL_TEXTURE_CUBE_MAP, pointShadowRenderer->getCubeMapDepthTexture());
 
-    //Skybox texture
+    //Skybox day and night textures
     glActiveTexture(GL_TEXTURE6);
-    if (viewMatrix[6] <= 0.0) {
-        glBindTexture(GL_TEXTURE_CUBE_MAP, _skyBoxDayTexture->getContext());
-    }
-    else {
-        glBindTexture(GL_TEXTURE_CUBE_MAP, _skyBoxNightTexture->getContext());
-    }
+    glBindTexture(GL_TEXTURE_CUBE_MAP, _skyBoxDayTexture->getContext());
+    glActiveTexture(GL_TEXTURE7);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, _skyBoxNightTexture->getContext());
+    
 
 
     //Draw triangles using the bound buffer vertices at starting index 0 and number of vertices

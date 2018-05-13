@@ -521,7 +521,7 @@ void FbxLoader::_generateTextureStrides(FbxMesh* meshNode, std::vector<int>& tex
     }
 }
 
-bool FbxLoader::_loadTexture(Model* model, int textureStride, FbxFileTexture* textureFbx, int textureIndex){
+bool FbxLoader::_loadTexture(Model* model, int textureStride, FbxFileTexture* textureFbx){
 
     if(textureFbx != nullptr){
         // Then, you can get all the properties of the texture, including its name
@@ -534,6 +534,35 @@ bool FbxLoader::_loadTexture(Model* model, int textureStride, FbxFileTexture* te
         return true;
     }
     return false;
+}
+
+bool FbxLoader::_loadLayeredTexture(Model* model, int textureStride, FbxLayeredTexture* layered_texture) {
+
+    std::vector<std::string> layeredTextureNames;
+    int textureCount = layered_texture->GetSrcObjectCount<FbxTexture>();
+    for (int textureIndex = 0; textureIndex < textureCount; textureIndex++) {
+
+        //Fetch the diffuse texture
+        FbxFileTexture* textureFbx = FbxCast<FbxFileTexture >(layered_texture->GetSrcObject<FbxFileTexture >(textureIndex));
+        if (textureFbx != nullptr) {
+            
+            // Then, you can get all the properties of the texture, including its name
+            std::string textureName = textureFbx->GetFileName();
+            std::string textureNameTemp = textureName; //Used a temporary storage to not overwrite textureName
+            std::string texturePath = TEXTURE_LOCATION;
+            //Finds second to last position of string and use that for file access name
+            texturePath.append(textureName.substr(textureNameTemp.substr(0, textureNameTemp.find_last_of("/\\")).find_last_of("/\\")));
+            
+            layeredTextureNames.push_back(texturePath);
+        }
+        else {
+            return false;
+        }
+    }
+
+    model->addLayeredTexture(layeredTextureNames, textureStride);
+
+    return true;
 }
 
 void FbxLoader::_loadTextures(Model* model, FbxMesh* meshNode, FbxNode* childNode) {
@@ -567,18 +596,22 @@ void FbxLoader::_loadTextures(Model* model, FbxMesh* meshNode, FbxNode* childNod
                 FbxLayeredTexture* layered_texture = FbxCast<FbxLayeredTexture>(propDiffuse.GetSrcObject<FbxLayeredTexture>(j));
                 if(layered_texture != nullptr) {
 
-                    int textureCount = layered_texture->GetSrcObjectCount<FbxTexture>();
-                    for (int textureIndex = 0; textureIndex < textureCount; textureIndex++) {
-
-                        //Fetch the diffuse texture
-                        FbxFileTexture* textureFbx = FbxCast<FbxFileTexture >(layered_texture->GetSrcObject<FbxFileTexture >(textureIndex));
-                        if(_loadTexture(model, strides[textureStrideIndex], textureFbx, textureIndex)){
-                            textureStrideIndex++;
-                        }
-
-                        // TODO Implement layered textures but for now just grab the first texture and break out
-                        break;
+                    if (_loadLayeredTexture(model, strides[textureStrideIndex], layered_texture)) {
+                        textureStrideIndex++;
                     }
+
+                    //int textureCount = layered_texture->GetSrcObjectCount<FbxTexture>();
+                    //for (int textureIndex = 0; textureIndex < textureCount; textureIndex++) {
+
+                    //    //Fetch the diffuse texture
+                    //    FbxFileTexture* textureFbx = FbxCast<FbxFileTexture >(layered_texture->GetSrcObject<FbxFileTexture >(textureIndex));
+                    //    if(_loadLayeredTexture(model, strides[textureStrideIndex], textureFbx, textureIndex)){
+                    //        textureStrideIndex++;
+                    //    }
+
+                    //    // TODO Implement layered textures but for now just grab the first texture and break out
+                    //    break;
+                    //}
                 }
             }
         }
@@ -590,7 +623,7 @@ void FbxLoader::_loadTextures(Model* model, FbxMesh* meshNode, FbxNode* childNod
 
                 //Fetch the diffuse texture
                 FbxFileTexture* textureFbx = FbxCast<FbxFileTexture>(propDiffuse.GetSrcObject<FbxFileTexture>(textureIndex));
-                if(_loadTexture(model, strides[textureStrideIndex], textureFbx, textureIndex)){
+                if(_loadTexture(model, strides[textureStrideIndex], textureFbx)){
                     textureStrideIndex++;
                 }
             }

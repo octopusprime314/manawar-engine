@@ -10,7 +10,7 @@
 * WITHOUT ANY WARRANTY; without even the implied warranty of
 * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
 * General Public License for more details.
-*
+* 
 * You should have received a copy of the GNU General Public License
 * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
@@ -38,17 +38,20 @@ class Light : UpdateInterface{
     Vector4                 _color; //Light color
     void                    _updateTime(int time);
     uint64_t                _milliSecondTime;
+    bool                    _shadowCaster;
 
 public:
     Light(ViewManagerEvents* eventWrapper, 
         MVP mvp, 
         LightType type, 
-        Vector4 color = { 1.0f, 1.0f, 1.0f, 1.0f });
+        Vector4 color, 
+        bool shadowCaster);
     MVP                         getMVP();
     Vector4                     getPosition();
     LightType                   getType();
     Vector4&                    getColor();
     float                       getRange();
+    bool                        isShadowCaster();
     void                        setMVP(MVP mvp);
 
 protected:

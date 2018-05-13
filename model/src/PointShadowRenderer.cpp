@@ -33,7 +33,7 @@ void PointShadowRenderer::generateShadowBuffer(std::vector<Model*> modelList, st
 
     for (Light* light : lights) {
 
-        if (light->getType() == LightType::POINT) {
+        if (light->getType() == LightType::POINT && light->isShadowCaster()) {
             std::vector<Matrix> lightTransforms;
             Matrix lightTrans = Matrix::cameraTranslation(light->getPosition().getx(),
                 light->getPosition().gety(), light->getPosition().getz());
@@ -57,20 +57,6 @@ void PointShadowRenderer::generateShadowBuffer(std::vector<Model*> modelList, st
             //Need to rotate 180 degrees around z axis to align cube map texture correctly
             lightTransforms.push_back(lightProj * Matrix::rotationAroundZ(180.0f) * lightTrans);
 
-            //// Specify what to render an start acquiring
-            //GLenum buffers[] = { GL_DEPTH_ATTACHMENT };
-
-            ////Need to change viewport to the resolution of the shadow texture
-            //glViewport(0, 0, _cubeTextureMap.getWidth(), _cubeTextureMap.getHeight());
-
-            ////Bind frame buffer
-            //glBindFramebuffer(GL_FRAMEBUFFER, _cubeTextureMap.getCubeDepthFrameBufferContext());
-
-            ////Clear depth buffer
-            //glClear(GL_DEPTH_BUFFER_BIT);
-
-            //glDrawBuffers(1, buffers);
-
             for (Model* model : modelList) {
                 if (model->getClassType() == ModelClass::ModelType) {
                     _pointShadowShader.runShader(model, light, lightTransforms);
@@ -79,9 +65,6 @@ void PointShadowRenderer::generateShadowBuffer(std::vector<Model*> modelList, st
                     _pointAnimatedShadowShader.runShader(model, light, lightTransforms);
                 }
             }
-
-            ////remove framebuffer context
-            //glBindFramebuffer(GL_FRAMEBUFFER, 0);
         }
     }
 

@@ -51,7 +51,8 @@ class DeferredShader : public Shader {
     GLuint _pointLightDepthMapLocation;
     GLuint _viewToModelSpaceMatrixLocation;
 
-    GLuint _skyboxTextureLocation;
+    GLuint _skyboxDayTextureLocation;
+    GLuint _skyboxNightTextureLocation;
     GLuint _inverseViewLocation;
     GLuint _inverseProjectionLocation;
     Texture* _skyBoxDayTexture;
@@ -60,7 +61,6 @@ class DeferredShader : public Shader {
 public:
     DeferredShader(std::string shaderName);
     virtual ~DeferredShader();
-    void runShader(Model* model) {};
     void runShader(ShadowRenderer* shadowRenderer, std::vector<Light*>& lights, 
         ViewManager* viewManager, MRTFrameBuffer& mrtFBO, 
         PointShadowRenderer* pointShadowRenderer);

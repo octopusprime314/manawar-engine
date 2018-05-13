@@ -49,9 +49,10 @@ enum class GeometryType {
     Triangle = 0,
     Sphere = 1
 };
+using TextureMetaData = std::vector<std::pair<std::string, int>>;
 
 class Model : public UpdateInterface {
-
+    
 public:
 
     Model();
@@ -65,8 +66,10 @@ public:
     ModelClass                  getClassType();
     size_t                      getArrayCount();
     void                        addTexture(std::string textureName, int stride);
+    void                        addLayeredTexture(std::vector<std::string> textureNames, int stride);
     Texture*                    getTexture(std::string textureName);
-    std::vector<std::pair<std::string, int>>& getTextureStrides();
+    LayeredTexture*             getLayeredTexture(std::string textureName);
+    TextureMetaData&            getTextureStrides();
     GeometryType                getGeometryType();
     Geometry*                   getGeometry();
     void                        addGeometryTriangle(Triangle triangle);
@@ -87,7 +90,7 @@ protected:
     MasterClock*                _clock; //Used to coordinate time with the world
     static TextureBroker*       _textureManager; //Static texture manager for texture reuse purposes, all models have access
     std::string                 _textureName; //Keeps track of which texture to grab from static texture manager
-    std::vector<std::pair<std::string, int>> _textureStrides; //Keeps track of which set of vertices use a certain texture within the large vertex set
+    TextureMetaData             _textureStrides; //Keeps track of which set of vertices use a certain texture within the large vertex set
     GeometryType                _geometryType; //Indicates whether the collision geometry is sphere or triangle based
     Geometry                    _geometry; //Geometry object that contains all collision information for a model
 

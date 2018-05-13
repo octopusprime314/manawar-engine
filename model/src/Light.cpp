@@ -2,11 +2,12 @@
 #include "MasterClock.h"
 
 Light::Light(ViewManagerEvents* eventWrapper, 
-    MVP mvp, LightType type, Vector4 color) :
+    MVP mvp, LightType type, Vector4 color, bool shadowCaster) :
     UpdateInterface(eventWrapper),
     _type(type),
     _lightMVP(mvp),
     _color(color),
+    _shadowCaster(shadowCaster),
     _milliSecondTime(0){
 
     MasterClock::instance()->subscribeKinematicsRate(std::bind(&Light::_updateTime, this, std::placeholders::_1));
@@ -46,6 +47,10 @@ LightType Light::getType(){
 
 Vector4& Light::getColor() {
     return _color;
+}
+
+bool Light::isShadowCaster() {
+    return _shadowCaster;
 }
 
 float Light::getRange() {

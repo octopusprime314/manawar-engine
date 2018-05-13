@@ -38,6 +38,7 @@ class Texture{
     BYTE*     _bits;
     bool      _alphaValues;
     FIBITMAP* _dib;
+    std::string _name;
 public:
     Texture(std::string textureName, bool cubeMap = false); //if true then it is a special cube map
     ~Texture();

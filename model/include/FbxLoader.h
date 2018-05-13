@@ -42,7 +42,8 @@ class FbxLoader {
         std::vector<Vector4>& normals, std::vector<Tex2>& textures);
     void           _buildGeometryData(Model* model, std::vector<Vector4>& vertices, std::vector<int>& indices, FbxNode* node);
     void           _generateTextureStrides(FbxMesh* meshNode, std::vector<int>& textureStrides);
-    bool           _loadTexture(Model* model, int textureStride, FbxFileTexture* textureFbx, int textureIndex);
+    bool           _loadTexture(Model* model, int textureStride, FbxFileTexture* textureFbx);
+    bool           _loadLayeredTexture(Model* model, int textureStride, FbxLayeredTexture* layered_texture);
     void           _loadTextureUVs(FbxMesh* meshNode, std::vector<Tex2>& textures);
     void           _loadNormals(FbxMesh* meshNode, int* indices, std::vector<Vector4>& normals);
     void           _loadVertices(FbxMesh* meshNode, std::vector<Vector4>& vertices);

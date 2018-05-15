@@ -23,6 +23,7 @@
 #include "GLIncludes.h"
 #include <string>
 #include "FreeImage.h"
+#include <iostream>
 
 class Texture{
 
@@ -43,4 +44,5 @@ public:
     Texture(std::string textureName, bool cubeMap = false); //if true then it is a special cube map
     ~Texture();
     GLuint getContext();
+    bool getTransparency();
 };

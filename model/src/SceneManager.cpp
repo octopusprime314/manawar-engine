@@ -6,6 +6,7 @@
 #include "DeferredRenderer.h"
 #include "ShadowRenderer.h"
 #include "AudioManager.h"
+#include "ForwardRenderer.h"
 
 SceneManager::SceneManager(int* argc, char** argv, unsigned int viewportWidth, unsigned int viewportHeight, float nearPlaneDistance, float farPlaneDistance) {
 
@@ -14,6 +15,7 @@ SceneManager::SceneManager(int* argc, char** argv, unsigned int viewportWidth, u
     Factory::setViewWrapper(_viewManager); //Set the reference to the view model event interface
 
     _deferredRenderer = new DeferredRenderer();
+    _forwardRenderer = new ForwardRenderer();
 
     _shadowRenderer = new ShadowRenderer(2000, 2000);
 
@@ -93,6 +95,7 @@ SceneManager::~SceneManager() {
     delete _deferredRenderer;
     delete _viewManager;
     delete _audioManager;
+    delete _forwardRenderer;
 }
 
 void SceneManager::_preDraw() {
@@ -110,6 +113,14 @@ void SceneManager::_postDraw() {
 
     //unbind fbo
     _deferredRenderer->unbind();
+    
+    //Render on default color, depth and stencil buffers
+    //Clear color buffer from frame buffer otherwise framebuffer will contain data from the last draw
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
     //Pass lights to deferred shading pass
     _deferredRenderer->deferredLighting(_shadowRenderer, _lightList, _viewManager, _pointShadowRenderer);
+
+    //Draw transparent objects onto of the deferred renderer
+    _forwardRenderer->forwardLighting(_modelList, _viewManager, _shadowRenderer, _lightList, _pointShadowRenderer);
 }

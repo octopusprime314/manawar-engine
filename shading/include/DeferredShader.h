@@ -50,6 +50,7 @@ class DeferredShader : public Shader {
     GLuint _pointLightRangesLocation;
     GLuint _pointLightDepthMapLocation;
     GLuint _viewToModelSpaceMatrixLocation;
+    GLuint _farPlaneLocation;
 
     GLuint _skyboxDayTextureLocation;
     GLuint _skyboxNightTextureLocation;

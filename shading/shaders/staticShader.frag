@@ -55,13 +55,13 @@ void main(){
 		//Dirt next
 		lerpComponent = blueVal1*tB1 + (1.0f - blueVal1)*lerpComponent;
 		
-		vTexColor = lerpComponent;
+		vTexColor = vec4(lerpComponent.rgb, 1.0);
 	}
 	else{
 		vTexColor = vec4(texture(textureMap, textureCoordinateOut).rgb, 1.0);
 	}
 
-	out_1 = vec4(vTexColor.xyz, 1.0);
+	out_1 = vTexColor;
 	out_2 = vec4(normalize(normalOut), 1.0);
 	out_3 = vec4(positionOut.xyz, 1.0);
 }

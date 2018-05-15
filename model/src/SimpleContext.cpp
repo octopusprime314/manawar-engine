@@ -44,8 +44,10 @@ SimpleContext::SimpleContext(int* argc, char** argv, unsigned int viewportWidth,
     //PER SAMPLE PROCESSING DEFAULTS
     glEnable(GL_TEXTURE_2D); //Enable use of textures
     glClearDepth(1.0); //Enables Clearing Of The Depth Buffer
+    glClearColor(0.0, 0.0, 0.0, 0.0);
     glEnable(GL_DEPTH_TEST); //Ensure depth test happens
     glDepthFunc(GL_LESS); //Keep the fragment closest
+    
 
     //Disable mouse cursor view
     glfwSetInputMode(_window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);

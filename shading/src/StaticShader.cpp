@@ -97,8 +97,6 @@ void StaticShader::runShader(Model* model) {
             //We have a layered texture
             glUniform1i(_layeredSwitchLocation, 1);
 
-            
-
             if (textures.size() > 4) {
 
                 glUniform1i(_tex0Location, 1);
@@ -140,17 +138,21 @@ void StaticShader::runShader(Model* model) {
             strideLocation += textureStride.second;
         }
         else {
-            //Not layered texture
-            glUniform1i(_layeredSwitchLocation, 0);
+            //If triangle's textures supports transparency then do NOT draw
+            //Transparent objects will be rendered after the deferred lighting pass
+            if (!model->getTexture(textureStride.first)->getTransparency()) {
+                //Not layered texture
+                glUniform1i(_layeredSwitchLocation, 0);
 
-            glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, model->getTexture(textureStride.first)->getContext()); //grab first texture of model and return context
-            //glUniform texture 
-            //The second parameter has to be equal to GL_TEXTURE(X) so X must be 0 because we activated texture GL_TEXTURE0 two calls before
-            glUniform1i(_textureLocation, 0);
+                glActiveTexture(GL_TEXTURE0);
+                glBindTexture(GL_TEXTURE_2D, model->getTexture(textureStride.first)->getContext()); //grab first texture of model and return context
+                //glUniform texture 
+                //The second parameter has to be equal to GL_TEXTURE(X) so X must be 0 because we activated texture GL_TEXTURE0 two calls before
+                glUniform1i(_textureLocation, 0);
 
-            //Draw triangles using the bound buffer vertices at starting index 0 and number of triangles
-            glDrawArrays(GL_TRIANGLES, strideLocation, (GLsizei)textureStride.second);
+                //Draw triangles using the bound buffer vertices at starting index 0 and number of triangles
+                glDrawArrays(GL_TRIANGLES, strideLocation, (GLsizei)textureStride.second);
+            }
             strideLocation += textureStride.second;
         }
     }

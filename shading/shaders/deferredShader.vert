@@ -10,6 +10,6 @@ uniform mat4 inverseProjection; // Projection transformation matrix
 void main(){
 
 	textureCoordinateOut = textureCoordinateIn; //Passthrough
-	gl_Position = vec4(vertexIn.xyz, 1.0); //Passthrough
+	gl_Position = vec4(vertexIn.xy, 1.0, 1.0); //Passthrough
 	vsViewDirection = mat3(inverseView) * (inverseProjection * gl_Position).xyz;
 }

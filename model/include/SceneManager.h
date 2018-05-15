@@ -28,6 +28,7 @@ class DeferredRenderer;
 class ShadowRenderer;
 class AudioManager;
 class PointShadowRenderer;
+class ForwardRenderer;
 
 class SceneManager {
     ViewManager*        _viewManager; //manages the view/camera matrix from the user's perspective
@@ -35,6 +36,7 @@ class SceneManager {
     std::vector<Light*> _lightList; //Contains all lights in a scene
     Physics             _physics; //Manages physical interactions between models
     DeferredRenderer*   _deferredRenderer; //Manages deferred shading g buffers
+    ForwardRenderer*    _forwardRenderer; //Manages forward shading transparent objects
     ShadowRenderer*     _shadowRenderer;   //Manages shadow rendering
     PointShadowRenderer* _pointShadowRenderer; //Manages point shadow lights
     AudioManager*       _audioManager;  // Manages audio playback

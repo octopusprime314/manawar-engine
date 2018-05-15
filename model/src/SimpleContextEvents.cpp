@@ -47,8 +47,6 @@ void SimpleContextEvents::releaseKeyboard(int key, int x, int y) {
 //One frame draw update call
 void SimpleContextEvents::updateDraw(GLFWwindow* _window) {
 
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
     //Call scene manager to go any global operations before drawing
     _preDrawCallback();
 

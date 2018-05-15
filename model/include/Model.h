@@ -37,6 +37,7 @@
 #include "VBO.h"
 #include "MVP.h"
 #include "RenderBuffers.h"
+#include "ForwardShader.h"
 
 class SimpleContext;
 
@@ -82,7 +83,7 @@ protected:
     RenderBuffers               _renderBuffers; //Manages vertex, normal and texture data
     VBO                         _vbo; //Vbo container
     MVP                         _mvp; //Model view matrix container
-    RenderShader*               _shaderProgram; //Container object of the Model's shader
+    StaticShader*               _shaderProgram; //Container object of the Model's shader
     DebugShader*                _debugShaderProgram; //Container object of the normal line shader
     bool                        _debugMode; //Runs an extra shader with debug information include normals
     FbxLoader*                  _fbxLoader; //Used to load fbx data and parse it into engine format
@@ -102,6 +103,4 @@ protected:
     void                        _updateView(Matrix view); //Get view matrix updates
     void                        _updateProjection(Matrix projection); //Get projection matrix updates
     void                        _updateKinematics(int milliSeconds);
-
-
 };

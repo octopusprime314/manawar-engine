@@ -23,6 +23,7 @@ uniform int  numPointLights;
 uniform int views;   //views set to 0 is diffuse mapping, set to 1 is shadow mapping and set to 2 is normal mapping
 
 uniform vec3 light;  
+uniform float farPlane;
 in vec2 textureCoordinateOut; // Passthrough
 
 vec2 poissonDisk[4] = vec2[](
@@ -34,6 +35,7 @@ vec2 poissonDisk[4] = vec2[](
 
 float ambient = 0.1;
 float shadowEffect = 0.6;
+float pointLightShadowEffect = 0.2;
 out vec4 fragColor;
 
 void main(){
@@ -44,6 +46,14 @@ void main(){
 	vec3 normalizedNormal = normalize(texture(normalTexture, textureCoordinateOut.xy).xyz); 
 	//extract color from diffuse texture
 	vec4 diffuse = texture(diffuseTexture, textureCoordinateOut.xy);
+	
+	
+	if(position.x != 0.0 && position.y != 0.0 && position.z != 0.0){
+		gl_FragDepth = (length(position.xyz)/farPlane) / 2.0f;
+	}
+	else{
+		gl_FragDepth = 0.5f;
+	}
 	
 	//Directional light calculation
 	//NEED to invert light vector other a normal surface pointing up with a light pointing
@@ -68,8 +78,10 @@ void main(){
 		fragColor = vec4(depth, depth, depth, 1.0);
 	}
 	else if(views == 2){		
-		float depth = texture(cameraDepthTexture, textureCoordinateOut).x;
-		fragColor = vec4(depth, depth, depth, 1.0);
+		//float depth = texture(cameraDepthTexture, textureCoordinateOut).x;
+		//fragColor = vec4(depth, depth, depth, 1.0);
+		
+		fragColor = vec4(vec3(length(position.xyz)/farPlane), 1.0);
 		
 		//vec3 cubeMapTexCoords = (viewToModelMatrix * vec4(position.xyz,1.0)).xyz - (viewToModelMatrix * //vec4(pointLightPositions[0].xyz, 1.0)).xyz;
 		//float cubeDepth = texture(depthMap, normalize(cubeMapTexCoords.xyz)).x;
@@ -171,7 +183,7 @@ void main(){
 					float distance = length(cubeMapTexCoords);
 					float cubeDepth = texture(depthMap, normalize(cubeMapTexCoords.xyz)).x*pointLightRanges[i];
 					float bias = 0.05; 
-					pointShadow -= distance - bias > cubeDepth ? ((1.0 - shadowEffect)/numLights)*(1.0 - (distanceFromLight/(pointLightRanges[i]))) : 0;
+					pointShadow -= distance - bias > cubeDepth ? ((1.0 - pointLightShadowEffect)/numLights)*(1.0 - (distanceFromLight/(pointLightRanges[i]))) : 0;
 					//pointShadow -= distance - bias > cubeDepth ? ((1.0 - shadowEffect)/numLights): 0;
 					
 				}

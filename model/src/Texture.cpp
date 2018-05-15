@@ -141,6 +141,9 @@ bool Texture::_getTextureData(std::string textureName) {
     if (byteSize > imageSize) {
         _alphaValues = false;
     }
+    else {
+        //std::cout << _name << " supports transparency!" << std::endl;
+    }
 
     return true;
 }
@@ -197,5 +200,9 @@ void Texture::_decodeTexture(std::string textureName, unsigned int textureType) 
         glGenerateMipmap(textureType); //Allocate mipmaps
     }
 
+}
+
+bool Texture::getTransparency() {
+    return _alphaValues;
 }
 

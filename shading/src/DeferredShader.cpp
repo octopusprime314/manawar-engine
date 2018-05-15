@@ -49,6 +49,7 @@ DeferredShader::DeferredShader(std::string shaderName) : Shader(shaderName) {
     _pointLightPositionsLocation = glGetUniformLocation(_shaderContext, "pointLightPositions");
     _pointLightDepthMapLocation = glGetUniformLocation(_shaderContext, "depthMap");
     _viewToModelSpaceMatrixLocation = glGetUniformLocation(_shaderContext, "viewToModelMatrix");
+    _farPlaneLocation = glGetUniformLocation(_shaderContext, "farPlane");
 
     _inverseViewLocation = glGetUniformLocation(_shaderContext, "inverseView");
     _inverseProjectionLocation = glGetUniformLocation(_shaderContext, "inverseProjection");
@@ -75,9 +76,6 @@ void DeferredShader::runShader(ShadowRenderer* shadowRenderer,
 							   ViewManager* viewManager,
 							   MRTFrameBuffer& mrtFBO,
                                PointShadowRenderer* pointShadowRenderer) {
-
-    glDisable(GL_DEPTH_TEST); //No need to do depth test in deferred pass
-
     //Take the generated texture data and do deferred shading
     //LOAD IN SHADER
     glUseProgram(_shaderContext); //use context for loaded shader
@@ -173,6 +171,11 @@ void DeferredShader::runShader(ShadowRenderer* shadowRenderer,
     
     glUniform1i(_viewsLocation, static_cast<GLint>(viewManager->getViewState()));
 
+    auto projMatrix = viewManager->getProjection().getFlatBuffer();
+    float nearVal = (2.0f*projMatrix[11]) / (2.0f*projMatrix[10] - 2.0f);
+    float farVal = ((projMatrix[10] - 1.0f)*nearVal) / (projMatrix[10] + 1.0f);
+    glUniform1f(_farPlaneLocation, farVal);
+
     auto textures = mrtFBO.getTextureContexts();
 
     //glUniform texture 
@@ -215,8 +218,6 @@ void DeferredShader::runShader(ShadowRenderer* shadowRenderer,
     glActiveTexture(GL_TEXTURE7);
     glBindTexture(GL_TEXTURE_CUBE_MAP, _skyBoxNightTexture->getContext());
     
-
-
     //Draw triangles using the bound buffer vertices at starting index 0 and number of vertices
     glDrawArrays(GL_TRIANGLES, 0, (GLsizei)6);
 
@@ -226,6 +227,4 @@ void DeferredShader::runShader(ShadowRenderer* shadowRenderer,
     glBindTexture(GL_TEXTURE_2D, 0); //Unbind texture
     glBindTexture(GL_TEXTURE_CUBE_MAP, 0); //Unbind texture
     glUseProgram(0);//end using this shader
-
-    glEnable(GL_DEPTH_TEST); //No need to do depth test in deferred pass
 }

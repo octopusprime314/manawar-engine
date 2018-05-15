@@ -25,8 +25,6 @@ ForwardShader::ForwardShader(std::string shaderName) : Shader(shaderName) {
     _textureLocation = glGetUniformLocation(_shaderContext, "textureMap");
 
     _farPlaneLocation = glGetUniformLocation(_shaderContext, "farPlane");
-
-    //Manually find the two texture locations for loaded shader
    
     _cameraDepthTextureLocation = glGetUniformLocation(_shaderContext, "cameraDepthTexture");
     _mapDepthTextureLocation = glGetUniformLocation(_shaderContext, "mapDepthTexture");
@@ -173,8 +171,8 @@ void ForwardShader::runShader(Model* model, ViewManager* viewManager, ShadowRend
     unsigned int strideLocation = 0;
     for (auto textureStride : textureStrides) {
 
-        //Do not support layered textures right now
-        if (textureStride.first.substr(0, 7) != "Layered") {
+        //Do not support layered textures or animated models with transparency for now 
+        if (textureStride.first.substr(0, 7) != "Layered" && model->getClassType() != ModelClass::AnimatedModelType) {
             
             //If triangle's textures supports transparency then DO DRAW
             //Only transparent objects are rendered here

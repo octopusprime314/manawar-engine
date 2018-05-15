@@ -45,8 +45,8 @@ SceneManager::SceneManager(int* argc, char** argv, unsigned int viewportWidth, u
     _viewManager->setView(Matrix::cameraTranslation(0.0, 2.0, -20.0), Matrix(), Matrix()); //Place view 25 meters in +z direction
     _viewManager->setModelList(_modelList);
 
-    //_physics.addModels(_modelList); //Gives physics a pointer to all models which allows access to underlying geometry
-    //_physics.run(); //Dispatch physics to start kinematics 
+    _physics.addModels(_modelList); //Gives physics a pointer to all models which allows access to underlying geometry
+    _physics.run(); //Dispatch physics to start kinematics 
 
     //Add a directional light pointing down in the negative y axis
     MVP lightMVP;

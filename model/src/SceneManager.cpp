@@ -13,6 +13,16 @@
 #include <Noise.h>
 #include <Triangle.h>
 
+float ScaleNoiseToTerrainHeight(float noise)
+{
+    constexpr float scale = 5.f;
+    constexpr float max = 1.7f * scale;
+    constexpr float min = -2.f * scale;
+
+    // TODO: We may want to make this nonlinear.
+    return (max - min) * noise + min;
+}
+
 // TODO: Put this somewhere else.
 Model* GenerateLandscape()
 {
@@ -20,33 +30,34 @@ Model* GenerateLandscape()
     std::vector<Triangle> triangles;
     {
         constexpr int S = 150;
-        constexpr int minX = 0;
-        constexpr int maxX = +S;
-        constexpr int minZ = 0;
-        constexpr int maxZ = +S;
+        constexpr int minX = 50;
+        constexpr int maxX = 110;
+        constexpr int minZ = 50;
+        constexpr int maxZ = 110;
+        constexpr float delta = 0.1f;
 
         static_assert(minX <= maxX, "Check X min/max bounds");
         static_assert(minZ <= maxZ, "Check Z min/max bounds");
+        static_assert(delta > 0.f,  "Check your delta");
 
         // 2 triangles per quad * (min-max and zero) ish
         triangles.reserve(2 * (int)(maxX-minX + 1) * (int)(maxZ-minZ + 1));
-        for (float x = minX; x <= maxX; x += 0.5f) {
-            for (float z = minZ; z <= maxZ; z += 0.5f) {
+        for (float x = minX; x <= maxX; x += delta) {
+            for (float z = minZ; z <= maxZ; z += delta) {
                 Vector4 base = Vector4((float)x, 0.f, (float)z, 1.f);
 
                 // Insert quads as pairs of triangles
-                auto tri1 = Triangle(base + Vector4(0.f, 0.f, 0.f, 1.f),
-                                     base + Vector4(1.f, 0.f, 0.f, 1.f),
-                                     base + Vector4(1.f, 0.f, 1.f, 1.f));
+                auto tri1 = Triangle(base + Vector4(0.f,   0.f, 0.f),
+                                     base + Vector4(delta, 0.f, 0.f),
+                                     base + Vector4(delta, 0.f, delta));
                 triangles.emplace_back(tri1);
 
-                auto tri2 = Triangle(base + Vector4(1.f, 0.f, 1.f, 1.f),
-                                     base + Vector4(0.f, 0.f, 1.f, 1.f),
-                                     base + Vector4(0.f, 0.f, 0.f, 1.f));
+                auto tri2 = Triangle(base + Vector4(delta, 0.f, delta),
+                                     base + Vector4(0.f,   0.f, delta),
+                                     base + Vector4(0.f,   0.f, 0.f));
                 triangles.emplace_back(tri2);
             }
         }
-        printf("Terrain Triangle Count: %zu", triangles.size());
 
         for (auto& triangle : triangles) {
             auto& positions = triangle.getTrianglePoints();
@@ -54,9 +65,6 @@ Model* GenerateLandscape()
                 auto& x = position.getFlatBuffer()[0];
                 auto& y = position.getFlatBuffer()[1];
                 auto& z = position.getFlatBuffer()[2];
-                constexpr float scale = 15.f;
-                constexpr float max   = 1.7f * scale;
-                constexpr float min   = -2.f * scale;
                 // We want to color things with bounds like this. Ish.
                 // Scale 'start' by 'scale' first.
                 //  gradient = [
@@ -70,13 +78,10 @@ Model* GenerateLandscape()
                 //      (0.500,  (96, 96, 96)),       # rock
                 //      (0.600,  (255, 255, 255)),    # snow
                 //  ]
-                y = (max - min) * kNoise.turbulence(2500.f*x / S, 3250.f*z / S + 400, 9) + min;
-                // Make "water" visible more easily for now.
-                if (y < 0.f) {
-                    y = -1;
-                }
-                x -= S / 2.f;
-                z -= S / 2.f;
+                y = ScaleNoiseToTerrainHeight(kNoise.turbulence(2500.f*x / S, 3250.f*z / S + 400, 9));
+                // Center everything around the origin.
+                x -= (maxX - minX) / 2.f + minX;
+                z -= (maxZ - minZ) / 2.f + minZ;
             }
         }
     }
@@ -90,51 +95,82 @@ Model* GenerateLandscape()
     pLandscape->_debugShaderProgram = new DebugShader("debugShader");
 
     std::vector<Vector4>& verts = *pLandscape->_renderBuffers.getVertices();
+    verts.reserve(3*triangles.size());
+
+    std::vector<int>& indices = *pLandscape->_renderBuffers.getIndices();
+    verts.reserve(3 * triangles.size());
+
     std::vector<Vector4>& normals = *pLandscape->_renderBuffers.getNormals();
+    verts.reserve(3 * triangles.size());
+
     std::vector<Tex2>& texs = *pLandscape->_renderBuffers.getTextures();
+    verts.reserve(3 * triangles.size());
+
     for (auto& triangle : triangles) {
         auto& positions = triangle.getTrianglePoints();
+
+        // We can cull however we want here!
+
+        // Cull "under water" triangles. This helps more than you'd expect.
+        if (positions[0].gety() < -1.f &&
+            positions[1].gety() < -1.f &&
+            positions[2].gety() < -1.f)
+        {
+            continue;
+        }
+
+        // Indices
+        int indexBase = static_cast<int>(verts.size());
+        indices.emplace_back(indexBase);
+        indices.emplace_back(indexBase + 1);
+        indices.emplace_back(indexBase + 1);
+
+        // Positions
         verts.emplace_back(positions[0]);
         verts.emplace_back(positions[1]);
         verts.emplace_back(positions[2]);
 
+        // Normals - computed
         Vector4 normal = positions[0].crossProduct(positions[1]);
         if (normal.gety() < 0.f) {
+            // Force them "up"
             float* n = normal.getFlatBuffer();
             n[0] = -n[0];
             n[1] = -n[1];
             n[2] = -n[2];
         }
         normal.normalize();
-
         normals.emplace_back(normal);
         normals.emplace_back(normal);
         normals.emplace_back(normal);
 
-        // Use location as text coords. We may want to scale this.
-        // Eventually, we want the height to color terrain?
-        texs.emplace_back(positions[0].getx(), positions[0].getz());
-        texs.emplace_back(positions[1].getx(), positions[1].getz());
-        texs.emplace_back(positions[2].getx(), positions[2].getz());
+        // Texture Coords
+        // Use height as text coords.
+        texs.emplace_back(positions[0].gety(), 0.f);
+        texs.emplace_back(positions[1].gety(), 0.f);
+        texs.emplace_back(positions[2].gety(), 0.f);
     }
     *pLandscape->_renderBuffers.getDebugNormals() = normals;
-    std::vector<int>& indices = *pLandscape->_renderBuffers.getIndices();
-    indices.reserve(verts.size());
-    for (int i = 0; i < static_cast<int>(verts.size()); i += 1) {
-        indices.emplace_back(i);
-    }
+
+    printf("Terrain Index Count:    %zu\n", indices.size());
+    printf("        Triangle Count: %zu\n", triangles.size());
+    printf("        Vertex Count:   %zu\n", 3 * triangles.size());
 
     pLandscape->_vao.createVAO(&pLandscape->_renderBuffers, pLandscape->_classId);
     pLandscape->_shaderProgram = new StaticShader("staticShader");
     pLandscape->_geometryType = GeometryType::Triangle;
+    pLandscape->addTexture("../assets/textures/landscape/sunbeams01.dds",
+                           static_cast<int>(indices.size()));
+
+    #if 0
     for (const auto& triangle : triangles) {
         pLandscape->_geometry.addTriangle(triangle);
     }
-    pLandscape->addTexture("../assets/textures/landscape/sunbeams01.dds",
-                           3 * static_cast<int>(triangles.size()));
     pLandscape->_clock->subscribeKinematicsRate(std::bind(&Model::_updateKinematics,
                                                           pLandscape,
                                                           std::placeholders::_1));
+    #endif
+
     return pLandscape;
 }
 
@@ -161,7 +197,15 @@ SceneManager::SceneManager(int* argc, char** argv, unsigned int viewportWidth, u
     SimpleContextEvents::setPreDrawCallback(std::bind(&SceneManager::_preDraw, this));
     SimpleContextEvents::setPostDrawCallback(std::bind(&SceneManager::_postDraw, this));
 
-    _modelList.push_back(GenerateLandscape());
+    Model* pLandscape = GenerateLandscape();
+    _modelList.push_back(pLandscape);
+
+    _viewManager->setProjection(viewportWidth, viewportHeight, nearPlaneDistance, farPlaneDistance); //Initializes projection matrix and broadcasts upate to all listeners
+    // This view is carefully chosen to look at a mountain without showing the (lack of) water in the scene.
+    _viewManager->setView(Matrix::cameraTranslation(0.f, 0.68f, 20.f),
+                          Matrix::cameraRotationAroundY(-45.f),
+                          Matrix());
+    _viewManager->setModelList(_modelList);
 
     //_physics.addModels(_modelList); //Gives physics a pointer to all models which allows access to underlying geometry
     //_physics.run(); //Dispatch physics to start kinematics
@@ -198,10 +242,6 @@ SceneManager::SceneManager(int* argc, char** argv, unsigned int viewportWidth, u
     _lightList.push_back(Factory::make<Light>(pointLightMVP, LightType::POINT, Vector4(1.0f, 0.0f, 1.0f, 1.0f)));*/
 
     MasterClock::instance()->run(); //Scene manager kicks off the clock event manager
-
-    _viewManager->setProjection(viewportWidth, viewportHeight, nearPlaneDistance, farPlaneDistance); //Initializes projection matrix and broadcasts upate to all listeners
-    _viewManager->setView(Matrix::cameraTranslation(0.0, 2.0, -20.0), Matrix(), Matrix()); //Place view 25 meters in +z direction
-    _viewManager->setModelList(_modelList);
 
     _audioManager->StartAll();
 

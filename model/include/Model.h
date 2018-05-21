@@ -56,7 +56,8 @@ class Model : public UpdateInterface {
     
 public:
 
-    Model();
+    Model(ViewManagerEvents* eventWrapper, RenderBuffers& renderBuffers, StaticShader* pStaticShader);
+
     Model(ViewManagerEvents* eventWrapper, ModelClass classId = ModelClass::ModelType)
     : UpdateInterface(eventWrapper),
       _classId(classId)
@@ -82,9 +83,6 @@ public:
     void                        addGeometrySphere(Sphere sphere);
     void                        setPosition(Vector4 position);
     void                        setVelocity(Vector4 velocity);
-
-    // TODO: Remove this
-    friend Model* GenerateLandscape();
 
 protected:
     StateVector                 _state; //Kinematics

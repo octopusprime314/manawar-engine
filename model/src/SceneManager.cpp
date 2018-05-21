@@ -13,6 +13,7 @@
 #include <Noise.h>
 #include <Triangle.h>
 
+// Affine transform from [0, 1] to [-10, 8.5]
 float ScaleNoiseToTerrainHeight(float noise)
 {
     constexpr float scale = 5.f;
@@ -26,6 +27,8 @@ float ScaleNoiseToTerrainHeight(float noise)
 // TODO: Put this somewhere else.
 Model* GenerateLandscape()
 {
+    RenderBuffers renderBuffers;
+
     // Generate geometry
     std::vector<Triangle> triangles;
     {
@@ -41,21 +44,24 @@ Model* GenerateLandscape()
         static_assert(delta > 0.f,  "Check your delta");
 
         // 2 triangles per quad * (min-max and zero) ish
-        triangles.reserve(2 * (int)(maxX-minX + 1) * (int)(maxZ-minZ + 1));
+        {
+            constexpr int trisPerUnit = static_cast<int>(1.f / delta);
+            constexpr int deltaX = maxX - minX + 1;
+            constexpr int deltaZ = maxZ - minZ + 1;
+            triangles.reserve(2 * deltaX * deltaZ * trisPerUnit * trisPerUnit);
+        }
         for (float x = minX; x <= maxX; x += delta) {
             for (float z = minZ; z <= maxZ; z += delta) {
                 Vector4 base = Vector4((float)x, 0.f, (float)z, 1.f);
 
                 // Insert quads as pairs of triangles
-                auto tri1 = Triangle(base + Vector4(0.f,   0.f, 0.f),
-                                     base + Vector4(delta, 0.f, 0.f),
-                                     base + Vector4(delta, 0.f, delta));
-                triangles.emplace_back(tri1);
+                triangles.emplace_back(base + Vector4(0.f,   0.f, 0.f),
+                                       base + Vector4(delta, 0.f, 0.f),
+                                       base + Vector4(delta, 0.f, delta));
 
-                auto tri2 = Triangle(base + Vector4(delta, 0.f, delta),
-                                     base + Vector4(0.f,   0.f, delta),
-                                     base + Vector4(0.f,   0.f, 0.f));
-                triangles.emplace_back(tri2);
+                triangles.emplace_back(base + Vector4(delta, 0.f, delta),
+                                       base + Vector4(0.f,   0.f, delta),
+                                       base + Vector4(0.f,   0.f, 0.f));
             }
         }
 
@@ -85,26 +91,20 @@ Model* GenerateLandscape()
             }
         }
     }
+    size_t reserveSize = 3 * triangles.size();
 
-    Model* pLandscape = new Model(Factory::_viewEventWrapper, ModelClass::ModelType);
+    std::vector<Vector4>& verts = *renderBuffers.getVertices();
+    verts.reserve(reserveSize);
 
-    // These should probably go in a default constructor for Model...
-    pLandscape->_fbxLoader = nullptr;
-    pLandscape->_clock = MasterClock::instance();
-    pLandscape->_debugMode = false;
-    pLandscape->_debugShaderProgram = new DebugShader("debugShader");
+    std::vector<int>& indices = *renderBuffers.getIndices();
+    indices.reserve(reserveSize);
 
-    std::vector<Vector4>& verts = *pLandscape->_renderBuffers.getVertices();
-    verts.reserve(3*triangles.size());
+    std::vector<Vector4>& normals = *renderBuffers.getNormals();
+    normals.reserve(reserveSize);
 
-    std::vector<int>& indices = *pLandscape->_renderBuffers.getIndices();
-    verts.reserve(3 * triangles.size());
+    std::vector<Tex2>& texs = *renderBuffers.getTextures();
+    texs.reserve(reserveSize);
 
-    std::vector<Vector4>& normals = *pLandscape->_renderBuffers.getNormals();
-    verts.reserve(3 * triangles.size());
-
-    std::vector<Tex2>& texs = *pLandscape->_renderBuffers.getTextures();
-    verts.reserve(3 * triangles.size());
 
     for (auto& triangle : triangles) {
         auto& positions = triangle.getTrianglePoints();
@@ -150,27 +150,15 @@ Model* GenerateLandscape()
         texs.emplace_back(positions[1].gety(), 0.f);
         texs.emplace_back(positions[2].gety(), 0.f);
     }
-    *pLandscape->_renderBuffers.getDebugNormals() = normals;
+    *renderBuffers.getDebugNormals() = normals;
 
     printf("Terrain Index Count:    %zu\n", indices.size());
     printf("        Triangle Count: %zu\n", triangles.size());
     printf("        Vertex Count:   %zu\n", 3 * triangles.size());
 
-    pLandscape->_vao.createVAO(&pLandscape->_renderBuffers, pLandscape->_classId);
-    pLandscape->_shaderProgram = new StaticShader("staticShader");
-    pLandscape->_geometryType = GeometryType::Triangle;
+    Model* pLandscape = new Model(Factory::_viewEventWrapper, std::move(renderBuffers), new StaticShader("staticShader"));
     pLandscape->addTexture("../assets/textures/landscape/sunbeams01.dds",
                            static_cast<int>(indices.size()));
-
-    #if 0
-    for (const auto& triangle : triangles) {
-        pLandscape->_geometry.addTriangle(triangle);
-    }
-    pLandscape->_clock->subscribeKinematicsRate(std::bind(&Model::_updateKinematics,
-                                                          pLandscape,
-                                                          std::placeholders::_1));
-    #endif
-
     return pLandscape;
 }
 

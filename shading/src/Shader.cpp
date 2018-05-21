@@ -87,7 +87,9 @@ void Shader::_link(unsigned int vertexSH, unsigned int fragmentSH, unsigned int 
     glGetProgramiv(_shaderContext, GL_LINK_STATUS, &successfully_linked);
 
     // Exit if the program couldn't be linked correctly
-    if (!successfully_linked) {
+    if (successfully_linked) {
+        printf("Shader #%d linked   (Shader* this = %p)\n", _shaderContext, this);
+    } else {
         GLint errorLoglength;
         GLint actualErrorLogLength;
         //Attempt to get the length of our error log.
@@ -153,13 +155,15 @@ unsigned int Shader::_compile(char* filename, unsigned int type)
         files, //An array of const char * data, which represents the source code of theshaders
         nullptr);
 
-    glCompileShader(handle);
+     glCompileShader(handle);
 
     //Compilation checking.
     glGetShaderiv(handle, GL_COMPILE_STATUS, &result);
 
     // If an error was detected.
-    if (!result) {
+    if (result) {
+        printf("Shader #%d compiled (filename = \"%s\")\n", handle, filename);
+    } else {
         //We failed to compile.
         printf("Shader '%s' failed compilation.\n", filename);
 

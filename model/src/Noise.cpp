@@ -3,13 +3,13 @@
 #include <cmath>
 
 template <typename T>
-T lerp(T t, T lo, T hi)
+__forceinline T lerp(T t, T lo, T hi)
 {
     return t*lo + (1 - t)*hi;
 }
 
 template <typename T>
-T bilerp(T t0, T t1, T q00, T q01, T q10, T q11)
+__forceinline T bilerp(T t0, T t1, T q00, T q01, T q10, T q11)
 {
     T r0 = lerp(t0, q00, q10);
     T r1 = lerp(t0, q01, q11);
@@ -17,7 +17,7 @@ T bilerp(T t0, T t1, T q00, T q01, T q10, T q11)
 }
 
 template <typename T>
-T PowerOfTwo(uint8_t power)
+__forceinline T PowerOfTwo(uint8_t power)
 {
     uint64_t res = 1;
     return static_cast<T>(res << power);
@@ -25,17 +25,18 @@ T PowerOfTwo(uint8_t power)
 
 // Return a random float in [0, 1] which changes smoothly in x and y.
 // Effectively 'Value Noise'.
-float ValueNoise2D::noise(float x, float y) {
+__forceinline float ValueNoise2D::noise(float x, float y) {
     uint32_t w = 128;
     uint32_t h = 128;
 
-    float pls_just_null_check = 0;
+    // modf requires a pointer argument, and it must not be NULL.
+    float dummy = 0;
 
-    float    xf = modf(x, &pls_just_null_check);
+    float    xf = modf(x, &dummy);
     uint32_t x1 = (uint32_t(x) + w) % w;
     uint32_t x2 = (x1 + w - 1) % w;
 
-    float    yf = modf(y, &pls_just_null_check);
+    float    yf = modf(y, &dummy);
     uint32_t y1 = (uint32_t(y) + h) % h;
     uint32_t y2 = (y1 + h - 1) % h;
 

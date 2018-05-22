@@ -7,8 +7,8 @@ BUILD INSTRUCTIONS:
     cmake -G "Visual Studio 14 2015 Win64" ..   OR    cmake -G "Visual Studio 15 2017 Win64" ..
     cmake --build . --config Release
 
-Copy contents of extracted zip folder called RebootData.zip at the root directory level located below.
-https://drive.google.com/file/d/1qrpVgCAD7Lhe3V4zeRT4DSmgfp3Wg2aW/view?usp=sharing
+Copy contents of extracted zip folder called demo-party-data.zip at the root directory level located below.
+https://drive.google.com/file/d/1DA97KYg-dbORFlPJE6wNrI1h3PXNmACy/view?usp=sharing
 
 Copy the libs/freeimage/lib/FreeImage.dll into the executable directory.
 

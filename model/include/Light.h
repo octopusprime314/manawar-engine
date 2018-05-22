@@ -22,13 +22,15 @@
 #pragma once
 #include "MVP.h"
 #include "UpdateInterface.h"
+#include "Shader.h"
+#include "EffectShader.h"
 
-enum class LightType{
-        CAMERA_DIRECTIONAL = 0,
-        MAP_DIRECTIONAL,
-        POINT,
-        SPOTLIGHT
-    };
+enum class LightType {
+    CAMERA_DIRECTIONAL = 0,
+    MAP_DIRECTIONAL,
+    POINT,
+    SPOTLIGHT
+};
 
 class Light : UpdateInterface{
     MVP                     _cameraMVP; //Camera's model view matrix container
@@ -39,6 +41,7 @@ class Light : UpdateInterface{
     void                    _updateTime(int time);
     uint64_t                _milliSecondTime;
     bool                    _shadowCaster;
+    EffectShader            _lightEffectShader;
 
 public:
     Light(ViewManagerEvents* eventWrapper, 
@@ -53,6 +56,7 @@ public:
     float                       getRange();
     bool                        isShadowCaster();
     void                        setMVP(MVP mvp);
+    void                        renderLight();
 
 protected:
     void                        _updateKeyboard(int key, int x, int y); //Do stuff based on keyboard upate

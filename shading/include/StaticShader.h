@@ -22,9 +22,9 @@
 */
 
 #pragma once
-#include "RenderShader.h"
+#include "Shader.h"
 
-class StaticShader : public RenderShader{
+class StaticShader : public Shader {
 
 protected:
     GLint       _viewLocation;

@@ -1,5 +1,5 @@
 /*
-* RenderShader is part of the ReBoot distribution (https://github.com/octopusprime314/ReBoot.git).
+* EffectShader is part of the ReBoot distribution (https://github.com/octopusprime314/ReBoot.git).
 * Copyright (c) 2017 Peter Morley.
 *
 * ReBoot is free software: you can redistribute it and/or modify
@@ -16,19 +16,26 @@
 */
 
 /**
-*  RenderShader class. Generates the MRT position, normal and diffuse buffers
+*  EffectShader class. Generic effects class 
 */
 
 #pragma once
 #include "Shader.h"
+#include "Matrix.h"
+#include "MVP.h"
+class Light;
+class ViewManager;
 
+class EffectShader : public Shader {
 
-//Simple shader loading class that should be derived from to create more complex shaders
-class RenderShader : public Shader{
-
+protected:
+    GLint       _timeLocation;
+    GLint       _lightPosLocation;
+    GLint       _modelViewProjectionLocation;
+    GLint       _fireTypeLocation;
+    GLint       _farPlaneLocation;
 public:
-    RenderShader(std::string shaderName);
-    virtual      ~RenderShader();
-    virtual void runShader(Model* model) = 0;
-    
+    EffectShader(std::string shaderName);
+    virtual ~EffectShader();
+    virtual void runShader(Light* light, MVP& cameraMVP, float seconds);
 };

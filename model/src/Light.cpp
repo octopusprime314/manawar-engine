@@ -8,7 +8,8 @@ Light::Light(ViewManagerEvents* eventWrapper,
     _lightMVP(mvp),
     _color(color),
     _shadowCaster(shadowCaster),
-    _milliSecondTime(0){
+    _milliSecondTime(0), 
+    _lightEffectShader("fireShader"){
 
     MasterClock::instance()->subscribeKinematicsRate(std::bind(&Light::_updateTime, this, std::placeholders::_1));
     
@@ -109,6 +110,16 @@ void Light::_updateTime(int time) {
         //std::cout << x << " " << y << std::endl;
         //std::cout << _milliSecondTime << std::endl;
     }
+}
+
+void Light::renderLight() {
+    //Bring the time back to real time for the effects shader
+    
+    //The amount of milliseconds in 24 hours
+    const uint64_t dayLengthMilliseconds = 24 * 60 * 60 * 1000;
+    uint64_t updateTimeAmplified = dayLengthMilliseconds / (60 * 1000);
+    float realTimeMilliSeconds = static_cast<float>(_milliSecondTime) / static_cast<float>(updateTimeAmplified);
+    _lightEffectShader.runShader(this, _cameraMVP, realTimeMilliSeconds / 1000.f);
 }
 
 

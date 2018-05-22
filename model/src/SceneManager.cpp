@@ -41,12 +41,10 @@ SceneManager::SceneManager(int* argc, char** argv, unsigned int viewportWidth, u
         _modelList.back()->setPosition(Vector4(0.0f, 5.0f, -20.0f, 1.0f)); //Place objects 20 meters above sea level for collision testing
         x += 30;
     }
-    _viewManager->setProjection(viewportWidth, viewportHeight, nearPlaneDistance, farPlaneDistance); //Initializes projection matrix and broadcasts upate to all listeners
-    _viewManager->setView(Matrix::cameraTranslation(0.0, 2.0, -20.0), Matrix(), Matrix()); //Place view 25 meters in +z direction
-    _viewManager->setModelList(_modelList);
+   
 
-    _physics.addModels(_modelList); //Gives physics a pointer to all models which allows access to underlying geometry
-    _physics.run(); //Dispatch physics to start kinematics 
+    //_physics.addModels(_modelList); //Gives physics a pointer to all models which allows access to underlying geometry
+    //_physics.run(); //Dispatch physics to start kinematics 
 
     //Add a directional light pointing down in the negative y axis
     MVP lightMVP;
@@ -68,7 +66,7 @@ SceneManager::SceneManager(int* argc, char** argv, unsigned int viewportWidth, u
     pointLightMVP.setProjection(Matrix::cameraProjection(90.0f, 1.0f, 1.0f, 100.0f));
 
     //Placing the lights in equidistant locations for testing
-    pointLightMVP.setModel(Matrix::translation(0.0f, 40, 0.0f));
+    pointLightMVP.setModel(Matrix::translation(0.0f, 10, 0.0f));
     _lightList.push_back(Factory::make<Light>(pointLightMVP, LightType::POINT, Vector4(1.0f, 1.0f, 1.0f, 1.0f), true));
     //pointLightMVP.setModel(Matrix::translation(0.0f, 40, 50.0f));
     //_lightList.push_back(Factory::make<Light>(pointLightMVP, LightType::POINT, Vector4(0.0f, 1.0f, 0.0f, 1.0f)));
@@ -80,6 +78,10 @@ SceneManager::SceneManager(int* argc, char** argv, unsigned int viewportWidth, u
     _lightList.push_back(Factory::make<Light>(pointLightMVP, LightType::POINT, Vector4(1.0f, 0.0f, 1.0f, 1.0f)));*/
 
     MasterClock::instance()->run(); //Scene manager kicks off the clock event manager
+
+    _viewManager->setProjection(viewportWidth, viewportHeight, nearPlaneDistance, farPlaneDistance); //Initializes projection matrix and broadcasts upate to all listeners
+    _viewManager->setView(Matrix::cameraTranslation(0.0, 2.0, -20.0), Matrix(), Matrix()); //Place view 25 meters in +z direction
+    _viewManager->setModelList(_modelList);
 
     // TODO: This should look cleaner.
     //_audioManager->StartAll();
@@ -123,4 +125,10 @@ void SceneManager::_postDraw() {
 
     //Draw transparent objects onto of the deferred renderer
     _forwardRenderer->forwardLighting(_modelList, _viewManager, _shadowRenderer, _lightList, _pointShadowRenderer);
+
+    for (auto light : _lightList) {
+        if (light->getType() == LightType::POINT) {
+            light->renderLight();
+        }
+    }
 }

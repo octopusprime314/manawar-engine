@@ -1,7 +1,7 @@
 #include "StaticShader.h"
 #include "Model.h"
 
-StaticShader::StaticShader(std::string shaderName) : RenderShader(shaderName) {
+StaticShader::StaticShader(std::string shaderName) : Shader(shaderName) {
 
 	//Grab uniforms needed in a staticshader
 

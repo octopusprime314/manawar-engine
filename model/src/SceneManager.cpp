@@ -66,7 +66,7 @@ SceneManager::SceneManager(int* argc, char** argv, unsigned int viewportWidth, u
     pointLightMVP.setProjection(Matrix::cameraProjection(90.0f, 1.0f, 1.0f, 100.0f));
 
     //Placing the lights in equidistant locations for testing
-    pointLightMVP.setModel(Matrix::translation(0.0f, 10, 0.0f));
+    pointLightMVP.setModel(Matrix::translation(0.0f, 3.0, 0.0f));
     _lightList.push_back(Factory::make<Light>(pointLightMVP, LightType::POINT, Vector4(1.0f, 1.0f, 1.0f, 1.0f), true));
     //pointLightMVP.setModel(Matrix::translation(0.0f, 40, 50.0f));
     //_lightList.push_back(Factory::make<Light>(pointLightMVP, LightType::POINT, Vector4(0.0f, 1.0f, 0.0f, 1.0f)));

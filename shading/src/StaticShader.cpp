@@ -39,37 +39,8 @@ void StaticShader::runShader(Model* model) {
     //LOAD IN SHADER
     glUseProgram(_shaderContext); //use context for loaded shader
 
-    //LOAD IN VBO BUFFERS 
-    VBO* vbo = model->getVBO();
-    //Bind vertex buff context to current buffer
-    glBindBuffer(GL_ARRAY_BUFFER, vbo->getVertexContext());
-
-    //Say that the vertex data is associated with attribute 0 in the context of a shader program
-    //Each vertex contains 3 floats per vertex
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-
-    //Now enable vertex buffer at location 0
-    glEnableVertexAttribArray(0);
-
-    //Bind normal buff context to current buffer
-    glBindBuffer(GL_ARRAY_BUFFER, vbo->getNormalContext());
-
-    //Say that the normal data is associated with attribute 1 in the context of a shader program
-    //Each normal contains 3 floats per normal
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
-
-    //Now enable normal buffer at location 1
-    glEnableVertexAttribArray(1);
-
-    //Bind texture coordinate buff context to current buffer
-    glBindBuffer(GL_ARRAY_BUFFER, vbo->getTextureContext());
-
-    //Say that the texture coordinate data is associated with attribute 2 in the context of a shader program
-    //Each texture coordinate contains 2 floats per texture
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, 0);
-
-    //Now enable texture buffer at location 2
-    glEnableVertexAttribArray(2);
+    VAO* vao = model->getVAO();
+    glBindVertexArray(vao->getVAOContext());
 
     MVP* mvp = model->getMVP();
     //glUniform mat4 combined model and world matrix, GL_TRUE is telling GL we are passing in the matrix as row major
@@ -156,11 +127,7 @@ void StaticShader::runShader(Model* model) {
             strideLocation += textureStride.second;
         }
     }
-
-    glDisableVertexAttribArray(0); //Disable vertex attribute
-    glDisableVertexAttribArray(1); //Disable normal attribute
-    glDisableVertexAttribArray(2); //Disable texture attribute
-    glBindBuffer(GL_ARRAY_BUFFER, 0); //Unbind buffer
+    glBindVertexArray(0);
     glBindTexture(GL_TEXTURE_2D, 0); //Unbind texture
     glUseProgram(0);//end using this shader
 }

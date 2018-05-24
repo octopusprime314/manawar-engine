@@ -8,6 +8,7 @@ EffectShader::EffectShader(std::string shaderName) : Shader(shaderName) {
     _lightPosLocation = glGetUniformLocation(_shaderContext, "lightPos");
     _fireTypeLocation = glGetUniformLocation(_shaderContext, "fireType");
     _farPlaneLocation = glGetUniformLocation(_shaderContext, "farPlane");
+    glGenVertexArrays(1, &_vaoContext);
 }
 
 EffectShader::~EffectShader() {
@@ -18,6 +19,8 @@ void EffectShader::runShader(Light* light, MVP& cameraMVP, float seconds) {
 
     //LOAD IN SHADER
     glUseProgram(_shaderContext); 
+
+    glBindVertexArray(_vaoContext);
 
     //Pass game time to shader
     glUniform1f(_timeLocation, seconds);
@@ -43,6 +46,8 @@ void EffectShader::runShader(Light* light, MVP& cameraMVP, float seconds) {
 
     //screen space quad
     glDrawArrays(GL_TRIANGLE_STRIP, 0, (GLsizei)4);
-        
+    
+    glBindVertexArray(0);
+
     glUseProgram(0);//end using this shader
 }

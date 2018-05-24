@@ -174,7 +174,8 @@ void main(){
 			for(int i = 0; i < numPointLights; i++){
 				vec3 pointLightDir = position.xyz - pointLightPositions[i].xyz;
 				float distanceFromLight = length(pointLightDir);
-				if(distanceFromLight <= pointLightRanges[i]){
+				float bias = 0.05; 
+				if(distanceFromLight < pointLightRanges[i]){
 					vec3 pointLightDirNorm = normalize(-pointLightDir);
 					pointLighting += (dot(pointLightDirNorm, normalizedNormal)) * (1.0 - (distanceFromLight/(pointLightRanges[i]))) * pointLightColors[i];
 					totalPointLightEffect += dot(pointLightDirNorm, normalizedNormal) * (1.0 - (distanceFromLight/(pointLightRanges[i])));
@@ -182,10 +183,9 @@ void main(){
 					vec3 cubeMapTexCoords = (viewToModelMatrix * vec4(position.xyz,1.0)).xyz - (viewToModelMatrix * vec4(pointLightPositions[i].xyz, 1.0)).xyz;
 					float distance = length(cubeMapTexCoords);
 					float cubeDepth = texture(depthMap, normalize(cubeMapTexCoords.xyz)).x*pointLightRanges[i];
-					float bias = 0.05; 
-					pointShadow -= distance - bias > cubeDepth ? ((1.0 - pointLightShadowEffect)/numLights)*(1.0 - (distanceFromLight/(pointLightRanges[i]))) : 0;
-					//pointShadow -= distance - bias > cubeDepth ? ((1.0 - shadowEffect)/numLights): 0;
 					
+					pointShadow -= ((1.0 - pointLightShadowEffect)/numLights)*(1.0 - (distance/cubeDepth));
+					//pointShadow -= ((1.0 - shadowEffect)/numLights);					
 				}
 			}
 		

@@ -98,7 +98,7 @@ void main(){
 		for(int i = 0; i < numPointLights; i++){
 			vec3 pointLightDir = positionOut.xyz - pointLightPositions[i].xyz;
 			float distanceFromLight = length(pointLightDir);
-			if(distanceFromLight <= pointLightRanges[i]){
+			if(distanceFromLight < pointLightRanges[i]){
 				vec3 pointLightDirNorm = normalize(-pointLightDir);
 				pointLighting += (dot(pointLightDirNorm, normalOut)) * (1.0 - (distanceFromLight/(pointLightRanges[i]))) * pointLightColors[i];
 				totalPointLightEffect += dot(pointLightDirNorm, normalOut) * (1.0 - (distanceFromLight/(pointLightRanges[i])));
@@ -107,8 +107,8 @@ void main(){
 				float distance = length(cubeMapTexCoords);
 				float cubeDepth = texture(depthMap, normalize(cubeMapTexCoords.xyz)).x*pointLightRanges[i];
 				float bias = 0.05; 
-				pointShadow -= distance - bias > cubeDepth ? ((1.0 - pointLightShadowEffect)/numLights)*(1.0 - (distanceFromLight/(pointLightRanges[i]))) : 0;
-				//pointShadow -= distance - bias > cubeDepth ? ((1.0 - shadowEffect)/numLights): 0;
+				pointShadow -= ((1.0 - pointLightShadowEffect)/numLights)*(1.0 - (distance/cubeDepth));
+				//pointShadow -= ((1.0 - shadowEffect)/numLights);	
 				
 			}
 		}
@@ -122,15 +122,12 @@ void main(){
 			illumination = lightNormalized.x - (ambient / 2);
 			pointLighting = (pointLighting * lightNormalized.y) - (ambient / 2);
 		}
-		
+
 		vec3 lightComponentIllumination = (illumination  * diffuse.rgb) + 
 										  (pointLighting * diffuse.rgb);
 		
 		fragColor = vec4((lightComponentIllumination * totalShadow) + (ambient * diffuse.rgb), 1.0);
-		
-		//fragColor = diffuse;
+	
 		gl_FragDepth = (length(positionOut.xyz)/farPlane) / 2.0f;
 	}
-	//fragColor = diffuse;
-	
 }

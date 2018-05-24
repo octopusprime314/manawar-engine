@@ -32,6 +32,30 @@ DeferredShader::DeferredShader(std::string shaderName) : Shader(shaderName) {
     glBindBuffer(GL_ARRAY_BUFFER, _textureBufferContext);
     glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 6 * 2, textures, GL_STATIC_DRAW);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    glGenVertexArrays(1, &_vaoContext);
+    glBindVertexArray(_vaoContext);
+
+    glBindBuffer(GL_ARRAY_BUFFER, _quadBufferContext);
+
+    //Say that the vertex data is associated with attribute 0 in the context of a shader program
+    //Each vertex contains 3 floats per vertex
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+
+    //Now enable vertex buffer at location 0
+    glEnableVertexAttribArray(0);
+
+    //Bind texture coordinate buff context to current buffer
+    glBindBuffer(GL_ARRAY_BUFFER, _textureBufferContext);
+
+    //Say that the texture coordinate data is associated with attribute 2 in the context of a shader program
+    //Each texture coordinate contains 2 floats per texture
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, 0);
+
+    //Now enable texture buffer at location 2
+    glEnableVertexAttribArray(1);
+
+    glBindVertexArray(0);
 	
     //Manually find the two texture locations for loaded shader
     _diffuseTextureLocation = glGetUniformLocation(_shaderContext, "diffuseTexture");
@@ -80,26 +104,7 @@ void DeferredShader::runShader(ShadowRenderer* shadowRenderer,
     //LOAD IN SHADER
     glUseProgram(_shaderContext); //use context for loaded shader
 
-                                                        //LOAD IN VBO BUFFERS 
-                                                        //Bind vertex buff context to current buffer
-    glBindBuffer(GL_ARRAY_BUFFER, _quadBufferContext);
-
-    //Say that the vertex data is associated with attribute 0 in the context of a shader program
-    //Each vertex contains 3 floats per vertex
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-
-    //Now enable vertex buffer at location 0
-    glEnableVertexAttribArray(0);
-
-    //Bind texture coordinate buff context to current buffer
-    glBindBuffer(GL_ARRAY_BUFFER, _textureBufferContext);
-
-    //Say that the texture coordinate data is associated with attribute 2 in the context of a shader program
-    //Each texture coordinate contains 2 floats per texture
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, 0);
-
-    //Now enable texture buffer at location 2
-    glEnableVertexAttribArray(1);
+    glBindVertexArray(_vaoContext);
 
     //Get light view matrix "look at" vector which is located in the third column
     //of the inner rotation matrix at index 2,6,10
@@ -221,9 +226,7 @@ void DeferredShader::runShader(ShadowRenderer* shadowRenderer,
     //Draw triangles using the bound buffer vertices at starting index 0 and number of vertices
     glDrawArrays(GL_TRIANGLES, 0, (GLsizei)6);
 
-    glDisableVertexAttribArray(0); //Disable vertex attribute
-    glDisableVertexAttribArray(1); //Disable texture attribute
-    glBindBuffer(GL_ARRAY_BUFFER, 0); //Unbind buffer
+    glBindVertexArray(0);
     glBindTexture(GL_TEXTURE_2D, 0); //Unbind texture
     glBindTexture(GL_TEXTURE_CUBE_MAP, 0); //Unbind texture
     glUseProgram(0);//end using this shader

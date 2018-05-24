@@ -34,7 +34,7 @@
 #include "MasterClock.h"
 #include "TextureBroker.h"
 #include "Geometry.h"
-#include "VBO.h"
+#include "VAO.h"
 #include "MVP.h"
 #include "RenderBuffers.h"
 #include "ForwardShader.h"
@@ -61,7 +61,7 @@ public:
     Model(std::string name, ViewManagerEvents* eventWrapper, ModelClass classId = ModelClass::ModelType);
     virtual ~Model();
     MVP*                        getMVP();
-    VBO*                        getVBO();
+    VAO*                        getVAO();
     RenderBuffers*              getRenderBuffers();
     StateVector*                getStateVector();
     ModelClass                  getClassType();
@@ -81,7 +81,7 @@ public:
 protected:
     StateVector                 _state; //Kinematics
     RenderBuffers               _renderBuffers; //Manages vertex, normal and texture data
-    VBO                         _vbo; //Vbo container
+    VAO                         _vao; //Vao container
     MVP                         _mvp; //Model view matrix container
     StaticShader*               _shaderProgram; //Container object of the Model's shader
     DebugShader*                _debugShaderProgram; //Container object of the normal line shader

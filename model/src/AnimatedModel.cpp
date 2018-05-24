@@ -29,54 +29,7 @@ AnimatedModel::AnimatedModel(std::string name, ViewManagerEvents* eventWrapper) 
 
         _currBones = _animations[_currentAnimation]->getBones();
 
-        auto boneIndexes = _animations[_currentAnimation]->getBoneIndexes();
-        auto boneWeights = _animations[_currentAnimation]->getBoneWeights();
-
-        //Now flatten bone indexes and weights out for opengl
-        std::vector<int>* indices = _renderBuffers.getIndices();
-        size_t boneIndexesBuffSize = indices->size() * 8;
-        float* flattenIndexes = new float[boneIndexesBuffSize]; 
-        float* flattenWeights = new float[boneIndexesBuffSize]; 
-
-        int i = 0; //iterates through vertices indexes
-        for (auto vertexIndex : *indices) {
-            auto indexes = (*boneIndexes)[vertexIndex];
-            flattenIndexes[i++] = static_cast<float>(indexes[0]);
-            flattenIndexes[i++] = static_cast<float>(indexes[1]);
-            flattenIndexes[i++] = static_cast<float>(indexes[2]);
-            flattenIndexes[i++] = static_cast<float>(indexes[3]);
-            flattenIndexes[i++] = static_cast<float>(indexes[4]);
-            flattenIndexes[i++] = static_cast<float>(indexes[5]);
-            flattenIndexes[i++] = static_cast<float>(indexes[6]);
-            flattenIndexes[i++] = static_cast<float>(indexes[7]);
-        }
-        i = 0; //Reset for normal indexes
-        for (auto vertexIndex : *indices) {
-            auto weights = (*boneWeights)[vertexIndex];
-            flattenWeights[i++] = weights[0];
-            flattenWeights[i++] = weights[1];
-            flattenWeights[i++] = weights[2];
-            flattenWeights[i++] = weights[3];
-            flattenWeights[i++] = weights[4];
-            flattenWeights[i++] = weights[5];
-            flattenWeights[i++] = weights[6];
-            flattenWeights[i++] = weights[7];
-        }
-
-        glGenBuffers(1, &_indexContext);
-        glBindBuffer(GL_ARRAY_BUFFER, _indexContext); //Load in vertex buffer context
-        //Load the vertex data into the current vertex context
-        glBufferData(GL_ARRAY_BUFFER, sizeof(float)*boneIndexesBuffSize, flattenIndexes, GL_STATIC_DRAW);
-        glBindBuffer(GL_ARRAY_BUFFER, 0); //Unbind
-
-        glGenBuffers(1, &_weightContext);
-        glBindBuffer(GL_ARRAY_BUFFER, _weightContext); //Load in normal buffer context
-        //Load the normal data into the current normal context
-        glBufferData(GL_ARRAY_BUFFER, sizeof(float)*boneIndexesBuffSize, flattenWeights, GL_STATIC_DRAW);
-        glBindBuffer(GL_ARRAY_BUFFER, 0); //Unbind
-
-        delete[] flattenIndexes;
-        delete[] flattenWeights;
+        _vao.createVAO(&_renderBuffers, ModelClass::AnimatedModelType, _animations[_currentAnimation]);
 
         //Hook up to framerate update for proper animation progression
         _clock->subscribeAnimationRate(std::bind(&AnimatedModel::_updateAnimation, this, std::placeholders::_1)); 

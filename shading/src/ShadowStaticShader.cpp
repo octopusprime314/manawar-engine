@@ -21,22 +21,14 @@ ShadowStaticShader::~ShadowStaticShader(){
 void ShadowStaticShader::runShader(Model* model, Light* light) {
 
 	//Load in vbo buffers
-    VBO* vbo = model->getVBO();
+    VAO* vao = model->getVAO();
     MVP* modelMVP = model->getMVP();
 	MVP lightMVP = light->getMVP();
 
 	//Use one single shadow shader and replace the vbo buffer from each model
     glUseProgram(_shaderContext); //use context for loaded shader
 
-    //Bind vertex buff context to current buffer
-    glBindBuffer(GL_ARRAY_BUFFER, vbo->getVertexContext());
-
-    //Say that the vertex data is associated with attribute 0 in the context of a shader program
-    //Each vertex contains 3 floats per vertex
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-
-    //Now enable vertex buffer at location 0
-    glEnableVertexAttribArray(0);
+    glBindVertexArray(vao->getVAOShadowContext());
 
     //glUniform mat4 combined model and world matrix, GL_TRUE is telling GL we are passing in the matrix as row major
     glUniformMatrix4fv(_modelLocation, 1, GL_TRUE, modelMVP->getModelBuffer());
@@ -56,8 +48,7 @@ void ShadowStaticShader::runShader(Model* model, Light* light) {
     //Draw triangles using the bound buffer vertices at starting index 0 and number of vertices
     glDrawArrays(GL_TRIANGLES, 0, (GLsizei)verticesSize);
 
-    glDisableVertexAttribArray(0); //Disable vertex attribute
-    glBindBuffer(GL_ARRAY_BUFFER, 0); //Unbind buffer
+    glBindVertexArray(0);
     glUseProgram(0);//end using this shader
 }
 

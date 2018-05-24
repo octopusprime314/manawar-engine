@@ -58,6 +58,7 @@ class DeferredShader : public Shader {
     GLuint _inverseProjectionLocation;
     Texture* _skyBoxDayTexture;
     Texture* _skyBoxNightTexture;
+    GLuint   _vaoContext;
 
 public:
     DeferredShader(std::string shaderName);

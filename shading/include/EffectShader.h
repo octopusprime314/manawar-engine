@@ -34,6 +34,7 @@ protected:
     GLint       _modelViewProjectionLocation;
     GLint       _fireTypeLocation;
     GLint       _farPlaneLocation;
+    GLuint       _vaoContext;
 public:
     EffectShader(std::string shaderName);
     virtual ~EffectShader();

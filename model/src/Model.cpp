@@ -31,8 +31,10 @@ Model::Model(std::string name, ViewManagerEvents* eventWrapper, ModelClass class
 
         //GeometryBuilder::buildCube(this); //Add a generic cube centered at the origin
 
-        //Create vbo contexts
-        _vbo.createVBO(&_renderBuffers, _classId);
+        //Create vao contexts
+        if (classId == ModelClass::ModelType) {
+            _vao.createVAO(&_renderBuffers, _classId);
+        }
 
         //If class is generic model then deallocate fbx object,
         //otherwise let derived class clean up _fbxLoader object
@@ -114,8 +116,8 @@ void Model::_updateKinematics(int milliSeconds) {
     _mvp.setModel(Matrix::translation(position.getx(), position.gety(), position.getz()));
 }
 
-VBO* Model::getVBO() {
-    return &_vbo;
+VAO* Model::getVAO() {
+    return &_vao;
 }
 
 ModelClass Model::getClassType() {

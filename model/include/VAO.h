@@ -25,19 +25,25 @@
 #include "Vector4.h"
 #include "Tex2.h"
 #include "RenderBuffers.h"
+#include "Animation.h"
 
 enum class ModelClass; //Forward declaration of enumerated type while not including Model class
 
-class VBO {
+class VAO {
 
     GLuint  _vertexBufferContext; //Used as the vertex attribute vbo context
     GLuint  _normalBufferContext; //Used as the normal attribute vbo context
     GLuint  _textureBufferContext; //Used as the texture coordinate attribute vbo context
     GLuint  _debugNormalBufferContext; //Used as the debug normal line attribute vbo context
-
+    GLuint  _vaoContext;
+    GLuint  _vaoShadowContext;
+    GLuint  _indexContext;
+    GLuint  _weightContext;
 public:
-    VBO();
-    ~VBO();
+    VAO();
+    ~VAO();
+    GLuint  getVAOContext();
+    GLuint  getVAOShadowContext();
     GLuint  getVertexContext();
     GLuint  getNormalContext();
     GLuint  getTextureContext();
@@ -46,5 +52,5 @@ public:
     void    setNormalContext(GLuint context);
     void    setTextureContext(GLuint context);
     void    setNormalDebugContext(GLuint context);
-    void    createVBO(RenderBuffers* renderBuffers, ModelClass classId);
+    void    createVAO(RenderBuffers* renderBuffers, ModelClass classId, Animation* = nullptr);
 };

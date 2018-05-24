@@ -1,5 +1,6 @@
 #include "Light.h"
 #include "MasterClock.h"
+#include <random>
 
 Light::Light(ViewManagerEvents* eventWrapper, 
     MVP mvp, LightType type, Vector4 color, bool shadowCaster) :
@@ -60,6 +61,22 @@ float Light::getRange() {
     float nearVal = (2.0f*projMatrix[11]) / (2.0f*projMatrix[10] - 2.0f);
     float farVal = ((projMatrix[10] - 1.0f)*nearVal) / (projMatrix[10] + 1.0f);
     return farVal;
+    ////Bring the time back to real time for the effects shader
+    ////The amount of milliseconds in 24 hours
+    //const uint64_t dayLengthMilliseconds = 24 * 60 * 60 * 1000;
+    //uint64_t updateTimeAmplified = dayLengthMilliseconds / (60 * 1000);
+    //float realTimeMilliSeconds = static_cast<float>(_milliSecondTime) / static_cast<float>(updateTimeAmplified);
+
+    //std::random_device rd;  //Will be used to obtain a seed for the random number engine
+    //std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
+    //std::uniform_real_distribution<> dis(0.95, 1.0);
+
+    ////Modulate based on light type but for now assume fire
+    //float amplitude = 0.98f;
+    //float modulation = ((static_cast<float>(fabs(asin(sin(static_cast<double>(realTimeMilliSeconds * static_cast<float>(dis(gen))) / 1000.0))))) / 1.57f);
+
+    ////float modulatedIntensityPlusOffset = (farVal * (1.0f - amplitude)) + (farVal * modulation * amplitude);
+    //return modulation * farVal;
 }
 
 void Light::setMVP(MVP mvp){
@@ -106,15 +123,11 @@ void Light::_updateTime(int time) {
         float radiusOfLight = Vector4(inverseModel[3], inverseModel[7], inverseModel[11], 1.0f).getMagnitude();
         _lightMVP.setView(Matrix::cameraTranslation(0.0, 0.0, radiusOfLight) * 
             Matrix::cameraRotationAroundX(-90.0f + (posInRotation*360.0f)));
-        
-        //std::cout << x << " " << y << std::endl;
-        //std::cout << _milliSecondTime << std::endl;
     }
 }
 
 void Light::renderLight() {
     //Bring the time back to real time for the effects shader
-    
     //The amount of milliseconds in 24 hours
     const uint64_t dayLengthMilliseconds = 24 * 60 * 60 * 1000;
     uint64_t updateTimeAmplified = dayLengthMilliseconds / (60 * 1000);

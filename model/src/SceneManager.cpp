@@ -56,12 +56,12 @@ Model* GenerateLandscape()
 
                 // Insert quads as pairs of triangles
                 triangles.emplace_back(base + Vector4(0.f,   0.f, 0.f),
-                                       base + Vector4(delta, 0.f, 0.f),
+                                       base + Vector4(0.f,   0.f, delta),
                                        base + Vector4(delta, 0.f, delta));
 
-                triangles.emplace_back(base + Vector4(delta, 0.f, delta),
-                                       base + Vector4(0.f,   0.f, delta),
-                                       base + Vector4(0.f,   0.f, 0.f));
+                triangles.emplace_back(base + Vector4(0.f,   0.f, 0.f),
+                                       base + Vector4(delta, 0.f, delta),
+                                       base + Vector4(delta, 0.f, 0.f));
             }
         }
 
@@ -123,7 +123,7 @@ Model* GenerateLandscape()
         int indexBase = static_cast<int>(verts.size());
         indices.emplace_back(indexBase);
         indices.emplace_back(indexBase + 1);
-        indices.emplace_back(indexBase + 1);
+        indices.emplace_back(indexBase + 2);
 
         // Positions
         verts.emplace_back(positions[0]);
@@ -131,14 +131,9 @@ Model* GenerateLandscape()
         verts.emplace_back(positions[2]);
 
         // Normals - computed
-        Vector4 normal = positions[0].crossProduct(positions[1]);
-        if (normal.gety() < 0.f) {
-            // Force them "up"
-            float* n = normal.getFlatBuffer();
-            n[0] = -n[0];
-            n[1] = -n[1];
-            n[2] = -n[2];
-        }
+        Vector4 a = positions[0] - positions[1];
+        Vector4 b = positions[0] - positions[2];
+        Vector4 normal = a.crossProduct(b);
         normal.normalize();
         normals.emplace_back(normal);
         normals.emplace_back(normal);
@@ -171,7 +166,7 @@ SceneManager::SceneManager(int* argc, char** argv, unsigned int viewportWidth, u
     _deferredRenderer = new DeferredRenderer();
     _forwardRenderer = new ForwardRenderer();
 
-    _shadowRenderer = new ShadowRenderer(2000, 2000);
+    _shadowRenderer = new ShadowRenderer(8*1024, 8*1024);
 
     _pointShadowMap = new PointShadowMap(2000, 2000);
 
@@ -201,12 +196,12 @@ SceneManager::SceneManager(int* argc, char** argv, unsigned int viewportWidth, u
     //Add a directional light pointing down in the negative y axis
     MVP lightMVP;
     lightMVP.setView(Matrix::cameraTranslation(-50.0f, -50.0f, 0) * Matrix::cameraRotationAroundX(-90.0f));
-    lightMVP.setProjection(Matrix::cameraOrtho(100, 100, 1.0f, 1e3));
+    lightMVP.setProjection(Matrix::cameraOrtho(100, 100, 1.0f, 200));
     _lightList.push_back(Factory::make<Light>(lightMVP, LightType::CAMERA_DIRECTIONAL));
 
     MVP lightMapMVP;
     lightMapMVP.setView(Matrix::cameraTranslation(-50.0f, -50.0f, 0) * Matrix::cameraRotationAroundX(-90.0f));
-    lightMapMVP.setProjection(Matrix::cameraOrtho(100, 100, 1.0f, 1e3));
+    lightMapMVP.setProjection(Matrix::cameraOrtho(100, 100, 1.0f, 200));
     _lightList.push_back(Factory::make<Light>(lightMapMVP, LightType::MAP_DIRECTIONAL));
 
 

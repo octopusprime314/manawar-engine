@@ -200,13 +200,13 @@ SceneManager::SceneManager(int* argc, char** argv, unsigned int viewportWidth, u
 
     //Add a directional light pointing down in the negative y axis
     MVP lightMVP;
-    lightMVP.setView(Matrix::cameraTranslation(0.0f, 0.0f, 100.0f) * Matrix::cameraRotationAroundX(-90.0f));
-    lightMVP.setProjection(Matrix::cameraOrtho(200.0f, 200.0f, 1.0f, 200.0f));
+    lightMVP.setView(Matrix::cameraTranslation(-50.0f, -50.0f, 0) * Matrix::cameraRotationAroundX(-90.0f));
+    lightMVP.setProjection(Matrix::cameraOrtho(100, 100, 1.0f, 1e3));
     _lightList.push_back(Factory::make<Light>(lightMVP, LightType::CAMERA_DIRECTIONAL));
 
     MVP lightMapMVP;
-    lightMapMVP.setView(Matrix::cameraTranslation(0.0f, 0.0f, 100.0f) * Matrix::cameraRotationAroundX(-90.0f));
-    lightMapMVP.setProjection(Matrix::cameraOrtho(600.0f, 600.0f, 1.0f, 200.0f));
+    lightMapMVP.setView(Matrix::cameraTranslation(-50.0f, -50.0f, 0) * Matrix::cameraRotationAroundX(-90.0f));
+    lightMapMVP.setProjection(Matrix::cameraOrtho(100, 100, 1.0f, 1e3));
     _lightList.push_back(Factory::make<Light>(lightMapMVP, LightType::MAP_DIRECTIONAL));
 
 

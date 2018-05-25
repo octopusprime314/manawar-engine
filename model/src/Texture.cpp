@@ -4,7 +4,8 @@ Texture::Texture(){
 
 }
 
-Texture::Texture(std::string textureName, bool cubeMap){
+Texture::Texture(std::string textureName, bool cubeMap) :
+    _alphaValues(false) {
 
     _name = textureName;
 
@@ -137,9 +138,8 @@ bool Texture::_getTextureData(std::string textureName) {
     unsigned int imageSize = FreeImage_GetMemorySize(_dib);
     unsigned int byteSize = _width * _height * 4;
 
-    _alphaValues = true;
-    if (byteSize > imageSize) {
-        _alphaValues = false;
+    if (byteSize <= imageSize ) {
+        _alphaValues = true;
     }
     else {
         //std::cout << _name << " supports transparency!" << std::endl;
@@ -154,6 +154,10 @@ void Texture::_decodeTexture(std::string textureName, unsigned int textureType) 
     if (textureName.substr(textureName.find_last_of('.')) == ".tif" && _alphaValues) {
         glTexImage2D(textureType, 0, GL_RGBA8, _width, _height, 0, GL_BGRA, GL_UNSIGNED_BYTE, _bits);
         glGenerateMipmap(textureType); //Allocate mipmaps 
+        //If alpha value is opaque then do not count as a transparent texture
+        if (_bits[3] == 255) {
+            _alphaValues = false;
+        }
     }
     else if (textureName.substr(textureName.find_last_of('.')) == ".tif" && !_alphaValues) {
         glTexImage2D(textureType, 0, GL_RGB8, _width, _height, 0, GL_BGR, GL_UNSIGNED_BYTE, _bits);
@@ -162,6 +166,10 @@ void Texture::_decodeTexture(std::string textureName, unsigned int textureType) 
     else if (textureName.substr(textureName.find_last_of('.')) == ".dds" && _alphaValues) {
         glTexImage2D(textureType, 0, GL_RGBA8, _width, _height, 0, GL_BGRA, GL_UNSIGNED_BYTE, _bits);
         glGenerateMipmap(textureType); //Allocate mipmaps
+        //If alpha value is opaque then do not count as a transparent texture
+        if (_bits[3] == 255) {
+            _alphaValues = false;
+        }
     }
     else if (textureName.substr(textureName.find_last_of('.')) == ".dds" && !_alphaValues) {
         glTexImage2D(textureType, 0, GL_RGB8, _width, _height, 0, GL_BGR, GL_UNSIGNED_BYTE, _bits);

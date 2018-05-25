@@ -2,6 +2,7 @@
 #include "Vector4.h"
 #include <vector>
 #include "SSAOShader.h"
+#include "Blur.h"
 class MRTFrameBuffer;
 class ViewManager;
 
@@ -14,10 +15,13 @@ class SSAO {
 	unsigned int		 _ssaoFBO;
 	unsigned int		 _ssaoColorBuffer;
     SSAOShader		     _ssaoShader;
+    Blur                 _blur;
 public:
 	SSAO();
 	~SSAO();
 	void computeSSAO(MRTFrameBuffer* mrtBuffer, ViewManager* viewManager);
 	unsigned int getNoiseTexture();
+    unsigned int getSSAOTexture();
 	std::vector<Vector4>& getKernel();
+    Blur* getBlur();
 };

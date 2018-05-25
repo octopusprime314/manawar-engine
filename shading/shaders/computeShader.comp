@@ -1,0 +1,24 @@
+#version 430
+ 
+uniform sampler2D ssaoTexture;
+uniform layout(r8) writeonly image2D blurredSSAOTexture;
+ 
+layout (local_size_x = 16, local_size_y = 16) in;
+ 
+void main() {
+    ivec2 ID = ivec2(gl_GlobalInvocationID.xy); 
+    ivec2 size = imageSize(blurredSSAOTexture);
+    vec2 texCoords = vec2(float(ID.x)/float(size.x),float(ID.y)/float(size.y));
+ 
+	vec2 texelSize = 1.0 / vec2(textureSize(ssaoTexture, 0));
+    float result = 0.0;
+    for (int x = -2; x < 2; ++x) 
+    {
+        for (int y = -2; y < 2; ++y) 
+        {
+            vec2 offset = vec2(float(x), float(y)) * size;
+            result += texture(ssaoTexture, texCoords + offset).r;
+        }
+    }
+    imageStore(blurredSSAOTexture, ID, vec4(result/16.0));
+}

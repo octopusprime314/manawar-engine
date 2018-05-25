@@ -18,6 +18,9 @@ SSAO::SSAO() {
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _ssaoColorBuffer, 0);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glBindTexture(GL_TEXTURE_2D, 0);
+
+    _generateKernelNoise();
+
 }
 
 SSAO::~SSAO() {
@@ -82,12 +85,22 @@ void SSAO::computeSSAO(MRTFrameBuffer* mrtBuffer, ViewManager* viewManager) {
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
+    _blur.computeBlur(this);
+
 }
 
 unsigned int SSAO::getNoiseTexture() {
 	return _noiseTexture;
 }
 
+unsigned int SSAO::getSSAOTexture() {
+    return _ssaoColorBuffer;
+}
+
 std::vector<Vector4>& SSAO::getKernel() {
 	return _ssaoKernel;
+}
+
+Blur* SSAO::getBlur() {
+    return &_blur;
 }

@@ -8,6 +8,7 @@ uniform sampler2D mapDepthTexture;      //depth texture data array with values 1
 uniform samplerCube depthMap;		//cube depth map for point light shadows
 uniform samplerCube skyboxDayTexture;   //skybox day
 uniform samplerCube skyboxNightTexture;	//skybox night
+uniform sampler2D   ssaoTexture;      //depth texture data array with values 1.0 to 0.0, with 0.0 being closer
 
 in vec3 vsViewDirection;
 
@@ -33,7 +34,7 @@ vec2 poissonDisk[4] = vec2[](
   vec2( 0.34495938, 0.29387760 )
 );
 
-float ambient = 0.1;
+float ambient = 0.3;
 float shadowEffect = 0.6;
 float pointLightShadowEffect = 0.2;
 out vec4 fragColor;
@@ -47,6 +48,7 @@ void main(){
 	//extract color from diffuse texture
 	vec4 diffuse = texture(diffuseTexture, textureCoordinateOut.xy);
 	
+	float occlusion = texture(ssaoTexture, textureCoordinateOut.xy).r;
 	
 	if(position.x != 0.0 && position.y != 0.0 && position.z != 0.0){
 		gl_FragDepth = (length(position.xyz)/farPlane) / 2.0f;
@@ -71,24 +73,23 @@ void main(){
 	vec2 shadowTextureCoordinatesMap = shadowMappingMap.xy * vec2(0.5,0.5) + vec2(0.5,0.5);
 
 	if(views == 0){
-		fragColor = vec4(diffuse.rgb, 1.0);
+		float depth = texture(cameraDepthTexture, textureCoordinateOut).x;
+		fragColor = vec4(depth, depth, depth, 1.0);
 	}
 	else if(views == 1){
 		float depth = texture(mapDepthTexture, textureCoordinateOut).x;
 		fragColor = vec4(depth, depth, depth, 1.0);
 	}
 	else if(views == 2){		
-		//float depth = texture(cameraDepthTexture, textureCoordinateOut).x;
-		//fragColor = vec4(depth, depth, depth, 1.0);
+		//ssao
+		fragColor = vec4(vec3(occlusion), 1.0);
 		
-		fragColor = vec4(vec3(length(position.xyz)/farPlane), 1.0);
-		
-		//vec3 cubeMapTexCoords = (viewToModelMatrix * vec4(position.xyz,1.0)).xyz - (viewToModelMatrix * //vec4(pointLightPositions[0].xyz, 1.0)).xyz;
+		//vec3 cubeMapTexCoords = (viewToModelMatrix * vec4(position.xyz,1.0)).xyz - (viewToModelMatrix * vec4(pointLightPositions[0].xyz, 1.0)).xyz;
 		//float cubeDepth = texture(depthMap, normalize(cubeMapTexCoords.xyz)).x;
 		//fragColor = vec4(vec3(cubeDepth), 1.0);
 	}
 	else if(views == 3){
-		fragColor = vec4(diffuse.rgb * min(illumination + ambient, 1.0), 1.0);
+		fragColor = vec4(diffuse.rgb, 1.0);
 	}
 	else if(views == 4){
 		fragColor = vec4(normalizedNormal.xyz, 1.0);
@@ -96,41 +97,8 @@ void main(){
 	else if(views == 5){
 		fragColor = vec4(normalize(position.xyz), 1.0);
 	}
-	else if(views == 6){
-	
-		if(position.x == 0.0 && position.y == 0.0 && position.z == 0.0){
-			vec4 dayColor = texture(skyboxDayTexture, vec3(vsViewDirection.x, -vsViewDirection.y, vsViewDirection.z));
-			vec4 nightColor = texture(skyboxNightTexture, vec3(vsViewDirection.x, -vsViewDirection.y, vsViewDirection.z));
-			fragColor = (((1.0 - light.y)/2.0) * dayColor) + (((1.0 + light.y)/2.0) * nightColor);
-		}
-		else {
-			const float bias = 0.005; //removes shadow acne by adding a small bias
-			
-			//Only shadow in textures space
-			if(shadowTextureCoordinates.x <= 1.0 && shadowTextureCoordinates.x >= 0.0 && shadowTextureCoordinates.y <= 1.0 && shadowTextureCoordinates.y >= 0.0){
-				
-				float shadow = 1.0;
-				if ( texture( cameraDepthTexture, shadowTextureCoordinates).x < (shadowMapping.z * 0.5 + 0.5) - bias){
-					shadow = shadowEffect;
-				}	
-				fragColor = vec4(diffuse.rgb * shadow * min(illumination + ambient, 1.0), 1.0);
-			}
-			else if(shadowTextureCoordinatesMap.x <= 1.0 && shadowTextureCoordinatesMap.x >= 0.0 && shadowTextureCoordinatesMap.y <= 1.0 && shadowTextureCoordinatesMap.y >= 0.0){
-				vec4 shadowMappingMap = lightMapViewMatrix * vec4(position.xyz, 1.0);
-				shadowMappingMap = shadowMappingMap/shadowMappingMap.w; 
-				vec2 shadowTextureCoordinatesMap = shadowMappingMap.xy * vec2(0.5,0.5) + vec2(0.5,0.5);
-				
-				float shadow = 1.0;
-				if ( texture( mapDepthTexture, shadowTextureCoordinatesMap).x < (shadowMappingMap.z * 0.5 + 0.5) - bias){
-					shadow = shadowEffect;
-				}	
-				
-				fragColor = vec4(diffuse.rgb * shadow * min(illumination + ambient, 1.0), 1.0);
-			}
-		}
-	}
 	//Show light positions
-	else if(views == 7){
+	else if(views == 6 || views == 7){
 	
 		if(position.x == 0.0 && position.y == 0.0 && position.z == 0.0){
 			vec4 dayColor = texture(skyboxDayTexture, vec3(vsViewDirection.x, -vsViewDirection.y, vsViewDirection.z));
@@ -193,16 +161,23 @@ void main(){
 		
 			//If all light components add up to more than one, then normalize
 			//light components other than ambient
-			if(illumination + totalPointLightEffect + ambient > 1.0){
-				vec2 lightNormalized = normalize(vec2(illumination, totalPointLightEffect));
-				illumination = lightNormalized.x - (ambient / 2);
-				pointLighting = (pointLighting * lightNormalized.y) - (ambient / 2);
-			}
+			//if(illumination + totalPointLightEffect + ambient > 1.0){
+			//	vec2 lightNormalized = normalize(vec2(illumination, totalPointLightEffect));
+			//	illumination = lightNormalized.x - (ambient / 2);
+			//	pointLighting = (pointLighting * lightNormalized.y) - (ambient / 2);
+			//}
 			
 			vec3 lightComponentIllumination = (illumination  * diffuse.rgb) + 
 											  (pointLighting * diffuse.rgb);
 			
-			fragColor = vec4((lightComponentIllumination * totalShadow) + (ambient * diffuse.rgb), 1.0);
+			if(views == 6){
+				fragColor = vec4((lightComponentIllumination * totalShadow) + (ambient * diffuse.rgb * occlusion), 1.0);
+			}
+			else{
+				fragColor = vec4((lightComponentIllumination * totalShadow) + (ambient * diffuse.rgb), 1.0);
+			}
 		}
 	}
+	
+	//fragColor = vec4(vec3(occlusion), 1.0);
 }

@@ -7,6 +7,7 @@
 #include "ShadowRenderer.h"
 #include "AudioManager.h"
 #include "ForwardRenderer.h"
+#include "SSAO.h"
 
 SceneManager::SceneManager(int* argc, char** argv, unsigned int viewportWidth, unsigned int viewportHeight, float nearPlaneDistance, float farPlaneDistance) {
 
@@ -21,6 +22,8 @@ SceneManager::SceneManager(int* argc, char** argv, unsigned int viewportWidth, u
 
     _pointShadowRenderer = new PointShadowRenderer(2000, 2000);
 
+    _ssaoPass = new SSAO();
+
     //_audioManager = new AudioManager();
 
     //Setup pre and post draw callback events received when a draw call is issued
@@ -29,18 +32,18 @@ SceneManager::SceneManager(int* argc, char** argv, unsigned int viewportWidth, u
 
     _modelList.push_back(Factory::make<Model>("landscape/landscape.fbx")); //Add a static model to the scene
 
-    int x = -900;
-    for (int i = 0; i < 1; ++i) {
-        //_modelList.push_back(_modelFactory->makeAnimatedModel("troll/troll_idle.fbx")); //Add an animated model to the scene
-        //_modelList.push_back(_modelFactory->makeAnimatedModel("hagraven/hagraven_idle.fbx")); //Add an animated model to the scene
-        //_modelList.push_back(_modelFactory->makeAnimatedModel("wolf/wolf_turnleft.fbx")); //Add an animated model to the scene
-        _modelList.push_back(Factory::make<AnimatedModel>("werewolf/werewolf_jump.fbx")); //Add an animated model to the scene
+    //int x = -900;
+    //for (int i = 0; i < 1; ++i) {
+    //    //_modelList.push_back(_modelFactory->makeAnimatedModel("troll/troll_idle.fbx")); //Add an animated model to the scene
+    //    //_modelList.push_back(_modelFactory->makeAnimatedModel("hagraven/hagraven_idle.fbx")); //Add an animated model to the scene
+    //    //_modelList.push_back(_modelFactory->makeAnimatedModel("wolf/wolf_turnleft.fbx")); //Add an animated model to the scene
+    //    _modelList.push_back(Factory::make<AnimatedModel>("werewolf/werewolf_jump.fbx")); //Add an animated model to the scene
 
-        //Simple kludge test to activate animated models in motion to stimulate collision detection tests
-        _modelList.back()->getStateVector()->setActive(true);
-        _modelList.back()->setPosition(Vector4(0.0f, 5.0f, -20.0f, 1.0f)); //Place objects 20 meters above sea level for collision testing
-        x += 30;
-    }
+    //    //Simple kludge test to activate animated models in motion to stimulate collision detection tests
+    //    _modelList.back()->getStateVector()->setActive(true);
+    //    _modelList.back()->setPosition(Vector4(0.0f, 5.0f, -20.0f, 1.0f)); //Place objects 20 meters above sea level for collision testing
+    //    x += 30;
+    //}
    
 
     //_physics.addModels(_modelList); //Gives physics a pointer to all models which allows access to underlying geometry
@@ -116,12 +119,15 @@ void SceneManager::_postDraw() {
     //unbind fbo
     _deferredRenderer->unbind();
     
+    //Only compute ssao for opaque objects
+    _ssaoPass->computeSSAO(_deferredRenderer->getGBuffers(), _viewManager);
+
     //Render on default color, depth and stencil buffers
     //Clear color buffer from frame buffer otherwise framebuffer will contain data from the last draw
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     //Pass lights to deferred shading pass
-    _deferredRenderer->deferredLighting(_shadowRenderer, _lightList, _viewManager, _pointShadowRenderer);
+    _deferredRenderer->deferredLighting(_shadowRenderer, _lightList, _viewManager, _pointShadowRenderer, _ssaoPass);
 
     //Draw transparent objects onto of the deferred renderer
     _forwardRenderer->forwardLighting(_modelList, _viewManager, _shadowRenderer, _lightList, _pointShadowRenderer);

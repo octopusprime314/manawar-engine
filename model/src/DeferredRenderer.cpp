@@ -1,5 +1,6 @@
 #include "DeferredRenderer.h"
 #include "Model.h"
+#include "SSAO.h"
 
 DeferredRenderer::DeferredRenderer() : _mrtFBO(3), _deferredShader("deferredShader"){
     
@@ -10,8 +11,8 @@ DeferredRenderer::~DeferredRenderer() {
 }
 
 void DeferredRenderer::deferredLighting(ShadowRenderer* shadowRenderer, std::vector<Light*>& lights, ViewManager* viewManager,
-    PointShadowRenderer* pointShadowRenderer) {
-	_deferredShader.runShader(shadowRenderer, lights, viewManager, _mrtFBO, pointShadowRenderer);
+    PointShadowRenderer* pointShadowRenderer, SSAO* ssao) {
+	_deferredShader.runShader(shadowRenderer, lights, viewManager, _mrtFBO, pointShadowRenderer, ssao);
 }
 
 void DeferredRenderer::bind() {
@@ -28,4 +29,8 @@ void DeferredRenderer::bind() {
 void DeferredRenderer::unbind() {
     //unbind frame buffer
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+MRTFrameBuffer* DeferredRenderer::getGBuffers() {
+    return &_mrtFBO;
 }

@@ -29,6 +29,7 @@ class ShadowRenderer;
 class AudioManager;
 class PointShadowRenderer;
 class ForwardRenderer;
+class SSAO;
 
 class SceneManager {
     ViewManager*        _viewManager; //manages the view/camera matrix from the user's perspective
@@ -40,6 +41,7 @@ class SceneManager {
     ShadowRenderer*     _shadowRenderer;   //Manages shadow rendering
     PointShadowRenderer* _pointShadowRenderer; //Manages point shadow lights
     AudioManager*       _audioManager;  // Manages audio playback
+    SSAO*               _ssaoPass;
 
     void _preDraw(); //Prior to drawing objects call this function
     void _postDraw(); //Post of drawing objects call this function

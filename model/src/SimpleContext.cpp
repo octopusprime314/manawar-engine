@@ -12,9 +12,9 @@ SimpleContext::SimpleContext(int* argc, char** argv, unsigned int viewportWidth,
     //Initialize glfw for window creation
     glfwInit(); 
 
-    //Make opengl core profile 3.0
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
+    //Make opengl core profile 4.3
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     //Create a glfw window for a context

@@ -37,7 +37,8 @@ protected:
     GLuint       _shaderContext; //keeps track of the shader context
 	std::string  _shaderName;
     unsigned int _compile(char* filename, unsigned int type);
-    void         _link(unsigned int vertexSH, unsigned int fragmentSH, unsigned int geomSH);
+    void         _link(unsigned int vertexSH, unsigned int fragmentSH, 
+                       unsigned int geomSH, unsigned int computeSH);
     void         _build();
 
 public:

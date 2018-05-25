@@ -12,6 +12,7 @@ SSAOShader::SSAOShader() : Shader("ssaoShader"){
 	_kernelLocation = glGetUniformLocation(_shaderContext, "kernel");
 	_projectionLocation = glGetUniformLocation(_shaderContext, "projection");
 
+    glGenVertexArrays(1, &_dummyVAO);
 }
 
 SSAOShader::~SSAOShader() {
@@ -22,6 +23,8 @@ void SSAOShader::runShader(SSAO* ssao, MRTFrameBuffer* mrtBuffer, ViewManager* v
 	
 	//LOAD IN SHADER
 	glUseProgram(_shaderContext); //use context for loaded shader
+
+    glBindVertexArray(_dummyVAO);
 
 	//glUniform mat4 projection matrix, GL_TRUE is telling GL we are passing in the matrix as row major
 	glUniformMatrix4fv(_projectionLocation, 1, GL_TRUE, viewManager->getProjection().getFlatBuffer());
@@ -57,5 +60,6 @@ void SSAOShader::runShader(SSAO* ssao, MRTFrameBuffer* mrtBuffer, ViewManager* v
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, (GLsizei)4);
 
 	glBindTexture(GL_TEXTURE_2D, 0); //Unbind texture
+    glBindVertexArray(0);
 	glUseProgram(0);//end using this shader
 }

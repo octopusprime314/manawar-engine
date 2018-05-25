@@ -24,6 +24,7 @@ void Shader::_build() {
     unsigned int vertexSH;
     unsigned int fragmentSH;
     unsigned int geomSH;
+    unsigned int computeSH;
 
     std::string fileNameVert = SHADERS_LOCATION + _shaderName;
     fileNameVert.append(".vert");
@@ -31,6 +32,8 @@ void Shader::_build() {
     fileNameFrag.append(".frag");
     std::string fileNameGeom = SHADERS_LOCATION + _shaderName;
     fileNameGeom.append(".geom");
+    std::string fileNameCompute = SHADERS_LOCATION + _shaderName;
+    fileNameCompute.append(".comp");
 
     //Compile each shader
     if (fileExists(fileNameVert)) {
@@ -51,12 +54,18 @@ void Shader::_build() {
     else {
         geomSH = -1;
     }
+    if (fileExists(fileNameCompute)) {
+        computeSH = _compile((char*)fileNameCompute.c_str(), GL_COMPUTE_SHADER);
+    }
+    else {
+        computeSH = -1;
+    }
 
     //Link shaders
-    _link(vertexSH, fragmentSH, geomSH);
+    _link(vertexSH, fragmentSH, geomSH, computeSH);
 }
 
-void Shader::_link(unsigned int vertexSH, unsigned int fragmentSH, unsigned int geomSH) {
+void Shader::_link(unsigned int vertexSH, unsigned int fragmentSH, unsigned int geomSH, unsigned int computeSH) {
     _shaderContext = glCreateProgram();
 
     if (vertexSH != -1) {
@@ -67,6 +76,9 @@ void Shader::_link(unsigned int vertexSH, unsigned int fragmentSH, unsigned int 
     }
     if (geomSH != -1) {
         glAttachShader(_shaderContext, geomSH);
+    }
+    if (computeSH != -1) {
+        glAttachShader(_shaderContext, computeSH);
     }
 
     glLinkProgram(_shaderContext);

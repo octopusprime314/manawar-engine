@@ -11,6 +11,7 @@ class SSAOShader : public Shader{
 	unsigned int _noiseTextureLocation;
 	unsigned int _kernelLocation;
 	unsigned int _projectionLocation;
+    unsigned int _dummyVAO;
 public:
 	SSAOShader();
 	~SSAOShader();

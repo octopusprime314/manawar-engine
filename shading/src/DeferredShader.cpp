@@ -79,6 +79,7 @@ DeferredShader::DeferredShader(std::string shaderName) : Shader(shaderName) {
     _inverseProjectionLocation = glGetUniformLocation(_shaderContext, "inverseProjection");
     _skyboxDayTextureLocation = glGetUniformLocation(_shaderContext, "skyboxDayTexture");
     _skyboxNightTextureLocation = glGetUniformLocation(_shaderContext, "skyboxNightTexture");
+    _ssaoTextureLocation = glGetUniformLocation(_shaderContext, "ssaoTexture");
 
     //Get skybox texture
     TextureBroker* textureManager = TextureBroker::instance();
@@ -99,7 +100,8 @@ void DeferredShader::runShader(ShadowRenderer* shadowRenderer,
 							   std::vector<Light*>& lights, 
 							   ViewManager* viewManager,
 							   MRTFrameBuffer& mrtFBO,
-                               PointShadowRenderer* pointShadowRenderer) {
+                               PointShadowRenderer* pointShadowRenderer,
+                               SSAO* ssao) {
     //Take the generated texture data and do deferred shading
     //LOAD IN SHADER
     glUseProgram(_shaderContext); //use context for loaded shader
@@ -192,6 +194,7 @@ void DeferredShader::runShader(ShadowRenderer* shadowRenderer,
     glUniform1i(_pointLightDepthMapLocation, 5);
     glUniform1i(_skyboxDayTextureLocation, 6);
     glUniform1i(_skyboxNightTextureLocation, 7);
+    glUniform1i(_ssaoTextureLocation, 8);
 
     //Diffuse texture
     glActiveTexture(GL_TEXTURE0);
@@ -222,6 +225,9 @@ void DeferredShader::runShader(ShadowRenderer* shadowRenderer,
     glBindTexture(GL_TEXTURE_CUBE_MAP, _skyBoxDayTexture->getContext());
     glActiveTexture(GL_TEXTURE7);
     glBindTexture(GL_TEXTURE_CUBE_MAP, _skyBoxNightTexture->getContext());
+
+    glActiveTexture(GL_TEXTURE8);
+    glBindTexture(GL_TEXTURE_2D, ssao->getBlur()->getBlurTexture()/*->getSSAOTexture()*/);
     
     //Draw triangles using the bound buffer vertices at starting index 0 and number of vertices
     glDrawArrays(GL_TRIANGLES, 0, (GLsizei)6);

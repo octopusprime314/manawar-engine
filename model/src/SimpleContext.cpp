@@ -9,6 +9,10 @@ bool        SimpleContext::_quit = false;
 
 SimpleContext::SimpleContext(int* argc, char** argv, unsigned int viewportWidth, unsigned int viewportHeight) {
 
+    char workingDir[1024] = "";
+    GetCurrentDirectory(sizeof(workingDir), workingDir);
+    std::cout << "Working directory: " << workingDir << std::endl;
+
     //Initialize glfw for window creation
     glfwInit(); 
 
@@ -17,11 +21,18 @@ SimpleContext::SimpleContext(int* argc, char** argv, unsigned int viewportWidth,
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
+    glfwSetErrorCallback([](int code, const char* pMsg) {
+        char buffer[1024];
+        snprintf(buffer, sizeof(buffer), "GLFW [0x%Xu] %s\n", code, pMsg);
+        std::cerr << buffer << std::endl;
+    });
+
     //Create a glfw window for a context
     _window = glfwCreateWindow(viewportWidth, viewportHeight, "ReBoot", NULL, NULL);
     if (!_window) {
         // Window or OpenGL context creation failed
-        std::cout << "You failed me!" << std::endl;
+        // The error callback above will tell us what happened.
+        std::abort();
     }
     glfwMakeContextCurrent(_window); //Make current opengl context current
 

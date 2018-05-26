@@ -24,7 +24,7 @@ SceneManager::SceneManager(int* argc, char** argv, unsigned int viewportWidth, u
 
     _ssaoPass = new SSAO();
 
-    //_audioManager = new AudioManager();
+    _audioManager = new AudioManager();
 
     //Setup pre and post draw callback events received when a draw call is issued
     SimpleContextEvents::setPreDrawCallback(std::bind(&SceneManager::_preDraw, this));
@@ -44,10 +44,10 @@ SceneManager::SceneManager(int* argc, char** argv, unsigned int viewportWidth, u
     //    _modelList.back()->setPosition(Vector4(0.0f, 5.0f, -20.0f, 1.0f)); //Place objects 20 meters above sea level for collision testing
     //    x += 30;
     //}
-   
+
 
     //_physics.addModels(_modelList); //Gives physics a pointer to all models which allows access to underlying geometry
-    //_physics.run(); //Dispatch physics to start kinematics 
+    //_physics.run(); //Dispatch physics to start kinematics
 
     //Add a directional light pointing down in the negative y axis
     MVP lightMVP;
@@ -86,8 +86,7 @@ SceneManager::SceneManager(int* argc, char** argv, unsigned int viewportWidth, u
     _viewManager->setView(Matrix::cameraTranslation(0.0, 2.0, -20.0), Matrix(), Matrix()); //Place view 25 meters in +z direction
     _viewManager->setModelList(_modelList);
 
-    // TODO: This should look cleaner.
-    //_audioManager->StartAll();
+    _audioManager->StartAll();
 
     _viewManager->run(); //Enables the glut main loop
 }
@@ -118,7 +117,7 @@ void SceneManager::_postDraw() {
 
     //unbind fbo
     _deferredRenderer->unbind();
-    
+
     //Only compute ssao for opaque objects
     _ssaoPass->computeSSAO(_deferredRenderer->getGBuffers(), _viewManager);
 

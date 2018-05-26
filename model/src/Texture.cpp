@@ -138,7 +138,7 @@ bool Texture::_getTextureData(std::string textureName) {
     unsigned int imageSize = FreeImage_GetMemorySize(_dib);
     unsigned int byteSize = _width * _height * 4;
 
-    if (byteSize <= imageSize ) {
+    if (byteSize <= imageSize) {
         _alphaValues = true;
     }
     else {

@@ -141,9 +141,9 @@ Model* GenerateLandscape()
 
         // Texture Coords
         // Use height as text coords.
-        texs.emplace_back(positions[0].gety(), 0.f);
-        texs.emplace_back(positions[1].gety(), 0.f);
-        texs.emplace_back(positions[2].gety(), 0.f);
+        texs.emplace_back(positions[0].getx(), positions[0].gety());
+        texs.emplace_back(positions[1].getx(), positions[1].gety());
+        texs.emplace_back(positions[2].getx(), positions[2].gety());
     }
     *renderBuffers.getDebugNormals() = normals;
 

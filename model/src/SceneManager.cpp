@@ -13,84 +13,9 @@
 #include <Noise.h>
 #include <Triangle.h>
 
-// Affine transform from [0, 1] to [-10, 8.5]
-float ScaleNoiseToTerrainHeight(float noise)
-{
-    constexpr float scale = 5.f;
-    constexpr float max = 1.7f * scale;
-    constexpr float min = -2.f * scale;
-
-    // TODO: We may want to make this nonlinear.
-    return (max - min) * noise + min;
-}
-
-// TODO: Put this somewhere else.
-Model* GenerateLandscape()
+Model* makeModelFromTriangles(std::vector<Triangle>& triangles, StaticShader* pShader, const char* pName)
 {
     RenderBuffers renderBuffers;
-
-    // Generate geometry
-    std::vector<Triangle> triangles;
-    {
-        constexpr int S = 150;
-        constexpr int minX = 50;
-        constexpr int maxX = 110;
-        constexpr int minZ = 50;
-        constexpr int maxZ = 110;
-        constexpr float delta = 0.1f;
-
-        static_assert(minX <= maxX, "Check X min/max bounds");
-        static_assert(minZ <= maxZ, "Check Z min/max bounds");
-        static_assert(delta > 0.f,  "Check your delta");
-
-        // 2 triangles per quad * (min-max and zero) ish
-        {
-            constexpr int trisPerUnit = static_cast<int>(1.f / delta);
-            constexpr int deltaX = maxX - minX + 1;
-            constexpr int deltaZ = maxZ - minZ + 1;
-            triangles.reserve(2 * deltaX * deltaZ * trisPerUnit * trisPerUnit);
-        }
-        for (float x = minX; x <= maxX; x += delta) {
-            for (float z = minZ; z <= maxZ; z += delta) {
-                Vector4 base = Vector4((float)x, 0.f, (float)z, 1.f);
-
-                // Insert quads as pairs of triangles
-                triangles.emplace_back(base + Vector4(0.f,   0.f, 0.f),
-                                       base + Vector4(0.f,   0.f, delta),
-                                       base + Vector4(delta, 0.f, delta));
-
-                triangles.emplace_back(base + Vector4(0.f,   0.f, 0.f),
-                                       base + Vector4(delta, 0.f, delta),
-                                       base + Vector4(delta, 0.f, 0.f));
-            }
-        }
-
-        for (auto& triangle : triangles) {
-            auto& positions = triangle.getTrianglePoints();
-            for (auto& position : positions) {
-                auto& x = position.getFlatBuffer()[0];
-                auto& y = position.getFlatBuffer()[1];
-                auto& z = position.getFlatBuffer()[2];
-                // We want to color things with bounds like this. Ish.
-                // Scale 'start' by 'scale' first.
-                //  gradient = [
-                //       Start   Color
-                //      (-1.000, (0, 0, 128)),        # deep water
-                //      (-0.150, (0, 0, 255)),        # shallow water
-                //      (-0.050, (0, 128, 255)),      # shore
-                //      (0.000,  (0xFF, 0xEC, 0x96)), # sand
-                //      (0.060,  (32, 160, 0)),       # grass
-                //      (0.400,  (128, 128, 128)),    # rock
-                //      (0.500,  (96, 96, 96)),       # rock
-                //      (0.600,  (255, 255, 255)),    # snow
-                //  ]
-                y = ScaleNoiseToTerrainHeight(kNoise.turbulence(2500.f*x / S, 3250.f*z / S + 400, 9));
-                // Center everything around the origin.
-                x -= (maxX - minX) / 2.f + minX;
-                z -= (maxZ - minZ) / 2.f + minZ;
-            }
-        }
-    }
     size_t reserveSize = 3 * triangles.size();
 
     std::vector<Vector4>& verts = *renderBuffers.getVertices();
@@ -105,19 +30,8 @@ Model* GenerateLandscape()
     std::vector<Tex2>& texs = *renderBuffers.getTextures();
     texs.reserve(reserveSize);
 
-
     for (auto& triangle : triangles) {
         auto& positions = triangle.getTrianglePoints();
-
-        // We can cull however we want here!
-
-        // Cull "under water" triangles. This helps more than you'd expect.
-        if (positions[0].gety() < -1.f &&
-            positions[1].gety() < -1.f &&
-            positions[2].gety() < -1.f)
-        {
-            continue;
-        }
 
         // Indices
         int indexBase = static_cast<int>(verts.size());
@@ -147,15 +61,171 @@ Model* GenerateLandscape()
     }
     *renderBuffers.getDebugNormals() = normals;
 
-    printf("Terrain Index Count:    %zu\n", indices.size());
-    printf("        Triangle Count: %zu\n", triangles.size());
-    printf("        Vertex Count:   %zu\n", 3 * triangles.size());
+    printf("%s Index Count:    %zu\n", pName, indices.size());
+    printf("%s Triangle Count: %zu\n", pName, triangles.size());
+    printf("%s Vertex Count:   %zu\n", pName, 3 * triangles.size());
 
-    Model* pLandscape = new Model(Factory::_viewEventWrapper, std::move(renderBuffers), new StaticShader("staticShader"));
-    pLandscape->addTexture("../assets/textures/landscape/sunbeams01.dds",
+    Model* pModel = new Model(Factory::_viewEventWrapper, std::move(renderBuffers), pShader);
+    // TODO: We don't want to texture this model.
+    pModel->addTexture("../assets/textures/landscape/Rock_6_d.png",
                            static_cast<int>(indices.size()));
-    return pLandscape;
+    return pModel;
 }
+
+// Affine transform from [0, 1] to [-10, 8.5]
+float ScaleNoiseToTerrainHeight(float noise)
+{
+    constexpr float scale = 5.f;
+    constexpr float max = 1.7f * scale;
+    constexpr float min = -2.f * scale;
+
+    // TODO: We may want to make this nonlinear.
+    return (max - min) * noise + min;
+}
+
+// TODO: Put this somewhere else.
+Model* GenerateLandscape()
+{
+    std::vector<Triangle> triangles;
+
+    constexpr int S = 150;
+    constexpr int minX = 50;
+    constexpr int maxX = 110;
+    constexpr int minZ = 50;
+    constexpr int maxZ = 110;
+    constexpr float delta = 0.3f;
+
+    static_assert(minX <= maxX, "Check X min/max bounds");
+    static_assert(minZ <= maxZ, "Check Z min/max bounds");
+    static_assert(delta > 0.f,  "Check your delta");
+
+    // 2 triangles per quad * (min-max and zero) ish
+    {
+        constexpr int trisPerUnit = static_cast<int>(1.f / delta);
+        constexpr int deltaX = maxX - minX + 1;
+        constexpr int deltaZ = maxZ - minZ + 1;
+        triangles.reserve(2 * deltaX * deltaZ * trisPerUnit * trisPerUnit);
+    }
+    for (float x = minX; x <= maxX; x += delta) {
+        for (float z = minZ; z <= maxZ; z += delta) {
+            Vector4 base = Vector4((float)x, 0.f, (float)z, 1.f);
+
+            // Insert quads as pairs of triangles
+            triangles.emplace_back(base + Vector4(0.f,   0.f, 0.f),
+                                   base + Vector4(0.f,   0.f, delta),
+                                   base + Vector4(delta, 0.f, delta));
+
+            triangles.emplace_back(base + Vector4(0.f,   0.f, 0.f),
+                                   base + Vector4(delta, 0.f, delta),
+                                   base + Vector4(delta, 0.f, 0.f));
+        }
+    }
+
+    std::vector<size_t> toDelete;
+
+    for (size_t idx = 0; idx < triangles.size(); idx += 1) {
+        auto& triangle = triangles[idx];
+        for (auto& point : triangle.getTrianglePoints()) {
+            auto& x = point.getFlatBuffer()[0];
+            auto& y = point.getFlatBuffer()[1];
+            auto& z = point.getFlatBuffer()[2];
+            // We want to color things with bounds like this. Ish.
+            // Scale 'start' by 'scale' first.
+            //  gradient = [
+            //       Start   Color
+            //      (-1.000, (0, 0, 128)),        # deep water
+            //      (-0.150, (0, 0, 255)),        # shallow water
+            //      (-0.050, (0, 128, 255)),      # shore
+            //      (0.000,  (0xFF, 0xEC, 0x96)), # sand
+            //      (0.060,  (32, 160, 0)),       # grass
+            //      (0.400,  (128, 128, 128)),    # rock
+            //      (0.500,  (96, 96, 96)),       # rock
+            //      (0.600,  (255, 255, 255)),    # snow
+            //  ]
+            y = ScaleNoiseToTerrainHeight(kNoise.turbulence(2500.f*x / S, 3250.f*z / S + 400, 9));
+            if (y < -1.f) {
+                if (toDelete.empty() || toDelete[toDelete.size()-1] != idx) {
+                    toDelete.push_back(idx);
+                }
+            }
+
+            // Center everything around the origin.
+            x -= (maxX - minX) / 2.f + minX;
+            z -= (maxZ - minZ) / 2.f + minZ;
+        }
+    }
+
+    printf("Found %zu terrain triangles to cull\n", toDelete.size());
+    std::vector<Triangle> trianglesAfterCull;
+    trianglesAfterCull.reserve(triangles.size());
+    size_t toDeleteIdx = 0;
+    for (size_t idx = 0; idx < triangles.size(); idx += 1) {
+        if (toDeleteIdx < toDelete.size() && idx == toDelete[toDeleteIdx]) {
+            toDeleteIdx += 1;
+            continue;
+        }
+        trianglesAfterCull.emplace_back(triangles[idx]); 
+    }
+    return makeModelFromTriangles(trianglesAfterCull, new StaticShader("staticShader"), "Island Terrain");
+}
+
+// TODO: Put this somewhere else.
+Model* GenerateTrees()
+{
+    std::vector<Triangle> triangles;
+    constexpr int S = 150;
+    constexpr int minX = 50;
+    constexpr int maxX = 110;
+    constexpr int minZ = 50;
+    constexpr int maxZ = 110;
+    constexpr float delta = 5.f;
+
+    static_assert(minX <= maxX, "Check X min/max bounds");
+    static_assert(minZ <= maxZ, "Check Z min/max bounds");
+    static_assert(delta > 0.f, "Check your delta");
+
+    // 4 triangles per "tree" * (min-max and zero) ish
+    {
+        constexpr int trisPerUnit = static_cast<int>(1.f / delta);
+        constexpr int deltaX = maxX - minX + 1;
+        constexpr int deltaZ = maxZ - minZ + 1;
+        triangles.reserve(4 * deltaX * deltaZ * trisPerUnit * trisPerUnit);
+    }
+    for (float x = minX; x <= maxX; x += delta) {
+        for (float z = minZ; z <= maxZ; z += delta) {
+            float y = ScaleNoiseToTerrainHeight(kNoise.turbulence(2500.f*x / S, 3250.f*z / S + 400, 9));
+            if (y < 1.f) {
+                continue;
+            }
+            Vector4 base = Vector4(x, y, z, 1.f);
+            constexpr float trunkSize = 0.1f;
+            constexpr float treeHeight = 10.f;
+
+            auto top = Vector4( 0.f, treeHeight,  0.f)       + base;
+            auto v00 = Vector4(-trunkSize,  0.f, -trunkSize) + base;
+            auto v01 = Vector4(-trunkSize,  0.f,  trunkSize) + base;
+            auto v10 = Vector4( trunkSize,  0.f, -trunkSize) + base;
+            auto v11 = Vector4( trunkSize,  0.f,  trunkSize) + base;
+
+            triangles.emplace_back(v00, top, v10);
+            triangles.emplace_back(v10, top, v11);
+            triangles.emplace_back(v11, top, v01);
+            triangles.emplace_back(v01, top, v00);
+        }
+    }
+
+    for (auto& triangle : triangles) {
+        auto& positions = triangle.getTrianglePoints();
+        for (auto& position : positions) {
+            // Center everything around the origin.
+            position.getFlatBuffer()[0] -= (maxX - minX) / 2.f + minX;
+            position.getFlatBuffer()[2] -= (maxZ - minZ) / 2.f + minZ;
+        }
+    }
+
+    return makeModelFromTriangles(triangles, new StaticShader("staticShader"), "Island Trees");
+}
+
 
 SceneManager::SceneManager(int* argc, char** argv, unsigned int viewportWidth, unsigned int viewportHeight, float nearPlaneDistance, float farPlaneDistance) {
 
@@ -182,6 +252,9 @@ SceneManager::SceneManager(int* argc, char** argv, unsigned int viewportWidth, u
 
     Model* pLandscape = GenerateLandscape();
     _modelList.push_back(pLandscape);
+
+    Model* pTrees = GenerateTrees();
+    _modelList.push_back(pTrees);
 
     _viewManager->setProjection(viewportWidth, viewportHeight, nearPlaneDistance, farPlaneDistance); //Initializes projection matrix and broadcasts upate to all listeners
     // This view is carefully chosen to look at a mountain without showing the (lack of) water in the scene.

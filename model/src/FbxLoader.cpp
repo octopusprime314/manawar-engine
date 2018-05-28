@@ -9,7 +9,6 @@
 #include "RenderBuffers.h"
 
 FbxLoader::FbxLoader(std::string name) {
-
     _fbxManager = FbxManager::Create();
     if (_fbxManager == nullptr) {
         printf("ERROR %s : %d failed creating FBX Manager!\n", __FILE__, __LINE__);
@@ -43,9 +42,10 @@ FbxLoader::FbxLoader(std::string name) {
     }
 
     importStatus = importer->Import(_scene);
-
     if (!importStatus) {
-        printf("ERROR %s : %d FbxImporter failed to import the file to the scene!\n", __FILE__, __LINE__);
+        const char* fbxErrorString = importer->GetStatus().GetErrorString();
+        printf("ERROR %s : %d FbxImporter failed to import '%s' to the scene: %s\n",
+               __FILE__, __LINE__, name.c_str(), fbxErrorString);
     }
 
     importer->Destroy();

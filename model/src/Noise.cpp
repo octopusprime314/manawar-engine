@@ -2,30 +2,9 @@
 
 #include <cmath>
 
-template <typename T>
-__forceinline T lerp(T t, T lo, T hi)
-{
-    return t*lo + (1 - t)*hi;
-}
-
-template <typename T>
-__forceinline T bilerp(T t0, T t1, T q00, T q01, T q10, T q11)
-{
-    T r0 = lerp(t0, q00, q10);
-    T r1 = lerp(t0, q01, q11);
-    return lerp(t1, r0, r1);
-}
-
-template <typename T>
-__forceinline T PowerOfTwo(uint8_t power)
-{
-    uint64_t res = 1;
-    return static_cast<T>(res << power);
-}
-
 // Return a random float in [0, 1] which changes smoothly in x and y.
 // Effectively 'Value Noise'.
-__forceinline float ValueNoise2D::noise(float x, float y) {
+float ValueNoise2D::noise(float x, float y) {
     uint32_t w = 128;
     uint32_t h = 128;
 

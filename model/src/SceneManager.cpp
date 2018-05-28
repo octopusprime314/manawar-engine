@@ -84,7 +84,7 @@ float ScaleNoiseToTerrainHeight(float noise)
 }
 
 // TODO: Put this somewhere else.
-Model* GenerateLandscape()
+Model* GenerateTerrain()
 {
     std::vector<Triangle> triangles;
 
@@ -93,7 +93,7 @@ Model* GenerateLandscape()
     constexpr int maxX = 110;
     constexpr int minZ = 50;
     constexpr int maxZ = 110;
-    constexpr float delta = 0.3f;
+    constexpr float delta = 0.1f;
 
     static_assert(minX <= maxX, "Check X min/max bounds");
     static_assert(minZ <= maxZ, "Check Z min/max bounds");
@@ -125,6 +125,7 @@ Model* GenerateLandscape()
 
     for (size_t idx = 0; idx < triangles.size(); idx += 1) {
         auto& triangle = triangles[idx];
+        int votesToCull = 0;
         for (auto& point : triangle.getTrianglePoints()) {
             auto& x = point.getFlatBuffer()[0];
             auto& y = point.getFlatBuffer()[1];
@@ -143,15 +144,16 @@ Model* GenerateLandscape()
             //      (0.600,  (255, 255, 255)),    # snow
             //  ]
             y = ScaleNoiseToTerrainHeight(kNoise.turbulence(2500.f*x / S, 3250.f*z / S + 400, 9));
-            if (y < -1.f) {
-                if (toDelete.empty() || toDelete[toDelete.size()-1] != idx) {
-                    toDelete.push_back(idx);
-                }
+            if (y < 0.f) {
+                votesToCull += 1;
             }
 
             // Center everything around the origin.
             x -= (maxX - minX) / 2.f + minX;
             z -= (maxZ - minZ) / 2.f + minZ;
+        }
+        if (votesToCull != 0) {
+            toDelete.emplace_back(idx);
         }
     }
 
@@ -166,7 +168,7 @@ Model* GenerateLandscape()
         }
         trianglesAfterCull.emplace_back(triangles[idx]); 
     }
-    return makeModelFromTriangles(trianglesAfterCull, new StaticShader("staticShader"), "Island Terrain");
+    return makeModelFromTriangles(trianglesAfterCull, new StaticShader("staticTerrainShader"), "Island Terrain");
 }
 
 // TODO: Put this somewhere else.
@@ -178,7 +180,7 @@ Model* GenerateTrees()
     constexpr int maxX = 110;
     constexpr int minZ = 50;
     constexpr int maxZ = 110;
-    constexpr float delta = 5.f;
+    constexpr float delta = 0.2f;
 
     static_assert(minX <= maxX, "Check X min/max bounds");
     static_assert(minZ <= maxZ, "Check Z min/max bounds");
@@ -194,12 +196,13 @@ Model* GenerateTrees()
     for (float x = minX; x <= maxX; x += delta) {
         for (float z = minZ; z <= maxZ; z += delta) {
             float y = ScaleNoiseToTerrainHeight(kNoise.turbulence(2500.f*x / S, 3250.f*z / S + 400, 9));
-            if (y < 1.f) {
+            // Roughly the green area in staticTerrainShader.frag, less some at the top.
+            if (!(0.25 < y && y < 1.6)) {
                 continue;
             }
             Vector4 base = Vector4(x, y, z, 1.f);
-            constexpr float trunkSize = 0.1f;
-            constexpr float treeHeight = 10.f;
+            constexpr float trunkSize = 0.01f;
+            constexpr float treeHeight = 0.15f;
 
             auto top = Vector4( 0.f, treeHeight,  0.f)       + base;
             auto v00 = Vector4(-trunkSize,  0.f, -trunkSize) + base;
@@ -250,7 +253,7 @@ SceneManager::SceneManager(int* argc, char** argv, unsigned int viewportWidth, u
     SimpleContextEvents::setPreDrawCallback(std::bind(&SceneManager::_preDraw, this));
     SimpleContextEvents::setPostDrawCallback(std::bind(&SceneManager::_postDraw, this));
 
-    Model* pLandscape = GenerateLandscape();
+    Model* pLandscape = GenerateTerrain();
     _modelList.push_back(pLandscape);
 
     Model* pTrees = GenerateTrees();

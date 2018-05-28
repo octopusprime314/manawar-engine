@@ -2,18 +2,18 @@
 #include "MasterClock.h"
 #include <random>
 
-Light::Light(ViewManagerEvents* eventWrapper, 
+Light::Light(ViewManagerEvents* eventWrapper,
     MVP mvp, LightType type, Vector4 color, bool shadowCaster) :
     UpdateInterface(eventWrapper),
     _type(type),
     _lightMVP(mvp),
     _color(color),
     _shadowCaster(shadowCaster),
-    _milliSecondTime(0), 
+    _milliSecondTime(0),
     _lightEffectShader("fireShader"){
 
     MasterClock::instance()->subscribeKinematicsRate(std::bind(&Light::_updateTime, this, std::placeholders::_1));
-    
+
     //Extract light position from view matrix
     float* inverseView = _lightMVP.getViewMatrix().inverse().getFlatBuffer();
     _position = Vector4(inverseView[3], inverseView[7], inverseView[11], 1.0);
@@ -22,7 +22,7 @@ Light::Light(ViewManagerEvents* eventWrapper,
 MVP Light::getMVP() {
 
     //Move the positions of the lights based on the camera view except
-    //the large map directional light that is used for low resolution 
+    //the large map directional light that is used for low resolution
     //shadow map generation
     if (_type == LightType::MAP_DIRECTIONAL) {
         return _lightMVP;
@@ -113,15 +113,15 @@ void Light::_updateTime(int time) {
 
     _milliSecondTime += (updateTimeAmplified*time);
     _milliSecondTime %= dayLengthMilliseconds;
-    
+
     if (_type == LightType::MAP_DIRECTIONAL || _type == LightType::CAMERA_DIRECTIONAL) {
 
         //fraction of the rotation
         float posInRotation = static_cast<float>(_milliSecondTime) / static_cast<float>(dayLengthMilliseconds);
-        
+
         float* inverseModel = _lightMVP.getViewMatrix().getFlatBuffer();
         float radiusOfLight = Vector4(inverseModel[3], inverseModel[7], inverseModel[11], 1.0f).getMagnitude();
-        _lightMVP.setView(Matrix::cameraTranslation(0.0, 0.0, radiusOfLight) * 
+        _lightMVP.setView(Matrix::cameraTranslation(0.0, 0.0, radiusOfLight) *
             Matrix::cameraRotationAroundX(-90.0f + (posInRotation*360.0f)));
     }
 }

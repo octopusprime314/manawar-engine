@@ -8,6 +8,7 @@ layout(location = 0) out vec4 color4;
 layout(location = 1) out vec4 normal4;
 layout(location = 2) out vec4 position4;
 
+// https://gist.github.com/patriciogonzalezvivo/670c22f3966e662d2f83
 // Simplex 2D noise
 vec3 permute(vec3 x) { return mod(((x*34.0)+1.0)*x, 289.0); }
 
@@ -65,7 +66,7 @@ void main(){
     vec3 c_grass2 = vec3(45, 134, 23);
     vec3 c_rock1  = vec3(128, 128, 128);
     vec3 c_rock2  = vec3(96, 96, 96);
-    vec3 c_snow   = vec3(255, 255, 255);
+    vec3 c_snow   = vec3(230, 230, 230);
 
     // Coordinate this with `::ScaleNoiseToTerrainHeight()`
     float min = -2.0;

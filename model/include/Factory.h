@@ -27,8 +27,8 @@
 
 namespace Factory {
     
-    //Static view event wrapper that allows subscription to game events
-    static ViewManagerEvents* _viewEventWrapper = nullptr;
+    // View event wrapper that allows subscription to game events
+    extern ViewManagerEvents* _viewEventWrapper;
 
     //Templated class function to generate classes that subscribe to game events
     template<class T>

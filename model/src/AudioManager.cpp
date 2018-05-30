@@ -3,6 +3,7 @@
 #define THEME_MP3 "assets/audio/Theme.mp3"
 
 #include <Windows.h>
+#include <iostream>
 
 AudioManager::AudioManager()
 {
@@ -18,11 +19,15 @@ AudioManager::AudioManager()
     // Background theme
     result = BackgroundTheme::Create(m_pSystem, THEME_MP3, &m_backgroundTheme);
     if (result == FMOD_ERR_FILE_NOTFOUND) {
-        MessageBoxA(nullptr, "Unable to load " THEME_MP3 ".", "Unable to find assets", MB_OK);
-    } else if (result != FMOD_OK) {
-        MessageBoxA(nullptr, "Unable to create background theme.",
-            "Error Creating Background Theme",
-            MB_OK);
+        // Maybe we're in a build directory, and need to go up a level?
+        result = BackgroundTheme::Create(m_pSystem, "../" THEME_MP3, &m_backgroundTheme);
+    }
+    if (result != FMOD_OK) {
+        if (result == FMOD_ERR_FILE_NOTFOUND) {
+            std::cout << "Unable to find \"" THEME_MP3 "\" or \"" "../" THEME_MP3 "\"\n";
+        } else if (result != FMOD_OK) {
+            std::cout << "Error Creating Background Theme";
+        }
     }
 }
 

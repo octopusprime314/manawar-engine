@@ -27,16 +27,15 @@
 #include "Light.h"
 #include "Model.h"
 #include "ShadowAnimatedPointShader.h"
+#include "CubeMapRenderer.h"
 
-class PointShadowRenderer {
+class PointShadowMap : public CubeMapRenderer {
 
-    CubeMap                    _cubeTextureMap; //Contains 6 size for point light shadow rendering
     ShadowPointShader          _pointShadowShader;//Shader that generates point light cube map shadows
     ShadowAnimatedPointShader  _pointAnimatedShadowShader;//Animated Shader that generates point light cube map shadows
 public:
-    PointShadowRenderer(GLuint width, GLuint height);
-    ~PointShadowRenderer();
+    PointShadowMap(GLuint width, GLuint height);
+    ~PointShadowMap();
 
-    void generateShadowBuffer(std::vector<Model*> modelList, std::vector<Light*>& lights);
-    GLuint getCubeMapDepthTexture();
+    void render(std::vector<Model*> modelList, Light* light);
 };

@@ -29,5 +29,5 @@ public:
     ForwardRenderer(); 
     ~ForwardRenderer();
     void forwardLighting(std::vector<Model*>& modelList, ViewManager* viewManager, ShadowRenderer* shadowRenderer,
-        std::vector<Light*>& lights, PointShadowRenderer* pointShadowRenderer);
+        std::vector<Light*>& lights, PointShadowMap* pointShadowMap);
 };

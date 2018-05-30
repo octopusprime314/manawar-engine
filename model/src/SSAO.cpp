@@ -11,7 +11,7 @@ SSAO::SSAO() {
 
 	glGenTextures(1, &_ssaoColorBuffer);
 	glBindTexture(GL_TEXTURE_2D, _ssaoColorBuffer);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, 1920, 1080, 0, GL_RGB, GL_FLOAT, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, screenPixelWidth, screenPixelHeight, 0, GL_RGB, GL_FLOAT, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
@@ -20,7 +20,6 @@ SSAO::SSAO() {
 	glBindTexture(GL_TEXTURE_2D, 0);
 
     _generateKernelNoise();
-
 }
 
 SSAO::~SSAO() {
@@ -86,7 +85,6 @@ void SSAO::computeSSAO(MRTFrameBuffer* mrtBuffer, ViewManager* viewManager) {
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     _blur.computeBlur(this);
-
 }
 
 unsigned int SSAO::getNoiseTexture() {

@@ -8,6 +8,7 @@
 #include "AudioManager.h"
 #include "ForwardRenderer.h"
 #include "SSAO.h"
+#include "EnvironmentMap.h"
 
 SceneManager::SceneManager(int* argc, char** argv, unsigned int viewportWidth, unsigned int viewportHeight, float nearPlaneDistance, float farPlaneDistance) {
 
@@ -20,9 +21,11 @@ SceneManager::SceneManager(int* argc, char** argv, unsigned int viewportWidth, u
 
     _shadowRenderer = new ShadowRenderer(2000, 2000);
 
-    _pointShadowRenderer = new PointShadowRenderer(2000, 2000);
+    _pointShadowMap = new PointShadowMap(2000, 2000);
 
     _ssaoPass = new SSAO();
+
+    //_environmentMap = new EnvironmentMap(2000, 2000);
 
     //_audioManager = new AudioManager();
 
@@ -69,10 +72,10 @@ SceneManager::SceneManager(int* argc, char** argv, unsigned int viewportWidth, u
     pointLightMVP.setProjection(Matrix::cameraProjection(90.0f, 1.0f, 1.0f, 100.0f));
 
     //Placing the lights in equidistant locations for testing
-    pointLightMVP.setModel(Matrix::translation(0.0f, 3.0, 0.0f));
-    _lightList.push_back(Factory::make<Light>(pointLightMVP, LightType::POINT, Vector4(1.0f, 1.0f, 1.0f, 1.0f), true));
-    //pointLightMVP.setModel(Matrix::translation(0.0f, 40, 50.0f));
-    //_lightList.push_back(Factory::make<Light>(pointLightMVP, LightType::POINT, Vector4(0.0f, 1.0f, 0.0f, 1.0f)));
+    pointLightMVP.setModel(Matrix::translation(0.0f, 5.0, 0.0f));
+    _lightList.push_back(Factory::make<Light>(pointLightMVP, LightType::POINT, Vector4(1.0f, 0.4f, 0.1f, 1.0f), true));
+    //pointLightMVP.setModel(Matrix::translation(190.0f, 20.0, 185.0f));
+    //_lightList.push_back(Factory::make<Light>(pointLightMVP, LightType::POINT, Vector4(1.0f, 0.4f, 0.1f, 1.0f), false));
     //pointLightMVP.setModel(Matrix::translation(0.0f, 40, -50.0f));
     //_lightList.push_back(Factory::make<Light>(pointLightMVP, LightType::POINT, Vector4(0.0f, 0.0f, 1.0f, 1.0f)));
     /*pointLightMVP.setModel(Matrix::translation(0.0f, 25.0f, -100.0f));
@@ -89,7 +92,7 @@ SceneManager::SceneManager(int* argc, char** argv, unsigned int viewportWidth, u
     // TODO: This should look cleaner.
     //_audioManager->StartAll();
 
-    _viewManager->run(); //Enables the glut main loop
+    _viewManager->run(); //Enables the glfw main loop
 }
 
 SceneManager::~SceneManager() {
@@ -109,7 +112,15 @@ void SceneManager::_preDraw() {
     _shadowRenderer->generateShadowBuffer(_modelList, _lightList);
 
     //send all vbo data to point light shadow pre pass
-    _pointShadowRenderer->generateShadowBuffer(_modelList, _lightList);
+    for (Light* light : _lightList) {
+        _pointShadowMap->render(_modelList, light);
+    }
+
+    //Disable environment mapping onto a texture cube atm
+    //MVP mvp;
+    //mvp.setView(_viewManager->getView());
+    //mvp.setProjection(_viewManager->getProjection());
+    //_environmentMap->render(_modelList, &mvp);
 
     //Establish an offscreen Frame Buffer Object to generate G buffers for deferred shading
     _deferredRenderer->bind();
@@ -127,10 +138,10 @@ void SceneManager::_postDraw() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     //Pass lights to deferred shading pass
-    _deferredRenderer->deferredLighting(_shadowRenderer, _lightList, _viewManager, _pointShadowRenderer, _ssaoPass);
+    _deferredRenderer->deferredLighting(_shadowRenderer, _lightList, _viewManager, _pointShadowMap, _ssaoPass, _environmentMap);
 
     //Draw transparent objects onto of the deferred renderer
-    _forwardRenderer->forwardLighting(_modelList, _viewManager, _shadowRenderer, _lightList, _pointShadowRenderer);
+    _forwardRenderer->forwardLighting(_modelList, _viewManager, _shadowRenderer, _lightList, _pointShadowMap);
 
     for (auto light : _lightList) {
         if (light->getType() == LightType::POINT) {

@@ -10,9 +10,9 @@ ForwardRenderer::~ForwardRenderer() {
 }
 
 void ForwardRenderer::forwardLighting(std::vector<Model*>& modelList, ViewManager* viewManager, ShadowRenderer* shadowRenderer,
-    std::vector<Light*>& lights, PointShadowRenderer* pointShadowRenderer) {
+    std::vector<Light*>& lights, PointShadowMap* pointShadowMap) {
 
     for (auto model : modelList) {
-        _forwardShader.runShader(model, viewManager, shadowRenderer, lights, pointShadowRenderer);
+        _forwardShader.runShader(model, viewManager, shadowRenderer, lights, pointShadowMap);
     }
 }

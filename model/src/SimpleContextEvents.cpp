@@ -28,7 +28,7 @@ void SimpleContextEvents::setPostDrawCallback(std::function<void()> func) {
     _postDrawCallback = func;
 }
 
-//All keyboard input from glut will be notified here
+//All keyboard input from glfw will be notified here
 void SimpleContextEvents::updateKeyboard(int key, int x, int y) {
 
     for (auto func : _keyboardFuncs) {
@@ -36,7 +36,7 @@ void SimpleContextEvents::updateKeyboard(int key, int x, int y) {
     }
 }
 
-//All keyboard input from glut will be notified here
+//All keyboard input from glfw will be notified here
 void SimpleContextEvents::releaseKeyboard(int key, int x, int y) {
 
     for (auto func : _keyboardReleaseFuncs) {

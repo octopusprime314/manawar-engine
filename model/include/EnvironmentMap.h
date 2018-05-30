@@ -1,5 +1,5 @@
 /*
-* ComputeShader is part of the ReBoot distribution (https://github.com/octopusprime314/ReBoot.git).
+* EnvironmentMap is part of the ReBoot distribution (https://github.com/octopusprime314/ReBoot.git).
 * Copyright (c) 2018 Peter Morley.
 *
 * ReBoot is free software: you can redistribute it and/or modify
@@ -16,21 +16,27 @@
 */
 
 /**
-*  ComputeShader class. Takes in a texture and outputs a texture that is based on the shader
-*  implementation.  This class should have more generic member variables.
+*  EnvironmentMap class. Derives from CubeMapRenderer.
 */
 
 #pragma once
-#include "Shader.h"
-class Blur;
-class SSAO;
 
-class ComputeShader : public Shader {
+#include "CubeMap.h"
+#include <vector>
+#include "Light.h"
+#include "Model.h"
+#include "CubeMapRenderer.h"
+#include "EnvironmentShader.h"
 
-	unsigned int _SSAOTextureLocation;
-	unsigned int _blurredSSAOTextureLocation;
+class EnvironmentMap : public CubeMapRenderer {
+
+    EnvironmentShader _environmentShader;
+    //AnimationShader _animatedShader; 
+
 public:
-	ComputeShader();
-	~ComputeShader();
-	void runShader(Blur* blur, SSAO* ssao);
+    EnvironmentMap(GLuint width, GLuint height);
+    ~EnvironmentMap();
+
+    void render(std::vector<Model*> modelList, MVP* mvp);
 };
+

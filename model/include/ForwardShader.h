@@ -26,7 +26,7 @@
 #include <vector>
 class ViewManager;
 class ShadowRenderer;
-class PointShadowRenderer;
+class PointShadowMap;
 
 class ForwardShader : public Shader {
 
@@ -54,5 +54,5 @@ public:
     ForwardShader(std::string shaderName);
     ~ForwardShader();
     void runShader(Model* model, ViewManager* viewManager, ShadowRenderer* shadowRenderer,
-        std::vector<Light*>& lights, PointShadowRenderer* pointShadowRenderer);
+        std::vector<Light*>& lights, PointShadowMap* pointShadowMap);
 };

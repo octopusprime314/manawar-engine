@@ -37,14 +37,14 @@ class FunctionState;
 class ViewManager : public UpdateInterface {
 
     enum class ViewState{
-        DIFFUSE = 0,
-        LIGHT_DEPTH,
-        SHADOW_MAPPING, 
-        DIFFUSE_DIR_LIGHT,
+        DEFERRED_LIGHTING = 0,
+        DIFFUSE,
         NORMAL,
         POSITION,
-        DIFFUSE_SHADOW,
-        POINT_LIGHTS
+        SCREEN_SPACE_AMBIENT_OCCLUSION,
+        DIRECTIONAL_SHADOW, 
+        POINT_SHADOW,
+        ENVIRONMENT_MAP
     };
     ViewState           _viewState;
     Matrix              _view;
@@ -55,7 +55,7 @@ class ViewManager : public UpdateInterface {
     Matrix              _thirdPersonTranslation;
     Matrix              _inverseRotation; //Manages how to translate based on the inverse of the actual rotation matrix
     ViewManagerEvents*  _viewEvents;
-    SimpleContext*      _glutContext;
+    SimpleContext*      _glfwContext;
     std::vector<Model*> _modelList; //used to translate view to a model's transformation
     int                 _modelIndex; //used to keep track of which model the view is set to
     bool                _godState; //indicates whether the view is in god or model view point mode
@@ -72,7 +72,7 @@ public:
     Matrix&            getView();
     ViewState          getViewState();
     ViewManagerEvents* getEventWrapper();
-    void               run(); //Make this call to start glut mainloop
+    void               run(); //Make this call to start glfw mainloop
 protected:
     void               _updateKeyboard(int key, int x, int y); //Do stuff based on keyboard upate
 	void               _updateReleaseKeyboard(int key, int x, int y); //Do stuff based on keyboard release upate

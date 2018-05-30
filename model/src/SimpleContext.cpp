@@ -76,7 +76,7 @@ void SimpleContext::subscribeToDraw(std::function<void()> func) { //Use this cal
     _events.subscribeToDraw(func);
 }
 
-//All keyboard input from glut will be notified here
+//All keyboard input from glfw will be notified here
 void SimpleContext::_keyboardUpdate(GLFWwindow* window, int key, int scancode, int action, int mods) {
 
     if(action == GLFW_PRESS){

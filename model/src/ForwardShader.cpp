@@ -4,7 +4,7 @@
 #include "Model.h"
 #include "ViewManager.h"
 #include "ShadowRenderer.h"
-#include "PointShadowRenderer.h"
+#include "PointShadowMap.h"
 
 ForwardShader::ForwardShader(std::string shaderName) : Shader(shaderName) {
     //Grab uniforms needed in a staticshader
@@ -45,7 +45,7 @@ ForwardShader::~ForwardShader() {
 }
 
 void ForwardShader::runShader(Model* model, ViewManager* viewManager, ShadowRenderer* shadowRenderer,
-    std::vector<Light*>& lights, PointShadowRenderer* pointShadowRenderer) {
+    std::vector<Light*>& lights, PointShadowMap* pointShadowMap) {
     
     //LOAD IN SHADER
     glUseProgram(_shaderContext); //use context for loaded shader
@@ -170,7 +170,7 @@ void ForwardShader::runShader(Model* model, ViewManager* viewManager, ShadowRend
 
                 //Depth cube texture map for point lights
                 glActiveTexture(GL_TEXTURE3);
-                glBindTexture(GL_TEXTURE_CUBE_MAP, pointShadowRenderer->getCubeMapDepthTexture());
+                glBindTexture(GL_TEXTURE_CUBE_MAP, pointShadowMap->getCubeMapTexture());
 
                 //Draw triangles using the bound buffer vertices at starting index 0 and number of triangles
                 glDrawArrays(GL_TRIANGLES, strideLocation, (GLsizei)textureStride.second);

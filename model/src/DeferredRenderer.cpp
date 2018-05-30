@@ -11,8 +11,8 @@ DeferredRenderer::~DeferredRenderer() {
 }
 
 void DeferredRenderer::deferredLighting(ShadowRenderer* shadowRenderer, std::vector<Light*>& lights, ViewManager* viewManager,
-    PointShadowRenderer* pointShadowRenderer, SSAO* ssao) {
-	_deferredShader.runShader(shadowRenderer, lights, viewManager, _mrtFBO, pointShadowRenderer, ssao);
+    PointShadowMap* pointShadowMap, SSAO* ssao, EnvironmentMap* environmentMap) {
+	_deferredShader.runShader(shadowRenderer, lights, viewManager, _mrtFBO, pointShadowMap, ssao, environmentMap );
 }
 
 void DeferredRenderer::bind() {

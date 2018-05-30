@@ -14,10 +14,10 @@ ViewManager::ViewManager() {
 
 ViewManager::ViewManager(int* argc, char** argv, unsigned int viewportWidth, unsigned int viewportHeight) {
 
-    //Create instance of glut wrapper class context
-    //GLUT context can only run on main thread!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    //DO NOT THREAD GLUT CALLS
-    _glutContext = new SimpleContext(argc, argv, viewportWidth, viewportHeight);
+    //Create instance of glfw wrapper class context
+    //GLFW context can only run on main thread!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    //DO NOT THREAD GLFW CALLS
+    _glfwContext = new SimpleContext(argc, argv, viewportWidth, viewportHeight);
 
     _viewEvents = new ViewManagerEvents();
 
@@ -26,16 +26,16 @@ ViewManager::ViewManager(int* argc, char** argv, unsigned int viewportWidth, uns
 
     _thirdPersonTranslation = Matrix::cameraTranslation(0, 5, 10);
 
-    _viewState = ViewManager::ViewState::POINT_LIGHTS;
+    _viewState = ViewManager::ViewState::DEFERRED_LIGHTING;
 }
 
 ViewManager::~ViewManager() {
     delete _viewEvents;
-    delete _glutContext;
+    delete _glfwContext;
 }
 
 void ViewManager::run() {
-    _glutContext->run();
+    _glfwContext->run();
 }
 
 void ViewManager::setProjection(unsigned int viewportWidth, unsigned int viewportHeight, float nearPlaneDistance, float farPlaneDistance) {
@@ -96,28 +96,28 @@ void ViewManager::_updateReleaseKeyboard(int key, int x, int y) { //Do stuff bas
 void ViewManager::_updateKeyboard(int key, int x, int y) { //Do stuff based on keyboard update
 
     if (key == GLFW_KEY_1) {
-        _viewState = ViewState::DIFFUSE;
+        _viewState = ViewState::DEFERRED_LIGHTING;
     }
     else if (key == GLFW_KEY_2) {
-        _viewState = ViewState::LIGHT_DEPTH;
+        _viewState = ViewState::DIFFUSE;
     }
     else if (key == GLFW_KEY_3) {
-        _viewState = ViewState::SHADOW_MAPPING;
-    }
-    else if (key == GLFW_KEY_4) {
-        _viewState = ViewState::DIFFUSE_DIR_LIGHT;
-    }
-    else if (key == GLFW_KEY_5) {
         _viewState = ViewState::NORMAL;
     }
-    else if (key == GLFW_KEY_6) {
+    else if (key == GLFW_KEY_4) {
         _viewState = ViewState::POSITION;
     }
+    else if (key == GLFW_KEY_5) {
+        _viewState = ViewState::SCREEN_SPACE_AMBIENT_OCCLUSION;
+    }
+    else if (key == GLFW_KEY_6) {
+        _viewState = ViewState::DIRECTIONAL_SHADOW;
+    }
     else if (key == GLFW_KEY_7) {
-        _viewState = ViewState::DIFFUSE_SHADOW;
+        _viewState = ViewState::POINT_SHADOW;
     }
     else if (key == GLFW_KEY_8) {
-        _viewState = ViewState::POINT_LIGHTS;
+        _viewState = ViewState::ENVIRONMENT_MAP;
     }
 
     if (key == GLFW_KEY_W || key == GLFW_KEY_S || key == GLFW_KEY_A || key == GLFW_KEY_D || key == GLFW_KEY_E) {
@@ -225,8 +225,8 @@ void ViewManager::_updateKeyboard(int key, int x, int y) { //Do stuff based on k
 
 void ViewManager::_updateMouse(double x, double y) { //Do stuff based on mouse update
 
-    int widthMidpoint = 1920 / 2;
-    int heightMidpoint = 1080 / 2;
+    int widthMidpoint = screenPixelWidth / 2;
+    int heightMidpoint = screenPixelHeight / 2;
     static const float mouseSensitivity = 1.5f;
 
     if (x < widthMidpoint || x > widthMidpoint) {

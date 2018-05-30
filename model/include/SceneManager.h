@@ -27,9 +27,10 @@ class ViewManager;
 class DeferredRenderer;
 class ShadowRenderer;
 class AudioManager;
-class PointShadowRenderer;
+class PointShadowMap;
 class ForwardRenderer;
 class SSAO;
+class EnvironmentMap;
 
 class SceneManager {
     ViewManager*        _viewManager; //manages the view/camera matrix from the user's perspective
@@ -39,9 +40,10 @@ class SceneManager {
     DeferredRenderer*   _deferredRenderer; //Manages deferred shading g buffers
     ForwardRenderer*    _forwardRenderer; //Manages forward shading transparent objects
     ShadowRenderer*     _shadowRenderer;   //Manages shadow rendering
-    PointShadowRenderer* _pointShadowRenderer; //Manages point shadow lights
+    PointShadowMap*     _pointShadowMap; //Manages point shadow lights
     AudioManager*       _audioManager;  // Manages audio playback
     SSAO*               _ssaoPass;
+    EnvironmentMap*     _environmentMap;
 
     void _preDraw(); //Prior to drawing objects call this function
     void _postDraw(); //Post of drawing objects call this function

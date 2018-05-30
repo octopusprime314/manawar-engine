@@ -37,11 +37,17 @@ void EffectShader::runShader(Light* light, MVP& cameraMVP, float seconds) {
     auto MVP = light->getMVP();
 
     //Transform screen space quad to the MVP of the emitting light
-    auto cameraMatPtr = cameraMVP.getViewBuffer();
-    //Now we also want to billboard this screen space effect so make the inner rotation matrix an identity
-    //and just take the translation from the camera view matrix
-    Matrix cameraNoRotationMat = Matrix::translation(cameraMatPtr[3], cameraMatPtr[7], cameraMatPtr[11]);
-    auto modelViewProjection = cameraMVP.getProjectionMatrix() * cameraNoRotationMat * MVP.getModelMatrix();
+    //Now we also want to billboard this screen space effect so take the 
+    //inverse of the camera view rotation matrix and clear the translation
+    auto viewMatrix = cameraMVP.getViewMatrix();
+    auto viewMatrixPrt = viewMatrix.getFlatBuffer();
+    viewMatrixPrt[3] = 0.0;
+    viewMatrixPrt[7] = 0.0;
+    viewMatrixPrt[11] = 0.0;
+    viewMatrixPrt[15] = 1.0;
+    auto modelViewProjection = cameraMVP.getProjectionMatrix() * cameraMVP.getViewMatrix() 
+                             * MVP.getModelMatrix() * viewMatrix.inverse();
+
     glUniformMatrix4fv(_modelViewProjectionLocation, 1, GL_TRUE, modelViewProjection.getFlatBuffer());
 
     //screen space quad

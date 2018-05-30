@@ -43,8 +43,9 @@ public:
     ~DeferredRenderer();
     void deferredLighting(ShadowRenderer* shadowRenderer, 
         std::vector<Light*>& lights, ViewManager* viewManager,
-        PointShadowRenderer* pointShadowRenderer,
-        SSAO* ssao);
+        PointShadowMap* pointShadowRenderer,
+        SSAO* ssao,
+        EnvironmentMap* environmentMap);
     void bind();
     void unbind();
     MRTFrameBuffer* getGBuffers();

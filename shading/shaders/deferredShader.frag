@@ -9,6 +9,7 @@ uniform samplerCube depthMap;		//cube depth map for point light shadows
 uniform samplerCube skyboxDayTexture;   //skybox day
 uniform samplerCube skyboxNightTexture;	//skybox night
 uniform sampler2D   ssaoTexture;      //depth texture data array with values 1.0 to 0.0, with 0.0 being closer
+//uniform samplerCube environmentMapTexture;      //depth texture data array with values 1.0 to 0.0, with 0.0 being closer
 
 in vec3 vsViewDirection;
 
@@ -36,7 +37,6 @@ vec2 poissonDisk[4] = vec2[](
 
 float ambient = 0.3;
 float shadowEffect = 0.6;
-float pointLightShadowEffect = 0.2;
 out vec4 fragColor;
 
 void main(){
@@ -73,33 +73,6 @@ void main(){
 	vec2 shadowTextureCoordinatesMap = shadowMappingMap.xy * vec2(0.5,0.5) + vec2(0.5,0.5);
 
 	if(views == 0){
-		float depth = texture(cameraDepthTexture, textureCoordinateOut).x;
-		fragColor = vec4(depth, depth, depth, 1.0);
-	}
-	else if(views == 1){
-		float depth = texture(mapDepthTexture, textureCoordinateOut).x;
-		fragColor = vec4(depth, depth, depth, 1.0);
-	}
-	else if(views == 2){		
-		//ssao
-		fragColor = vec4(vec3(occlusion), 1.0);
-		
-		//vec3 cubeMapTexCoords = (viewToModelMatrix * vec4(position.xyz,1.0)).xyz - (viewToModelMatrix * vec4(pointLightPositions[0].xyz, 1.0)).xyz;
-		//float cubeDepth = texture(depthMap, normalize(cubeMapTexCoords.xyz)).x;
-		//fragColor = vec4(vec3(cubeDepth), 1.0);
-	}
-	else if(views == 3){
-		fragColor = vec4(diffuse.rgb, 1.0);
-	}
-	else if(views == 4){
-		fragColor = vec4(normalizedNormal.xyz, 1.0);
-	}
-	else if(views == 5){
-		fragColor = vec4(normalize(position.xyz), 1.0);
-	}
-	//Show light positions
-	else if(views == 6 || views == 7){
-	
 		if(position.x == 0.0 && position.y == 0.0 && position.z == 0.0){
 			vec4 dayColor = texture(skyboxDayTexture, vec3(vsViewDirection.x, -vsViewDirection.y, vsViewDirection.z));
 			vec4 nightColor = texture(skyboxNightTexture, vec3(vsViewDirection.x, -vsViewDirection.y, vsViewDirection.z));
@@ -142,7 +115,7 @@ void main(){
 			for(int i = 0; i < numPointLights; i++){
 				vec3 pointLightDir = position.xyz - pointLightPositions[i].xyz;
 				float distanceFromLight = length(pointLightDir);
-				float bias = 0.05; 
+				float bias = 0.1; 
 				if(distanceFromLight < pointLightRanges[i]){
 					vec3 pointLightDirNorm = normalize(-pointLightDir);
 					pointLighting += (dot(pointLightDirNorm, normalizedNormal)) * (1.0 - (distanceFromLight/(pointLightRanges[i]))) * pointLightColors[i];
@@ -152,8 +125,10 @@ void main(){
 					float distance = length(cubeMapTexCoords);
 					float cubeDepth = texture(depthMap, normalize(cubeMapTexCoords.xyz)).x*pointLightRanges[i];
 					
-					pointShadow -= ((1.0 - pointLightShadowEffect)/numLights)*(1.0 - (distance/cubeDepth));
-					//pointShadow -= ((1.0 - shadowEffect)/numLights);					
+					if(cubeDepth + bias < distance){
+						//pointShadow -= ((1.0 - pointLightShadowEffect)/numLights)*(1.0 - (distance/cubeDepth));
+						pointShadow -= ((1.0 - shadowEffect)/numLights);			
+					}					
 				}
 			}
 		
@@ -170,14 +145,35 @@ void main(){
 			vec3 lightComponentIllumination = (illumination  * diffuse.rgb) + 
 											  (pointLighting * diffuse.rgb);
 			
-			if(views == 6){
-				fragColor = vec4((lightComponentIllumination * totalShadow) + (ambient * diffuse.rgb * occlusion), 1.0);
-			}
-			else{
-				fragColor = vec4((lightComponentIllumination * totalShadow) + (ambient * diffuse.rgb), 1.0);
-			}
+			fragColor = vec4((lightComponentIllumination * totalShadow) + (ambient * diffuse.rgb * occlusion), 1.0);
 		}
 	}
+	else if(views == 1){		
+		
+		fragColor = vec4(diffuse.rgb, 1.0);
+	}
+	else if(views == 2){
+		
+		fragColor = vec4(normalizedNormal.xyz, 1.0);
+	}
+	else if(views == 3){
 	
-	//fragColor = vec4(vec3(occlusion), 1.0);
+		fragColor = vec4(normalize(position.xyz), 1.0);
+	}
+	else if(views == 4){
+	
+		fragColor = vec4(occlusion, occlusion, occlusion, 1.0); 
+	}
+	else if(views == 5){
+		float depth = texture(mapDepthTexture, textureCoordinateOut).x;
+		fragColor = vec4(depth, depth, depth, 1.0);
+	}
+	else if(views == 6){
+		vec3 cubeMapTexCoords = (viewToModelMatrix * vec4(position.xyz,1.0)).xyz - (viewToModelMatrix * vec4(pointLightPositions[0].xyz, 1.0)).xyz;
+		float cubeDepth = texture(depthMap, normalize(cubeMapTexCoords.xyz)).x;
+		fragColor = vec4(vec3(cubeDepth), 1.0);
+	}
+	else if(views == 7){
+		//fragColor = vec4(texture(environmentMapTexture, vec3(vsViewDirection.x, vsViewDirection.y, vsViewDirection.z)).rgb, 1.0);
+	}
 }

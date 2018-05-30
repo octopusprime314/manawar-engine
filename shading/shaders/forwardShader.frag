@@ -107,8 +107,10 @@ void main(){
 				float distance = length(cubeMapTexCoords);
 				float cubeDepth = texture(depthMap, normalize(cubeMapTexCoords.xyz)).x*pointLightRanges[i];
 				float bias = 0.05; 
-				pointShadow -= ((1.0 - pointLightShadowEffect)/numLights)*(1.0 - (distance/cubeDepth));
-				//pointShadow -= ((1.0 - shadowEffect)/numLights);	
+				if(cubeDepth + bias < distance){
+					//pointShadow -= ((1.0 - pointLightShadowEffect)/numLights)*(1.0 - (distance/cubeDepth));
+					pointShadow -= ((1.0 - shadowEffect)/numLights);			
+				}	
 				
 			}
 		}

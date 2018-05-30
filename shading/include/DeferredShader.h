@@ -29,8 +29,9 @@
 #include "MRTFrameBuffer.h"
 #include "Light.h"
 #include "ViewManager.h"
-#include "PointShadowRenderer.h"
+#include "PointShadowMap.h"
 #include "SSAO.h"
+#include "EnvironmentMap.h"
 
 class DeferredShader : public Shader {
 
@@ -53,6 +54,7 @@ class DeferredShader : public Shader {
     GLuint _viewToModelSpaceMatrixLocation;
     GLuint _farPlaneLocation;
     GLuint _ssaoTextureLocation;
+    GLuint _environmentMapTextureLocation;
 
     GLuint _skyboxDayTextureLocation;
     GLuint _skyboxNightTextureLocation;
@@ -67,6 +69,7 @@ public:
     virtual ~DeferredShader();
     void runShader(ShadowRenderer* shadowRenderer, std::vector<Light*>& lights, 
         ViewManager* viewManager, MRTFrameBuffer& mrtFBO, 
-        PointShadowRenderer* pointShadowRenderer,
-        SSAO* ssao);
+        PointShadowMap* pointShadowMap,
+        SSAO* ssao,
+        EnvironmentMap* environmentMap);
 };

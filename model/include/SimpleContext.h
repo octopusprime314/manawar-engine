@@ -42,15 +42,15 @@ public:
 
 private:
 
-    SimpleContextEvents _events; //Event wrapper for GLUT based events
-    unsigned int        _viewportWidth;  //Width dimension of glut window context in pixel units
-    unsigned int        _viewportHeight; //Height dimension of glut window context in pixel units
+    SimpleContextEvents _events; //Event wrapper for GLFW based events
+    unsigned int        _viewportWidth;  //Width dimension of glfw window context in pixel units
+    unsigned int        _viewportHeight; //Height dimension of glfw window context in pixel units
     static int          _renderNow;      //Internal flag that coordinates with the framerate
     static std::mutex   _renderLock;     //Prevents write/write collisions with renderNow on a frame tick trigger
     static GLFWwindow*  _window;         //Glfw window
     static bool         _quit;           //Notifies render loop that game is over
 
-    //All keyboard input from glut will be notified here
+    //All keyboard input from glfw will be notified here
     static void         _keyboardUpdate(GLFWwindow* window, int key, int scancode, int action, int mods);
     //One frame draw update call
     static void         _drawUpdate();

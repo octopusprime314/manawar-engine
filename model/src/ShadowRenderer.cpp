@@ -83,22 +83,23 @@ void ShadowRenderer::generateShadowBuffer(std::vector<Model*> modelList, std::ve
     //remove framebuffer context
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-    //Bind frame buffer
-    glBindFramebuffer(GL_FRAMEBUFFER, _animatedShadowFBO.getFrameBufferContext());
+    //REMOVE BLIT CAUSE ITS SLOW!!!
+    ////Bind frame buffer
+    //glBindFramebuffer(GL_FRAMEBUFFER, _animatedShadowFBO.getFrameBufferContext());
 
-    //Clear depth buffer
-    glClear(GL_DEPTH_BUFFER_BIT);
+    ////Clear depth buffer
+    //glClear(GL_DEPTH_BUFFER_BIT);
 
-    //Blit static depth info into animation depth render pass
-    glBindFramebuffer(GL_READ_FRAMEBUFFER, _staticShadowFBO.getFrameBufferContext());
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, _animatedShadowFBO.getFrameBufferContext());
+    ////Blit static depth info into animation depth render pass
+    //glBindFramebuffer(GL_READ_FRAMEBUFFER, _staticShadowFBO.getFrameBufferContext());
+    //glBindFramebuffer(GL_DRAW_FRAMEBUFFER, _animatedShadowFBO.getFrameBufferContext());
 
-    glBlitFramebuffer(0, 0, _staticShadowFBO.getWidth(), _staticShadowFBO.getHeight(),
-                      0, 0, _animatedShadowFBO.getWidth(), _animatedShadowFBO.getHeight(),
-                      GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+    //glBlitFramebuffer(0, 0, _staticShadowFBO.getWidth(), _staticShadowFBO.getHeight(),
+    //                  0, 0, _animatedShadowFBO.getWidth(), _animatedShadowFBO.getHeight(),
+    //                  GL_DEPTH_BUFFER_BIT, GL_NEAREST);
 
-    glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+    //glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+    //glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 
     //Bind frame buffer
     glBindFramebuffer(GL_FRAMEBUFFER, _animatedShadowFBO.getFrameBufferContext());

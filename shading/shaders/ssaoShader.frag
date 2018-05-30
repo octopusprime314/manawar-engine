@@ -29,7 +29,7 @@ void main()
 		mat3 TBN       = mat3(tangent, bitangent, normal); 
 
 		float occlusion = 0.0;
-		for(int i = 0; i < kernelSize; ++i)
+		for(int i = 0; i < kernelSize; i = i + int(radius))
 		{
 			// get sample position
 			vec3 sample = TBN * kernel[i]; // From tangent to view-space

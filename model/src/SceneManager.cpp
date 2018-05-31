@@ -38,13 +38,6 @@ SceneManager::SceneManager(int* argc, char** argv, unsigned int viewportWidth, u
 
     GenerateProceduralIsland(_modelList, ProcState());
 
-    _viewManager->setProjection(viewportWidth, viewportHeight, nearPlaneDistance, farPlaneDistance); //Initializes projection matrix and broadcasts upate to all listeners
-    // This view is carefully chosen to look at a mountain without showing the (lack of) water in the scene.
-    _viewManager->setView(Matrix::cameraTranslation(0.f, 0.68f, 20.f),
-                          Matrix::cameraRotationAroundY(-45.f),
-                          Matrix());
-    _viewManager->setModelList(_modelList);
-
     //_physics.addModels(_modelList); //Gives physics a pointer to all models which allows access to underlying geometry
     //_physics.run(); //Dispatch physics to start kinematics
 
@@ -82,6 +75,14 @@ SceneManager::SceneManager(int* argc, char** argv, unsigned int viewportWidth, u
     MasterClock::instance()->run(); //Scene manager kicks off the clock event manager
 
     _audioManager->StartAll();
+
+    // Do this after adding all of our objects.
+    _viewManager->setProjection(viewportWidth, viewportHeight, nearPlaneDistance, farPlaneDistance); //Initializes projection matrix and broadcasts upate to all listeners
+                                                                                                     // This view is carefully chosen to look at a mountain without showing the (lack of) water in the scene.
+    _viewManager->setView(Matrix::cameraTranslation(0.f, 0.68f, 20.f),
+        Matrix::cameraRotationAroundY(-45.f),
+        Matrix());
+    _viewManager->setModelList(_modelList);
 
     _viewManager->run(); //Enables the glfw main loop
 }

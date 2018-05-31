@@ -56,7 +56,13 @@ class Model : public UpdateInterface {
     
 public:
 
-    Model();
+    Model(ViewManagerEvents* eventWrapper, RenderBuffers& renderBuffers, StaticShader* pStaticShader);
+
+    Model(ViewManagerEvents* eventWrapper, ModelClass classId = ModelClass::ModelType)
+    : UpdateInterface(eventWrapper),
+      _classId(classId)
+    {}
+
     //Default model to type to base class
     Model(std::string name, ViewManagerEvents* eventWrapper, ModelClass classId = ModelClass::ModelType);
     virtual ~Model();

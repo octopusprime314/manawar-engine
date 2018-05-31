@@ -21,12 +21,12 @@
 
 #pragma once
 #include "Vector4.h"
-class Triangle {
 
+class Triangle {
     Vector4 _points[3];
 public:
     Triangle(Vector4 A, Vector4 B, Vector4 C);
     ~Triangle();
-    Vector4* getTrianglePoints();
+    Vector4x3 getTrianglePoints();
 
 };

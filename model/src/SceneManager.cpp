@@ -9,6 +9,9 @@
 #include "ForwardRenderer.h"
 #include "SSAO.h"
 #include "EnvironmentMap.h"
+#include "ProcIsland.h"
+
+#include <Triangle.h>
 
 SceneManager::SceneManager(int* argc, char** argv, unsigned int viewportWidth, unsigned int viewportHeight, float nearPlaneDistance, float farPlaneDistance) {
 
@@ -19,7 +22,7 @@ SceneManager::SceneManager(int* argc, char** argv, unsigned int viewportWidth, u
     _deferredRenderer = new DeferredRenderer();
     _forwardRenderer = new ForwardRenderer();
 
-    _shadowRenderer = new ShadowRenderer(2000, 2000);
+    _shadowRenderer = new ShadowRenderer(8*1024, 8*1024);
 
     _pointShadowMap = new PointShadowMap(2000, 2000);
 
@@ -33,34 +36,27 @@ SceneManager::SceneManager(int* argc, char** argv, unsigned int viewportWidth, u
     SimpleContextEvents::setPreDrawCallback(std::bind(&SceneManager::_preDraw, this));
     SimpleContextEvents::setPostDrawCallback(std::bind(&SceneManager::_postDraw, this));
 
-    _modelList.push_back(Factory::make<Model>("landscape/landscape.fbx")); //Add a static model to the scene
+    GenerateProceduralIsland(_modelList, ProcState());
 
-    //int x = -900;
-    //for (int i = 0; i < 1; ++i) {
-    //    //_modelList.push_back(_modelFactory->makeAnimatedModel("troll/troll_idle.fbx")); //Add an animated model to the scene
-    //    //_modelList.push_back(_modelFactory->makeAnimatedModel("hagraven/hagraven_idle.fbx")); //Add an animated model to the scene
-    //    //_modelList.push_back(_modelFactory->makeAnimatedModel("wolf/wolf_turnleft.fbx")); //Add an animated model to the scene
-    //    _modelList.push_back(Factory::make<AnimatedModel>("werewolf/werewolf_jump.fbx")); //Add an animated model to the scene
-
-    //    //Simple kludge test to activate animated models in motion to stimulate collision detection tests
-    //    _modelList.back()->getStateVector()->setActive(true);
-    //    _modelList.back()->setPosition(Vector4(0.0f, 5.0f, -20.0f, 1.0f)); //Place objects 20 meters above sea level for collision testing
-    //    x += 30;
-    //}
-
+    _viewManager->setProjection(viewportWidth, viewportHeight, nearPlaneDistance, farPlaneDistance); //Initializes projection matrix and broadcasts upate to all listeners
+    // This view is carefully chosen to look at a mountain without showing the (lack of) water in the scene.
+    _viewManager->setView(Matrix::cameraTranslation(0.f, 0.68f, 20.f),
+                          Matrix::cameraRotationAroundY(-45.f),
+                          Matrix());
+    _viewManager->setModelList(_modelList);
 
     //_physics.addModels(_modelList); //Gives physics a pointer to all models which allows access to underlying geometry
     //_physics.run(); //Dispatch physics to start kinematics
 
     //Add a directional light pointing down in the negative y axis
     MVP lightMVP;
-    lightMVP.setView(Matrix::cameraTranslation(0.0f, 0.0f, 100.0f) * Matrix::cameraRotationAroundX(-90.0f));
-    lightMVP.setProjection(Matrix::cameraOrtho(200.0f, 200.0f, 1.0f, 200.0f));
+    lightMVP.setView(Matrix::cameraTranslation(-50.0f, -50.0f, 0) * Matrix::cameraRotationAroundX(-90.0f));
+    lightMVP.setProjection(Matrix::cameraOrtho(100, 100, 1.0f, 200));
     _lightList.push_back(Factory::make<Light>(lightMVP, LightType::CAMERA_DIRECTIONAL));
 
     MVP lightMapMVP;
-    lightMapMVP.setView(Matrix::cameraTranslation(0.0f, 0.0f, 100.0f) * Matrix::cameraRotationAroundX(-90.0f));
-    lightMapMVP.setProjection(Matrix::cameraOrtho(600.0f, 600.0f, 1.0f, 200.0f));
+    lightMapMVP.setView(Matrix::cameraTranslation(-50.0f, -50.0f, 0) * Matrix::cameraRotationAroundX(-90.0f));
+    lightMapMVP.setProjection(Matrix::cameraOrtho(100, 100, 1.0f, 200));
     _lightList.push_back(Factory::make<Light>(lightMapMVP, LightType::MAP_DIRECTIONAL));
 
 
@@ -84,10 +80,6 @@ SceneManager::SceneManager(int* argc, char** argv, unsigned int viewportWidth, u
     _lightList.push_back(Factory::make<Light>(pointLightMVP, LightType::POINT, Vector4(1.0f, 0.0f, 1.0f, 1.0f)));*/
 
     MasterClock::instance()->run(); //Scene manager kicks off the clock event manager
-
-    _viewManager->setProjection(viewportWidth, viewportHeight, nearPlaneDistance, farPlaneDistance); //Initializes projection matrix and broadcasts upate to all listeners
-    _viewManager->setView(Matrix::cameraTranslation(0.0, 2.0, -20.0), Matrix(), Matrix()); //Place view 25 meters in +z direction
-    _viewManager->setModelList(_modelList);
 
     _audioManager->StartAll();
 

@@ -5,10 +5,18 @@
 
 TextureBroker* Model::_textureManager = TextureBroker::instance();
 
-
-
-Model::Model() {
-
+Model::Model(ViewManagerEvents* eventWrapper, RenderBuffers& renderBuffers, StaticShader* pStaticShader)
+    : UpdateInterface(eventWrapper),
+    _classId(ModelClass::ModelType),
+    _fbxLoader(nullptr),
+    _clock(MasterClock::instance()),
+    _debugMode(false),
+    _debugShaderProgram(new DebugShader("debugShader")),
+    _geometryType(GeometryType::Triangle),
+    _renderBuffers(std::move(renderBuffers)),
+    _shaderProgram(pStaticShader)
+{
+    _vao.createVAO(&_renderBuffers, _classId);
 }
 
 Model::Model(std::string name, ViewManagerEvents* eventWrapper, ModelClass classId) : UpdateInterface(eventWrapper),

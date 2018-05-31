@@ -48,3 +48,6 @@ public:
     void    normalize();
     friend  std::ostream &operator << (std::ostream& output, Vector4 &other);
 };
+
+using Vector4x3 = Vector4(&)[3];
+using Vector4x4 = Vector4(&)[4];

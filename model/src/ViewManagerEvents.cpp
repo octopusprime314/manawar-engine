@@ -1,5 +1,8 @@
 #include "ViewManagerEvents.h"
 
+namespace Factory {
+    extern ViewManagerEvents* _viewEventWrapper = nullptr;
+}
 
 void ViewManagerEvents::subscribeToView(std::function<void(Matrix)> func) { //Use this call to connect functions to camera/view updates
     _viewFuncs.push_back(func);

@@ -5,8 +5,8 @@ ShadowRenderer::ShadowRenderer(GLuint width, GLuint height) :
     _staticShadowShader("staticShadowShader"),
 	_animatedShadowShader("animatedShadowShader"),
     _staticRendered(false),
-    _staticShadowFBO(width*4, height*4),
-    _animatedShadowFBO(width*4, height*4),
+    _staticShadowFBO(width, height),
+    _animatedShadowFBO(width, height),
     _mapShadowFBO(width, height) {
 
 }

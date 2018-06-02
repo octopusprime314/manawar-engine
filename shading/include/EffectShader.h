@@ -31,7 +31,9 @@ class EffectShader : public Shader {
 protected:
     GLint       _timeLocation;
     GLint       _lightPosLocation;
-    GLint       _modelViewProjectionLocation;
+    GLint       _modelViewLocation;
+    GLint       _projectionLocation;
+    GLint       _inverseViewLocation;
     GLint       _fireTypeLocation;
     GLint       _farPlaneLocation;
     GLuint      _vaoContext;

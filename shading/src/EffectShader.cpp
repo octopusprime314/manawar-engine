@@ -36,7 +36,9 @@ EffectShader::EffectShader(std::string shaderName) : Shader(shaderName) {
     glBindVertexArray(0);
 
     _timeLocation = glGetUniformLocation(_shaderContext, "time");
-    _modelViewProjectionLocation = glGetUniformLocation(_shaderContext, "mvp");
+    _modelViewLocation = glGetUniformLocation(_shaderContext, "mv");
+    _projectionLocation = glGetUniformLocation(_shaderContext, "p");
+    _inverseViewLocation = glGetUniformLocation(_shaderContext, "inverseViewNoTrans");
     _lightPosLocation = glGetUniformLocation(_shaderContext, "lightPos");
     _fireTypeLocation = glGetUniformLocation(_shaderContext, "fireType");
     _farPlaneLocation = glGetUniformLocation(_shaderContext, "farPlane");
@@ -68,17 +70,26 @@ void EffectShader::runShader(Light* light, float seconds) {
     //Pass the type of fire to the shader to simulate i.e. candle light or bon fire
     glUniform1i(_fireTypeLocation, 2);
 
-
     //Transform screen space quad to the MVP of the emitting light
     //and setting the rotation matrix to identity for billboarding
     auto viewMatrixPrt = cameraMVP.getViewBuffer();
     auto viewMatrix = Matrix::translation(viewMatrixPrt[3], viewMatrixPrt[7], viewMatrixPrt[11]);
     auto modelMatrixPrt = lightMVP.getModelBuffer();
-    auto modelMatrix = Matrix::cameraTranslation(modelMatrixPrt[0], modelMatrixPrt[1], modelMatrixPrt[2]);
+    auto modelMatrix = Matrix::cameraTranslation(modelMatrixPrt[3], modelMatrixPrt[7], modelMatrixPrt[11]);
 
-    auto modelViewProjection = cameraMVP.getProjectionMatrix() * viewMatrix * modelMatrix;
+    auto viewNoTrans = cameraMVP.getViewMatrix();
+    viewNoTrans.getFlatBuffer()[3] = 0.0;
+    viewNoTrans.getFlatBuffer()[7] = 0.0;
+    viewNoTrans.getFlatBuffer()[11] = 0.0;
 
-    glUniformMatrix4fv(_modelViewProjectionLocation, 1, GL_TRUE, modelViewProjection.getFlatBuffer());
+    auto modelView = cameraMVP.getViewMatrix() * lightMVP.getModelMatrix();
+    glUniformMatrix4fv(_modelViewLocation, 1, GL_TRUE, modelView.getFlatBuffer());
+    
+    auto projection = cameraMVP.getProjectionMatrix();
+    glUniformMatrix4fv(_projectionLocation, 1, GL_TRUE, projection.getFlatBuffer());
+
+    auto inverseViewNoTrans = viewNoTrans.inverse();
+    glUniformMatrix4fv(_inverseViewLocation, 1, GL_TRUE, inverseViewNoTrans.getFlatBuffer());
 
     //screen space quad
     glDrawArrays(GL_TRIANGLES, 0, (GLsizei)6);

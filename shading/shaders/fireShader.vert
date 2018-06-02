@@ -3,7 +3,9 @@ layout(location = 0) in vec3 vertexIn;			   // Each vertex supplied
 out vec2 texCoord;
 out vec3 position;
 uniform int fireType;
-uniform mat4 mvp;  // Model view and projection matrix
+uniform mat4 mv; // Model view matrix 
+uniform mat4 p;  //projection matrix
+uniform mat4 inverseViewNoTrans;
 
 void main()
 {
@@ -31,8 +33,8 @@ void main()
 	// the view/camera and finally the projection matrix
 	// The order in which transformation matrices affect the vertex
 	// is in the order from right to left
-	vec4 transformedVert = mvp * vec4(vertexIn.xyz, 1.0); 
+	vec4 transformedVert = p * mv * inverseViewNoTrans * vec4(vertexIn.xyz, 1.0); 
 	gl_Position = transformedVert; 
 	
-	position = vertexIn;
+	position = vec3((mv * inverseViewNoTrans * vec4(vertexIn.xyz, 1.0)).xyz); 
 }

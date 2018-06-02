@@ -37,6 +37,7 @@ SceneManager::SceneManager(int* argc, char** argv, unsigned int viewportWidth, u
     SimpleContextEvents::setPostDrawCallback(std::bind(&SceneManager::_postDraw, this));
 
     GenerateProceduralIsland(_modelList, ProcState());
+    //_modelList.push_back(Factory::make<Model>("landscape/landscape.fbx")); //Add a static model to the scene
 
     //_physics.addModels(_modelList); //Gives physics a pointer to all models which allows access to underlying geometry
     //_physics.run(); //Dispatch physics to start kinematics
@@ -61,7 +62,7 @@ SceneManager::SceneManager(int* argc, char** argv, unsigned int viewportWidth, u
     pointLightMVP.setProjection(Matrix::cameraProjection(90.0f, 1.0f, 1.0f, 100.0f));
 
     //Placing the lights in equidistant locations for testing
-    pointLightMVP.setModel(Matrix::translation(0.0f, 2.0f, 0.0f));
+    pointLightMVP.setModel(Matrix::translation(1.0f, 2.0f, 3.0f));
     _lightList.push_back(Factory::make<Light>(pointLightMVP, LightType::POINT, Vector4(1.0f, 0.4f, 0.1f, 1.0f), true));
     //pointLightMVP.setModel(Matrix::translation(190.0f, 20.0, 185.0f));
     //_lightList.push_back(Factory::make<Light>(pointLightMVP, LightType::POINT, Vector4(1.0f, 0.4f, 0.1f, 1.0f), false));

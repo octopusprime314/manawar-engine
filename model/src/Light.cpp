@@ -19,7 +19,7 @@ Light::Light(ViewManagerEvents* eventWrapper,
     _position = Vector4(inverseView[3], inverseView[7], inverseView[11], 1.0);
 }
 
-MVP Light::getMVP() {
+MVP Light::getLightMVP() {
 
     //Move the positions of the lights based on the camera view except
     //the large map directional light that is used for low resolution
@@ -34,6 +34,10 @@ MVP Light::getMVP() {
             Matrix::cameraTranslation(inverseView[3], inverseView[7], inverseView[11]));
         return temp;
     }
+}
+
+MVP Light::getCameraMVP() {
+    return _cameraMVP;
 }
 
 Vector4 Light::getPosition() {
@@ -132,7 +136,7 @@ void Light::renderLight() {
     const uint64_t dayLengthMilliseconds = 24 * 60 * 60 * 1000;
     uint64_t updateTimeAmplified = dayLengthMilliseconds / (60 * 1000);
     float realTimeMilliSeconds = static_cast<float>(_milliSecondTime) / static_cast<float>(updateTimeAmplified);
-    _lightEffectShader.runShader(this, _cameraMVP, realTimeMilliSeconds / 1000.f);
+    _lightEffectShader.runShader(this, realTimeMilliSeconds / 1000.f);
 }
 
 

@@ -18,7 +18,7 @@ void PointShadowMap::render(std::vector<Model*> modelList, Light* light) {
     if (light->getType() == LightType::POINT && light->isShadowCaster()) {
         
         //Prepare cube face transforms
-        preCubeFaceRender(modelList, &light->getMVP());
+        preCubeFaceRender(modelList, &light->getLightMVP());
 
         for (Model* model : modelList) {
             if (model->getClassType() == ModelClass::ModelType) {

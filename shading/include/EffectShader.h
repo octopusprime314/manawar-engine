@@ -34,9 +34,10 @@ protected:
     GLint       _modelViewProjectionLocation;
     GLint       _fireTypeLocation;
     GLint       _farPlaneLocation;
-    GLuint       _vaoContext;
+    GLuint      _vaoContext;
+    GLuint      _quadBufferContext;
 public:
     EffectShader(std::string shaderName);
     virtual ~EffectShader();
-    virtual void runShader(Light* light, MVP& cameraMVP, float seconds);
+    virtual void runShader(Light* light, float seconds);
 };

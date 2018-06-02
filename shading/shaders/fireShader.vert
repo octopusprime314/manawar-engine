@@ -1,5 +1,5 @@
 #version 330
-
+layout(location = 0) in vec3 vertexIn;			   // Each vertex supplied 
 out vec2 texCoord;
 out vec3 position;
 uniform int fireType;
@@ -14,21 +14,25 @@ void main()
 	float minU = fireType * 0.2f;
 	float maxU  = minU + 0.2f;
 	
-	if(gl_VertexID == 0) {
-		gl_Position = mvp * vec4(-1.0, 1.0, 0.0, 1.0);
+	if(vertexIn.x == -1.0 && vertexIn.y == 1.0) {
 		texCoord = vec2(minU, 0.5);
 	}
-	else if(gl_VertexID == 1) {
-		gl_Position = mvp * vec4(-1, -1, 0, 1);
+	else if(vertexIn.x == -1.0 && vertexIn.y == -1.0) {
 		texCoord = vec2(minU, 0.0);
 	}
-	else if(gl_VertexID == 2) {
-		gl_Position = mvp * vec4(1, 1, 0, 1);
+	else if(vertexIn.x == 1.0 && vertexIn.y == 1.0) {
 		texCoord = vec2(maxU, 0.5);
 	}
-	else if(gl_VertexID == 3) {
-		gl_Position = mvp * vec4(1, -1, 0, 1);
+	else if(vertexIn.x == 1.0 && vertexIn.y == -1.0) {
 		texCoord = vec2(maxU, 0.0);
 	}
-	position = gl_Position.xyz;
+
+	// The vertex is first transformed by the model and world, then 
+	// the view/camera and finally the projection matrix
+	// The order in which transformation matrices affect the vertex
+	// is in the order from right to left
+	vec4 transformedVert = mvp * vec4(vertexIn.xyz, 1.0); 
+	gl_Position = transformedVert; 
+	
+	position = vertexIn;
 }

@@ -16,7 +16,7 @@ void ShadowAnimatedPointShader::runShader(Model* model, Light* light, std::vecto
     //Load in vbo buffers
     VAO* vao = animationModel->getVAO();
     MVP* modelMVP = animationModel->getMVP();
-    MVP lightMVP = light->getMVP();
+    MVP lightMVP = light->getLightMVP();
 
     //Use one single shadow shader and replace the vbo buffer from each model
     glUseProgram(_shaderContext); //use context for loaded shader

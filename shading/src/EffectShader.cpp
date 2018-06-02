@@ -3,19 +3,50 @@
 #include "ViewManager.h"
 
 EffectShader::EffectShader(std::string shaderName) : Shader(shaderName) {
+
+    //Build 2 triangles for screen space quad
+    const float length = 1.0f;
+    const float depth = 0.0f;
+    //2 triangles in screen space 
+    float triangles[] = { -length, -length, depth,
+        -length, length, depth,
+        length, length, depth,
+
+        -length, -length, depth,
+        length, length, depth,
+        length, -length, depth };
+
+    glGenBuffers(1, &_quadBufferContext);
+    glBindBuffer(GL_ARRAY_BUFFER, _quadBufferContext);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 6 * 3, triangles, GL_STATIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    glGenVertexArrays(1, &_vaoContext);
+    glBindVertexArray(_vaoContext);
+
+    glBindBuffer(GL_ARRAY_BUFFER, _quadBufferContext);
+
+    //Say that the vertex data is associated with attribute 0 in the context of a shader program
+    //Each vertex contains 3 floats per vertex
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+
+    //Now enable vertex buffer at location 0
+    glEnableVertexAttribArray(0);
+
+    glBindVertexArray(0);
+
     _timeLocation = glGetUniformLocation(_shaderContext, "time");
     _modelViewProjectionLocation = glGetUniformLocation(_shaderContext, "mvp");
     _lightPosLocation = glGetUniformLocation(_shaderContext, "lightPos");
     _fireTypeLocation = glGetUniformLocation(_shaderContext, "fireType");
     _farPlaneLocation = glGetUniformLocation(_shaderContext, "farPlane");
-    glGenVertexArrays(1, &_vaoContext);
 }
 
 EffectShader::~EffectShader() {
 
 }
 
-void EffectShader::runShader(Light* light, MVP& cameraMVP, float seconds) {
+void EffectShader::runShader(Light* light, float seconds) {
 
     //LOAD IN SHADER
     glUseProgram(_shaderContext); 
@@ -24,6 +55,9 @@ void EffectShader::runShader(Light* light, MVP& cameraMVP, float seconds) {
 
     //Pass game time to shader
     glUniform1f(_timeLocation, seconds);
+
+    auto lightMVP = light->getLightMVP();
+    auto cameraMVP = light->getCameraMVP();
 
     //Pass far plane to shader
     auto projMatrix = cameraMVP.getProjectionMatrix().getFlatBuffer();
@@ -34,24 +68,20 @@ void EffectShader::runShader(Light* light, MVP& cameraMVP, float seconds) {
     //Pass the type of fire to the shader to simulate i.e. candle light or bon fire
     glUniform1i(_fireTypeLocation, 2);
 
-    auto MVP = light->getMVP();
 
     //Transform screen space quad to the MVP of the emitting light
-    //Now we also want to billboard this screen space effect so take the 
-    //inverse of the camera view rotation matrix and clear the translation
-    auto viewMatrix = cameraMVP.getViewMatrix();
-    auto viewMatrixPrt = viewMatrix.getFlatBuffer();
-    viewMatrixPrt[3] = 0.0;
-    viewMatrixPrt[7] = 0.0;
-    viewMatrixPrt[11] = 0.0;
-    viewMatrixPrt[15] = 1.0;
-    auto modelViewProjection = cameraMVP.getProjectionMatrix() * cameraMVP.getViewMatrix() 
-                             * MVP.getModelMatrix() * viewMatrix.inverse();
+    //and setting the rotation matrix to identity for billboarding
+    auto viewMatrixPrt = cameraMVP.getViewBuffer();
+    auto viewMatrix = Matrix::translation(viewMatrixPrt[3], viewMatrixPrt[7], viewMatrixPrt[11]);
+    auto modelMatrixPrt = lightMVP.getModelBuffer();
+    auto modelMatrix = Matrix::cameraTranslation(modelMatrixPrt[0], modelMatrixPrt[1], modelMatrixPrt[2]);
+
+    auto modelViewProjection = cameraMVP.getProjectionMatrix() * viewMatrix * modelMatrix;
 
     glUniformMatrix4fv(_modelViewProjectionLocation, 1, GL_TRUE, modelViewProjection.getFlatBuffer());
 
     //screen space quad
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, (GLsizei)4);
+    glDrawArrays(GL_TRIANGLES, 0, (GLsizei)6);
     
     glBindVertexArray(0);
 

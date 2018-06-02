@@ -31,7 +31,7 @@
 class EnvironmentMap : public CubeMapRenderer {
 
     EnvironmentShader _environmentShader;
-    //AnimationShader _animatedShader; 
+    //AnimationShader _animatedShader;
 
 public:
     EnvironmentMap(GLuint width, GLuint height);
@@ -39,4 +39,3 @@ public:
 
     void render(std::vector<Model*> modelList, MVP* mvp);
 };
-

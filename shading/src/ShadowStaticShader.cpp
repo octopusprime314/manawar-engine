@@ -23,7 +23,7 @@ void ShadowStaticShader::runShader(Model* model, Light* light) {
 	//Load in vbo buffers
     VAO* vao = model->getVAO();
     MVP* modelMVP = model->getMVP();
-	MVP lightMVP = light->getMVP();
+	MVP lightMVP = light->getLightMVP();
 
 	//Use one single shadow shader and replace the vbo buffer from each model
     glUseProgram(_shaderContext); //use context for loaded shader

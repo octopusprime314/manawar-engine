@@ -49,7 +49,8 @@ public:
         LightType type, 
         Vector4 color, 
         bool shadowCaster);
-    MVP                         getMVP();
+    MVP                         getLightMVP();
+    MVP                         getCameraMVP();
     Vector4                     getPosition();
     LightType                   getType();
     Vector4&                    getColor();

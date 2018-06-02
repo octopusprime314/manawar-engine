@@ -112,7 +112,7 @@ void DeferredShader::runShader(ShadowRenderer* shadowRenderer,
 
     //Get light view matrix "look at" vector which is located in the third column
     //of the inner rotation matrix at index 2,6,10
-    auto viewMatrix = lights[0]->getMVP().getViewBuffer();
+    auto viewMatrix = lights[0]->getLightMVP().getViewBuffer();
     glUniform3f(_lightLocation, viewMatrix[2], viewMatrix[6], viewMatrix[10]);
 
     //Get point light positions
@@ -150,7 +150,7 @@ void DeferredShader::runShader(ShadowRenderer* shadowRenderer,
     delete [] lightPosArray;  delete [] lightColorsArray; delete[] lightRangesArray;
 
     //Change of basis from camera view position back to world position
-    MVP lightMVP = lights[0]->getMVP();
+    MVP lightMVP = lights[0]->getLightMVP();
     Matrix cameraToLightSpace = lightMVP.getProjectionMatrix() * 
         lightMVP.getViewMatrix() * 
         viewManager->getView().inverse();
@@ -159,7 +159,7 @@ void DeferredShader::runShader(ShadowRenderer* shadowRenderer,
     glUniformMatrix4fv(_lightViewLocation, 1, GL_TRUE, cameraToLightSpace.getFlatBuffer());
 
     //Change of basis from camera view position back to world position
-    MVP lightMapMVP = lights[1]->getMVP();
+    MVP lightMapMVP = lights[1]->getLightMVP();
     Matrix cameraToLightMapSpace = lightMapMVP.getProjectionMatrix() * 
         lightMapMVP.getViewMatrix() * 
         viewManager->getView().inverse();

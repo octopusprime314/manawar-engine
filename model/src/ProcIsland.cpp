@@ -82,12 +82,11 @@ static Model* GenerateTerrain()
 {
     std::vector<Triangle> triangles;
 
-    constexpr int S = 150;
-    constexpr int minX = 50;
-    constexpr int maxX = 110;
-    constexpr int minZ = 50;
+    constexpr int minX = 80;
+    constexpr int maxX = 95;
+    constexpr int minZ = 80;
     constexpr int maxZ = 110;
-    constexpr float delta = 0.1f;
+    constexpr float delta = 0.2f;
 
     static_assert(minX <= maxX, "Check X min/max bounds");
     static_assert(minZ <= maxZ, "Check Z min/max bounds");
@@ -137,14 +136,20 @@ static Model* GenerateTerrain()
             //      (0.500,  (96, 96, 96)),       # rock
             //      (0.600,  (255, 255, 255)),    # snow
             //  ]
-            y = ScaleNoiseToTerrainHeight(kNoise.turbulence(2500.f*x / S, 3250.f*z / S + 400, 9));
+            y = ScaleNoiseToTerrainHeight(kNoise.turbulence(2500.f*x / 150.f, 3250.f*z / 150 + 400, 9));
             if (y < 0.f) {
                 votesToCull += 1;
             }
 
-            // Center everything around the origin.
-            x -= (maxX - minX) / 2.f + minX;
-            z -= (maxZ - minZ) / 2.f + minZ;
+            {
+                constexpr int minX = 50;
+                constexpr int maxX = 110;
+                constexpr int minZ = 50;
+                constexpr int maxZ = 110;
+                // Center everything around the origin.
+                x -= (maxX - minX) / 2.f + minX;
+                z -= (maxZ - minZ) / 2.f + minZ;
+            }
         }
         if (votesToCull != 0) {
             toDelete.emplace_back(idx);
@@ -168,12 +173,15 @@ static Model* GenerateTerrain()
 static Model* GenerateTrees()
 {
     std::vector<Triangle> triangles;
-    constexpr int S = 150;
-    constexpr int minX = 50;
-    constexpr int maxX = 110;
-    constexpr int minZ = 50;
+    constexpr int minX = 80;
+    constexpr int maxX = 95;
+    constexpr int minZ = 80;
     constexpr int maxZ = 110;
-    constexpr float delta = 0.2f;
+
+    constexpr float trunkSize = 0.012f;
+    constexpr float treeHeight = trunkSize * 20.f;
+
+    constexpr float delta = trunkSize * 10.f;
 
     static_assert(minX <= maxX, "Check X min/max bounds");
     static_assert(minZ <= maxZ, "Check Z min/max bounds");
@@ -188,15 +196,12 @@ static Model* GenerateTrees()
     }
     for (float x = minX; x <= maxX; x += delta) {
         for (float z = minZ; z <= maxZ; z += delta) {
-            float y = ScaleNoiseToTerrainHeight(kNoise.turbulence(2500.f*x / S, 3250.f*z / S + 400, 9));
+            float y = ScaleNoiseToTerrainHeight(kNoise.turbulence(2500.f*x / 150.f, 3250.f*z / 150 + 400, 9));
             // Roughly the green area in staticTerrainShader.frag, less some at the top.
             if (!(0.25 < y && y < 1.6)) {
                 continue;
             }
             Vector4 base = Vector4(x, y, z, 1.f);
-            constexpr float trunkSize = 0.01f;
-            constexpr float treeHeight = 0.15f;
-
             auto top = Vector4( 0.f, treeHeight,  0.f)       + base;
             auto v00 = Vector4(-trunkSize,  0.f, -trunkSize) + base;
             auto v01 = Vector4(-trunkSize,  0.f,  trunkSize) + base;
@@ -213,6 +218,11 @@ static Model* GenerateTrees()
     for (auto& triangle : triangles) {
         auto& positions = triangle.getTrianglePoints();
         for (auto& position : positions) {
+            constexpr int minX = 50;
+            constexpr int maxX = 110;
+            constexpr int minZ = 50;
+            constexpr int maxZ = 110;
+
             // Center everything around the origin.
             position.getFlatBuffer()[0] -= (maxX - minX) / 2.f + minX;
             position.getFlatBuffer()[2] -= (maxZ - minZ) / 2.f + minZ;

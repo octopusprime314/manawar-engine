@@ -1,7 +1,7 @@
 #version 330
 
 in vec3 normalOut;
-in vec2 texOut;
+in vec3 texOut;
 in vec3 positionOut;
 
 layout(location = 0) out vec4 color4;
@@ -71,8 +71,8 @@ void main(){
     // Coordinate this with `::ScaleNoiseToTerrainHeight()`
     float min = -2.0;
     float max =  1.7;
-    float wiggle = 1.0 + snoise(texOut / 10) / 20;
-    float height = texOut.x * wiggle;
+    float wiggle = 0.1 * snoise(texOut.xz);
+    float height = texOut.y + wiggle;
 
     vec3 color3;
     if (height < t_sand) {

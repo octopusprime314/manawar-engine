@@ -43,16 +43,30 @@ SceneManager::SceneManager(int* argc, char** argv, unsigned int viewportWidth, u
     //_physics.run(); //Dispatch physics to start kinematics
 
     //Add a directional light pointing down in the negative y axis
-    MVP lightMVP;
-    lightMVP.setView(Matrix::cameraTranslation(-50.0f, -50.0f, 0) * Matrix::cameraRotationAroundX(-90.0f));
-    lightMVP.setProjection(Matrix::cameraOrtho(100, 100, 1.0f, 200));
-    _lightList.push_back(Factory::make<Light>(lightMVP, LightType::CAMERA_DIRECTIONAL));
+    {
+        const float size = 30.f;
+        const float r = 15;  // Right
+        const float l = 0;   // Left
+        const float t = 30;  // Top
+        const float b = -30; // Bottom
+        const float f = 30;  // Far
+        const float n = -30; // Near
+        const float ortho[16] = {
+            2.f / (r - l), 0.f,           0.f,            -(r + l) / (r - l),
+            0.f,           2.f / (t - b), 0.f,            -(t + b) / (t - b),
+            0.f,           0.f,           -2.f / (f - n), -(f + n) / (f - n),
+            0.f,           0.f,           0.f,            1.f
+        };
+        Matrix lightProj(Matrix::cameraOrtho(14, 35, -35, 35));
 
-    MVP lightMapMVP;
-    lightMapMVP.setView(Matrix::cameraTranslation(-50.0f, -50.0f, 0) * Matrix::cameraRotationAroundX(-90.0f));
-    lightMapMVP.setProjection(Matrix::cameraOrtho(100, 100, 1.0f, 200));
-    _lightList.push_back(Factory::make<Light>(lightMapMVP, LightType::MAP_DIRECTIONAL));
+        MVP lightMVP;
+        lightMVP.setProjection(lightProj);
+        _lightList.push_back(Factory::make<Light>(lightMVP, LightType::CAMERA_DIRECTIONAL));
 
+        MVP lightMapMVP;
+        lightMapMVP.setProjection(lightProj);
+        _lightList.push_back(Factory::make<Light>(lightMapMVP, LightType::MAP_DIRECTIONAL));
+    }
 
     //Model view projection matrix for point light additions
     MVP pointLightMVP;
@@ -80,7 +94,7 @@ SceneManager::SceneManager(int* argc, char** argv, unsigned int viewportWidth, u
     // Do this after adding all of our objects.
     _viewManager->setProjection(viewportWidth, viewportHeight, nearPlaneDistance, farPlaneDistance); //Initializes projection matrix and broadcasts upate to all listeners
                                                                                                      // This view is carefully chosen to look at a mountain without showing the (lack of) water in the scene.
-    _viewManager->setView(Matrix::cameraTranslation(0.f, 0.68f, 20.f),
+    _viewManager->setView(Matrix::cameraTranslation(-7.f, 0.68f, 5.f),
         Matrix::cameraRotationAroundY(-45.f),
         Matrix());
     _viewManager->setModelList(_modelList);

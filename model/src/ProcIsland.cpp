@@ -142,13 +142,9 @@ static Model* GenerateTerrain()
             }
 
             {
-                constexpr int minX = 50;
-                constexpr int maxX = 110;
-                constexpr int minZ = 50;
-                constexpr int maxZ = 110;
                 // Center everything around the origin.
-                x -= (maxX - minX) / 2.f + minX;
-                z -= (maxZ - minZ) / 2.f + minZ;
+                x -= (110-50) / 2.f + 50 + (maxX - minX)/2;
+                z -= (110-50) / 2.f + 50 + (maxZ - minZ)/2;
             }
         }
         if (votesToCull != 0) {
@@ -218,15 +214,31 @@ static Model* GenerateTrees()
     for (auto& triangle : triangles) {
         auto& positions = triangle.getTrianglePoints();
         for (auto& position : positions) {
-            constexpr int minX = 50;
-            constexpr int maxX = 110;
-            constexpr int minZ = 50;
-            constexpr int maxZ = 110;
-
             // Center everything around the origin.
-            position.getFlatBuffer()[0] -= (maxX - minX) / 2.f + minX;
-            position.getFlatBuffer()[2] -= (maxZ - minZ) / 2.f + minZ;
+            float& x = position.getFlatBuffer()[0];
+            float& z = position.getFlatBuffer()[2];
+            float X = (maxX - minX) / 2;
+            float Z = (maxZ - minZ) / 2;
+            x -= (110 - 50) / 2.f + 50 + (maxX - minX) / 2;
+            z -= (110 - 50) / 2.f + 50 + (maxZ - minZ) / 2;
         }
+    }
+
+    // Mega Tree, centered at the origin
+    {
+        constexpr float treeHeight = 10.f;
+        constexpr float trunkSize = 1.f;
+        Vector4 base = Vector4(0, 0, 0, 1.f);
+        auto top = Vector4(0.f, treeHeight, 0.f) + base;
+        auto v00 = Vector4(-trunkSize, 0.f, -trunkSize) + base;
+        auto v01 = Vector4(-trunkSize, 0.f, trunkSize) + base;
+        auto v10 = Vector4(trunkSize, 0.f, -trunkSize) + base;
+        auto v11 = Vector4(trunkSize, 0.f, trunkSize) + base;
+
+        triangles.emplace_back(v00, top, v10);
+        triangles.emplace_back(v10, top, v11);
+        triangles.emplace_back(v11, top, v01);
+        triangles.emplace_back(v01, top, v00);
     }
 
     return makeModelFromTriangles(triangles, new StaticShader("staticShader"), "Island Trees");

@@ -1,5 +1,6 @@
 #include "EffectShader.h"
 #include "Light.h"
+#include "Water.h"
 #include "ViewManager.h"
 
 EffectShader::EffectShader(std::string shaderName) : Shader(shaderName) {
@@ -42,13 +43,18 @@ EffectShader::EffectShader(std::string shaderName) : Shader(shaderName) {
     _lightPosLocation = glGetUniformLocation(_shaderContext, "lightPos");
     _fireTypeLocation = glGetUniformLocation(_shaderContext, "fireType");
     _farPlaneLocation = glGetUniformLocation(_shaderContext, "farPlane");
+
+    if (shaderName == "waterShader") {
+        _noiseTextureLocation = glGetUniformLocation(_shaderContext, "noiseTexture");
+    }
+
 }
 
 EffectShader::~EffectShader() {
 
 }
 
-void EffectShader::runShader(Light* light, float seconds) {
+void EffectShader::runShader(Effect* effectObject, float seconds) {
 
     //LOAD IN SHADER
     glUseProgram(_shaderContext); 
@@ -58,38 +64,60 @@ void EffectShader::runShader(Light* light, float seconds) {
     //Pass game time to shader
     glUniform1f(_timeLocation, seconds);
 
-    auto lightMVP = light->getLightMVP();
-    auto cameraMVP = light->getCameraMVP();
+    if (effectObject->getType() == EffectType::Fire) {
+        Light* light = static_cast<Light*>(effectObject);
+        auto lightMVP = light->getLightMVP();
+        auto cameraMVP = light->getCameraMVP();
 
-    //Pass far plane to shader
-    auto projMatrix = cameraMVP.getProjectionMatrix().getFlatBuffer();
-    float nearVal = (2.0f*projMatrix[11]) / (2.0f*projMatrix[10] - 2.0f);
-    float farVal = ((projMatrix[10] - 1.0f)*nearVal) / (projMatrix[10] + 1.0f);
-    glUniform1f(_farPlaneLocation, farVal);
+        //Pass far plane to shader
+        auto projMatrix = cameraMVP.getProjectionMatrix().getFlatBuffer();
+        float nearVal = (2.0f*projMatrix[11]) / (2.0f*projMatrix[10] - 2.0f);
+        float farVal = ((projMatrix[10] - 1.0f)*nearVal) / (projMatrix[10] + 1.0f);
+        glUniform1f(_farPlaneLocation, farVal);
 
-    //Pass the type of fire to the shader to simulate i.e. candle light or bon fire
-    glUniform1i(_fireTypeLocation, 2);
+        //Pass the type of fire to the shader to simulate i.e. candle light or bon fire
+        glUniform1i(_fireTypeLocation, 2);
 
-    //Transform screen space quad to the MVP of the emitting light
-    //and setting the rotation matrix to identity for billboarding
-    auto viewMatrixPrt = cameraMVP.getViewBuffer();
-    auto viewMatrix = Matrix::translation(viewMatrixPrt[3], viewMatrixPrt[7], viewMatrixPrt[11]);
-    auto modelMatrixPrt = lightMVP.getModelBuffer();
-    auto modelMatrix = Matrix::cameraTranslation(modelMatrixPrt[3], modelMatrixPrt[7], modelMatrixPrt[11]);
+        auto viewNoTrans = cameraMVP.getViewMatrix();
+        viewNoTrans.getFlatBuffer()[3] = 0.0;
+        viewNoTrans.getFlatBuffer()[7] = 0.0;
+        viewNoTrans.getFlatBuffer()[11] = 0.0;
 
-    auto viewNoTrans = cameraMVP.getViewMatrix();
-    viewNoTrans.getFlatBuffer()[3] = 0.0;
-    viewNoTrans.getFlatBuffer()[7] = 0.0;
-    viewNoTrans.getFlatBuffer()[11] = 0.0;
+        auto modelView = cameraMVP.getViewMatrix() * lightMVP.getModelMatrix();
+        glUniformMatrix4fv(_modelViewLocation, 1, GL_TRUE, modelView.getFlatBuffer());
 
-    auto modelView = cameraMVP.getViewMatrix() * lightMVP.getModelMatrix();
-    glUniformMatrix4fv(_modelViewLocation, 1, GL_TRUE, modelView.getFlatBuffer());
-    
-    auto projection = cameraMVP.getProjectionMatrix();
-    glUniformMatrix4fv(_projectionLocation, 1, GL_TRUE, projection.getFlatBuffer());
+        auto projection = cameraMVP.getProjectionMatrix();
+        glUniformMatrix4fv(_projectionLocation, 1, GL_TRUE, projection.getFlatBuffer());
 
-    auto inverseViewNoTrans = viewNoTrans.inverse();
-    glUniformMatrix4fv(_inverseViewLocation, 1, GL_TRUE, inverseViewNoTrans.getFlatBuffer());
+        auto inverseViewNoTrans = viewNoTrans.inverse();
+        glUniformMatrix4fv(_inverseViewLocation, 1, GL_TRUE, inverseViewNoTrans.getFlatBuffer());
+    }
+    else if(effectObject->getType() == EffectType::Water) {
+
+        Water* water = static_cast<Water*>(effectObject);
+        auto cameraMVP = water->getCameraMVP();
+
+        //Pass far plane to shader
+        auto projMatrix = cameraMVP.getProjectionMatrix().getFlatBuffer();
+        float nearVal = (2.0f*projMatrix[11]) / (2.0f*projMatrix[10] - 2.0f);
+        float farVal = ((projMatrix[10] - 1.0f)*nearVal) / (projMatrix[10] + 1.0f);
+        glUniform1f(_farPlaneLocation, farVal);
+        
+        auto viewNoTrans = cameraMVP.getViewMatrix();
+        viewNoTrans.getFlatBuffer()[3] = 0.0;
+        viewNoTrans.getFlatBuffer()[7] = 0.0;
+        viewNoTrans.getFlatBuffer()[11] = 0.0;
+
+        auto modelView = cameraMVP.getViewMatrix() * Matrix::cameraRotationAroundX(90.0f) * Matrix::scale(100.0f);
+        glUniformMatrix4fv(_modelViewLocation, 1, GL_TRUE, modelView.getFlatBuffer());
+
+        auto projection = cameraMVP.getProjectionMatrix();
+        glUniformMatrix4fv(_projectionLocation, 1, GL_TRUE, projection.getFlatBuffer());
+
+        glUniform1i(_noiseTextureLocation, 0);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, water->getNoiseTexture());
+    }
 
     //screen space quad
     glDrawArrays(GL_TRIANGLES, 0, (GLsizei)6);

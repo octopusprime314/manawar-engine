@@ -10,6 +10,7 @@
 #include "SSAO.h"
 #include "EnvironmentMap.h"
 #include "ProcIsland.h"
+#include "Water.h"
 
 #include <Triangle.h>
 
@@ -29,6 +30,8 @@ SceneManager::SceneManager(int* argc, char** argv, unsigned int viewportWidth, u
     _ssaoPass = new SSAO();
 
     //_environmentMap = new EnvironmentMap(2000, 2000);
+
+    _water = new Water(_viewManager->getEventWrapper());
 
     _audioManager = new AudioManager();
 
@@ -152,7 +155,10 @@ void SceneManager::_postDraw() {
 
     for (auto light : _lightList) {
         if (light->getType() == LightType::POINT) {
-            light->renderLight();
+            light->render();
         }
     }
+
+    //Render the water around the island
+    _water->render();
 }

@@ -24,6 +24,7 @@
 #include "UpdateInterface.h"
 #include "Shader.h"
 #include "EffectShader.h"
+#include "Effect.h"
 
 enum class LightType {
     CAMERA_DIRECTIONAL = 0,
@@ -32,8 +33,7 @@ enum class LightType {
     SPOTLIGHT
 };
 
-class Light : UpdateInterface{
-    MVP                     _cameraMVP; //Camera's model view matrix container
+class Light : public Effect{
     MVP                     _lightMVP; //Light's Model view matrix for light
     Vector4                 _position; //Position of light
     LightType               _type; //Light type enum
@@ -41,7 +41,6 @@ class Light : UpdateInterface{
     void                    _updateTime(int time);
     uint64_t                _milliSecondTime;
     bool                    _shadowCaster;
-    EffectShader            _lightEffectShader;
 
 public:
     Light(ViewManagerEvents* eventWrapper, 
@@ -57,13 +56,6 @@ public:
     float                       getRange();
     bool                        isShadowCaster();
     void                        setMVP(MVP mvp);
-    void                        renderLight();
+    void                        render();
 
-protected:
-    void                        _updateKeyboard(int key, int x, int y); //Do stuff based on keyboard upate
-    void                        _updateReleaseKeyboard(int key, int x, int y);
-    void                        _updateMouse(double x, double y); //Do stuff based on mouse update
-    void                        _updateDraw(); //Do draw stuff
-    void                        _updateView(Matrix view); //Get view matrix updates
-    void                        _updateProjection(Matrix projection); //Get projection matrix updates
 };

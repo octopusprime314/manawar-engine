@@ -24,6 +24,8 @@
 #include "Matrix.h"
 #include "MVP.h"
 class Light;
+class Water;
+class Effect;
 class ViewManager;
 
 class EffectShader : public Shader {
@@ -36,10 +38,11 @@ protected:
     GLint       _inverseViewLocation;
     GLint       _fireTypeLocation;
     GLint       _farPlaneLocation;
+    GLint       _noiseTextureLocation;
     GLuint      _vaoContext;
     GLuint      _quadBufferContext;
 public:
     EffectShader(std::string shaderName);
     virtual ~EffectShader();
-    virtual void runShader(Light* light, float seconds);
+    virtual void runShader(Effect* effectObject, float seconds);
 };

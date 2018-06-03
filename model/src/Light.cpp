@@ -4,13 +4,12 @@
 
 Light::Light(ViewManagerEvents* eventWrapper,
     MVP mvp, LightType type, Vector4 color, bool shadowCaster) :
-    UpdateInterface(eventWrapper),
+    Effect(eventWrapper, "fireShader", EffectType::Fire),
     _type(type),
     _lightMVP(mvp),
     _color(color),
     _shadowCaster(shadowCaster),
-    _milliSecondTime(0),
-    _lightEffectShader("fireShader"){
+    _milliSecondTime(0) {
 
     MasterClock::instance()->subscribeKinematicsRate(std::bind(&Light::_updateTime, this, std::placeholders::_1));
 
@@ -87,23 +86,6 @@ void Light::setMVP(MVP mvp){
     _lightMVP = mvp;
 }
 
-void Light::_updateDraw() {
-}
-void Light::_updateKeyboard(int key, int x, int y) {
-}
-void Light::_updateReleaseKeyboard(int key, int x, int y) {
-}
-void Light::_updateMouse(double x, double y) {
-}
-
-void Light::_updateView(Matrix view) {
-    _cameraMVP.setView(view);
-}
-
-void Light::_updateProjection(Matrix projection) {
-    _cameraMVP.setProjection(projection);
-}
-
 void Light::_updateTime(int time) {
 
     //The amount of milliseconds in 24 hours
@@ -130,13 +112,13 @@ void Light::_updateTime(int time) {
     }
 }
 
-void Light::renderLight() {
+void Light::render() {
     //Bring the time back to real time for the effects shader
     //The amount of milliseconds in 24 hours
     const uint64_t dayLengthMilliseconds = 24 * 60 * 60 * 1000;
     uint64_t updateTimeAmplified = dayLengthMilliseconds / (60 * 1000);
     float realTimeMilliSeconds = static_cast<float>(_milliSecondTime) / static_cast<float>(updateTimeAmplified);
-    _lightEffectShader.runShader(this, realTimeMilliSeconds / 1000.f);
+    _effectShader.runShader(this, realTimeMilliSeconds / 1000.f);
 }
 
 

@@ -31,6 +31,7 @@ class PointShadowMap;
 class ForwardRenderer;
 class SSAO;
 class EnvironmentMap;
+class Water;
 
 class SceneManager {
     ViewManager*        _viewManager; //manages the view/camera matrix from the user's perspective
@@ -44,6 +45,7 @@ class SceneManager {
     AudioManager*       _audioManager;  // Manages audio playback
     SSAO*               _ssaoPass;
     EnvironmentMap*     _environmentMap;
+    Water*              _water;
 
     void _preDraw(); //Prior to drawing objects call this function
     void _postDraw(); //Post of drawing objects call this function

@@ -1,5 +1,5 @@
 /*
-* ForwardRenderer is part of the ReBoot distribution (https://github.com/octopusprime314/ReBoot.git).
+* InstancedForwardShader is part of the ReBoot distribution (https://github.com/octopusprime314/ReBoot.git).
 * Copyright (c) 2017 Peter Morley.
 *
 * ReBoot is free software: you can redistribute it and/or modify
@@ -16,19 +16,25 @@
 */
 
 /**
-*  The ForwardRenderer class renders all of the non-opaque (transparent) objects
+*  InstancedForwardShader class. Draws many instances using the static shader and adds offsets.
 */
 
 #pragma once
-#include "MRTFrameBuffer.h"
-#include "InstancedForwardShader.h"
+#include "ForwardShader.h"
+#include "Vector4.h"
+#include <vector>
+class ViewManager;
+class ShadowRenderer;
+class PointShadowMap;
 
-class ForwardRenderer {
-    ForwardShader _forwardShader;
-    InstancedForwardShader _instancedForwardShader;
+class InstancedForwardShader : public ForwardShader {
+
+protected:
+    GLint       _offsetsLocation;
 public:
-    ForwardRenderer(); 
-    ~ForwardRenderer();
-    void forwardLighting(std::vector<Model*>& modelList, ViewManager* viewManager, ShadowRenderer* shadowRenderer,
+    InstancedForwardShader(std::string shaderName);
+    virtual ~InstancedForwardShader();
+    virtual void runShader(Model* model, ViewManager* viewManager, ShadowRenderer* shadowRenderer,
         std::vector<Light*>& lights, PointShadowMap* pointShadowMap);
+    void setInstances(std::vector<Vector4> offsets);
 };

@@ -3,6 +3,7 @@
 #include "Factory.h"
 #include "Model.h"
 #include "Noise.h"
+#include "InstancedForwardShader.h"
 
 // Affine transform from [0, 1] to [-10, 8.5]
 static float ScaleNoiseToTerrainHeight(float noise)
@@ -168,7 +169,12 @@ static Model* GenerateTerrain()
 
 static Model* GenerateTrees()
 {
-    std::vector<Triangle> triangles;
+    //Load tree model and instance it
+    Model* treeModel = new Model("tree/tree.fbx", Factory::_viewEventWrapper, ModelClass::ModelType);
+    
+    treeModel->getMVP()->setModel(Matrix::scale(0.01f));
+
+    //Generate instancing offsets
     constexpr int minX = 80;
     constexpr int maxX = 95;
     constexpr int minZ = 80;
@@ -177,19 +183,11 @@ static Model* GenerateTrees()
     constexpr float trunkSize = 0.012f;
     constexpr float treeHeight = trunkSize * 20.f;
 
-    constexpr float delta = trunkSize * 10.f;
+    constexpr float delta = trunkSize * 100.f;
+    constexpr int deltaX = maxX - minX + 1;
+    constexpr int deltaZ = maxZ - minZ + 1;
+    std::vector<Vector4> offsets;
 
-    static_assert(minX <= maxX, "Check X min/max bounds");
-    static_assert(minZ <= maxZ, "Check Z min/max bounds");
-    static_assert(delta > 0.f, "Check your delta");
-
-    // 4 triangles per "tree" * (min-max and zero) ish
-    {
-        constexpr int trisPerUnit = static_cast<int>(1.f / delta);
-        constexpr int deltaX = maxX - minX + 1;
-        constexpr int deltaZ = maxZ - minZ + 1;
-        triangles.reserve(4 * deltaX * deltaZ * trisPerUnit * trisPerUnit);
-    }
     for (float x = minX; x <= maxX; x += delta) {
         for (float z = minZ; z <= maxZ; z += delta) {
             float y = ScaleNoiseToTerrainHeight(kNoise.turbulence(2500.f*x / 150.f, 3250.f*z / 150 + 400, 9));
@@ -197,51 +195,90 @@ static Model* GenerateTrees()
             if (!(0.25 < y && y < 1.6)) {
                 continue;
             }
-            Vector4 base = Vector4(x, y, z, 1.f);
-            auto top = Vector4( 0.f, treeHeight,  0.f)       + base;
-            auto v00 = Vector4(-trunkSize,  0.f, -trunkSize) + base;
-            auto v01 = Vector4(-trunkSize,  0.f,  trunkSize) + base;
-            auto v10 = Vector4( trunkSize,  0.f, -trunkSize) + base;
-            auto v11 = Vector4( trunkSize,  0.f,  trunkSize) + base;
-
-            triangles.emplace_back(v00, top, v10);
-            triangles.emplace_back(v10, top, v11);
-            triangles.emplace_back(v11, top, v01);
-            triangles.emplace_back(v01, top, v00);
+            float offsetX =  x - ((110 - 50) / 2.f + 50 + (maxX - minX) / 2);
+            float offsetZ =  z - ((110 - 50) / 2.f + 50 + (maxZ - minZ) / 2);
+            offsets.push_back(Vector4(offsetX, y, offsetZ, 0.0));
         }
     }
+    treeModel->setInstances(offsets);
 
-    for (auto& triangle : triangles) {
-        auto& positions = triangle.getTrianglePoints();
-        for (auto& position : positions) {
-            // Center everything around the origin.
-            float& x = position.getFlatBuffer()[0];
-            float& z = position.getFlatBuffer()[2];
-            float X = (maxX - minX) / 2;
-            float Z = (maxZ - minZ) / 2;
-            x -= (110 - 50) / 2.f + 50 + (maxX - minX) / 2;
-            z -= (110 - 50) / 2.f + 50 + (maxZ - minZ) / 2;
-        }
-    }
 
-    // Mega Tree, centered at the origin
-    {
-        constexpr float treeHeight = 10.f;
-        constexpr float trunkSize = 1.f;
-        Vector4 base = Vector4(0, 0, 0, 1.f);
-        auto top = Vector4(0.f, treeHeight, 0.f) + base;
-        auto v00 = Vector4(-trunkSize, 0.f, -trunkSize) + base;
-        auto v01 = Vector4(-trunkSize, 0.f, trunkSize) + base;
-        auto v10 = Vector4(trunkSize, 0.f, -trunkSize) + base;
-        auto v11 = Vector4(trunkSize, 0.f, trunkSize) + base;
 
-        triangles.emplace_back(v00, top, v10);
-        triangles.emplace_back(v10, top, v11);
-        triangles.emplace_back(v11, top, v01);
-        triangles.emplace_back(v01, top, v00);
-    }
+    //std::vector<Triangle> triangles;
+    //constexpr int minX = 80;
+    //constexpr int maxX = 95;
+    //constexpr int minZ = 80;
+    //constexpr int maxZ = 110;
 
-    return makeModelFromTriangles(triangles, new StaticShader("staticShader"), "Island Trees");
+    //constexpr float trunkSize = 0.012f;
+    //constexpr float treeHeight = trunkSize * 20.f;
+
+    //constexpr float delta = trunkSize * 10.f;
+
+    //static_assert(minX <= maxX, "Check X min/max bounds");
+    //static_assert(minZ <= maxZ, "Check Z min/max bounds");
+    //static_assert(delta > 0.f, "Check your delta");
+
+    //// 4 triangles per "tree" * (min-max and zero) ish
+    //{
+    //    constexpr int trisPerUnit = static_cast<int>(1.f / delta);
+    //    constexpr int deltaX = maxX - minX + 1;
+    //    constexpr int deltaZ = maxZ - minZ + 1;
+    //    triangles.reserve(4 * deltaX * deltaZ * trisPerUnit * trisPerUnit);
+    //}
+    //for (float x = minX; x <= maxX; x += delta) {
+    //    for (float z = minZ; z <= maxZ; z += delta) {
+    //        float y = ScaleNoiseToTerrainHeight(kNoise.turbulence(2500.f*x / 150.f, 3250.f*z / 150 + 400, 9));
+    //        // Roughly the green area in staticTerrainShader.frag, less some at the top.
+    //        if (!(0.25 < y && y < 1.6)) {
+    //            continue;
+    //        }
+    //        Vector4 base = Vector4(x, y, z, 1.f);
+    //        auto top = Vector4( 0.f, treeHeight,  0.f)       + base;
+    //        auto v00 = Vector4(-trunkSize,  0.f, -trunkSize) + base;
+    //        auto v01 = Vector4(-trunkSize,  0.f,  trunkSize) + base;
+    //        auto v10 = Vector4( trunkSize,  0.f, -trunkSize) + base;
+    //        auto v11 = Vector4( trunkSize,  0.f,  trunkSize) + base;
+
+    //        triangles.emplace_back(v00, top, v10);
+    //        triangles.emplace_back(v10, top, v11);
+    //        triangles.emplace_back(v11, top, v01);
+    //        triangles.emplace_back(v01, top, v00);
+    //    }
+    //}
+
+    //for (auto& triangle : triangles) {
+    //    auto& positions = triangle.getTrianglePoints();
+    //    for (auto& position : positions) {
+    //        // Center everything around the origin.
+    //        float& x = position.getFlatBuffer()[0];
+    //        float& z = position.getFlatBuffer()[2];
+    //        float X = (maxX - minX) / 2;
+    //        float Z = (maxZ - minZ) / 2;
+    //        x -= (110 - 50) / 2.f + 50 + (maxX - minX) / 2;
+    //        z -= (110 - 50) / 2.f + 50 + (maxZ - minZ) / 2;
+    //    }
+    //}
+
+    //// Mega Tree, centered at the origin
+    //{
+    //    constexpr float treeHeight = 10.f;
+    //    constexpr float trunkSize = 1.f;
+    //    Vector4 base = Vector4(0, 0, 0, 1.f);
+    //    auto top = Vector4(0.f, treeHeight, 0.f) + base;
+    //    auto v00 = Vector4(-trunkSize, 0.f, -trunkSize) + base;
+    //    auto v01 = Vector4(-trunkSize, 0.f, trunkSize) + base;
+    //    auto v10 = Vector4(trunkSize, 0.f, -trunkSize) + base;
+    //    auto v11 = Vector4(trunkSize, 0.f, trunkSize) + base;
+
+    //    triangles.emplace_back(v00, top, v10);
+    //    triangles.emplace_back(v10, top, v11);
+    //    triangles.emplace_back(v11, top, v01);
+    //    triangles.emplace_back(v01, top, v00);
+    //}
+
+    return treeModel;
+    //return makeModelFromTriangles(triangles, new StaticShader("staticShader"), "Island Trees");
 }
 
 void GenerateProceduralIsland(std::vector<Model*>& models, ProcState params)
@@ -250,4 +287,11 @@ void GenerateProceduralIsland(std::vector<Model*>& models, ProcState params)
     models.push_back(pTerrain);
     Model* pTrees = GenerateTrees();
     models.push_back(pTrees);
+
+    //Add textures for procedural island
+    TextureBroker* texBroker = TextureBroker::instance();
+    texBroker->addTexture("../assets/textures/landscape/grass.jpg");
+    texBroker->addTexture("../assets/textures/landscape/snow.jpg");
+    texBroker->addTexture("../assets/textures/landscape/dirt.jpg");
+    texBroker->addTexture("../assets/textures/landscape/rocks.jpg");
 }

@@ -121,6 +121,27 @@ void StaticShader::runShader(Model* model) {
                 //The second parameter has to be equal to GL_TEXTURE(X) so X must be 0 because we activated texture GL_TEXTURE0 two calls before
                 glUniform1i(_textureLocation, 0);
 
+                if (_tex0Location != -1 && model->getTexture("../assets/textures/landscape/dirt.jpg") != nullptr) {
+                    glActiveTexture(GL_TEXTURE0);
+                    glBindTexture(GL_TEXTURE_2D, model->getTexture("../assets/textures/landscape/dirt.jpg")->getContext());
+                    glUniform1i(_tex0Location, 0);
+                }
+                if (_tex1Location != -1 && model->getTexture("../assets/textures/landscape/grass.jpg") != nullptr) {
+                    glActiveTexture(GL_TEXTURE1);
+                    glBindTexture(GL_TEXTURE_2D, model->getTexture("../assets/textures/landscape/grass.jpg")->getContext());
+                    glUniform1i(_tex1Location, 1);
+                }
+                if (_tex2Location != -1 && model->getTexture("../assets/textures/landscape/rocks.jpg") != nullptr) {
+                    glActiveTexture(GL_TEXTURE2);
+                    glBindTexture(GL_TEXTURE_2D, model->getTexture("../assets/textures/landscape/rocks.jpg")->getContext());
+                    glUniform1i(_tex2Location, 2);
+                }
+                if (_tex3Location != -1 && model->getTexture("../assets/textures/landscape/snow.jpg") != nullptr) {
+                    glActiveTexture(GL_TEXTURE3);
+                    glBindTexture(GL_TEXTURE_2D, model->getTexture("../assets/textures/landscape/snow.jpg")->getContext());
+                    glUniform1i(_tex3Location, 3);
+                }
+
                 //Draw triangles using the bound buffer vertices at starting index 0 and number of triangles
                 glDrawArrays(GL_TRIANGLES, strideLocation, (GLsizei)textureStride.second);
             }

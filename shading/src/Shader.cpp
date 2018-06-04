@@ -4,9 +4,13 @@
 #include <iostream>
 #include <fstream>
 
-Shader::Shader(std::string shaderName) {
-	//set name
-	_shaderName = shaderName;
+Shader::Shader(std::string vertexShaderName, std::string fragmentShaderName) {
+	//set vertex name
+	_vertexShaderName = vertexShaderName;
+    //set fragment name if different from vertex shader name
+    if (fragmentShaderName != "") {
+        _fragmentShaderName = fragmentShaderName;
+    }
 	//build it
 	_build();
 }
@@ -26,13 +30,19 @@ void Shader::_build() {
     unsigned int geomSH;
     unsigned int computeSH;
 
-    std::string fileNameVert = SHADERS_LOCATION + _shaderName;
+    std::string fileNameVert = SHADERS_LOCATION + _vertexShaderName;
     fileNameVert.append(".vert");
-    std::string fileNameFrag = SHADERS_LOCATION + _shaderName;
+    std::string fileNameFrag = SHADERS_LOCATION;
+    if (_fragmentShaderName != "") {
+        fileNameFrag += _fragmentShaderName;
+    }
+    else {
+        fileNameFrag += _vertexShaderName;
+    }
     fileNameFrag.append(".frag");
-    std::string fileNameGeom = SHADERS_LOCATION + _shaderName;
+    std::string fileNameGeom = SHADERS_LOCATION + _vertexShaderName;
     fileNameGeom.append(".geom");
-    std::string fileNameCompute = SHADERS_LOCATION + _shaderName;
+    std::string fileNameCompute = SHADERS_LOCATION + _vertexShaderName;
     fileNameCompute.append(".comp");
 
     //Compile each shader

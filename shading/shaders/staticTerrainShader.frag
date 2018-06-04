@@ -1,8 +1,14 @@
 #version 330
 
+uniform sampler2D tex0;
+uniform sampler2D tex1;
+uniform sampler2D tex2;
+uniform sampler2D tex3;
+
 in vec3 normalOut;
 in vec3 texOut;
 in vec3 positionOut;
+in vec2 texCoordOut;
 
 layout(location = 0) out vec4 color4;
 layout(location = 1) out vec4 normal4;
@@ -61,12 +67,33 @@ void main(){
     float t_rock2  = 2.50;
     float t_snow   = 2.75;
 
-    vec3 c_sand   = vec3(255, 236, 150);
+    /*vec3 c_sand   = vec3(255, 236, 150);
     vec3 c_grass1 = vec3(32, 160, 0);
     vec3 c_grass2 = vec3(45, 134, 23);
     vec3 c_rock1  = vec3(128, 128, 128);
     vec3 c_rock2  = vec3(96, 96, 96);
-    vec3 c_snow   = vec3(230, 230, 230);
+    vec3 c_snow   = vec3(230, 230, 230);*/
+	
+	//float mapWidth = 14.0;
+	//float mapHeight = 35.0;
+	//transform position to uv indexing
+	//float texCoordX = (texOut.x + mapWidth/2.0)/mapWidth;
+	//float texCoordY = (texOut.y + mapHeight/2.0)/mapHeight;
+	vec3 c_sand   = texture(tex0, texCoordOut*5.0).rgb * texture(tex0, texCoordOut*150.0).rgb;
+    vec3 c_grass1 = texture(tex1, texCoordOut*5.0).rgb * texture(tex1, texCoordOut*150.0).rgb;
+    vec3 c_grass2 = texture(tex1, texCoordOut*5.0).rgb * texture(tex1, texCoordOut*150.0).rgb;
+    vec3 c_rock1  = texture(tex2, texCoordOut*5.0).rgb * texture(tex2, texCoordOut*150.0).rgb;
+    vec3 c_rock2  = texture(tex2, texCoordOut*5.0).rgb * texture(tex2, texCoordOut*150.0).rgb;
+	vec3 c_snow   = texture(tex3, texCoordOut*5.0).rgb * texture(tex3, texCoordOut*150.0).rgb;
+	
+	/*//Start as white texture
+	vec3 lerpComponent = vec3(1.0, 1.0, 1.0);
+	//sand next
+	lerpComponent = redVal1*tR1 + (1.0f - redVal1)*lerpComponent;
+	//Mountain next
+	lerpComponent = greenVal1*tG1 + (1.0f - greenVal1)*lerpComponent;
+	//Dirt next
+	lerpComponent = blueVal1*tB1 + (1.0f - blueVal1)*lerpComponent;*/
 
     // Coordinate this with `::ScaleNoiseToTerrainHeight()`
     float min = -2.0;
@@ -74,22 +101,34 @@ void main(){
     float wiggle = 0.1 * snoise(texOut.xz);
     float height = texOut.y + wiggle;
 
+	float heightWiggle = 0.25;
+	
     vec3 color3;
     if (height < t_sand) {
         color3 = c_sand;
+    } else if (height < t_grass1 && height <= t_sand + heightWiggle) {
+		float delta = (height - t_sand)/heightWiggle;
+		color3 = (delta*c_grass1) + ((1.0 - delta)*c_sand);
     } else if (height < t_grass1) {
         color3 = c_grass1;
     } else if (height < t_grass2) {
         color3 = c_grass2;
+    } else if (height < t_rock1 && height <= t_grass2 + heightWiggle) {
+		float delta = (height - t_grass2)/heightWiggle;
+		color3 = (delta*c_rock1) + ((1.0 - delta)*c_grass2);
     } else if (height < t_rock1) {
         color3 = c_rock1;
     } else if (height < t_rock2) {
         color3 = c_rock2;
+    } else if (height < t_snow && height <= t_rock2 + heightWiggle) {
+		float delta = (height - t_rock2)/heightWiggle;
+		color3 = (delta*c_snow) + ((1.0 - delta)*c_rock2);
     } else {
         color3 = c_snow;
     }
 
-    color4    = vec4(color3/255.0, 1.0);
+    color4    = vec4(color3, 1.0);
+	//color4    = vec4(color3/255.0, 1.0);
     normal4   = vec4(normalize(normalOut), 1.0);
     position4 = vec4(positionOut.xyz, 1.0);
 }

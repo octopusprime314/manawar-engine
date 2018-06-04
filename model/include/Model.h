@@ -83,6 +83,9 @@ public:
     void                        addGeometrySphere(Sphere sphere);
     void                        setPosition(Vector4 position);
     void                        setVelocity(Vector4 velocity);
+    void                        setInstances(std::vector<Vector4> offsets); //is this model used for instancing
+    bool                        getIsInstancedModel();
+    float*                      getInstanceOffsets();
 
 protected:
     StateVector                 _state; //Kinematics
@@ -100,6 +103,9 @@ protected:
     TextureMetaData             _textureStrides; //Keeps track of which set of vertices use a certain texture within the large vertex set
     GeometryType                _geometryType; //Indicates whether the collision geometry is sphere or triangle based
     Geometry                    _geometry; //Geometry object that contains all collision information for a model
+    bool                        _isInstanced;
+    float                       _offsets[900]; //300 x, y and z offsets
+    int                         _instances;
 
     std::string                 _getModelName(std::string name);
     void                        _updateKeyboard(int key, int x, int y); //Do stuff based on keyboard upate

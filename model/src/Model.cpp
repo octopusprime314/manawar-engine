@@ -14,7 +14,8 @@ Model::Model(ViewManagerEvents* eventWrapper, RenderBuffers& renderBuffers, Stat
     _debugShaderProgram(new DebugShader("debugShader")),
     _geometryType(GeometryType::Triangle),
     _renderBuffers(std::move(renderBuffers)),
-    _shaderProgram(pStaticShader)
+    _shaderProgram(pStaticShader),
+    _isInstanced(false)
 {
     _vao.createVAO(&_renderBuffers, _classId);
 }
@@ -25,6 +26,8 @@ Model::Model(std::string name, ViewManagerEvents* eventWrapper, ModelClass class
 
         //Set class id
         _classId = classId;
+
+        _isInstanced = false;
 
         //disable debug mode
         _debugMode = false;
@@ -121,7 +124,9 @@ void Model::_updateKinematics(int milliSeconds) {
     //Pass position information to model matrix
     Vector4 position = _state.getLinearPosition();
     _geometry.updatePosition(position);
-    _mvp.setModel(Matrix::translation(position.getx(), position.gety(), position.getz()));
+    _mvp.getModelBuffer()[3] = position.getx();
+    _mvp.getModelBuffer()[7] = position.gety();
+    _mvp.getModelBuffer()[11] = position.getz();
 }
 
 VAO* Model::getVAO() {
@@ -216,4 +221,23 @@ void Model::setPosition(Vector4 position){
 
 void Model::setVelocity(Vector4 velocity){
     _state.setLinearVelocity(velocity);
+}
+
+void Model::setInstances(std::vector<Vector4> offsets) {
+    _isInstanced = true;
+    int i = 0;
+    for (auto& offset : offsets) {
+        _offsets[i++] = offset.getx();
+        _offsets[i++] = offset.gety();
+        _offsets[i++] = offset.getz();
+    }
+    _instances = static_cast<int>(offsets.size());
+}
+
+bool Model::getIsInstancedModel() {
+    return _isInstanced;
+}
+
+float* Model::getInstanceOffsets() {
+    return _offsets;
 }

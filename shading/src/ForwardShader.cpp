@@ -6,7 +6,8 @@
 #include "ShadowRenderer.h"
 #include "PointShadowMap.h"
 
-ForwardShader::ForwardShader(std::string shaderName) : Shader(shaderName) {
+ForwardShader::ForwardShader(std::string vertexShaderName, std::string fragmentShaderName) 
+    : Shader(vertexShaderName, fragmentShaderName) {
     //Grab uniforms needed in a staticshader
 
     //glUniform mat4 combined model and world matrix

@@ -529,7 +529,7 @@ bool FbxLoader::_loadTexture(Model* model, int textureStride, FbxFileTexture* te
         std::string textureNameTemp = textureName; //Used a temporary storage to not overwrite textureName
         std::string texturePath = TEXTURE_LOCATION;
         //Finds second to last position of string and use that for file access name
-        texturePath.append(textureName.substr(textureNameTemp.substr(0, textureNameTemp.find_last_of("/\\")).find_last_of("/\\")));
+        texturePath.append(textureName.substr(textureNameTemp.substr(0, textureNameTemp.find_last_of("/\\")).find_last_of("/\\") + 1));
         model->addTexture(texturePath, textureStride);
         return true;
     }

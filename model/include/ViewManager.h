@@ -35,17 +35,19 @@ class SimpleContext;
 class Model;
 class FunctionState;
 class ViewManager : public UpdateInterface {
-
-    enum class ViewState{
+public:
+    enum class ViewState {
         DEFERRED_LIGHTING = 0,
         DIFFUSE,
         NORMAL,
         POSITION,
         SCREEN_SPACE_AMBIENT_OCCLUSION,
-        DIRECTIONAL_SHADOW, 
+        DIRECTIONAL_SHADOW,
         POINT_SHADOW,
         ENVIRONMENT_MAP
     };
+
+private:
     ViewState           _viewState;
     Matrix              _view;
     Matrix              _projection;
@@ -59,7 +61,8 @@ class ViewManager : public UpdateInterface {
     std::vector<Model*> _modelList; //used to translate view to a model's transformation
     int                 _modelIndex; //used to keep track of which model the view is set to
     bool                _godState; //indicates whether the view is in god or model view point mode
-    std::map<unsigned char, FunctionState*> _keyboardState; 
+    std::map<unsigned char, FunctionState*> _keyboardState;
+
 public:
     ViewManager();
     ViewManager(int* argc, char** argv, unsigned int viewportWidth, unsigned int viewportHeight);
@@ -75,7 +78,7 @@ public:
     void               run(); //Make this call to start glfw mainloop
 protected:
     void               _updateKeyboard(int key, int x, int y); //Do stuff based on keyboard upate
-	void               _updateReleaseKeyboard(int key, int x, int y); //Do stuff based on keyboard release upate
+    void               _updateReleaseKeyboard(int key, int x, int y); //Do stuff based on keyboard release upate
     void               _updateMouse(double x, double y); //Do stuff based on mouse update
     void               _updateDraw(); //Do draw stuff
 };

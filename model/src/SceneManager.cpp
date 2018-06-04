@@ -150,15 +150,20 @@ void SceneManager::_postDraw() {
     //Pass lights to deferred shading pass
     _deferredRenderer->deferredLighting(_shadowRenderer, _lightList, _viewManager, _pointShadowMap, _ssaoPass, _environmentMap);
 
-    //Draw transparent objects onto of the deferred renderer
-    _forwardRenderer->forwardLighting(_modelList, _viewManager, _shadowRenderer, _lightList, _pointShadowMap);
+    if (_viewManager->getViewState() == ViewManager::ViewState::DEFERRED_LIGHTING) {
+        //Draw transparent objects onto of the deferred renderer
+        _forwardRenderer->forwardLighting(_modelList, _viewManager, _shadowRenderer, _lightList, _pointShadowMap);
 
-    for (auto light : _lightList) {
-        if (light->getType() == LightType::POINT) {
-            light->render();
+        //Render the water around the island
+        _water->render();
+
+        // Lights - including the fire point lights
+        for (auto light : _lightList) {
+            if (light->getType() == LightType::POINT) {
+                light->render();
+            }
         }
     }
 
-    //Render the water around the island
-    _water->render();
+
 }

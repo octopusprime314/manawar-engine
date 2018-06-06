@@ -8,7 +8,7 @@ EffectShader::EffectShader(std::string shaderName) : Shader(shaderName) {
     //Build 2 triangles for screen space quad
     const float length = 1.0f;
     const float depth = 0.0f;
-    //2 triangles in screen space 
+    //2 triangles in screen space
     float triangles[] = { -length, -length, depth,
         -length, length, depth,
         length, length, depth,
@@ -57,7 +57,7 @@ EffectShader::~EffectShader() {
 void EffectShader::runShader(Effect* effectObject, float seconds) {
 
     //LOAD IN SHADER
-    glUseProgram(_shaderContext); 
+    glUseProgram(_shaderContext);
 
     glBindVertexArray(_vaoContext);
 
@@ -102,14 +102,14 @@ void EffectShader::runShader(Effect* effectObject, float seconds) {
         float nearVal = (2.0f*projMatrix[11]) / (2.0f*projMatrix[10] - 2.0f);
         float farVal = ((projMatrix[10] - 1.0f)*nearVal) / (projMatrix[10] + 1.0f);
         glUniform1f(_farPlaneLocation, farVal);
-        
+
         auto viewNoTrans = cameraMVP.getViewMatrix();
         viewNoTrans.getFlatBuffer()[3] = 0.0;
         viewNoTrans.getFlatBuffer()[7] = 0.0;
         viewNoTrans.getFlatBuffer()[11] = 0.0;
 
-        auto modelView = cameraMVP.getViewMatrix() * Matrix::cameraRotationAroundX(90.0f) 
-           * Matrix::translation(0.0f, 0.0f, -0.0f) 
+        auto modelView = cameraMVP.getViewMatrix() * Matrix::cameraRotationAroundX(90.0f)
+           * Matrix::translation(0.0f, 0.0f, 0.2f)
             * Matrix::scale(100.0f); //add to z component of translation to lower water line.
 
         glUniformMatrix4fv(_modelViewLocation, 1, GL_TRUE, modelView.getFlatBuffer());
@@ -124,7 +124,7 @@ void EffectShader::runShader(Effect* effectObject, float seconds) {
 
     //screen space quad
     glDrawArrays(GL_TRIANGLES, 0, (GLsizei)6);
-    
+
     glBindVertexArray(0);
 
     glUseProgram(0);//end using this shader

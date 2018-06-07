@@ -60,6 +60,15 @@ Vector4 Vector4::operator + (Vector4 other) {
     return result;
 }
 
+Vector4& Vector4::operator += (Vector4 other) {
+    float* this2  = this->getFlatBuffer();
+    float* other2 = other.getFlatBuffer();
+    this2[0] = this2[0] + other2[0];
+    this2[1] = this2[1] + other2[1];
+    this2[2] = this2[2] + other2[2];
+    return *this;
+}
+
 Vector4 Vector4::operator - (Vector4 other) {
     Vector4 result;
     float* vector = result.getFlatBuffer();

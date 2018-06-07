@@ -40,7 +40,8 @@ static Model* GenerateTerrain()
                                    ((maxZ - minZ) / delta + 1.f )));
     for (float x = minX; x <= maxX; x += delta) {
         for (float z = minZ; z <= maxZ; z += delta) {
-            verts.emplace_back(x, 0.f, z, 1.f);
+            float y = ScaleNoiseToTerrainHeight(kNoise.turbulence(2500.f*x / 150.f, 3250.f*z / 150 + 400, 9));
+            verts.emplace_back(x, y, z, 1.f);
         }
     }
 
@@ -69,6 +70,7 @@ static Model* GenerateTerrain()
         Vector4 a = vert0 - vert1;
         Vector4 b = vert0 - vert2;
         Vector4 normal = a.crossProduct(b);
+        assert(normal.getMagnitude() > 1e-6f);
         normal.normalize();
 
         normals[indices[i+0]] += normal;
@@ -92,6 +94,9 @@ static Model* GenerateTerrain()
     printf("Terrain2 Triangle Count: %zu\n", 3 * indices.size());
     printf("Terrain2 Vertex Count:   %zu\n", verts.size());
 
+    // indices.size() is invalid after we move out of it, so save the length before hand.
+    int textureStride = indices.size();
+
     RenderBuffers renderBuffers;
     *renderBuffers.getVertices() = std::move(verts);
     *renderBuffers.getIndices()  = std::move(indices);
@@ -106,8 +111,7 @@ static Model* GenerateTerrain()
     // We use this texture for its strides - the actualy texture loaded doesn't matter.
     // ***THIS MUST NOT HAVE AN ALPHA CHANNEL!***.
     // The existance of an alpha channel triggers extra functionality that we do not want.
-    pModel->addTexture("../assets/textures/landscape/Rock_6_d.png",
-                       static_cast<int>(indices.size()));
+    pModel->addTexture("../assets/textures/landscape/Rock_6_d.png", textureStride);
     return pModel;
 }
 

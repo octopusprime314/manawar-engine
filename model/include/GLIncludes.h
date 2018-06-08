@@ -24,7 +24,7 @@
 #include "GL/gl3w.h"
 #include "GL/glfw3.h"
 #include <string>
-
+#include <cassert>
 
 const int screenPixelWidth = 1920;
 const int screenPixelHeight = 1080;
@@ -32,3 +32,26 @@ const int screenPixelHeight = 1080;
 const std::string ASSET_LOCATION = "../assets/";
 const std::string MESH_LOCATION = ASSET_LOCATION + "meshes/";
 const std::string TEXTURE_LOCATION = ASSET_LOCATION + "textures/";
+
+// Set to true to make glCheck() assert when glGetError() returns an error code.
+// This can be toggled in a debugger.
+extern volatile bool g_AssertOnBadOpenGlCall;
+
+// Validate OpenGL calls. Call before and after any OpenGL API usage that
+// you are worried about.
+#define glCheck() do {                                                         \
+    assert(glGetError != nullptr && "Don't call this before loading OpenGL");  \
+    GLenum glError = GL_NO_ERROR;                                              \
+    bool anyErrors = false;                                                    \
+    while ((glError = glGetError()) != GL_NO_ERROR) {                          \
+        anyErrors = true;                                                      \
+        printf("[OpenGL] Error code 0x%X in %s(): %s:%d\n",                    \
+            (int)glError,                                                      \
+            __func__,                                                          \
+            __FILE__,                                                          \
+            __LINE__);                                                         \
+    }                                                                          \
+    if (g_AssertOnBadOpenGlCall) {                                             \
+        assert(!anyErrors && "One or more OpenGL calls generated an error");   \
+    }                                                                          \
+} while (0)

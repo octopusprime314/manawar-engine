@@ -14,6 +14,9 @@
 
 #include <Triangle.h>
 
+// We define this here because this file is basically main.
+volatile bool g_AssertOnBadOpenGlCall = false;
+
 SceneManager::SceneManager(int* argc, char** argv, unsigned int viewportWidth, unsigned int viewportHeight, float nearPlaneDistance, float farPlaneDistance) {
 
     _viewManager = new ViewManager(argc, argv, viewportWidth, viewportHeight);

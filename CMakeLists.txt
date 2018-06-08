@@ -24,6 +24,8 @@ if (NOT IS_DIRECTORY "${CMAKE_SOURCE_DIR}/libs/fmod")
     message(WARNING "Missing directory ${CMAKE_SOURCE_DIR}/libs/fmod")
 endif()
 
+set(CMAKE_INSTALL_PREFIX "${CMAKE_SOURCE_DIR}/4fps-dist")
+
 include_directories("${CMAKE_SOURCE_DIR}/libs/glfw/include")
 include_directories("${CMAKE_SOURCE_DIR}/libs/fbx-sdk/include")
 include_directories("${CMAKE_SOURCE_DIR}/libs/freeimage/include")
@@ -50,6 +52,7 @@ source_group("glfw"    FILES ${GLFWPROC_SRC_FILES})
 source_group("audio"   FILES ${AUDIO_HEADER_FILES} ${AUDIO_SRC_FILES})
 
 add_executable(ReBoot
+    # WIN32
                 ${MODEL_SRC_FILES}
                 ${PHYSICS_SRC_FILES}
                 ${SHADING_SRC_FILES}
@@ -68,3 +71,5 @@ target_link_libraries(ReBoot ${CMAKE_SOURCE_DIR}/libs/glfw/lib/glfw3.lib)
 target_link_libraries(ReBoot debug     ${CMAKE_SOURCE_DIR}/libs/fbx-sdk/lib/debug/libfbxsdk-md.lib)
 target_link_libraries(ReBoot optimized ${CMAKE_SOURCE_DIR}/libs/fbx-sdk/lib/release/libfbxsdk-md.lib)
 target_link_libraries(ReBoot ${CMAKE_SOURCE_DIR}/libs/fmod/lowlevel/lib/fmod64_vc.lib)
+
+install(TARGETS ReBoot RUNTIME DESTINATION bin)

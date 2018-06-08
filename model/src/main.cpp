@@ -11,3 +11,15 @@ int main(int argc, char** argv) {
     SceneManager sceneManager(&argc, argv, screenPixelWidth, screenPixelHeight, 0.1f, 1000.0f); //Manages the camera view and models in scene
     return 0;
 }
+
+int CALLBACK WinMain(
+  _In_ HINSTANCE hInstance,
+  _In_ HINSTANCE hPrevInstance,
+  _In_ LPSTR     lpCmdLine,
+  _In_ int       nCmdShow
+)
+{
+    char argv0[] = "Reboot.exe";
+    char* argv[] = { argv0 };
+    main(1, argv);
+}

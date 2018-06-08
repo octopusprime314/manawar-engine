@@ -100,7 +100,7 @@ SceneManager::SceneManager(int* argc, char** argv, unsigned int viewportWidth, u
     // Do this after adding all of our objects.
     _viewManager->setProjection(viewportWidth, viewportHeight, nearPlaneDistance, farPlaneDistance); //Initializes projection matrix and broadcasts upate to all listeners
                                                                                                      // This view is carefully chosen to look at a mountain without showing the (lack of) water in the scene.
-    _viewManager->setView(Matrix::cameraTranslation(-7.f, 0.68f, 5.f),
+    _viewManager->setView(Matrix::cameraTranslation(7.f, -0.68f, -5.f),
         Matrix::cameraRotationAroundY(-45.f),
         Matrix());
     _viewManager->setModelList(_modelList);

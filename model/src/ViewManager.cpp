@@ -31,7 +31,6 @@ ViewManager::ViewManager(int* argc, char** argv, unsigned int viewportWidth, uns
 
     //Used for god mode
     _state.setGravity(false);
-
     //Hook up to kinematic update for proper physics handling
     MasterClock::instance()->subscribeKinematicsRate(std::bind(&ViewManager::_updateKinematics, this, std::placeholders::_1));
 }
@@ -61,10 +60,13 @@ void ViewManager::setProjection(unsigned int viewportWidth, unsigned int viewpor
 }
 
 void ViewManager::setView(Matrix translation, Matrix rotation, Matrix scale) {
+    Vector4 zero(0.f, 0.f, 0.f);
     _scale = scale;
     _rotation = rotation;
     _inverseRotation = rotation.inverse();
     _translation = translation;
+    _state.setLinearPosition(translation * zero);
+    _state.setAngularPosition(rotation * zero);
     _view = _view * _scale * _rotation * _translation;
     _viewEvents->updateView(_view);
 }
@@ -208,7 +210,7 @@ void ViewManager::_updateKeyboard(int key, int x, int y) { //Do stuff based on k
             _state.setActive(true);
 
             //Define lambda equation
-            auto lamdaEq = [=](float t) -> Vector4 {
+            auto lamdaEq = [trans](float t) -> Vector4 {
                 if (t > 1.0f) {
                     return trans;
                 }

@@ -4,6 +4,10 @@
 #include <iostream>
 #include <fstream>
 
+// You can hit this in a debugger.
+// Set to 'true' to printf every shader that is linked or compiled.
+static volatile bool g_VerboseShaders = false;
+
 Shader::Shader(std::string vertexShaderName, std::string fragmentShaderName) {
 	//set vertex name
 	_vertexShaderName = vertexShaderName;
@@ -98,7 +102,9 @@ void Shader::_link(unsigned int vertexSH, unsigned int fragmentSH, unsigned int 
 
     // Exit if the program couldn't be linked correctly
     if (successfully_linked) {
-        printf("Shader #%d linked   (Shader* this = %p)\n", _shaderContext, this);
+        if (g_VerboseShaders) {
+            printf("Shader #%d linked   (Shader* this = %p)\n", _shaderContext, this);
+        }
     } else {
         GLint errorLoglength;
         GLint actualErrorLogLength;
@@ -172,7 +178,9 @@ unsigned int Shader::_compile(char* filename, unsigned int type)
 
     // If an error was detected.
     if (result) {
-        printf("Shader #%d compiled (filename = \"%s\")\n", handle, filename);
+        if (g_VerboseShaders) {
+            printf("Shader #%d compiled (filename = \"%s\")\n", handle, filename);
+        }
     } else {
         //We failed to compile.
         printf("Shader '%s' failed compilation.\n", filename);

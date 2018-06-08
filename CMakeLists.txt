@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 2.5)
 project(ReBoot)
 set(VS_STARTUP_VERSION ReBoot)
 
+include(InstallRequiredSystemLibraries)
+
 if (NOT IS_DIRECTORY "${CMAKE_SOURCE_DIR}/libs/glfw")
     message(WARNING "Missing directory ${CMAKE_SOURCE_DIR}/libs/glfw")
 endif()

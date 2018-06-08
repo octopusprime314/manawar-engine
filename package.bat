@@ -10,6 +10,7 @@ cmake --build _build --config Release --target install -- /verbosity:m || goto :
 cp -v ./libs/freeimage/lib/FreeImage.dll   4fps-dist/bin/
 cp -v ./libs/fmod/lowlevel/lib/fmod64.dll  4fps-dist/bin/
 cp -v ./libs/fmod/lowlevel/lib/fmodL64.dll 4fps-dist/bin/
-cp -Rv shading/shaders                     4fps-dist/shading/
+echo Copying shaders...
+cp -R shading/shaders                      4fps-dist/shading/
 echo Copying assets...
-cp -R  assets/                             4fps-dist/
+cp -R assets/                              4fps-dist/

@@ -1,7 +1,7 @@
 #version 330
 layout(location = 0) in vec3 vertexIn;			   // Each vertex supplied 
-out vec2 texCoord;
-out vec3 position;
+out vec2 texCoordOut;
+out vec3 positionOut;
 uniform mat4 mv; // Model view matrix 
 uniform mat4 p;  //projection matrix
 //uniform mat4 inverseViewNoTrans;
@@ -9,16 +9,16 @@ uniform mat4 p;  //projection matrix
 void main()
 {
 	if(vertexIn.x == -1.0 && vertexIn.y == 1.0) {
-		texCoord = vec2(0.0, 1.0);
+		texCoordOut = vec2(0.0, 1.0);
 	}
 	else if(vertexIn.x == -1.0 && vertexIn.y == -1.0) {
-		texCoord = vec2(0.0, 0.0);
+		texCoordOut = vec2(0.0, 0.0);
 	}
 	else if(vertexIn.x == 1.0 && vertexIn.y == 1.0) {
-		texCoord = vec2(1.0, 1.0);
+		texCoordOut = vec2(1.0, 1.0);
 	}
 	else if(vertexIn.x == 1.0 && vertexIn.y == -1.0) {
-		texCoord = vec2(1.0, 0.0);
+		texCoordOut = vec2(1.0, 0.0);
 	}
 
 	// The vertex is first transformed by the model and world, then 
@@ -28,5 +28,5 @@ void main()
 	vec4 transformedVert = p * mv * vec4(vertexIn.xyz, 1.0); 
 	gl_Position = transformedVert; 
 	
-	position = vec3((mv * vec4(vertexIn.xyz, 1.0)).xyz); 
+	positionOut = vec3((mv * vec4(vertexIn.xyz, 1.0)).xyz); 
 }

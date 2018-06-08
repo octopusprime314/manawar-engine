@@ -41,6 +41,7 @@ protected:
     GLint       _noiseTextureLocation;
     GLuint      _vaoContext;
     GLuint      _quadBufferContext;
+    GLint       _normalLocation;
 public:
     EffectShader(std::string shaderName);
     virtual ~EffectShader();

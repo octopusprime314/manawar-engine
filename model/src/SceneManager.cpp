@@ -137,6 +137,9 @@ void SceneManager::_preDraw() {
 }
 void SceneManager::_postDraw() {
 
+    //Render the water around the island
+    _water->render();
+
     //unbind fbo
     _deferredRenderer->unbind();
 
@@ -153,9 +156,6 @@ void SceneManager::_postDraw() {
     if (_viewManager->getViewState() == ViewManager::ViewState::DEFERRED_LIGHTING) {
         //Draw transparent objects onto of the deferred renderer
         _forwardRenderer->forwardLighting(_modelList, _viewManager, _shadowRenderer, _lightList, _pointShadowMap);
-
-        //Render the water around the island
-        _water->render();
 
         // Lights - including the fire point lights
         for (auto light : _lightList) {

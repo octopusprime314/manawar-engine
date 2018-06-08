@@ -15,14 +15,20 @@ void StateVector::update(int milliSeconds) {
         _linearAcceleration = _force / _mass;
         _angularAcceleration = _torque / _mass;
 
+        //Test to see if gravity is enabled
+        float gravity = GRAVITY;
+        if (!_gravity) {
+            gravity = 0.0;
+        }
+
         //Calculate linear velocity changes with delta time
         Vector4 deltaLinearVelocity(_linearAcceleration.getx() * deltaTime,
-            (_linearAcceleration.gety() + GRAVITY) * deltaTime,
+            (_linearAcceleration.gety() + gravity) * deltaTime,
             _linearAcceleration.getz() * deltaTime,
             1.0f);
         //Add to linear velocity
         //If there is contact with a surface then add friction coefficient to velocity
-        _linearVelocity = (_linearVelocity + deltaLinearVelocity) * (_contact ? FRICTION : 1.0f); 
+        _linearVelocity = (_linearVelocity + deltaLinearVelocity) * ((_contact || !_gravity) ? FRICTION : 1.0f);
 
         //Calculate linear position changes with delta time
         Vector4 deltaLinearPosition(_linearVelocity.getx() * deltaTime,
@@ -125,7 +131,7 @@ void StateVector::setAngularAcceleration(Vector4 acceleration){
 
 void StateVector::setForce(Vector4 force) {
     //Can't set force if not touching an item to push off from i.e. in the air
-    if(_contact){
+    if(_contact || !_gravity){
         _force = force;
     }
     else{
@@ -139,4 +145,8 @@ void StateVector::setTorque(Vector4 torque) {
 
 void StateVector::setContact(bool contact) {
     _contact = contact;
+}
+
+void StateVector::setGravity(bool enableGravity) {
+    _gravity = enableGravity;
 }

@@ -6,6 +6,7 @@
 #include "Model.h"
 #include "FunctionState.h"
 #include <cmath>
+#include "StateVector.h"
 
 ViewManager::ViewManager() {
 
@@ -27,6 +28,12 @@ ViewManager::ViewManager(int* argc, char** argv, unsigned int viewportWidth, uns
     _thirdPersonTranslation = Matrix::cameraTranslation(0, 5, 10);
 
     _viewState = ViewManager::ViewState::DEFERRED_LIGHTING;
+
+    //Used for god mode
+    _state.setGravity(false);
+
+    //Hook up to kinematic update for proper physics handling
+    MasterClock::instance()->subscribeKinematicsRate(std::bind(&ViewManager::_updateKinematics, this, std::placeholders::_1));
 }
 
 ViewManager::~ViewManager() {
@@ -56,6 +63,7 @@ void ViewManager::setProjection(unsigned int viewportWidth, unsigned int viewpor
 void ViewManager::setView(Matrix translation, Matrix rotation, Matrix scale) {
     _scale = scale;
     _rotation = rotation;
+    _inverseRotation = rotation.inverse();
     _translation = translation;
     _view = _view * _scale * _rotation * _translation;
     _viewEvents->updateView(_view);
@@ -91,6 +99,15 @@ void ViewManager::_updateReleaseKeyboard(int key, int x, int y) { //Do stuff bas
         delete _keyboardState[key];
         _keyboardState.erase(key); //erase by keyq
     }
+}
+
+void ViewManager::_updateKinematics(int milliSeconds) {
+    //Do kinematic calculations
+    _state.update(milliSeconds);
+
+    //Pass position information to model matrix
+    Vector4 position = _state.getLinearPosition();
+    _translation = Matrix::translation(position.getx(), position.gety(), position.getz());
 }
 
 void ViewManager::_updateKeyboard(int key, int x, int y) { //Do stuff based on keyboard update
@@ -170,7 +187,6 @@ void ViewManager::_updateKeyboard(int key, int x, int y) { //Do stuff based on k
                 else {
                     return static_cast<Vector4>(trans) * t;
                 }
-
             };
             //lambda function container that manages force model
             //Last forever in intervals of 5 milliseconds
@@ -184,9 +200,33 @@ void ViewManager::_updateKeyboard(int key, int x, int y) { //Do stuff based on k
             //TODO rotation 
             //state->setAngularPosition(_rotation * Vector4(0, 0, 0, 0)); //Set angular (rotation) position vector based on view rotation
         }
-        else {
-            _translation = Matrix::cameraTranslation(temp[0] / 100.0f, temp[1] / 100.0f, temp[2] / 100.0f) * _translation; //Update the translation state matrix
-            _view = _rotation * _translation; //translate then rotate around point
+        else if(_godState){
+
+            float* pos = _state.getLinearPosition().getFlatBuffer();
+            _translation = Matrix::cameraTranslation(pos[0], pos[1], pos[2]); //Update the translation state matrix
+            _view = _thirdPersonTranslation * _rotation * _translation; //translate then rotate around point
+            _state.setActive(true);
+
+            //Define lambda equation
+            auto lamdaEq = [=](float t) -> Vector4 {
+                if (t > 1.0f) {
+                    return trans;
+                }
+                else {
+                    return static_cast<Vector4>(trans) * t;
+                }
+            };
+            //lambda function container that manages force model
+            //Last forever in intervals of 5 milliseconds
+            FunctionState* func = new FunctionState(std::bind(&StateVector::setForce, &_state, std::placeholders::_1),
+                lamdaEq,
+                5);
+
+            //Keep track to kill function when key is released
+            _keyboardState[key] = func;
+
+            //_translation = Matrix::cameraTranslation(temp[0] / 100.0f, temp[1] / 100.0f, temp[2] / 100.0f) * _translation; //Update the translation state matrix
+            //_view = _rotation * _translation; //translate then rotate around point
         }
         _viewEvents->updateView(_view); //Send out event to all listeners
     }
@@ -194,7 +234,7 @@ void ViewManager::_updateKeyboard(int key, int x, int y) { //Do stuff based on k
         _godState = true;
         _translation = Matrix::cameraTranslation(0, 5, 0); //Reset to 0,5,0 view position
         _rotation = Matrix(); //Set rotation matrix to identity
-        _inverseRotation = Matrix(); 
+        _inverseRotation = Matrix();
         _view = _rotation * _translation; //translate then rotate around point
         _viewEvents->updateView(_view); //Send out event to all listeners to offset locations essentially
     }
@@ -262,5 +302,12 @@ void ViewManager::_updateDraw() { //Do draw stuff
 
         //TODO rotation 
         //state->setAngularPosition(_rotation * Vector4(0, 0, 0, 0)); //Set angular (rotation) position vector based on view rotation
+    }
+    else if(_godState) {
+        float* pos = _state.getLinearPosition().getFlatBuffer();
+        _translation = Matrix::cameraTranslation(pos[0], pos[1], pos[2]); //Update the translation state matrix
+        
+        _view = _rotation * _translation; //translate then rotate around point
+        _viewEvents->updateView(_view); //Send out event to all listeners to offset locations essentially
     }
 }

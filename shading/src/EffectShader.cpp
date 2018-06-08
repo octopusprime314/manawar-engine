@@ -43,8 +43,9 @@ EffectShader::EffectShader(std::string shaderName) : Shader(shaderName) {
     _lightPosLocation = glGetUniformLocation(_shaderContext, "lightPos");
     _fireTypeLocation = glGetUniformLocation(_shaderContext, "fireType");
     _farPlaneLocation = glGetUniformLocation(_shaderContext, "farPlane");
-
+    
     if (shaderName == "waterShader") {
+        _normalLocation = glGetUniformLocation(_shaderContext, "normal");
         _noiseTextureLocation = glGetUniformLocation(_shaderContext, "noiseTexture");
     }
 
@@ -116,6 +117,10 @@ void EffectShader::runShader(Effect* effectObject, float seconds) {
 
         auto projection = cameraMVP.getProjectionMatrix();
         glUniformMatrix4fv(_projectionLocation, 1, GL_TRUE, projection.getFlatBuffer());
+
+        auto normalMatrix = modelView.inverse().transpose();
+        //glUniform mat4 normal matrix, GL_TRUE is telling GL we are passing in the matrix as row major
+        glUniformMatrix4fv(_normalLocation, 1, GL_TRUE, normalMatrix.getFlatBuffer());
 
         glUniform1i(_noiseTextureLocation, 0);
         glActiveTexture(GL_TEXTURE0);

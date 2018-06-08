@@ -38,6 +38,7 @@ class StateVector {
     float   _mass; //mass of object used to calculate acceleration on objects
     bool    _active; //indicates whether an object is in motion or not
     bool    _contact; //indicates a hit between another state vector has been detected
+    bool    _gravity; //gravity on or off
 public:
     StateVector();
     void    update(int milliSeconds);
@@ -62,4 +63,5 @@ public:
     void    setForce(Vector4 force); //set linear force
     void    setTorque(Vector4 torque); //set angular force
     void    setContact(bool contact);
+    void    setGravity(bool enableGravity); //Enable/Disable gravity
 };

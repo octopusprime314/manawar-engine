@@ -27,10 +27,13 @@ vec3 light;
 
 uniform sampler2D noiseTexture;
 uniform float time;
-out vec4 fragColor;
-in vec2 texCoord;
-in vec3 position;
-uniform float farPlane;
+uniform mat4 normal;     // Normal matrix
+in vec2 texCoordOut;
+in vec3 positionOut;
+
+layout(location = 0) out vec4 out_1;
+layout(location = 1) out vec4 out_2;
+layout(location = 2) out vec4 out_3;
 
 #define USETEXTUREHEIGHT 0
 //#define USETEXTUREHEIGHT 1
@@ -131,7 +134,7 @@ void main()
 {
 	light = vec3(0.0, 0.0, 1.5); // position of the sun
     //light = vec3(-0., sin(time*0.5)*.5 + .35, 2.8); // position of the sun
-	vec2 uv = (texCoord - vec2(-0.12, +0.25));
+	vec2 uv = (texCoordOut - vec2(-0.12, +0.25));
 
     float WATER_LEVEL = 0.94; // Water level (range: 0.0 - 2.0)
     
@@ -153,7 +156,9 @@ void main()
         float h3 = water_map(pos-dif.yx,waveheight);
         float h4 = water_map(pos+dif.yx,waveheight);
         vec3 normwater = normalize(vec3(h3-h4, h1-h2, .125)); // norm-vector of the 'bumpy' water-plane
-        uv += normwater.xy*.002*(level-height);
+		
+		
+		uv += normwater.xy*.002*(level-height);
 
         float coastfade = 1.0;//clamp((level-height)/coast2water_fadedepth, 0., 1.);
         float coastfade2= 1.0;//clamp((level-height)/deepwater_fadedepth, 0., 1.);
@@ -177,12 +182,13 @@ void main()
         col = mix(col, watercolor, coastfade);
     //}
     
-	fragColor = vec4(col , 1.0);
+	//switch z and y normal
+	normwater = vec3((normal * vec4(normwater, 0.0)).xyz); //Transform normal coordinate in with the normal matrix
+        
+	out_1 = vec4(col , 1.0);
+	out_2 = vec4(normalize(normwater), 1.0);
+	out_3 = vec4(positionOut.xyz, 1.0);
 	
-	//if(fragColor.r > 0.1){
-		gl_FragDepth = (length(position)/farPlane) / 2.0f;
-	//}
-	//else{
-	//	gl_FragDepth = 1.0;
-	//}
+	//fragColor = vec4(col , 1.0);
+	//gl_FragDepth = (length(position)/farPlane) / 2.0f;
 }

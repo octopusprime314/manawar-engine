@@ -21,61 +21,61 @@ Model::Model(ViewManagerEvents* eventWrapper, RenderBuffers& renderBuffers, Stat
 }
 
 Model::Model(std::string name, ViewManagerEvents* eventWrapper, ModelClass classId) : UpdateInterface(eventWrapper),
-    _fbxLoader(nullptr),
-    _clock(MasterClock::instance()) {
+_fbxLoader(nullptr),
+_clock(MasterClock::instance()) {
 
-        //Set class id
-        _classId = classId;
+    //Set class id
+    _classId = classId;
 
-        _isInstanced = false;
+    _isInstanced = false;
 
-        //disable debug mode
-        _debugMode = false;
+    //disable debug mode
+    _debugMode = false;
 
-        //Load debug shader
-        _debugShaderProgram = new DebugShader("debugShader");
+    //Load debug shader
+    _debugShaderProgram = new DebugShader("debugShader");
 
-        //Load in fbx object 
-        _fbxLoader = new FbxLoader(MESH_LOCATION + name);
+    //Load in fbx object 
+    _fbxLoader = new FbxLoader(MESH_LOCATION + name);
+    //Populate model with fbx file data and recursivelty search with the root node of the scene
+    _fbxLoader->loadModel(this, _fbxLoader->getScene()->GetRootNode());
+
+    //GeometryBuilder::buildCube(this); //Add a generic cube centered at the origin
+
+    //Create vao contexts
+    if (classId == ModelClass::ModelType) {
+        _vao.createVAO(&_renderBuffers, _classId);
+    }
+
+    //If class is generic model then deallocate fbx object,
+    //otherwise let derived class clean up _fbxLoader object
+    //because the derived class may need to access data from it still
+    if (_classId == ModelClass::ModelType) {
+
+        //Load default shader
+        _shaderProgram = new StaticShader("staticShader");
+
+        //If the object is a standard model then it is modeled with triangles
+        _geometryType = GeometryType::Triangle;
+
+        delete _fbxLoader;
+
+        std::string modelName = _getModelName(name);
+        std::string colliderName = MESH_LOCATION;
+        colliderName.append(modelName).append("/collider.fbx");
+        //Load in geometry fbx object 
+        FbxLoader geometryLoader(colliderName);
         //Populate model with fbx file data and recursivelty search with the root node of the scene
-        _fbxLoader->loadModel(this, _fbxLoader->getScene()->GetRootNode());
+        geometryLoader.loadGeometry(this, geometryLoader.getScene()->GetRootNode());
+    }
+    else if (_classId == ModelClass::AnimatedModelType) {
 
-        //GeometryBuilder::buildCube(this); //Add a generic cube centered at the origin
+        //If the object is a standard model then it is modeled with triangles
+        _geometryType = GeometryType::Sphere;
+    }
 
-        //Create vao contexts
-        if (classId == ModelClass::ModelType) {
-            _vao.createVAO(&_renderBuffers, _classId);
-        }
-
-        //If class is generic model then deallocate fbx object,
-        //otherwise let derived class clean up _fbxLoader object
-        //because the derived class may need to access data from it still
-        if (_classId == ModelClass::ModelType) {
-
-			//Load default shader
-			_shaderProgram = new StaticShader("staticShader");
-
-            //If the object is a standard model then it is modeled with triangles
-            _geometryType = GeometryType::Triangle;
-
-            delete _fbxLoader;
-
-            std::string modelName = _getModelName(name);
-            std::string colliderName = MESH_LOCATION;
-            colliderName.append(modelName).append("/collider.fbx");
-            //Load in geometry fbx object 
-            FbxLoader geometryLoader(colliderName);
-            //Populate model with fbx file data and recursivelty search with the root node of the scene
-            geometryLoader.loadGeometry(this, geometryLoader.getScene()->GetRootNode());
-        }
-        else if (_classId == ModelClass::AnimatedModelType) {
-
-            //If the object is a standard model then it is modeled with triangles
-            _geometryType = GeometryType::Sphere;
-        }
-
-        //Hook up to kinematic update for proper physics handling
-        _clock->subscribeKinematicsRate(std::bind(&Model::_updateKinematics, this, std::placeholders::_1));
+    //Hook up to kinematic update for proper physics handling
+    _clock->subscribeKinematicsRate(std::bind(&Model::_updateKinematics, this, std::placeholders::_1));
 
 }
 
@@ -155,7 +155,7 @@ void Model::addTexture(std::string textureName, int stride) {
 }
 
 void Model::addLayeredTexture(std::vector<std::string> textureNames, int stride) {
-    
+
     //Encode layered into string to notify shader what type of texture is used
     std::string sumString = "Layered";
     for (auto& str : textureNames) {
@@ -212,14 +212,14 @@ StateVector* Model::getStateVector() {
     return &_state;
 }
 
-void Model::setPosition(Vector4 position){
+void Model::setPosition(Vector4 position) {
     _state.setLinearPosition(position);
     //Pass position information to model matrix
     _geometry.updatePosition(position);
     _mvp.setModel(Matrix::translation(position.getx(), position.gety(), position.getz()));
 }
 
-void Model::setVelocity(Vector4 velocity){
+void Model::setVelocity(Vector4 velocity) {
     _state.setLinearVelocity(velocity);
 }
 

@@ -30,10 +30,13 @@
 #include "Vector4.h"
 #include "ViewManagerEvents.h"
 #include <map>
+#include "MVP.h"
+#include "StateVector.h"
 
 class SimpleContext;
 class Model;
 class FunctionState;
+using FuncMap = std::map<unsigned char, FunctionState*>;
 class ViewManager : public UpdateInterface {
 public:
     enum class ViewState {
@@ -61,7 +64,11 @@ private:
     std::vector<Model*> _modelList; //used to translate view to a model's transformation
     int                 _modelIndex; //used to keep track of which model the view is set to
     bool                _godState; //indicates whether the view is in god or model view point mode
-    std::map<unsigned char, FunctionState*> _keyboardState;
+    FuncMap             _keyboardState;
+    StateVector         _state;
+
+    void                _updateKinematics(int milliSeconds);
+
 
 public:
     ViewManager();

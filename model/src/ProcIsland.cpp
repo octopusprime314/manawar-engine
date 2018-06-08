@@ -95,7 +95,7 @@ static Model* GenerateTerrain()
     printf("Terrain2 Vertex Count:   %zu\n", verts.size());
 
     // indices.size() is invalid after we move out of it, so save the length before hand.
-    int textureStride = indices.size();
+    int textureStride = static_cast<int>(indices.size());
 
     RenderBuffers renderBuffers;
     *renderBuffers.getVertices() = std::move(verts);

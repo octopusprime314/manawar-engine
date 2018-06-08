@@ -24,13 +24,6 @@ void VAO::setNormalDebugContext(GLuint context){
     _debugNormalBufferContext = context;
 }
 
-void VAO::bind() {
-    glBindVertexArray(_vaoContext);
-    // VAOs do not save the index buffer.
-    // https://stackoverflow.com/a/9157743
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _indexBufferContext);
-}
-
 GLuint VAO::getVertexContext() {
     return _vertexBufferContext;
 }
@@ -61,7 +54,7 @@ void VAO::createVAO(RenderBuffers* renderBuffers, ModelClass classId, Animation*
 
     const size_t vertexCount = indices.size();
     if (vertexCount == 0) {
-        printf("Creating a model with no vertices!\n");
+        printf("Creating a model with no vertices!");
     }
 
     // If no indices were set, create a dumb index buffer: 0, 1, 2, 3, etc.
@@ -139,6 +132,9 @@ void VAO::createVAO(RenderBuffers* renderBuffers, ModelClass classId, Animation*
         glGenVertexArrays(1, &_vaoContext);
         glBindVertexArray(_vaoContext);
 
+        // Indices
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _indexBufferContext);
+
         // Bind vertex buff context to current buffer
         glBindBuffer(GL_ARRAY_BUFFER, _vertexBufferContext);
         // Note: Stride here is important - Vector4 has extra data that we don't pass to OpenGL, so we
@@ -166,6 +162,9 @@ void VAO::createVAO(RenderBuffers* renderBuffers, ModelClass classId, Animation*
     {
         glGenVertexArrays(1, &_vaoShadowContext);
         glBindVertexArray(_vaoShadowContext);
+
+        // Indices
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _indexBufferContext);
 
         // Shadows only need position data.
         glBindBuffer(GL_ARRAY_BUFFER, _vertexBufferContext);

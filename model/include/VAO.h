@@ -43,7 +43,6 @@ class VAO {
 public:
     VAO();
     ~VAO();
-    void    bind();
     GLuint  getVAOContext();
     GLuint  getVAOShadowContext();
     GLuint  getVertexContext();

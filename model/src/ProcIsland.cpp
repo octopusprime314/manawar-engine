@@ -29,6 +29,7 @@ static Model* GenerateTerrain()
     constexpr unsigned dX = maxX - minX;
     constexpr unsigned dZ = maxZ - minZ;
     constexpr float delta = 0.2f;
+    constexpr unsigned stride = unsigned(dX / delta + 0.5f) + 1;
 
     static_assert(minX <= maxX, "Check X min/max bounds");
     static_assert(minZ <= maxZ, "Check Z min/max bounds");
@@ -41,21 +42,25 @@ static Model* GenerateTerrain()
     for (float z = minZ; z <= maxZ; z += delta) {
         for (float x = minX; x <= maxX; x += delta) {
             float y = ScaleNoiseToTerrainHeight(kNoise.turbulence(2500.f*x / 150.f, 3250.f*z / 150 + 400, 9));
-            verts.emplace_back(x - minX, y, z - minZ, 1.f);
+            verts.emplace_back(x - minX - dX/2, y, z - minZ - dZ/2, 1.f);
         }
     }
 
     // Populate Indices
     std::vector<int> indices;
-    for (int vertIdx = 0; (vertIdx + 1 + dX) < verts.size(); vertIdx += 1) {
-        int b = static_cast<int>(indices.size()) / 6;
-        indices.emplace_back(b + 0);    assert((b + 0)    < verts.size());
-        indices.emplace_back(b + 1);    assert((b + 1)    < verts.size());
-        indices.emplace_back(b + dX);   assert((b + dX)   < verts.size());
 
-        indices.emplace_back(b + 1);    assert((b + 1)    < verts.size());
-        indices.emplace_back(b + 1+dX); assert((b + 1+dX) < verts.size());
-        indices.emplace_back(b + dX);   assert((b + dX)   < verts.size());
+    for (int vertIdx = 0; (vertIdx + 1 + stride) < verts.size(); vertIdx += 1) {
+        int b = vertIdx;
+        if ((b + 1) % stride == 0) {
+            continue;
+        }
+        indices.emplace_back(b + stride);   assert((b + stride)   < verts.size());
+        indices.emplace_back(b + 1);        assert((b + 1)        < verts.size());
+        indices.emplace_back(b + 0);        assert((b + 0)        < verts.size());
+
+        indices.emplace_back(b + stride);   assert((b + stride)   < verts.size());
+        indices.emplace_back(b + 1+stride); assert((b + 1+stride) < verts.size());
+        indices.emplace_back(b + 1);        assert((b + 1)        < verts.size());
     }
 
     // Populate Normals
@@ -69,6 +74,7 @@ static Model* GenerateTerrain()
         Vector4 b = vert0 - vert2;
         Vector4 normal = a.crossProduct(b);
         assert(normal.getMagnitude() > 1e-6f);
+        assert(normal.gety() > 0.f);
         normal.normalize();
 
         normals[indices[i+0]] += normal;

@@ -45,7 +45,7 @@ void ViewManager::run() {
 }
 
 void ViewManager::setProjection(unsigned int viewportWidth, unsigned int viewportHeight, float nearPlaneDistance, float farPlaneDistance) {
-    //45 degree angle up/down/left/right, 
+    //45 degree angle up/down/left/right,
     //width by height aspect ratio
     //near plane from camera location
     //far plane from camera location
@@ -199,7 +199,7 @@ void ViewManager::_updateKeyboard(int key, int x, int y) { //Do stuff based on k
             //Keep track to kill function when key is released
             _keyboardState[key] = func;
 
-            //TODO rotation 
+            //TODO rotation
             //state->setAngularPosition(_rotation * Vector4(0, 0, 0, 0)); //Set angular (rotation) position vector based on view rotation
         }
         else if(_godState){
@@ -302,13 +302,13 @@ void ViewManager::_updateDraw() { //Do draw stuff
         _view = _thirdPersonTranslation * _rotation * _translation; //translate then rotate around point
         _viewEvents->updateView(_view); //Send out event to all listeners to offset locations essentially
 
-        //TODO rotation 
+        //TODO rotation
         //state->setAngularPosition(_rotation * Vector4(0, 0, 0, 0)); //Set angular (rotation) position vector based on view rotation
     }
     else if(_godState) {
         float* pos = _state.getLinearPosition().getFlatBuffer();
         _translation = Matrix::cameraTranslation(pos[0], pos[1], pos[2]); //Update the translation state matrix
-        
+
         _view = _rotation * _translation; //translate then rotate around point
         _viewEvents->updateView(_view); //Send out event to all listeners to offset locations essentially
     }

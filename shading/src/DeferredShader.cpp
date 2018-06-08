@@ -4,9 +4,9 @@ DeferredShader::DeferredShader(std::string shaderName) : Shader(shaderName) {
     glCheck();
 
 	//Build 2 triangles for screen space quad
-	const float length = 1.0f; 
-    const float depth = 0.0f; 
-    //2 triangles in screen space 
+	const float length = 1.0f;
+    const float depth = 0.0f;
+    //2 triangles in screen space
     float triangles[] = {-length, -length, depth,
                          -length, length, depth,
                          length, length, depth,
@@ -20,7 +20,7 @@ DeferredShader::DeferredShader(std::string shaderName) : Shader(shaderName) {
     glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 6 * 3, triangles, GL_STATIC_DRAW);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-    //2 texture coordinates in screen space 
+    //2 texture coordinates in screen space
     float textures[] = {  0.0, 0.0,
                           0.0, 1.0,
                           1.0, 1.0,
@@ -57,7 +57,7 @@ DeferredShader::DeferredShader(std::string shaderName) : Shader(shaderName) {
     glEnableVertexAttribArray(1);
 
     glBindVertexArray(0);
-	
+
     //Manually find the two texture locations for loaded shader
     _diffuseTextureLocation = glGetUniformLocation(_shaderContext, "diffuseTexture");
     _normalTextureLocation = glGetUniformLocation(_shaderContext, "normalTexture");
@@ -98,8 +98,8 @@ DeferredShader::~DeferredShader() {
 
 }
 
-void DeferredShader::runShader(ShadowRenderer* shadowRenderer, 
-							   std::vector<Light*>& lights, 
+void DeferredShader::runShader(ShadowRenderer* shadowRenderer,
+							   std::vector<Light*>& lights,
 							   ViewManager* viewManager,
 							   MRTFrameBuffer& mrtFBO,
                                PointShadowMap* pointShadowMap,
@@ -124,7 +124,7 @@ void DeferredShader::runShader(ShadowRenderer* shadowRenderer,
             pointLights++;
         }
     }
-    float* lightPosArray = new float[3 * pointLights]; 
+    float* lightPosArray = new float[3 * pointLights];
     float* lightColorsArray = new float[3 * pointLights];
     float* lightRangesArray = new float[pointLights];
     int lightArrayIndex = 0;
@@ -152,8 +152,8 @@ void DeferredShader::runShader(ShadowRenderer* shadowRenderer,
 
     //Change of basis from camera view position back to world position
     MVP lightMVP = lights[0]->getLightMVP();
-    Matrix cameraToLightSpace = lightMVP.getProjectionMatrix() * 
-        lightMVP.getViewMatrix() * 
+    Matrix cameraToLightSpace = lightMVP.getProjectionMatrix() *
+        lightMVP.getViewMatrix() *
         viewManager->getView().inverse();
 
     //glUniform mat4 view matrix, GL_TRUE is telling GL we are passing in the matrix as row major
@@ -161,8 +161,8 @@ void DeferredShader::runShader(ShadowRenderer* shadowRenderer,
 
     //Change of basis from camera view position back to world position
     MVP lightMapMVP = lights[1]->getLightMVP();
-    Matrix cameraToLightMapSpace = lightMapMVP.getProjectionMatrix() * 
-        lightMapMVP.getViewMatrix() * 
+    Matrix cameraToLightMapSpace = lightMapMVP.getProjectionMatrix() *
+        lightMapMVP.getViewMatrix() *
         viewManager->getView().inverse();
 
     //glUniform mat4 view matrix, GL_TRUE is telling GL we are passing in the matrix as row major
@@ -178,7 +178,7 @@ void DeferredShader::runShader(ShadowRenderer* shadowRenderer,
     glUniformMatrix4fv(_inverseViewLocation, 1, GL_TRUE, viewManager->getView().inverse().getFlatBuffer());
     //glUniform mat4 view matrix, GL_TRUE is telling GL we are passing in the matrix as row major
     glUniformMatrix4fv(_inverseProjectionLocation, 1, GL_TRUE, viewManager->getProjection().inverse().getFlatBuffer());
-    
+
     glUniform1i(_viewsLocation, static_cast<GLint>(viewManager->getViewState()));
 
     auto projMatrix = viewManager->getProjection().getFlatBuffer();
@@ -188,7 +188,7 @@ void DeferredShader::runShader(ShadowRenderer* shadowRenderer,
 
     auto textures = mrtFBO.getTextureContexts();
 
-    //glUniform texture 
+    //glUniform texture
     glUniform1i(_diffuseTextureLocation, 0);
     glUniform1i(_normalTextureLocation, 1);
     glUniform1i(_positionTextureLocation, 2);
@@ -236,7 +236,7 @@ void DeferredShader::runShader(ShadowRenderer* shadowRenderer,
 
     /*glActiveTexture(GL_TEXTURE9);
     glBindTexture(GL_TEXTURE_CUBE_MAP, environmentMap->getCubeMapTexture());*/
-    
+
     //Draw triangles using the bound buffer vertices at starting index 0 and number of vertices
     glDrawArrays(GL_TRIANGLES, 0, (GLsizei)6);
 

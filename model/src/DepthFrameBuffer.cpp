@@ -9,7 +9,7 @@ DepthFrameBuffer::DepthFrameBuffer(unsigned int width, unsigned int height) :
     //Bind current texture context
     glBindTexture(GL_TEXTURE_2D, _fbTextureContext);
 
-    //spell out texture format, width x height texture, Depth 32 bit format, data pointer is null 
+    //spell out texture format, width x height texture, Depth 32 bit format, data pointer is null
     //because the frame buffer is responsible for allocating and populating texture data
     glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, _width, _height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
 

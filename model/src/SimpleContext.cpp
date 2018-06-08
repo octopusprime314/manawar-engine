@@ -3,7 +3,7 @@
 #include "MasterClock.h"
 
 int         SimpleContext::_renderNow = 0;
-std::mutex  SimpleContext::_renderLock;   
+std::mutex  SimpleContext::_renderLock;
 GLFWwindow* SimpleContext::_window;
 bool        SimpleContext::_quit = false;
 
@@ -14,7 +14,7 @@ SimpleContext::SimpleContext(int* argc, char** argv, unsigned int viewportWidth,
     std::cout << "Working directory: " << workingDir << std::endl;
 
     //Initialize glfw for window creation
-    glfwInit(); 
+    glfwInit();
 
     //Make opengl core profile 4.3
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
@@ -51,15 +51,15 @@ SimpleContext::SimpleContext(int* argc, char** argv, unsigned int viewportWidth,
     if (!gl3wIsSupported(3, 0)) {
         std::cout << "OpenGL 3.2 not supported\n" << std::endl;
     }
-    printf("OpenGL %s, GLSL %s\n", glGetString(GL_VERSION),
-        glGetString(GL_SHADING_LANGUAGE_VERSION));
+    printf("OpenGL %s, GLSL %s\n",
+           glGetString(GL_VERSION),
+           glGetString(GL_SHADING_LANGUAGE_VERSION));
 
     //PER SAMPLE PROCESSING DEFAULTS
-    glClearDepth(1.0); //Enables Clearing Of The Depth Buffer
+    glClearDepth(1.0);
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LESS);
     glClearColor(0.0, 0.0, 0.0, 0.0);
-    glEnable(GL_DEPTH_TEST); //Ensure depth test happens
-    glDepthFunc(GL_LESS); //Keep the fragment closest
-    
 
     //Disable mouse cursor view
     glfwSetInputMode(_window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
@@ -104,12 +104,12 @@ void SimpleContext::_keyboardUpdate(GLFWwindow* window, int key, int scancode, i
     else if(action == GLFW_RELEASE){
         SimpleContextEvents::releaseKeyboard(key, 0, 0);
     }
-    
+
 }
 
 //One frame draw update call
 void SimpleContext::_drawUpdate() {
-    
+
     while (!_quit) {
 
         //Only draw when a framerate trigger event has been received from the master clock
@@ -133,7 +133,7 @@ void SimpleContext::_mouseUpdate(GLFWwindow* window, double x, double y) {
     SimpleContextEvents::updateMouse(x, y);
 
     //Bring cursor back to center position
-    glfwSetCursorPos(_window, screenPixelWidth/2, screenPixelHeight/2); 
+    glfwSetCursorPos(_window, screenPixelWidth/2, screenPixelHeight/2);
 }
 
 void SimpleContext::_frameRateTrigger(int milliSeconds){

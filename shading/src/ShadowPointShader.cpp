@@ -24,7 +24,7 @@ void ShadowPointShader::runShader(Model* model, Light* light, std::vector<Matrix
     glUseProgram(_shaderContext); //use context for loaded shader
 
     glBindVertexArray(vao->getVAOShadowContext());
-   
+
     //glUniform mat4 combined model and world matrix, GL_TRUE is telling GL we are passing in the matrix as row major
     glUniformMatrix4fv(_modelLocation, 1, GL_TRUE, modelMVP->getModelBuffer());
 
@@ -47,7 +47,7 @@ void ShadowPointShader::runShader(Model* model, Light* light, std::vector<Matrix
     //Set light position for point light
     auto lightPos = light->getPosition();
     glUniform3f(_lightPosLocation, lightPos.getx(), lightPos.gety(), lightPos.getz());
-    
+
     //Set far plane for depth scaling
     //Quick trick to get far value out of projection matrix
     auto projMatrix = lightMVP.getProjectionBuffer();

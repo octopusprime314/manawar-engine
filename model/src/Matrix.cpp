@@ -231,10 +231,10 @@ Matrix Matrix::operator * (float scale) {
     return Matrix(result);
 }
 //Rotation Matrix of a theta change around X axis
-//| 1  0    0   0 |  
-//| 0 cos -sin  0 |  
-//| 0 sin  cos  0 |  
-//| 0  0    0   1 |  
+//| 1  0    0   0 |
+//| 0 cos -sin  0 |
+//| 0 sin  cos  0 |
+//| 0  0    0   1 |
 Matrix Matrix::rotationAroundX(float degrees) {
     float result[16]; //Get underlying matrix memory
     float theta = degrees * PI_OVER_180;
@@ -249,10 +249,10 @@ Matrix Matrix::rotationAroundX(float degrees) {
 
 
 //Rotation Matrix of a theta change around Y axis
-//| cos 0  sin  0 |  
-//|  0  1   0   0 |  
-//|-sin 0  cos  0 |  
-//|  0  0   0   1 |  
+//| cos 0  sin  0 |
+//|  0  1   0   0 |
+//|-sin 0  cos  0 |
+//|  0  0   0   1 |
 Matrix Matrix::rotationAroundY(float degrees) {
     float result[16]; //Get underlying matrix memory
     float theta = degrees * PI_OVER_180;
@@ -267,10 +267,10 @@ Matrix Matrix::rotationAroundY(float degrees) {
 
 
 //Rotation Matrix of a theta change around Z axis
-//| cos -sin 0  0 |  
-//| sin  cos 0  0 |  
-//|  0    0  1  0 |  
-//|  0    0  0  1 |  
+//| cos -sin 0  0 |
+//| sin  cos 0  0 |
+//|  0    0  1  0 |
+//|  0    0  0  1 |
 Matrix Matrix::rotationAroundZ(float degrees) {
     float result[16]; //Get underlying matrix memory
     float theta = degrees * PI_OVER_180;
@@ -284,10 +284,10 @@ Matrix Matrix::rotationAroundZ(float degrees) {
 }
 
 //Translation Matrix of a +5 change in X position
-//| 1 0 0 5 |  
-//| 0 1 0 0 |  
-//| 0 0 1 0 |  
-//| 0 0 0 1 |  
+//| 1 0 0 5 |
+//| 0 1 0 0 |
+//| 0 0 1 0 |
+//| 0 0 0 1 |
 Matrix Matrix::translation(float x, float y, float z) {
     float result[16]; //Get underlying matrix memory
 
@@ -300,10 +300,10 @@ Matrix Matrix::translation(float x, float y, float z) {
 }
 
 //Scale Matrix of 2
-//| 2 0 0 0 |  
-//| 0 2 0 0 |  
-//| 0 0 2 0 |  
-//| 0 0 0 1 |  
+//| 2 0 0 0 |
+//| 0 2 0 0 |
+//| 0 0 2 0 |
+//| 0 0 0 1 |
 Matrix Matrix::scale(float scalar) {
     float result[16]; //Get underlying matrix memory
 
@@ -316,10 +316,10 @@ Matrix Matrix::scale(float scalar) {
 }
 
 //Scale Matrix of 2, 4 and 5
-//| 2 0 0 0 |  
-//| 0 4 0 0 |  
-//| 0 0 5 0 |  
-//| 0 0 0 1 |  
+//| 2 0 0 0 |
+//| 0 4 0 0 |
+//| 0 0 5 0 |
+//| 0 0 0 1 |
 Matrix Matrix::scale(float x, float y, float z) {
     float result[16]; //Get underlying matrix memory
 
@@ -404,7 +404,7 @@ Matrix Matrix::cameraProjection(float angleOfView, float imageAspectRatio, float
 }
 
 Matrix Matrix::cameraOrtho(float orthoWidth, float orthoHeight, float n, float f) {
-    
+
     float result[16];
 
     //Setup components of projection

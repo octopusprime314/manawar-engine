@@ -1,8 +1,8 @@
 #include "ForwardRenderer.h"
 #include "Model.h"
 
-ForwardRenderer::ForwardRenderer() : 
-    _forwardShader("forwardShader"), 
+ForwardRenderer::ForwardRenderer() :
+    _forwardShader("forwardShader"),
     _instancedForwardShader("instancedShader") {
 
 }

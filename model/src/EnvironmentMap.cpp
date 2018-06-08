@@ -1,6 +1,6 @@
 #include "EnvironmentMap.h"
 
-EnvironmentMap::EnvironmentMap(GLuint width, GLuint height) : 
+EnvironmentMap::EnvironmentMap(GLuint width, GLuint height) :
     CubeMapRenderer(width, height, false),
     _environmentShader("environmentShader")/*,
     _animatedShader("animatedShader")*/ {
@@ -12,7 +12,7 @@ EnvironmentMap::~EnvironmentMap() {
 }
 
 void EnvironmentMap::render(std::vector<Model*> modelList, MVP* mvp) {
-    
+
     //Prepare cube face transforms
     preCubeFaceRender(modelList, mvp);
 

@@ -43,7 +43,7 @@ EffectShader::EffectShader(std::string shaderName) : Shader(shaderName) {
     _lightPosLocation = glGetUniformLocation(_shaderContext, "lightPos");
     _fireTypeLocation = glGetUniformLocation(_shaderContext, "fireType");
     _farPlaneLocation = glGetUniformLocation(_shaderContext, "farPlane");
-    
+
     if (shaderName == "waterShader") {
         _normalLocation = glGetUniformLocation(_shaderContext, "normal");
         _noiseTextureLocation = glGetUniformLocation(_shaderContext, "noiseTexture");

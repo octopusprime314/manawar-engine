@@ -20,7 +20,7 @@ SSAOShader::~SSAOShader() {
 }
 
 void SSAOShader::runShader(SSAO* ssao, MRTFrameBuffer* mrtBuffer, ViewManager* viewManager) {
-	
+
 	//LOAD IN SHADER
 	glUseProgram(_shaderContext); //use context for loaded shader
 
@@ -48,11 +48,11 @@ void SSAOShader::runShader(SSAO* ssao, MRTFrameBuffer* mrtBuffer, ViewManager* v
 	glUniform1i(_positionTextureLocation, 0);
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, textures[2]);
-	
+
 	glUniform1i(_normalTextureLocation, 1);
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, textures[1]);
-	
+
 	glUniform1i(_noiseTextureLocation, 2);
 	glActiveTexture(GL_TEXTURE2);
 	glBindTexture(GL_TEXTURE_2D, ssao->getNoiseTexture());

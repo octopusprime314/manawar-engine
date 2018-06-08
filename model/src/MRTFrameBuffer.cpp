@@ -15,9 +15,9 @@ MRTFrameBuffer::MRTFrameBuffer(int colorAttachments) {
     glBindFramebuffer(GL_FRAMEBUFFER, _frameBufferContext);
 
     //Bind current texture context diffuse
-    glBindTexture(GL_TEXTURE_2D, _fbTextureContexts[0]); 
+    glBindTexture(GL_TEXTURE_2D, _fbTextureContexts[0]);
 
-    //spell out texture format, RGBA format but can use RGB, data pointer is null 
+    //spell out texture format, RGBA format but can use RGB, data pointer is null
     //because the frame buffer is responsible for allocating and populating texture data
     //Diffuse data will be in unsigned format with 8 bits each for RGBA
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, screenPixelWidth, screenPixelHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
@@ -36,7 +36,7 @@ MRTFrameBuffer::MRTFrameBuffer(int colorAttachments) {
     //Bind current texture context normal
     glBindTexture(GL_TEXTURE_2D, _fbTextureContexts[1]);
 
-    //spell out texture format, RGB format but can use RGB, data pointer is null 
+    //spell out texture format, RGB format but can use RGB, data pointer is null
     //because the frame buffer is responsible for allocating and populating texture data
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, screenPixelWidth, screenPixelHeight, 0, GL_RGBA, GL_FLOAT, NULL);
 
@@ -54,7 +54,7 @@ MRTFrameBuffer::MRTFrameBuffer(int colorAttachments) {
     //Bind current texture context normal
     glBindTexture(GL_TEXTURE_2D, _fbTextureContexts[2]);
 
-    //spell out texture format, RGB format but can use RGB, data pointer is null 
+    //spell out texture format, RGB format but can use RGB, data pointer is null
     //because the frame buffer is responsible for allocating and populating texture data
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, screenPixelWidth, screenPixelHeight, 0, GL_RGBA, GL_FLOAT, NULL);
 
@@ -75,10 +75,10 @@ MRTFrameBuffer::MRTFrameBuffer(int colorAttachments) {
     glGenRenderbuffers(1, &depth_rb);
     glBindRenderbuffer(GL_RENDERBUFFER, depth_rb);
     glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, screenPixelWidth, screenPixelHeight);
-        
+
     //Attach depth buffer to FBO
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depth_rb);
-    
+
     //check the frame buffer's health
     GLuint status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
     if (status != GL_FRAMEBUFFER_COMPLETE) {

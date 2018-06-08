@@ -117,14 +117,14 @@ void InstancedForwardShader::runShader(Model* model, ViewManager* viewManager, S
     unsigned int strideLocation = 0;
     for (auto textureStride : textureStrides) {
 
-        //Do not support layered textures or animated models with transparency for now 
+        //Do not support layered textures or animated models with transparency for now
         if (textureStride.first.substr(0, 7) != "Layered" && model->getClassType() != ModelClass::AnimatedModelType) {
 
             //If triangle's textures supports transparency then DO DRAW
             //Only transparent objects are rendered here
             if (model->getTexture(textureStride.first)->getTransparency()) {
 
-                //glUniform texture 
+                //glUniform texture
                 //The second parameter has to be equal to GL_TEXTURE(X) so X must be 0 because we activated texture GL_TEXTURE0 two calls before
                 glUniform1i(_textureLocation, 0);
                 glUniform1i(_cameraDepthTextureLocation, 1);

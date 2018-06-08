@@ -3,7 +3,7 @@
 PointShadowMap::PointShadowMap(GLuint width, GLuint height) :
     CubeMapRenderer(width, height, true),
     _pointShadowShader("pointShadowShader"),
-    _pointAnimatedShadowShader("pointAnimatedShadowShader") { 
+    _pointAnimatedShadowShader("pointAnimatedShadowShader") {
 
 }
 
@@ -16,7 +16,7 @@ void PointShadowMap::render(std::vector<Model*> modelList, Light* light) {
 
     //Does this light support cube map depth rendering
     if (light->getType() == LightType::POINT && light->isShadowCaster()) {
-        
+
         //Prepare cube face transforms
         preCubeFaceRender(modelList, &light->getLightMVP());
 

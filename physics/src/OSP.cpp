@@ -22,7 +22,7 @@ void OSP::generateOSP(std::vector<Model*>& models) {
     Cube* rootCube = new Cube(_cubicDimension, _cubicDimension, _cubicDimension, Vector4(0.0f, 0.0f, 0.0f, 1.0f));
     OctNode<Cube*>* node = _octTree.insert(nullptr, rootCube);
 
-    //Go through all of the models and populate 
+    //Go through all of the models and populate
     for (auto model : models) {
         std::vector<Triangle>* triangles = model->getGeometry()->getTriangles();
 
@@ -51,7 +51,7 @@ void OSP::generateOSP(std::vector<Model*>& models) {
 
 void OSP::updateOSP(std::vector<Model*>& models){
 
-    //Go through all of the models and populate 
+    //Go through all of the models and populate
     for (auto model : models) {
         if (model->getStateVector()->getActive()) { //Only do osp updates if the model is active
 

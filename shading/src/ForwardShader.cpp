@@ -6,7 +6,7 @@
 #include "ShadowRenderer.h"
 #include "PointShadowMap.h"
 
-ForwardShader::ForwardShader(std::string vertexShaderName, std::string fragmentShaderName) 
+ForwardShader::ForwardShader(std::string vertexShaderName, std::string fragmentShaderName)
     : Shader(vertexShaderName, fragmentShaderName) {
     //Grab uniforms needed in a staticshader
 
@@ -26,7 +26,7 @@ ForwardShader::ForwardShader(std::string vertexShaderName, std::string fragmentS
     _textureLocation = glGetUniformLocation(_shaderContext, "textureMap");
 
     _farPlaneLocation = glGetUniformLocation(_shaderContext, "farPlane");
-   
+
     _cameraDepthTextureLocation = glGetUniformLocation(_shaderContext, "cameraDepthTexture");
     _mapDepthTextureLocation = glGetUniformLocation(_shaderContext, "mapDepthTexture");
     _lightLocation = glGetUniformLocation(_shaderContext, "light");
@@ -144,14 +144,14 @@ void ForwardShader::runShader(Model* model, ViewManager* viewManager, ShadowRend
     unsigned int strideLocation = 0;
     for (auto textureStride : textureStrides) {
 
-        //Do not support layered textures or animated models with transparency for now 
+        //Do not support layered textures or animated models with transparency for now
         if (textureStride.first.substr(0, 7) != "Layered" && model->getClassType() != ModelClass::AnimatedModelType) {
-            
+
             //If triangle's textures supports transparency then DO DRAW
             //Only transparent objects are rendered here
             if (model->getTexture(textureStride.first)->getTransparency()) {
-               
-                //glUniform texture 
+
+                //glUniform texture
                 //The second parameter has to be equal to GL_TEXTURE(X) so X must be 0 because we activated texture GL_TEXTURE0 two calls before
                 glUniform1i(_textureLocation, 0);
                 glUniform1i(_cameraDepthTextureLocation, 1);
@@ -160,7 +160,7 @@ void ForwardShader::runShader(Model* model, ViewManager* viewManager, ShadowRend
 
                 glActiveTexture(GL_TEXTURE0);
                 glBindTexture(GL_TEXTURE_2D, model->getTexture(textureStride.first)->getContext()); //grab first texture of model and return context
-                
+
                 //Depth texture
                 glActiveTexture(GL_TEXTURE1);
                 glBindTexture(GL_TEXTURE_2D, shadowRenderer->getAnimatedDepthTexture());

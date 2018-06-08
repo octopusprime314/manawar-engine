@@ -61,7 +61,7 @@ void EnvironmentShader::runShader(Model* model, std::vector<Matrix> viewTransfor
     auto textureStrides = model->getTextureStrides();
     unsigned int strideLocation = 0;
     for(auto textureStride : textureStrides) {
-        
+
         //If the texture has layered encoded into the string then it is indeed layered
         if (textureStride.first.substr(0, 7) == "Layered") {
 
@@ -106,8 +106,8 @@ void EnvironmentShader::runShader(Model* model, std::vector<Matrix> viewTransfor
                 glActiveTexture(GL_TEXTURE5);
                 glBindTexture(GL_TEXTURE_2D, textures[3]->getContext()); //grab first texture of model and return context
             }
-            
-            
+
+
             glDrawArrays(GL_TRIANGLES, strideLocation, (GLsizei)textureStride.second);
             strideLocation += textureStride.second;
         }
@@ -120,7 +120,7 @@ void EnvironmentShader::runShader(Model* model, std::vector<Matrix> viewTransfor
 
                 glActiveTexture(GL_TEXTURE0);
                 glBindTexture(GL_TEXTURE_2D, model->getTexture(textureStride.first)->getContext()); //grab first texture of model and return context
-                //glUniform texture 
+                //glUniform texture
                 //The second parameter has to be equal to GL_TEXTURE(X) so X must be 0 because we activated texture GL_TEXTURE0 two calls before
                 glUniform1i(_textureLocation, 0);
 

@@ -24,7 +24,7 @@ SceneManager::SceneManager(int* argc, char** argv, unsigned int viewportWidth, u
     Factory::setViewWrapper(_viewManager); //Set the reference to the view model event interface
 
     _deferredRenderer = new DeferredRenderer();
-    glCheck(); // !!
+    glCheck();
 
     _forwardRenderer = new ForwardRenderer();
     glCheck();
@@ -132,6 +132,7 @@ SceneManager::~SceneManager() {
 }
 
 void SceneManager::_preDraw() {
+    glCheck();
 
     //send all vbo data to shadow shader pre pass
     _shadowRenderer->generateShadowBuffer(_modelList, _lightList);
@@ -149,8 +150,10 @@ void SceneManager::_preDraw() {
 
     //Establish an offscreen Frame Buffer Object to generate G buffers for deferred shading
     _deferredRenderer->bind();
+    glCheck();
 }
 void SceneManager::_postDraw() {
+    glCheck();
 
     //Render the water around the island
     _water->render();
@@ -179,6 +182,5 @@ void SceneManager::_postDraw() {
             }
         }
     }
-
-
+    glCheck();
 }

@@ -1,7 +1,7 @@
 #include "ShadowRenderer.h"
 #include "ViewManager.h"
 
-ShadowRenderer::ShadowRenderer(GLuint width, GLuint height) : 
+ShadowRenderer::ShadowRenderer(GLuint width, GLuint height) :
     _staticShadowShader("staticShadowShader"),
 	_animatedShadowShader("animatedShadowShader"),
     _staticRendered(false),
@@ -30,12 +30,12 @@ GLuint ShadowRenderer::getMapDepthTexture() {
 void ShadowRenderer::generateShadowBuffer(std::vector<Model*> modelList, std::vector<Light*>& lights) {
 
     // Specify what to render an start acquiring
-    GLenum buffers[] = { GL_DEPTH_ATTACHMENT };
+    GLenum buffers[] = { GL_NONE };
     Light* light = nullptr;
 
     //Only render static objects once to generate depth texture
     //if(!_staticRendered){
-  
+
         //Bind frame buffer
         glBindFramebuffer(GL_FRAMEBUFFER, _mapShadowFBO.getFrameBufferContext());
 

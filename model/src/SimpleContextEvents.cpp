@@ -66,6 +66,6 @@ void SimpleContextEvents::updateDraw(GLFWwindow* _window) {
 //All mouse movement input will be notified here
 void SimpleContextEvents::updateMouse(double x, double y) {
     for (auto func : _mouseFuncs) {
-        func(x, y); //Call mouse movement update 
+        func(x, y); //Call mouse movement update
     }
 }

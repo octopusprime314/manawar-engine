@@ -33,7 +33,7 @@ float lerp(float a, float b, float f) {
 
 void SSAO::_generateKernelNoise() {
 	// random floats between 0.0 - 1.0
-	std::uniform_real_distribution<float> randomFloats(0.0, 1.0); 
+	std::uniform_real_distribution<float> randomFloats(0.0, 1.0);
 	std::default_random_engine generator;
 
 	for (unsigned int i = 0; i < 64; ++i)
@@ -75,7 +75,7 @@ void SSAO::_generateKernelNoise() {
 }
 
 void SSAO::computeSSAO(MRTFrameBuffer* mrtBuffer, ViewManager* viewManager) {
-	
+
 	glBindFramebuffer(GL_FRAMEBUFFER, _ssaoFBO);
 
 	glClear(GL_COLOR_BUFFER_BIT);

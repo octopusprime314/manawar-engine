@@ -35,7 +35,7 @@ _clock(MasterClock::instance()) {
     //Load debug shader
     _debugShaderProgram = new DebugShader("debugShader");
 
-    //Load in fbx object 
+    //Load in fbx object
     _fbxLoader = new FbxLoader(MESH_LOCATION + name);
     //Populate model with fbx file data and recursivelty search with the root node of the scene
     _fbxLoader->loadModel(this, _fbxLoader->getScene()->GetRootNode());
@@ -63,7 +63,7 @@ _clock(MasterClock::instance()) {
         std::string modelName = _getModelName(name);
         std::string colliderName = MESH_LOCATION;
         colliderName.append(modelName).append("/collider.fbx");
-        //Load in geometry fbx object 
+        //Load in geometry fbx object
         FbxLoader geometryLoader(colliderName);
         //Populate model with fbx file data and recursivelty search with the root node of the scene
         geometryLoader.loadGeometry(this, geometryLoader.getScene()->GetRootNode());

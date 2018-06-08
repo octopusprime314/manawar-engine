@@ -22,7 +22,7 @@ void TextureBroker::addTexture(std::string textureName) {
 }
 
 void TextureBroker::addLayeredTexture(std::vector<std::string> textureNames) {
-    
+
     std::string sumString = "Layered";
     for (auto& str : textureNames) {
         sumString += str;

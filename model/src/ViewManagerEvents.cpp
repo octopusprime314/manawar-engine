@@ -14,12 +14,12 @@ void ViewManagerEvents::subscribeToProjection(std::function<void(Matrix)> func) 
 //Blast all subscribers that have overriden the updateView function
 void ViewManagerEvents::updateView(Matrix view) {
     for (auto func : _viewFuncs) {
-        func(view); //Call view/camera update 
+        func(view); //Call view/camera update
     }
 }
 //Blast all subscribers that have overriden the updateProjection function
 void ViewManagerEvents::updateProjection(Matrix proj) {
     for (auto func : _projectionFuncs) {
-        func(proj); //Call projection update 
+        func(proj); //Call projection update
     }
 }

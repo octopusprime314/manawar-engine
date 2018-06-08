@@ -14,7 +14,7 @@ bool GeometryMath::sphereProtrudesCube(Sphere* sphere, Cube* cube) {
 
     Vector4 distanceCenters = sphereCenter - cubeCenter;
     float* distance = distanceCenters.getFlatBuffer();
-    
+
     //Test x and z component first because most movement will be in the xz plane not falling down with gravity in the y direction
     //at least that is my theory to improve efficiency
 
@@ -32,7 +32,7 @@ bool GeometryMath::sphereProtrudesCube(Sphere* sphere, Cube* cube) {
     }
 
     //Sphere is completely contained inside cube
-    return false; 
+    return false;
 }
 
 bool GeometryMath::spheresSpheresDetection(Model *spheresA, Model *spheresB) {
@@ -476,7 +476,7 @@ bool GeometryMath::sphereCubeDetection(Sphere *sphere, Cube *cube) {
 }
 
 void GeometryMath::sphereTriangleResolution(Model* modelA, Sphere& sphere, Model* modelB, Triangle& triangle) {
-   
+
     StateVector* modelStateA = modelA->getStateVector();
     Vector4* triPoints = triangle.getTrianglePoints();
     Vector4 spherePosition = sphere.getPosition();
@@ -488,7 +488,7 @@ void GeometryMath::sphereTriangleResolution(Model* modelA, Sphere& sphere, Model
     normal.normalize();
 
     Vector4 closestPointOnTriangle = _closestPoint(&sphere, &triangle);
-    Vector4 overlap = closestPointOnTriangle - spherePosition; 
+    Vector4 overlap = closestPointOnTriangle - spherePosition;
     overlap.normalize();
 
     Vector4 closestPoint = closestPointOnTriangle - ((overlap)*(sphereRadius*1.0001f)) - sphere.getPosition();
@@ -522,7 +522,7 @@ float GeometryMath::_min(float a, float b) {
     return (a < b ? a : b);
 }
 
-Vector4 GeometryMath::_closestPoint(Sphere* sphere, Triangle* triangle) 
+Vector4 GeometryMath::_closestPoint(Sphere* sphere, Triangle* triangle)
 {
     /** The code for Triangle-float3 test is from Christer Ericson's Real-Time Collision Detection, pp. 141-142. */
 

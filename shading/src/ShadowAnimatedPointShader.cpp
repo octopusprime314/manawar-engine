@@ -45,7 +45,7 @@ void ShadowAnimatedPointShader::runShader(Model* model, Light* light, std::vecto
     //Set light position for point light
     auto lightPos = light->getPosition();
     glUniform3f(_lightPosLocation, lightPos.getx(), lightPos.gety(), lightPos.getz());
-    
+
     //Set far plane for depth scaling
     //Quick trick to get far value out of projection matrix
     auto projMatrix = lightMVP.getProjectionBuffer();

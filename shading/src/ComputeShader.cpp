@@ -27,7 +27,7 @@ void ComputeShader::runShader(Blur* blur, SSAO* ssao) {
 	glBindImageTexture(1, blur->getBlurTexture(), 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_R8);
 
 	//Dispatch the shader
-	glDispatchCompute(static_cast<GLuint>(ceilf(static_cast<float>(screenPixelWidth) / 16.0f)), 
+	glDispatchCompute(static_cast<GLuint>(ceilf(static_cast<float>(screenPixelWidth) / 16.0f)),
         static_cast<GLuint>(ceilf(static_cast<float>(screenPixelHeight) / 16.0f)), 1);
 
 	glUseProgram(0);

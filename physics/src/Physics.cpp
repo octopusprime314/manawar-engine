@@ -93,7 +93,7 @@ void Physics::_physicsProcess(int milliseconds) {
                     std::set<Triangle*>& triangles = triangleMap.second;
                     std::set<Sphere*>& spheres = sphereMap.second;
 
-                   
+
                     for (Sphere* sphere : spheres) {
 
                         if (GeometryMath::sphereCubeDetection(sphere, subspaceNode->getData())) {
@@ -120,7 +120,7 @@ void Physics::_physicsProcess(int milliseconds) {
                             //Remove geometry from osp node
                             subspaceNode->removeGeometry(sphereMap.first, sphere);
                         }
-                    }                
+                    }
                 }
             }
         }

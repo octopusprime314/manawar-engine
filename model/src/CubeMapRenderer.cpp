@@ -23,7 +23,7 @@ void CubeMapRenderer::preCubeFaceRender(std::vector<Model*> modelList, MVP* mvp)
 
     //Clear buffer
     if (_isDepth) {
-        GLenum buffers[] = { GL_DEPTH_ATTACHMENT };
+        GLenum buffers[] = { GL_NONE };
         glClear(GL_DEPTH_BUFFER_BIT);
         glDrawBuffers(1, buffers);
     }

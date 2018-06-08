@@ -11,7 +11,7 @@ CubeMap::CubeMap(unsigned int width, unsigned int height, bool isDepth) :
     //Bind the texture and create 6 sides of a texture cube
     glBindTexture(GL_TEXTURE_CUBE_MAP, _cubemap);
     for (unsigned int i = 0; i < 6; ++i) {
-        
+
         //A depth or color buffer can be rendered to for a generic cube map
         if (isDepth) {
             glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_DEPTH_COMPONENT, _width, _height,

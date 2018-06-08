@@ -28,7 +28,7 @@ UpdateInterface::~UpdateInterface() {
 
 void UpdateInterface::_updateView(Matrix view) {
 
-} 
+}
 void UpdateInterface::_updateProjection(Matrix view) {
 
-} 
+}

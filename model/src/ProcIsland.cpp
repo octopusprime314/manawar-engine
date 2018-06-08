@@ -171,7 +171,7 @@ static Model* GenerateTrees()
 {
     //Load tree model and instance it
     Model* treeModel = new Model("tree/tree.fbx", Factory::_viewEventWrapper, ModelClass::ModelType);
-    
+
     treeModel->getMVP()->setModel(Matrix::scale(0.01f));
 
     //Generate instancing offsets

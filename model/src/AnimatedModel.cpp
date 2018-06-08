@@ -19,7 +19,7 @@ AnimatedModel::AnimatedModel(std::string name, ViewManagerEvents* eventWrapper) 
         std::string modelName = _getModelName(name);
         std::string colliderName = MESH_LOCATION;
         colliderName.append(modelName).append("/collider.fbx");
-        //Load in geometry fbx object 
+        //Load in geometry fbx object
         FbxLoader geometryLoader(colliderName);
         //Populate model with fbx file data and recursivelty search with the root node of the scene
         geometryLoader.loadGeometry(this, geometryLoader.getScene()->GetRootNode());
@@ -32,7 +32,7 @@ AnimatedModel::AnimatedModel(std::string name, ViewManagerEvents* eventWrapper) 
         _vao.createVAO(&_renderBuffers, ModelClass::AnimatedModelType, _animations[_currentAnimation]);
 
         //Hook up to framerate update for proper animation progression
-        _clock->subscribeAnimationRate(std::bind(&AnimatedModel::_updateAnimation, this, std::placeholders::_1)); 
+        _clock->subscribeAnimationRate(std::bind(&AnimatedModel::_updateAnimation, this, std::placeholders::_1));
 }
 
 AnimatedModel::~AnimatedModel() {
@@ -48,7 +48,7 @@ void AnimatedModel::_updateDraw() {
     if(_animationUpdateRequest){
 
         //Set bone animation frame
-        _currBones = _animations[_currentAnimation]->getBones(); 
+        _currBones = _animations[_currentAnimation]->getBones();
         _animations[_currentAnimation]->nextFrame(); //Set animation to the next frame
 
         _updateLock.lock(); _animationUpdateRequest = false; _updateLock.unlock();
@@ -58,7 +58,7 @@ void AnimatedModel::_updateDraw() {
 }
 
 void AnimatedModel::_updateKeyboard(unsigned char key, int x, int y) {
-    //Update animation 
+    //Update animation
 
     //Call base class keyboard handling
     Model::_updateKeyboard(key, x, y);
@@ -67,7 +67,7 @@ void AnimatedModel::_updateReleaseKeyboard(int key, int x, int y) {
 }
 
 void AnimatedModel::_updateMouse(double x, double y) {
-    //Invoke an animation 
+    //Invoke an animation
 
     //Call base class keyboard handling
     Model::_updateMouse(x, y);

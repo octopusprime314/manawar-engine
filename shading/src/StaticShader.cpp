@@ -58,7 +58,7 @@ void StaticShader::runShader(Model* model) {
     auto textureStrides = model->getTextureStrides();
     unsigned int strideLocation = 0;
     for(auto textureStride : textureStrides) {
-        
+
         //If the texture has layered encoded into the string then it is indeed layered
         if (textureStride.first.substr(0, 7) == "Layered") {
 
@@ -117,7 +117,7 @@ void StaticShader::runShader(Model* model) {
 
                 glActiveTexture(GL_TEXTURE0);
                 glBindTexture(GL_TEXTURE_2D, model->getTexture(textureStride.first)->getContext()); //grab first texture of model and return context
-                //glUniform texture 
+                //glUniform texture
                 //The second parameter has to be equal to GL_TEXTURE(X) so X must be 0 because we activated texture GL_TEXTURE0 two calls before
                 glUniform1i(_textureLocation, 0);
 

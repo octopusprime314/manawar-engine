@@ -29,13 +29,13 @@ GLuint Texture::getContext(){
 }
 
 void Texture::_build2DTexture(std::string textureName) {
-    
+
     //Generate a texture context
     glGenTextures(1, &_textureContext);
 
     //Bind the generated reference context to load texture data
     glBindTexture(GL_TEXTURE_2D, _textureContext);
-    
+
     _decodeTexture(textureName, GL_TEXTURE_2D);
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -54,7 +54,6 @@ void Texture::_build2DTexture(std::string textureName) {
 }
 
 void Texture::_buildCubeMapTexture(std::string skyboxName) {
-    
     glGenTextures(1, &_textureContext);
 
     //Bind the texture and create 6 sides of a texture cube
@@ -153,7 +152,7 @@ void Texture::_decodeTexture(std::string textureName, unsigned int textureType) 
     //Use mip maps to prevent anti aliasing issues
     if (textureName.substr(textureName.find_last_of('.')) == ".tif" && _alphaValues) {
         glTexImage2D(textureType, 0, GL_RGBA8, _width, _height, 0, GL_BGRA, GL_UNSIGNED_BYTE, _bits);
-        glGenerateMipmap(textureType); //Allocate mipmaps 
+        glGenerateMipmap(textureType); //Allocate mipmaps
         //If alpha value is opaque then do not count as a transparent texture
         if (_bits[3] == 255) {
             _alphaValues = false;

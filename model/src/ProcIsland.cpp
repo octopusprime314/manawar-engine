@@ -38,26 +38,24 @@ static Model* GenerateTerrain()
     std::vector<Vector4> verts;
     verts.reserve(static_cast<int>(((maxX - minX) / delta + 1.f) *
                                    ((maxZ - minZ) / delta + 1.f )));
-    for (float x = minX; x <= maxX; x += delta) {
-        for (float z = minZ; z <= maxZ; z += delta) {
+    for (float z = minZ; z <= maxZ; z += delta) {
+        for (float x = minX; x <= maxX; x += delta) {
             float y = ScaleNoiseToTerrainHeight(kNoise.turbulence(2500.f*x / 150.f, 3250.f*z / 150 + 400, 9));
-            verts.emplace_back(x, y, z, 1.f);
+            verts.emplace_back(x - minX, y, z - minZ, 1.f);
         }
     }
 
     // Populate Indices
     std::vector<int> indices;
-    for (int x = 0; x < int(dX / delta + 0.5f); x += 1) {
-        for (int z = 0; z < int(dZ / delta + 0.5f); z += 1) {
-            int b = static_cast<int>(indices.size()) / 6;
-            indices.emplace_back(b + 0);    assert((b + 0)    < verts.size());
-            indices.emplace_back(b + 1);    assert((b + 1)    < verts.size());
-            indices.emplace_back(b + dX);   assert((b + dX)   < verts.size());
+    for (int vertIdx = 0; (vertIdx + 1 + dX) < verts.size(); vertIdx += 1) {
+        int b = static_cast<int>(indices.size()) / 6;
+        indices.emplace_back(b + 0);    assert((b + 0)    < verts.size());
+        indices.emplace_back(b + 1);    assert((b + 1)    < verts.size());
+        indices.emplace_back(b + dX);   assert((b + dX)   < verts.size());
 
-            indices.emplace_back(b + 1);    assert((b + 1)    < verts.size());
-            indices.emplace_back(b + 1+dX); assert((b + 1+dX) < verts.size());
-            indices.emplace_back(b + dX);   assert((b + dX)   < verts.size());
-        }
+        indices.emplace_back(b + 1);    assert((b + 1)    < verts.size());
+        indices.emplace_back(b + 1+dX); assert((b + 1+dX) < verts.size());
+        indices.emplace_back(b + dX);   assert((b + dX)   < verts.size());
     }
 
     // Populate Normals

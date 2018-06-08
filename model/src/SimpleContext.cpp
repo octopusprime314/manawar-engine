@@ -55,7 +55,6 @@ SimpleContext::SimpleContext(int* argc, char** argv, unsigned int viewportWidth,
         glGetString(GL_SHADING_LANGUAGE_VERSION));
 
     //PER SAMPLE PROCESSING DEFAULTS
-    glEnable(GL_TEXTURE_2D); //Enable use of textures
     glClearDepth(1.0); //Enables Clearing Of The Depth Buffer
     glClearColor(0.0, 0.0, 0.0, 0.0);
     glEnable(GL_DEPTH_TEST); //Ensure depth test happens

@@ -1,6 +1,7 @@
 #include "DeferredShader.h"
 
 DeferredShader::DeferredShader(std::string shaderName) : Shader(shaderName) {
+    glCheck();
 
 	//Build 2 triangles for screen space quad
 	const float length = 1.0f; 

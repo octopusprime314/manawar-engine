@@ -18,31 +18,42 @@
 volatile bool g_AssertOnBadOpenGlCall = false;
 
 SceneManager::SceneManager(int* argc, char** argv, unsigned int viewportWidth, unsigned int viewportHeight, float nearPlaneDistance, float farPlaneDistance) {
-
     _viewManager = new ViewManager(argc, argv, viewportWidth, viewportHeight);
+    glCheck();
 
     Factory::setViewWrapper(_viewManager); //Set the reference to the view model event interface
 
     _deferredRenderer = new DeferredRenderer();
+    glCheck(); // !!
+
     _forwardRenderer = new ForwardRenderer();
+    glCheck();
 
     _shadowRenderer = new ShadowRenderer(8*1024, 8*1024);
+    glCheck();
 
     _pointShadowMap = new PointShadowMap(2000, 2000);
+    glCheck();
 
     _ssaoPass = new SSAO();
+    glCheck();
 
     //_environmentMap = new EnvironmentMap(2000, 2000);
+    glCheck();
 
     _water = new Water(_viewManager->getEventWrapper());
+    glCheck();
 
     _audioManager = new AudioManager();
+    glCheck();
 
     //Setup pre and post draw callback events received when a draw call is issued
     SimpleContextEvents::setPreDrawCallback(std::bind(&SceneManager::_preDraw, this));
     SimpleContextEvents::setPostDrawCallback(std::bind(&SceneManager::_postDraw, this));
 
     GenerateProceduralIsland(_modelList, ProcState());
+    glCheck();
+
     //_modelList.push_back(Factory::make<Model>("landscape/landscape.fbx")); //Add a static model to the scene
 
     //_physics.addModels(_modelList); //Gives physics a pointer to all models which allows access to underlying geometry
@@ -105,6 +116,7 @@ SceneManager::SceneManager(int* argc, char** argv, unsigned int viewportWidth, u
         Matrix());
     _viewManager->setModelList(_modelList);
 
+    glCheck();
     _viewManager->run(); //Enables the glfw main loop
 }
 

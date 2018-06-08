@@ -66,15 +66,15 @@ void VAO::createVAO(RenderBuffers* renderBuffers, ModelClass classId, Animation*
     }
 
     if (normals.size() != vertexCount) {
-        printf("Resizing normals      from %zu to %zu.\n", normals.size(), vertexCount);
+        printf("(vao=%p) Resizing normals      from %zu to %zu.\n", this, normals.size(), vertexCount);
         normals.resize(vertexCount);
     }
     if (textures.size() != vertexCount) {
-        printf("Resizing textures     from %zu to %zu.\n", textures.size(), vertexCount);
+        printf("(vao=%p) Resizing textures     from %zu to %zu.\n", this, textures.size(), vertexCount);
         textures.resize(vertexCount);
     }
     if (debugNormals.size() != vertexCount) {
-        printf("Resizing debugNormals from %zu to %zu.\n", debugNormals.size(), vertexCount);
+        printf("(vao=%p) Resizing debugNormals from %zu to %zu.\n", this, debugNormals.size(), vertexCount);
         debugNormals.resize(vertexCount);
     }
 

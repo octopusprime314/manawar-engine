@@ -40,6 +40,7 @@ void StaticShader::runShader(Model* model) {
     glUseProgram(_shaderContext); //use context for loaded shader
 
     VAO* vao = model->getVAO();
+
     glBindVertexArray(vao->getVAOContext());
 
     MVP* mvp = model->getMVP();
@@ -103,9 +104,9 @@ void StaticShader::runShader(Model* model) {
                 glActiveTexture(GL_TEXTURE5);
                 glBindTexture(GL_TEXTURE_2D, textures[3]->getContext()); //grab first texture of model and return context
             }
-            
-            
-            glDrawArrays(GL_TRIANGLES, strideLocation, (GLsizei)textureStride.second);
+
+
+            glDrawElements(GL_TRIANGLES, (GLsizei)textureStride.second, GL_UNSIGNED_INT, (void*)strideLocation);
             strideLocation += textureStride.second;
         }
         else {
@@ -142,13 +143,13 @@ void StaticShader::runShader(Model* model) {
                     glUniform1i(_tex3Location, 3);
                 }
 
-                //Draw triangles using the bound buffer vertices at starting index 0 and number of triangles
-                glDrawArrays(GL_TRIANGLES, strideLocation, (GLsizei)textureStride.second);
+                glDrawElements(GL_TRIANGLES, (GLsizei)textureStride.second, GL_UNSIGNED_INT, (void*)strideLocation);
             }
             strideLocation += textureStride.second;
         }
     }
     glBindVertexArray(0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     glBindTexture(GL_TEXTURE_2D, 0); //Unbind texture
     glUseProgram(0);//end using this shader
 }

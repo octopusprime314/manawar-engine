@@ -31,6 +31,7 @@ enum class ModelClass; //Forward declaration of enumerated type while not includ
 
 class VAO {
 
+    GLuint  _indexBufferContext; // Used as the index buffer
     GLuint  _vertexBufferContext; //Used as the vertex attribute vbo context
     GLuint  _normalBufferContext; //Used as the normal attribute vbo context
     GLuint  _textureBufferContext; //Used as the texture coordinate attribute vbo context

@@ -51,9 +51,10 @@ SimpleContext::SimpleContext(int* argc, char** argv, unsigned int viewportWidth,
     if (!gl3wIsSupported(3, 0)) {
         std::cout << "OpenGL 3.2 not supported\n" << std::endl;
     }
-    printf("OpenGL %s, GLSL %s\n",
+    printf("OpenGL: %s\nGLSL: %s\nVendor: %s\n",
            glGetString(GL_VERSION),
-           glGetString(GL_SHADING_LANGUAGE_VERSION));
+           glGetString(GL_SHADING_LANGUAGE_VERSION),
+           glGetString(GL_VENDOR));
 
     //PER SAMPLE PROCESSING DEFAULTS
     glClearDepth(1.0);

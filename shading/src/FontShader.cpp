@@ -17,9 +17,8 @@ void FontShader::runShader(GLuint vao, std::string& s)
     Texture* tex = pTb->getTexture("../assets/textures/font/ubuntu_mono_regular_0.png");
 
     //glDisable(GL_DEPTH_TEST);
-    //glFrontFace(GL_CW);
-    //glEnable(GL_BLEND);
-    //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     glUseProgram(_shaderContext); //use context for loaded shader
     glCheck();

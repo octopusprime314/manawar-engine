@@ -187,9 +187,10 @@ void SceneManager::_postDraw() {
     _deferredRenderer->deferredLighting(_shadowRenderer, _lightList, _viewManager, _pointShadowMap, _ssaoPass, _environmentMap);
 
     if (_viewManager->getViewState() == ViewManager::ViewState::DEFERRED_LIGHTING) {
+
         //Draw transparent objects onto of the deferred renderer
         _forwardRenderer->forwardLighting(_modelList, _viewManager, _shadowRenderer, _lightList, _pointShadowMap);
-
+        
         // Lights - including the fire point lights
         for (auto light : _lightList) {
             if (light->getType() == LightType::POINT) {
@@ -198,7 +199,7 @@ void SceneManager::_postDraw() {
         }
     }
 
-    std::string stringToDraw("hello fellow demoscensters");
+    std::string stringToDraw("hello hawaii");
     _fontRenderer->DrawFont(0, 0, stringToDraw);
     glCheck();
 }

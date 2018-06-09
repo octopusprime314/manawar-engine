@@ -115,84 +115,10 @@ void parseFontFile(std::string& filename, FontInfo& out)
 
 using namespace std;
 
-const char* vertex_shader =
-"#version 400\n"
-"layout (location = 0) in vec3 vp;\n"
-"layout (location = 1) in vec2 tc;\n"
-//"in vec3 vp;"
-//"in vec2 vertTexCoord;"
-"out vec2 fragTexCoord;\n"
-"void main() {\n"
-"  gl_Position = vec4(vp, 1.0);\n"
-"  fragTexCoord = tc;\n"
-"}";
-
-const char* fragment_shader =
-"#version 400\n"
-"uniform sampler2D tex;\n"
-"in vec2 fragTexCoord;\n"
-"out vec4 fragColor;\n"
-"void main() {\n"
-//"fragColor = vec4(fragTexCoord.x, fragTexCoord.y, 0.0, 1.0);"
-"fragColor = texture (tex, vec2(fragTexCoord.x, fragTexCoord.y));\n"
-//"fragColor = texture(tex, vec2(0.0f, 0.0f));\n"
-//"  fragColor = vec4(0.5, 0.0, 0.5, 1.0);"
-
-"}";
-
-//extern const unsigned int SCREEN_WIDTH;
-//extern const unsigned int SCREEN_HEIGHT;
-
 extern const int screenPixelWidth;
 extern const int screenPixelHeight;
-//const float ratio = static_cast<float>(SCREEN_HEIGHT) / SCREEN_WIDTH;
 
 const float ratio = static_cast<float>(screenPixelHeight) / screenPixelWidth;
-
-//glm::vec3 medPoints[] = {{-0.05f, -0.05f, 0.0f},
-//                         {-0.05f, 0.05f, 0.0f},
-//                         {0.05f, 0.05f, 0.0f},
-//                         {0.05f, 0.05f, 0.0f},
-//                         {0.05f, -0.05f, 0.0f},
-//                         {-0.05f, -0.05f, 0.0f}};
-
-//glm::vec3 medPoints[] = {{-1.0f, 1.0 - (0.03 * ratio), 0.0f},
-//                         {-1.0f, 1.0f, 0.0f},
-//                         {-0.97f, 1.0f, 0.0f},
-//                         {-0.97f, 1.0f, 0.0f},
-//                         {-0.97f, 1.0 - (0.03 * ratio), 0.0f},
-//                         {-1.0f, 1.0 - (0.03 * ratio), 0.0f}};
-
-// test vtx buffer
-//float points[] =
-//{
-//    -0.05f, -0.05f,  0.0f,
-//    -0.05f,  0.05f,  0.0f,
-//    0.05f,  0.05f,  0.0f,
-//    0.05f,  0.05f,  0.0f,
-//    0.05f, -0.05f,  0.0f,
-//    -0.05f, -0.05f,  0.0f,
-//};
-
-//float texCoords[] =
-//{
-//    0.0, 0.0,
-//    0.0, 1.0,
-//    1.0, 1.0,
-//    1.0, 1.0,
-//    1.0, 0.0,
-//    0.0, 0.0,
-//};
-
-//float texCoords[] =
-//{
-//    0.85f, 1.0 - 0.74f,
-//    0.85f, 1.0 - 0.68f,
-//    0.90f, 1.0 - 0.68f,
-//    0.90f, 1.0 - 0.68f,
-//    0.90f, 1.0 - 0.74f,
-//    0.85f, 1.0 - 0.74f,
-//};
 
 FontRenderer::FontRenderer(std::string fileName)
     : fontShader("font")
@@ -202,11 +128,6 @@ FontRenderer::FontRenderer(std::string fileName)
 
     TextureBroker* pTb = TextureBroker::instance();
     pTb->addTexture("../assets/textures/font/ubuntu_mono_regular_0.png");
-
-#if 0
-    RenderBuffers renderBuffers;
-    renderBuffers.
-#endif
     
     // create vertex buffer
     glGenVertexArrays(1, &vao);
@@ -227,53 +148,16 @@ FontRenderer::FontRenderer(std::string fileName)
 
     glBindVertexArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
-#if 0
-    // compile shaders
-    GLuint vs = glCreateShader(GL_VERTEX_SHADER);
-    //glShaderSource(vs, 1, &vertex_shader, NULL);
-    shaderSourceFromFile(vs, "font.vs");
-    glCompileShader(vs);
-    GLuint fs = glCreateShader(GL_FRAGMENT_SHADER);
-    //glShaderSource(fs, 1, &fragment_shader, NULL);
-    shaderSourceFromFile(fs, "font.ps");
-    glCompileShader(fs);
-
-    shader = glCreateProgram();
-    glAttachShader(shader, fs);
-    glAttachShader(shader, vs);
-    glLinkProgram(shader);
-
-    GLint isLinked = 0;
-    glGetProgramiv(shader, GL_LINK_STATUS, &isLinked);
-    if (isLinked == GL_FALSE)
-    {
-        GLint maxLength = 0;
-        glGetProgramiv(shader, GL_INFO_LOG_LENGTH, &maxLength);
-
-        // The maxLength includes the NULL character
-        std::vector<GLchar> infoLog(maxLength);
-        glGetProgramInfoLog(shader, maxLength, &maxLength, &infoLog[0]);
-        for (int i = 0; i < infoLog.size(); i++) cout << infoLog[i];
-        cout << endl;
-
-        // The program is useless now. So delete it.
-        glDeleteProgram(shader);
-
-        return;
-    }
-#endif
 }
 
 void FontRenderer::DrawFont(int x, int y, std::string& s)
 {
     float cursorAdvance = 0;
-    //float cursorAdvanceVal = 0.03f * ratio + .01;
-    float scale = 500;
+    float scale = 200;
 
     // convert to ndc
     x -= 1;
     y += 1;
-
 
     vec3 vb[256];
     vec2 tcb[256];
@@ -305,21 +189,6 @@ void FontRenderer::DrawFont(int x, int y, std::string& s)
         cursorPosition[3].x += cursorAdvance;
         cursorPosition[4].x += cursorAdvance;
         cursorPosition[5].x += cursorAdvance;
-
-        // adjust slightly
-        //float rectWidth = abs(cursorPosition[1].x - cursorPosition[2].x);
-        //float xoff = fontInfo.chars[asciiVal].xoffset * rectWidth / fontInfo.chars[asciiVal].xadvance;
-        //
-        //float rectHeight = abs(cursorPosition[1].y - cursorPosition[0].y);
-        //float yoff = fontInfo.chars[asciiVal].yoffset * rectWidth / fontInfo.chars[asciiVal].xadvance;
-
-        //float charWidth = fontInfo.chars[asciiVal].width * rectWidth / fontInfo.chars[asciiVal].xadvance;
-        //float charHeight = fontInfo.chars[asciiVal].height * rectHeight / fontInfo.chars[asciiVal].xadvance;
-
-        //cursorPosition[0].x += xoff;
-        //cursorPosition[1].x += xoff;
-        //cursorPosition[2].x += xoff;
-
 
         // generate text coordinates
         vec2 bottomLeft = { fontInfo.chars[asciiVal].x / 256.0f, 1.0f - (fontInfo.chars[asciiVal].y + fontInfo.chars[asciiVal].height) / 256.0f };
@@ -370,17 +239,5 @@ void FontRenderer::DrawFont(int x, int y, std::string& s)
     glCheck();
 
     fontShader.runShader(vao, s);
-#if 0
-    glUseProgram(shader);
-
-    GLuint texLoc = glGetUniformLocation(shader, "tex");
-    glUniform1i(texLoc, 0);
-
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, fontTex);
-
-    glBindVertexArray(vao);
-    glDrawArrays(GL_TRIANGLES, 0, 6 * static_cast<GLsizei>(s.size()));
-#endif
 }
 

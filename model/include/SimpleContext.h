@@ -27,6 +27,22 @@
 #include <vector>
 #include <mutex>
 #include "SimpleContextEvents.h"
+#include <queue>
+
+struct TimeEvent {
+    typedef void (Callback)();
+
+    uint64_t time;
+    Callback* pfnCallback;
+
+    TimeEvent(uint64_t time, Callback* pfnCallback)
+        : time(time),
+        pfnCallback(pfnCallback) {}
+};
+
+static bool operator<(TimeEvent left, TimeEvent right) {
+    return left.time > right.time;
+}
 
 class SimpleContext {
 
@@ -45,6 +61,7 @@ private:
     SimpleContextEvents _events; //Event wrapper for GLFW based events
     unsigned int        _viewportWidth;  //Width dimension of glfw window context in pixel units
     unsigned int        _viewportHeight; //Height dimension of glfw window context in pixel units
+    static std::priority_queue<TimeEvent> _timeEvents; // Events that trigger at a specific time
     static int          _renderNow;      //Internal flag that coordinates with the framerate
     static std::mutex   _renderLock;     //Prevents write/write collisions with renderNow on a frame tick trigger
     static GLFWwindow*  _window;         //Glfw window

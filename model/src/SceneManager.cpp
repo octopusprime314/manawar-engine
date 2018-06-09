@@ -128,21 +128,6 @@ SceneManager::SceneManager(int* argc, char** argv, unsigned int viewportWidth, u
 
     glCheck();
 
-    _timeMs = 0; // Updated in main loop
-
-    // Hard coded debug events
-    TimeEvent::Callback* debugCallback = []() { printf("Hello, from the Q!"); };
-
-    TimeEvent event(1000, debugCallback);
-
-    _timeEvents.emplace(event);
-    event.time += 1000;
-    _timeEvents.emplace(event);
-    event.time += 1000;
-    _timeEvents.emplace(event);
-    event.time += 1000;
-    _timeEvents.emplace(event);
-
     _viewManager->run(); //Enables the glfw main loop
 }
 

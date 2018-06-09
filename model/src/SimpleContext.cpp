@@ -7,6 +7,8 @@ std::mutex  SimpleContext::_renderLock;
 GLFWwindow* SimpleContext::_window;
 bool        SimpleContext::_quit = false;
 
+std::priority_queue<TimeEvent> SimpleContext::_timeEvents; // Events that trigger at a specific time
+
 SimpleContext::SimpleContext(int* argc, char** argv, unsigned int viewportWidth, unsigned int viewportHeight) {
 
     char workingDir[1024] = "";
@@ -69,6 +71,63 @@ SimpleContext::SimpleContext(int* argc, char** argv, unsigned int viewportWidth,
     masterClock->setFrameRate(60); //Establishes the frame rate of the draw context
     masterClock->subscribeFrameRate(std::bind(_frameRateTrigger, std::placeholders::_1));
 
+    // Hard coded debug events
+    TimeEvent::Callback* debugCallback = []() { printf("Hello, from the Q!\n"); };
+
+    auto now = std::chrono::high_resolution_clock::now().time_since_epoch();
+    TimeEvent event(std::chrono::duration_cast<std::chrono::milliseconds>(now).count(), debugCallback);
+
+    _timeEvents.emplace(event);
+    event.time += 1000;
+    _timeEvents.emplace(event);
+    event.time += 1000;
+    _timeEvents.emplace(event);
+    event.time += 1000;
+    _timeEvents.emplace(event);
+    event.time += 1000;
+    _timeEvents.emplace(event);
+    event.time += 1000;
+    _timeEvents.emplace(event);
+    event.time += 1000;
+    _timeEvents.emplace(event);
+    event.time += 1000;
+    _timeEvents.emplace(event);
+    event.time += 1000;
+    _timeEvents.emplace(event);
+    event.time += 1000;
+    _timeEvents.emplace(event);
+    event.time += 1000;
+    _timeEvents.emplace(event);
+    event.time += 1000;
+    _timeEvents.emplace(event);
+    event.time += 1000;
+    _timeEvents.emplace(event);
+    event.time += 1000;
+    _timeEvents.emplace(event);
+    event.time += 1000;
+    _timeEvents.emplace(event);
+    event.time += 1000;
+    _timeEvents.emplace(event);
+    event.time += 1000;
+    _timeEvents.emplace(event);
+    event.time += 1000;
+    _timeEvents.emplace(event);
+    event.time += 1000;
+    _timeEvents.emplace(event);
+    event.time += 1000;
+    _timeEvents.emplace(event);
+    event.time += 1000;
+    _timeEvents.emplace(event);
+    event.time += 1000;
+    _timeEvents.emplace(event);
+    event.time += 1000;
+    _timeEvents.emplace(event);
+    event.time += 1000;
+    _timeEvents.emplace(event);
+    event.time += 1000;
+    _timeEvents.emplace(event);
+    event.time += 1000;
+    _timeEvents.emplace(event);
 }
 
 void SimpleContext::run() {
@@ -110,8 +169,20 @@ void SimpleContext::_keyboardUpdate(GLFWwindow* window, int key, int scancode, i
 
 //One frame draw update call
 void SimpleContext::_drawUpdate() {
+    using std::chrono::time_point;
+    using std::chrono::duration_cast;
+    using std::chrono::milliseconds;
 
     while (!_quit) {
+        auto now = std::chrono::high_resolution_clock::now();
+
+        if (_timeEvents.size()) {
+            TimeEvent event = _timeEvents.top();
+            if (event.time < duration_cast<milliseconds>(now.time_since_epoch()).count()) {
+                _timeEvents.pop();
+                event.pfnCallback();
+            }
+        }
 
         //Only draw when a framerate trigger event has been received from the master clock
         //if(_renderNow > 0){

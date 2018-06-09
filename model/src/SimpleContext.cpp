@@ -74,60 +74,13 @@ SimpleContext::SimpleContext(int* argc, char** argv, unsigned int viewportWidth,
     // Hard coded debug events
     TimeEvent::Callback* debugCallback = []() { printf("Hello, from the Q!\n"); };
 
-    auto now = std::chrono::high_resolution_clock::now().time_since_epoch();
-    TimeEvent event(std::chrono::duration_cast<std::chrono::milliseconds>(now).count(), debugCallback);
+    uint64_t now = std::chrono::high_resolution_clock::now().time_since_epoch().count();
+    uint64_t sec = 1000;
 
-    _timeEvents.emplace(event);
-    event.time += 1000;
-    _timeEvents.emplace(event);
-    event.time += 1000;
-    _timeEvents.emplace(event);
-    event.time += 1000;
-    _timeEvents.emplace(event);
-    event.time += 1000;
-    _timeEvents.emplace(event);
-    event.time += 1000;
-    _timeEvents.emplace(event);
-    event.time += 1000;
-    _timeEvents.emplace(event);
-    event.time += 1000;
-    _timeEvents.emplace(event);
-    event.time += 1000;
-    _timeEvents.emplace(event);
-    event.time += 1000;
-    _timeEvents.emplace(event);
-    event.time += 1000;
-    _timeEvents.emplace(event);
-    event.time += 1000;
-    _timeEvents.emplace(event);
-    event.time += 1000;
-    _timeEvents.emplace(event);
-    event.time += 1000;
-    _timeEvents.emplace(event);
-    event.time += 1000;
-    _timeEvents.emplace(event);
-    event.time += 1000;
-    _timeEvents.emplace(event);
-    event.time += 1000;
-    _timeEvents.emplace(event);
-    event.time += 1000;
-    _timeEvents.emplace(event);
-    event.time += 1000;
-    _timeEvents.emplace(event);
-    event.time += 1000;
-    _timeEvents.emplace(event);
-    event.time += 1000;
-    _timeEvents.emplace(event);
-    event.time += 1000;
-    _timeEvents.emplace(event);
-    event.time += 1000;
-    _timeEvents.emplace(event);
-    event.time += 1000;
-    _timeEvents.emplace(event);
-    event.time += 1000;
-    _timeEvents.emplace(event);
-    event.time += 1000;
-    _timeEvents.emplace(event);
+    _timeEvents.push({ now + 1*sec, debugCallback });
+    _timeEvents.push({ now + 2*sec, debugCallback });
+    _timeEvents.push({ now + 3*sec, debugCallback });
+    _timeEvents.push({ now + 4*sec, debugCallback });
 }
 
 void SimpleContext::run() {
@@ -174,9 +127,8 @@ void SimpleContext::_drawUpdate() {
     using std::chrono::milliseconds;
 
     while (!_quit) {
-        auto now = std::chrono::high_resolution_clock::now();
-
         if (_timeEvents.size()) {
+            auto now = std::chrono::high_resolution_clock::now();
             TimeEvent event = _timeEvents.top();
             if (event.time < duration_cast<milliseconds>(now.time_since_epoch()).count()) {
                 _timeEvents.pop();

@@ -6,7 +6,7 @@
 
 // You can hit this in a debugger.
 // Set to 'true' to printf every shader that is linked or compiled.
-static volatile bool g_VerboseShaders = true;
+static volatile bool g_VerboseShaders = false;
 
 Shader::Shader(std::string vertexShaderName, std::string fragmentShaderName) {
 	//set vertex name

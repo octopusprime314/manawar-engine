@@ -79,16 +79,14 @@ SimpleContext::SimpleContext(int* argc, char** argv, unsigned int viewportWidth,
     masterClock->subscribeFrameRate(std::bind(_frameRateTrigger, std::placeholders::_1));
 
     // Hard coded debug events
-    TimeEvent::Callback* debugCallback = []() { printf("Hello, from the Q!\n"); };
+    TimeEvent::Callback* debugCallback = []() { printf("%g\n", nowMs() / 1e3f); };
 
     uint64_t now = nowMs();
-    uint64_t sec = 3000;
-
-    _timeEvents.push({ now + 1*sec, debugCallback });
-    _timeEvents.push({ now + 2*sec, debugCallback });
-    _timeEvents.push({ now + 3*sec, debugCallback });
-    _timeEvents.push({ now + 4*sec, debugCallback });
-    _timeEvents.push({ now + 95 * sec, []() {exit(0);} });
+    constexpr uint64_t sec = 1000;
+    constexpr uint64_t DEMO_LENGTH = (60 + 17)*sec;
+    _timeEvents.push({ now + DEMO_LENGTH, []() {
+        ::std::exit(0);
+    }});
 }
 
 void SimpleContext::run() {

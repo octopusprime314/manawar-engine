@@ -75,3 +75,12 @@ target_link_libraries(ReBoot optimized ${CMAKE_SOURCE_DIR}/libs/fbx-sdk/lib/rele
 target_link_libraries(ReBoot ${CMAKE_SOURCE_DIR}/libs/fmod/lowlevel/lib/fmod64_vc.lib)
 
 install(TARGETS ReBoot RUNTIME DESTINATION bin)
+install(FILES "${CMAKE_SOURCE_DIR}/libs/freeimage/lib/FreeImage.dll"
+              "${CMAKE_SOURCE_DIR}/libs/fmod/lowlevel/lib/fmod64.dll"
+              "${CMAKE_SOURCE_DIR}/libs/fmod/lowlevel/lib/fmodL64.dll"
+        DESTINATION bin)
+# FYI: Keep the trailing '/'s here.
+install(DIRECTORY "${CMAKE_SOURCE_DIR}/shading/shaders/"
+        DESTINATION shading/shaders)
+install(DIRECTORY "${CMAKE_SOURCE_DIR}/assets/"
+        DESTINATION assets)

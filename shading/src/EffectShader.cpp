@@ -136,6 +136,9 @@ void EffectShader::runShader(Effect* effectObject, float seconds) {
     }
     else if(effectObject->getType() == EffectType::Water) {
 
+        //Pass game time to shader
+        glUniform1f(_timeLocation, seconds);
+
         Water* water = static_cast<Water*>(effectObject);
         auto cameraMVP = water->getCameraMVP();
 

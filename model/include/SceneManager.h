@@ -20,8 +20,9 @@
 */
 
 #pragma once
-#include <vector>
 #include "Physics.h"
+#include <queue>
+#include <vector>
 
 class ViewManager;
 class DeferredRenderer;
@@ -32,6 +33,21 @@ class ForwardRenderer;
 class SSAO;
 class EnvironmentMap;
 class Water;
+
+struct TimeEvent {
+    typedef void (Callback)();
+
+    uint64_t time;
+    Callback* pfnCallback;
+
+    TimeEvent(uint64_t time, Callback* pfnCallback)
+        : time(time),
+          pfnCallback(pfnCallback) {}
+};
+
+static bool operator<(TimeEvent left, TimeEvent right) {
+    return left.time < right.time;
+}
 
 class SceneManager {
     ViewManager*        _viewManager; //manages the view/camera matrix from the user's perspective
@@ -46,6 +62,8 @@ class SceneManager {
     SSAO*               _ssaoPass;
     EnvironmentMap*     _environmentMap;
     Water*              _water;
+    uint64_t            _timeMs; // MS since the scene start
+    std::priority_queue<TimeEvent> _timeEvents; // Events that trigger at a specific time
 
     void _preDraw(); //Prior to drawing objects call this function
     void _postDraw(); //Post of drawing objects call this function

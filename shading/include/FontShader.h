@@ -30,5 +30,5 @@ class FontShader : public Shader {
 public:
     FontShader(std::string shaderName);
     virtual ~FontShader();
-    virtual void runShader(FontRenderer& fnt, std::string& s);
+    virtual void runShader(GLuint vao, std::string& s);
 };

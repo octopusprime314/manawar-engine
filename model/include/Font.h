@@ -90,12 +90,12 @@ class FontRenderer
 public:
     FontRenderer() = delete;
     FontRenderer(std::string fileName);
-    void DrawFont(int x, int y, std::string& s);
+    void DrawFont(float x, float y, std::string s, uint64_t timeDelta);
     GLuint getTexture() { return fontTex; }
     GLuint getVao() { return vao; }
     ~FontRenderer() {};
 private:
-    const int bufferSize = 256;
+    const int bufferSize = 65536;
     FontInfo fontInfo;
     FontShader fontShader;
 

@@ -37,6 +37,7 @@ const std::string TEXTURE_LOCATION = ASSET_LOCATION + "textures/";
 // This can be toggled in a debugger.
 extern volatile bool g_AssertOnBadOpenGlCall;
 
+#if defined(_DEBUG)
 // Validate OpenGL calls. Call before and after any OpenGL API usage that
 // you are worried about.
 #define glCheck() do {                                                         \
@@ -55,3 +56,6 @@ extern volatile bool g_AssertOnBadOpenGlCall;
         assert(!anyErrors && "One or more OpenGL calls generated an error");   \
     }                                                                          \
 } while (0)
+#else
+#define glCheck()
+#endif

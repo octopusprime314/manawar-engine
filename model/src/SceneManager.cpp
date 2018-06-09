@@ -11,6 +11,7 @@
 #include "EnvironmentMap.h"
 #include "ProcIsland.h"
 #include "Water.h"
+#include "Font.h"
 
 #include <Triangle.h>
 
@@ -45,6 +46,9 @@ SceneManager::SceneManager(int* argc, char** argv, unsigned int viewportWidth, u
     glCheck();
 
     _audioManager = new AudioManager();
+    glCheck();
+
+    _fontRenderer = new FontRenderer("ubuntu_mono_regular.fnt");
     glCheck();
 
     //Setup pre and post draw callback events received when a draw call is issued
@@ -193,5 +197,8 @@ void SceneManager::_postDraw() {
             }
         }
     }
+
+    std::string stringToDraw("hello fellow demoscensters");
+    _fontRenderer->DrawFont(0, 0, stringToDraw);
     glCheck();
 }

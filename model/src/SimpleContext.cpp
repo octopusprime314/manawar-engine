@@ -9,6 +9,13 @@ bool        SimpleContext::_quit = false;
 
 std::priority_queue<TimeEvent> SimpleContext::_timeEvents; // Events that trigger at a specific time
 
+uint64_t nowMs() {
+    using std::chrono::duration_cast;
+    using std::chrono::milliseconds;
+
+    return duration_cast<milliseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
+}
+
 SimpleContext::SimpleContext(int* argc, char** argv, unsigned int viewportWidth, unsigned int viewportHeight) {
 
     char workingDir[1024] = "";
@@ -74,8 +81,8 @@ SimpleContext::SimpleContext(int* argc, char** argv, unsigned int viewportWidth,
     // Hard coded debug events
     TimeEvent::Callback* debugCallback = []() { printf("Hello, from the Q!\n"); };
 
-    uint64_t now = std::chrono::high_resolution_clock::now().time_since_epoch().count();
-    uint64_t sec = 1000;
+    uint64_t now = nowMs();
+    uint64_t sec = 3000;
 
     _timeEvents.push({ now + 1*sec, debugCallback });
     _timeEvents.push({ now + 2*sec, debugCallback });
@@ -122,15 +129,11 @@ void SimpleContext::_keyboardUpdate(GLFWwindow* window, int key, int scancode, i
 
 //One frame draw update call
 void SimpleContext::_drawUpdate() {
-    using std::chrono::time_point;
-    using std::chrono::duration_cast;
-    using std::chrono::milliseconds;
-
     while (!_quit) {
         if (_timeEvents.size()) {
-            auto now = std::chrono::high_resolution_clock::now();
+            uint64_t now = nowMs();
             TimeEvent event = _timeEvents.top();
-            if (event.time < duration_cast<milliseconds>(now.time_since_epoch()).count()) {
+            if (event.time < now) {
                 _timeEvents.pop();
                 event.pfnCallback();
             }

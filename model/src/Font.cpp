@@ -9,6 +9,19 @@
 #include "font.h"
 #include "TextureBroker.h"
 
+struct vec2
+{
+    float x;
+    float y;
+};
+
+struct vec3
+{
+    float x;
+    float y;
+    float z;
+};
+
 void parseFontFile(std::string& filename, FontInfo& out)
 {
     std::ifstream filestream(filename);
@@ -188,14 +201,17 @@ FontRenderer::FontRenderer(std::string fileName)
     parseFontFile(fullPath, fontInfo);
 
     TextureBroker* pTb = TextureBroker::instance();
-    pTb->addTexture("../assets/textures/font/ubuntu_mono_regular_0.tga");
+    pTb->addTexture("../assets/textures/font/ubuntu_mono_regular_0.png");
 
 #if 0
     RenderBuffers renderBuffers;
     renderBuffers.
 #endif
-
+    
     // create vertex buffer
+    glGenVertexArrays(1, &vao);
+    glBindVertexArray(vao);
+
     glGenBuffers(1, &vbo);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glBufferData(GL_ARRAY_BUFFER, 3 * bufferSize * sizeof(float), NULL, GL_DYNAMIC_DRAW);
@@ -204,14 +220,13 @@ FontRenderer::FontRenderer(std::string fileName)
     glBindBuffer(GL_ARRAY_BUFFER, texCoordsVbo);
     glBufferData(GL_ARRAY_BUFFER, 2 * bufferSize * sizeof(GLfloat), NULL, GL_DYNAMIC_DRAW);
 
-    glGenVertexArrays(1, &vao);
-
-    glBindVertexArray(vao);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
     glBindBuffer(GL_ARRAY_BUFFER, texCoordsVbo);
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, NULL);
 
+    glBindVertexArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
 #if 0
     // compile shaders
     GLuint vs = glCreateShader(GL_VERTEX_SHADER);
@@ -260,11 +275,11 @@ void FontRenderer::DrawFont(int x, int y, std::string& s)
     y += 1;
 
 
-    float vb[256][3];
-    float tcb[256][3];
+    vec3 vb[256];
+    vec2 tcb[256];
 
-    float* pvb = vb[0];
-    float* ptcb = tcb[0];
+    vec3* pvb = vb;
+    vec2* ptcb = tcb;
 
     for (int i = 0; i < s.size(); i++)
     {
@@ -277,19 +292,19 @@ void FontRenderer::DrawFont(int x, int y, std::string& s)
         float height = fontInfo.chars[asciiVal].height / scale;
         float advance = fontInfo.chars[asciiVal].xadvance / scale;
 
-        float topLeftPos[] = { x + xoffset, y - yoffset, 0 };
-        float topRightPos[] = { x + xoffset + width, y - yoffset, 0 };
-        float bottomLeftPos[] = { x + xoffset, y - yoffset - height, 0 };
-        float bottomRightPos[] = { x + xoffset + width, y - yoffset - height, 0 };
+        vec3 topLeftPos = { x + xoffset, y - yoffset, 0 };
+        vec3 topRightPos = { x + xoffset + width, y - yoffset, 0 };
+        vec3 bottomLeftPos = { x + xoffset, y - yoffset - height, 0 };
+        vec3 bottomRightPos = { x + xoffset + width, y - yoffset - height, 0 };
 
-        float* cursorPosition[] = { bottomLeftPos, topLeftPos, topRightPos, topRightPos, bottomRightPos, bottomLeftPos };
+        vec3 cursorPosition[] = { bottomLeftPos, topLeftPos, topRightPos, topRightPos, bottomRightPos, bottomLeftPos};
 
-        cursorPosition[0][0] += cursorAdvance;
-        cursorPosition[1][0] += cursorAdvance;
-        cursorPosition[2][0] += cursorAdvance;
-        cursorPosition[3][0] += cursorAdvance;
-        cursorPosition[4][0] += cursorAdvance;
-        cursorPosition[5][0] += cursorAdvance;
+        cursorPosition[0].x += cursorAdvance;
+        cursorPosition[1].x += cursorAdvance;
+        cursorPosition[2].x += cursorAdvance;
+        cursorPosition[3].x += cursorAdvance;
+        cursorPosition[4].x += cursorAdvance;
+        cursorPosition[5].x += cursorAdvance;
 
         // adjust slightly
         //float rectWidth = abs(cursorPosition[1].x - cursorPosition[2].x);
@@ -307,12 +322,12 @@ void FontRenderer::DrawFont(int x, int y, std::string& s)
 
 
         // generate text coordinates
-        double bottomLeft[] = { fontInfo.chars[asciiVal].x / 256.0, 1.0 - (fontInfo.chars[asciiVal].y + fontInfo.chars[asciiVal].height) / 256.0 };
-        double topRight[] = { (fontInfo.chars[asciiVal].x + fontInfo.chars[asciiVal].width) / 256.0, 1.0 - fontInfo.chars[asciiVal].y / 256.0 };
-        double topLeft[] = { fontInfo.chars[asciiVal].x / 256.0, 1.0 - (fontInfo.chars[asciiVal].y) / 256.0 };
-        double bottomRight[] = { (fontInfo.chars[asciiVal].x + fontInfo.chars[asciiVal].width) / 256.0, 1.0 - (fontInfo.chars[asciiVal].y + fontInfo.chars[asciiVal].height) / 256.0 };
+        vec2 bottomLeft = { fontInfo.chars[asciiVal].x / 256.0f, 1.0f - (fontInfo.chars[asciiVal].y + fontInfo.chars[asciiVal].height) / 256.0f };
+        vec2 topRight = { (fontInfo.chars[asciiVal].x + fontInfo.chars[asciiVal].width) / 256.0f, 1.0f - fontInfo.chars[asciiVal].y / 256.0f };
+        vec2 topLeft = { fontInfo.chars[asciiVal].x / 256.0f, 1.0f - (fontInfo.chars[asciiVal].y) / 256.0f };
+        vec2 bottomRight = { (fontInfo.chars[asciiVal].x + fontInfo.chars[asciiVal].width) / 256.0f, 1.0f - (fontInfo.chars[asciiVal].y + fontInfo.chars[asciiVal].height) / 256.0f };
 
-        double* texCoords[] = { bottomLeft, topLeft, topRight, topRight, bottomRight, bottomLeft };
+        vec2 texCoords[] = { bottomLeft, topLeft, topRight, topRight, bottomRight, bottomLeft };
 
         // copy quad
         memcpy_s(pvb, sizeof(cursorPosition), cursorPosition, sizeof(cursorPosition));
@@ -324,6 +339,8 @@ void FontRenderer::DrawFont(int x, int y, std::string& s)
 
         cursorAdvance += advance - xoffset;
     }
+
+    glBindVertexArray(vao);
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glCheck();
@@ -352,7 +369,7 @@ void FontRenderer::DrawFont(int x, int y, std::string& s)
     glEnableVertexAttribArray(1);
     glCheck();
 
-    fontShader.runShader(*this, s);
+    fontShader.runShader(vao, s);
 #if 0
     glUseProgram(shader);
 

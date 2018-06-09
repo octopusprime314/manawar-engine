@@ -88,6 +88,7 @@ SimpleContext::SimpleContext(int* argc, char** argv, unsigned int viewportWidth,
     _timeEvents.push({ now + 2*sec, debugCallback });
     _timeEvents.push({ now + 3*sec, debugCallback });
     _timeEvents.push({ now + 4*sec, debugCallback });
+    _timeEvents.push({ now + 95 * sec, []() {exit(0);} });
 }
 
 void SimpleContext::run() {

@@ -150,17 +150,17 @@ FontRenderer::FontRenderer(std::string fileName)
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-void FontRenderer::DrawFont(int x, int y, std::string& s)
+void FontRenderer::DrawFont(float x, float y, std::string s, uint64_t timeDelta)
 {
     float cursorAdvance = 0;
-    float scale = 200;
+    float scale = 300;
 
     // convert to ndc
     x -= 1;
     y += 1;
 
-    vec3 vb[256];
-    vec2 tcb[256];
+    static vec3 vb[65536];
+    static vec2 tcb[65536];
 
     vec3* pvb = vb;
     vec2* ptcb = tcb;
@@ -189,6 +189,15 @@ void FontRenderer::DrawFont(int x, int y, std::string& s)
         cursorPosition[3].x += cursorAdvance;
         cursorPosition[4].x += cursorAdvance;
         cursorPosition[5].x += cursorAdvance;
+
+        cursorPosition[0].y += sin(cursorPosition[0].x * 10)/ 15;
+        cursorPosition[1].y += sin(cursorPosition[0].x * 10)/ 15;
+        cursorPosition[2].y += sin(cursorPosition[0].x * 10)/ 15;
+        cursorPosition[3].y += sin(cursorPosition[0].x * 10)/ 15;
+        cursorPosition[4].y += sin(cursorPosition[0].x * 10)/ 15;
+        cursorPosition[5].y += sin(cursorPosition[0].x * 10)/ 15;
+
+
 
         // generate text coordinates
         vec2 bottomLeft = { fontInfo.chars[asciiVal].x / 256.0f, 1.0f - (fontInfo.chars[asciiVal].y + fontInfo.chars[asciiVal].height) / 256.0f };

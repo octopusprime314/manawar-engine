@@ -14,6 +14,11 @@
 #include "Font.h"
 
 #include <Triangle.h>
+#include <chrono>
+
+using namespace std::chrono;
+
+uint64_t nowMs();
 
 // We define this here because this file is basically main.
 volatile bool g_AssertOnBadOpenGlCall = false;
@@ -199,7 +204,10 @@ void SceneManager::_postDraw() {
         }
     }
 
-    std::string stringToDraw("hello hawaii");
-    _fontRenderer->DrawFont(0, 0, stringToDraw);
+    static uint64_t time = nowMs();
+    glClear(GL_DEPTH_BUFFER_BIT);
+    uint64_t timeDelta = nowMs() - time;
+    std::string stringToDraw("hello everyone                 hawaii needs some help, donate to support volcano disaster relief: http://www.redcross.org/local/hawaii/programs-services/disaster-preparedness/volcano              shoutouts to @party organizers, Khronos group, Artisans asylum, catalyst, jimbo00000, vaahtera, kuemmel, sensenstahl, abaddon, trope, razor1911, fairlight, farbrausch                                       sorry for the lack of cubes, see you next year!     ");
+    _fontRenderer->DrawFont(2 - timeDelta/3000., -1.5, stringToDraw, timeDelta);
     glCheck();
 }

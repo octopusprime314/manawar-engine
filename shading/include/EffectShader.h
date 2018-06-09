@@ -42,6 +42,7 @@ protected:
     GLuint      _vaoContext;
     GLuint      _quadBufferContext;
     GLint       _normalLocation;
+    GLint       _fireColorLocation;
 public:
     EffectShader(std::string shaderName);
     virtual ~EffectShader();

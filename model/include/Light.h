@@ -46,6 +46,7 @@ public:
     Light(ViewManagerEvents* eventWrapper, 
         MVP mvp, 
         LightType type, 
+        EffectType effect,
         Vector4 color, 
         bool shadowCaster);
     MVP                         getLightMVP();

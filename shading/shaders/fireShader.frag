@@ -48,6 +48,7 @@ in vec2 texCoord;
 in vec3 position;
 uniform float time;
 uniform float farPlane;
+uniform vec3 fireColor;
 
 void main(){
     
@@ -77,7 +78,7 @@ void main(){
 #endif
 	
 	float a = c * (1.-pow((uv.y),3.));
-	fragColor = vec4( mix(vec3(0.),col,a), 1.0);
+	fragColor = vec4( mix(vec3(0.),col.xxx*fireColor,a), 1.0);
 	if(fragColor.r > 0.1){
 		gl_FragDepth = (length(position)/farPlane) / 2.0f;
 	}

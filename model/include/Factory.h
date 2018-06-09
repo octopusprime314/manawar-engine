@@ -40,9 +40,10 @@ namespace Factory {
     template<class T>
     T* make(MVP mvp,
         LightType type,
+        EffectType effect = EffectType::None,
         Vector4 color = { 1.0f, 1.0f, 1.0f, 1.0f }, 
         bool shadowCaster = false) {
-        return new T(_viewEventWrapper, mvp, type, color, shadowCaster);
+        return new T(_viewEventWrapper, mvp, type, effect, color, shadowCaster);
     }
 
     //Sets the reference to the view model's event object

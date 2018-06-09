@@ -3,8 +3,8 @@
 #include <random>
 
 Light::Light(ViewManagerEvents* eventWrapper,
-    MVP mvp, LightType type, Vector4 color, bool shadowCaster) :
-    Effect(eventWrapper, "fireShader", EffectType::Fire),
+    MVP mvp, LightType type, EffectType effect, Vector4 color, bool shadowCaster) :
+    Effect(eventWrapper, "fireShader", effect),
     _type(type),
     _lightMVP(mvp),
     _color(color),

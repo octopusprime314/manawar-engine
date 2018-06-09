@@ -75,6 +75,7 @@ SceneManager::SceneManager(int* argc, char** argv, unsigned int viewportWidth, u
             0.f,           0.f,           0.f,            1.f
         };
         Matrix lightProj(Matrix::cameraOrtho(14, 35, -35, 35));
+        //Matrix lightProj(Matrix::cameraOrtho(35, 35, -35, 35));
 
         MVP lightMVP;
         lightMVP.setProjection(lightProj);
@@ -90,11 +91,20 @@ SceneManager::SceneManager(int* argc, char** argv, unsigned int viewportWidth, u
 
     //point light projection has a 90 degree view angle with a 1 aspect ratio for generating square shadow maps
     //with a near z value of 1 and far z value of 100
-    pointLightMVP.setProjection(Matrix::cameraProjection(90.0f, 1.0f, 1.0f, 100.0f));
+    pointLightMVP.setProjection(Matrix::cameraProjection(10.0f, 1.0f, 1.0f, 100.0f));
 
     //Placing the lights in equidistant locations for testing
-    pointLightMVP.setModel(Matrix::translation(1.0f, 2.0f, 3.0f));
-    _lightList.push_back(Factory::make<Light>(pointLightMVP, LightType::POINT, Vector4(1.0f, 0.4f, 0.1f, 1.0f), true));
+    pointLightMVP.setModel(Matrix::translation(-6.52151155f, 0.680000007f, 2.27768421f));
+    _lightList.push_back(Factory::make<Light>(pointLightMVP, LightType::POINT, EffectType::Fire, Vector4(1.0f, 0.4f, 0.1f, 1.0f), true));
+
+    pointLightMVP.setModel(Matrix::translation(-6.32151155f, 0.780000007f, 2.57768421f));
+    _lightList.push_back(Factory::make<Light>(pointLightMVP, LightType::POINT, EffectType::Fire, Vector4(1.0f, 0.4f, 0.1f, 1.0f), false));
+
+    pointLightMVP.setModel(Matrix::translation(-6.72151155f, 0.730000007f, 2.77768421f));
+    _lightList.push_back(Factory::make<Light>(pointLightMVP, LightType::POINT, EffectType::Fire, Vector4(1.0f, 0.4f, 0.1f, 1.0f), false));
+
+    pointLightMVP.setModel(Matrix::translation(5.25, 3.38, -1.14));
+    _lightList.push_back(Factory::make<Light>(pointLightMVP, LightType::POINT, EffectType::Smoke, Vector4(0.2f, 0.2f, 0.2f, 1.0f), false));
     //pointLightMVP.setModel(Matrix::translation(190.0f, 20.0, 185.0f));
     //_lightList.push_back(Factory::make<Light>(pointLightMVP, LightType::POINT, Vector4(1.0f, 0.4f, 0.1f, 1.0f), false));
     //pointLightMVP.setModel(Matrix::translation(0.0f, 40, -50.0f));

@@ -43,6 +43,7 @@ EffectShader::EffectShader(std::string shaderName) : Shader(shaderName) {
     _lightPosLocation = glGetUniformLocation(_shaderContext, "lightPos");
     _fireTypeLocation = glGetUniformLocation(_shaderContext, "fireType");
     _farPlaneLocation = glGetUniformLocation(_shaderContext, "farPlane");
+    _fireColorLocation = glGetUniformLocation(_shaderContext, "fireColor");
 
     if (shaderName == "waterShader") {
         _normalLocation = glGetUniformLocation(_shaderContext, "normal");
@@ -62,10 +63,12 @@ void EffectShader::runShader(Effect* effectObject, float seconds) {
 
     glBindVertexArray(_vaoContext);
 
-    //Pass game time to shader
-    glUniform1f(_timeLocation, seconds);
 
     if (effectObject->getType() == EffectType::Fire) {
+
+        //Pass game time to shader
+        glUniform1f(_timeLocation, seconds);
+
         Light* light = static_cast<Light*>(effectObject);
         auto lightMVP = light->getLightMVP();
         auto cameraMVP = light->getCameraMVP();
@@ -78,6 +81,44 @@ void EffectShader::runShader(Effect* effectObject, float seconds) {
 
         //Pass the type of fire to the shader to simulate i.e. candle light or bon fire
         glUniform1i(_fireTypeLocation, 2);
+
+        float* color = light->getColor().getFlatBuffer();
+        glUniform3f(_fireColorLocation, color[0], color[1], color[2]);
+
+        auto viewNoTrans = cameraMVP.getViewMatrix();
+        viewNoTrans.getFlatBuffer()[3] = 0.0;
+        viewNoTrans.getFlatBuffer()[7] = 0.0;
+        viewNoTrans.getFlatBuffer()[11] = 0.0;
+
+        auto modelView = cameraMVP.getViewMatrix() * lightMVP.getModelMatrix() * Matrix::scale(0.05);
+        glUniformMatrix4fv(_modelViewLocation, 1, GL_TRUE, modelView.getFlatBuffer());
+
+        auto projection = cameraMVP.getProjectionMatrix();
+        glUniformMatrix4fv(_projectionLocation, 1, GL_TRUE, projection.getFlatBuffer());
+
+        auto inverseViewNoTrans = viewNoTrans.inverse();
+        glUniformMatrix4fv(_inverseViewLocation, 1, GL_TRUE, inverseViewNoTrans.getFlatBuffer());
+    }
+    else if (effectObject->getType() == EffectType::Smoke) {
+
+        //Pass game time to shader
+        glUniform1f(_timeLocation, seconds/4.0f);
+
+        Light* light = static_cast<Light*>(effectObject);
+        auto lightMVP = light->getLightMVP();
+        auto cameraMVP = light->getCameraMVP();
+
+        //Pass far plane to shader
+        auto projMatrix = cameraMVP.getProjectionMatrix().getFlatBuffer();
+        float nearVal = (2.0f*projMatrix[11]) / (2.0f*projMatrix[10] - 2.0f);
+        float farVal = ((projMatrix[10] - 1.0f)*nearVal) / (projMatrix[10] + 1.0f);
+        glUniform1f(_farPlaneLocation, farVal);
+
+        //Pass the type of fire to the shader to simulate i.e. candle light or bon fire
+        glUniform1i(_fireTypeLocation, 2);
+
+        float* color = light->getColor().getFlatBuffer();
+        glUniform3f(_fireColorLocation, color[0], color[1], color[2]);
 
         auto viewNoTrans = cameraMVP.getViewMatrix();
         viewNoTrans.getFlatBuffer()[3] = 0.0;

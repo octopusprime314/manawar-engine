@@ -26,8 +26,10 @@
 #include "EffectShader.h"
 
 enum class EffectType {
-    Water = 0, 
-    Fire = 1
+    None = 0,
+    Water = 1,
+    Fire = 2,
+    Smoke = 3
 };
 
 class Effect : public UpdateInterface {

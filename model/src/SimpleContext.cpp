@@ -81,12 +81,12 @@ SimpleContext::SimpleContext(int* argc, char** argv, unsigned int viewportWidth,
     // Hard coded debug events
     TimeEvent::Callback* debugCallback = []() { printf("%g\n", nowMs() / 1e3f); };
 
-    uint64_t now = nowMs();
+    /*uint64_t now = nowMs();
     constexpr uint64_t sec = 1000;
     constexpr uint64_t DEMO_LENGTH = (60 + 17)*sec;
     _timeEvents.push({ now + DEMO_LENGTH, []() {
         ::std::exit(0);
-    }});
+    }});*/
 }
 
 void SimpleContext::run() {

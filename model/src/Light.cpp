@@ -23,7 +23,7 @@ MVP Light::getLightMVP() {
     //Move the positions of the lights based on the camera view except
     //the large map directional light that is used for low resolution
     //shadow map generation
-    if (_type == LightType::MAP_DIRECTIONAL) {
+    if (_type == LightType::MAP_DIRECTIONAL || _type == LightType::CAMERA_DIRECTIONAL) {
         return _lightMVP;
     }
     else {

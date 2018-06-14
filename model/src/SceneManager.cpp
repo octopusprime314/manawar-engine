@@ -60,76 +60,62 @@ SceneManager::SceneManager(int* argc, char** argv, unsigned int viewportWidth, u
     SimpleContextEvents::setPreDrawCallback(std::bind(&SceneManager::_preDraw, this));
     SimpleContextEvents::setPostDrawCallback(std::bind(&SceneManager::_postDraw, this));
 
-    GenerateProceduralIsland(_modelList, ProcState());
-    glCheck();
+    //GenerateProceduralIsland(_modelList, ProcState());
+    //glCheck();
 
-    //_modelList.push_back(Factory::make<Model>("landscape/landscape.fbx")); //Add a static model to the scene
+    _modelList.push_back(Factory::make<Model>("landscape/landscape.fbx")); //Add a static model to the scene
 
     //_physics.addModels(_modelList); //Gives physics a pointer to all models which allows access to underlying geometry
     //_physics.run(); //Dispatch physics to start kinematics
 
     //Add a directional light pointing down in the negative y axis
-    {
-        const float size = 30.f;
-        const float r = 15;  // Right
-        const float l = 0;   // Left
-        const float t = 30;  // Top
-        const float b = -30; // Bottom
-        const float f = 30;  // Far
-        const float n = -30; // Near
-        const float ortho[16] = {
-            2.f / (r - l), 0.f,           0.f,            -(r + l) / (r - l),
-            0.f,           2.f / (t - b), 0.f,            -(t + b) / (t - b),
-            0.f,           0.f,           -2.f / (f - n), -(f + n) / (f - n),
-            0.f,           0.f,           0.f,            1.f
-        };
-        Matrix lightProj(Matrix::cameraOrtho(14, 35, -35, 35));
-        //Matrix lightProj(Matrix::cameraOrtho(35, 35, -35, 35));
 
-        MVP lightMVP;
-        lightMVP.setProjection(lightProj);
-        _lightList.push_back(Factory::make<Light>(lightMVP, LightType::CAMERA_DIRECTIONAL));
+    MVP lightMVP;
+    lightMVP.setView(Matrix::cameraTranslation(0.0f, 0.0f, 300.0f) * Matrix::cameraRotationAroundX(-90.0f));
+    lightMVP.setProjection(Matrix::cameraOrtho(200.0f, 200.0f, 1.0f, 600.0f));
+    _lightList.push_back(Factory::make<Light>(lightMVP, LightType::CAMERA_DIRECTIONAL));
 
-        MVP lightMapMVP;
-        lightMapMVP.setProjection(lightProj);
-        _lightList.push_back(Factory::make<Light>(lightMapMVP, LightType::MAP_DIRECTIONAL));
-    }
+    MVP lightMapMVP;
+    lightMapMVP.setView(Matrix::cameraTranslation(0.0f, 0.0f, 300.0f) * Matrix::cameraRotationAroundX(-90.0f));
+    lightMapMVP.setProjection(Matrix::cameraOrtho(600.0f, 600.0f, 1.0f, 600.0f));
+    _lightList.push_back(Factory::make<Light>(lightMapMVP, LightType::MAP_DIRECTIONAL));
 
     //Model view projection matrix for point light additions
     MVP pointLightMVP;
 
     //point light projection has a 90 degree view angle with a 1 aspect ratio for generating square shadow maps
     //with a near z value of 1 and far z value of 100
-    pointLightMVP.setProjection(Matrix::cameraProjection(10.0f, 1.0f, 1.0f, 100.0f));
+    pointLightMVP.setProjection(Matrix::cameraProjection(90.0f, 1.0f, 1.0f, 100.0f));
 
     //Placing the lights in equidistant locations for testing
-    pointLightMVP.setModel(Matrix::translation(-6.52151155f, 0.680000007f, 2.27768421f));
-    _lightList.push_back(Factory::make<Light>(pointLightMVP, LightType::POINT, EffectType::Fire, Vector4(1.0f, 0.4f, 0.1f, 1.0f), true));
+    pointLightMVP.setModel(Matrix::translation(212.14f, 24.68f, 186.46f));
+    _lightList.push_back(Factory::make<Light>(pointLightMVP, 
+                                              LightType::POINT, 
+                                              EffectType::Fire, 
+                                              Vector4(1.0f, 0.4f, 0.1f, 1.0f), 
+                                              true));
 
-    pointLightMVP.setModel(Matrix::translation(-6.32151155f, 0.780000007f, 2.57768421f));
-    _lightList.push_back(Factory::make<Light>(pointLightMVP, LightType::POINT, EffectType::Fire, Vector4(1.0f, 0.4f, 0.1f, 1.0f), false));
+    pointLightMVP.setModel(Matrix::translation(198.45f, 24.68f, 186.71f));
+    _lightList.push_back(Factory::make<Light>(pointLightMVP, 
+                                              LightType::POINT, 
+                                              EffectType::Fire, 
+                                              Vector4(1.0f, 0.4f, 0.1f, 1.0f), 
+                                              false));
 
-    pointLightMVP.setModel(Matrix::translation(-6.72151155f, 0.730000007f, 2.77768421f));
-    _lightList.push_back(Factory::make<Light>(pointLightMVP, LightType::POINT, EffectType::Fire, Vector4(1.0f, 0.4f, 0.1f, 1.0f), false));
-
-    pointLightMVP.setModel(Matrix::translation(5.25, 3.38, -1.14));
-    _lightList.push_back(Factory::make<Light>(pointLightMVP, LightType::POINT, EffectType::Smoke, Vector4(0.2f, 0.2f, 0.2f, 1.0f), false));
-    //pointLightMVP.setModel(Matrix::translation(190.0f, 20.0, 185.0f));
-    //_lightList.push_back(Factory::make<Light>(pointLightMVP, LightType::POINT, Vector4(1.0f, 0.4f, 0.1f, 1.0f), false));
-    //pointLightMVP.setModel(Matrix::translation(0.0f, 40, -50.0f));
-    //_lightList.push_back(Factory::make<Light>(pointLightMVP, LightType::POINT, Vector4(0.0f, 0.0f, 1.0f, 1.0f)));
-    /*pointLightMVP.setModel(Matrix::translation(0.0f, 25.0f, -100.0f));
-    _lightList.push_back(Factory::make<Light>(pointLightMVP, LightType::POINT, Vector4(1.0f, 1.0f, 1.0f, 1.0f)));
-    pointLightMVP.setModel(Matrix::translation(-100.0f, 25.0f, 0.0f));
-    _lightList.push_back(Factory::make<Light>(pointLightMVP, LightType::POINT, Vector4(1.0f, 0.0f, 1.0f, 1.0f)));*/
-
+    pointLightMVP.setModel(Matrix::translation(178.45f, 143.59f, 240.71f));
+    _lightList.push_back(Factory::make<Light>(pointLightMVP, 
+                                              LightType::POINT, 
+                                              EffectType::Smoke, 
+                                              Vector4(0.2f, 0.2f, 0.2f, 1.0f), 
+                                              false));
+   
     MasterClock::instance()->run(); //Scene manager kicks off the clock event manager
 
     _audioManager->StartAll();
 
     // Do this after adding all of our objects.
     _viewManager->setProjection(viewportWidth, viewportHeight, nearPlaneDistance, farPlaneDistance); //Initializes projection matrix and broadcasts upate to all listeners
-                                                                                                     // This view is carefully chosen to look at a mountain without showing the (lack of) water in the scene.
+    // This view is carefully chosen to look at a mountain without showing the (lack of) water in the scene.
     _viewManager->setView(Matrix::cameraTranslation(7.f, -0.68f, -5.f),
         Matrix::cameraRotationAroundY(-45.f),
         Matrix());
@@ -204,10 +190,10 @@ void SceneManager::_postDraw() {
         }
     }
 
-    static uint64_t time = nowMs();
+    /*static uint64_t time = nowMs();
     glClear(GL_DEPTH_BUFFER_BIT);
     uint64_t timeDelta = nowMs() - time;
     std::string stringToDraw("hello everyone                 hawaii needs some help, donate to support volcano disaster relief: http://www.redcross.org/local/hawaii/programs-services/disaster-preparedness/volcano              shoutouts to @party organizers, Khronos group, Artisans asylum, catalyst, jimbo00000, vaahtera, kuemmel, sensenstahl, abaddon, trope, razor1911, fairlight, farbrausch                                       sorry for the lack of cubes, see you next year!     ");
-    _fontRenderer->DrawFont(2 - timeDelta/3000., -1.5, stringToDraw, timeDelta);
-    glCheck();
+    _fontRenderer->DrawFont(2 - timeDelta/3000.f, -1.5f, stringToDraw, timeDelta);
+    glCheck();*/
 }

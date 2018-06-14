@@ -61,7 +61,8 @@ void ShadowPointShader::runShader(Model* model, Light* light, std::vector<Matrix
         verticesSize += textureStride.second;
     }
 
-    glDrawElements(GL_TRIANGLES, verticesSize, GL_UNSIGNED_INT, static_cast<void*>(0));
+    //Draw triangles using the bound buffer vertices at starting index 0 and number of vertices
+    glDrawArrays(GL_TRIANGLES, 0, (GLsizei)verticesSize);
 
     glBindVertexArray(0);
     glUseProgram(0);//end using this shader

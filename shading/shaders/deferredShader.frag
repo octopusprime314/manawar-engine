@@ -127,7 +127,9 @@ void main(){
 					
 					if(cubeDepth + bias < distance){
 						//pointShadow -= ((1.0 - pointLightShadowEffect)/numLights)*(1.0 - (distance/cubeDepth));
-						pointShadow -= ((1.0 - shadowEffect)/numLights);			
+						//pointShadow -= ((1.0 - shadowEffect)/numLights);
+						//USE ONLY ONE POINT SHADOW FOR NOW!!!!
+						pointShadow -= (1.0 - shadowEffect);						
 					}					
 				}
 			}
@@ -142,10 +144,10 @@ void main(){
 			//	pointLighting = (pointLighting * lightNormalized.y) - (ambient / 2);
 			//}
 			
-			vec3 lightComponentIllumination = (illumination  * diffuse.rgb) + 
-											  (pointLighting * diffuse.rgb);
+			vec3 lightComponentIllumination = (illumination  * diffuse.rgb * directionalShadow) + 
+											  (pointLighting * diffuse.rgb * pointShadow);
 			
-			fragColor = vec4((lightComponentIllumination * totalShadow) + (ambient * diffuse.rgb * occlusion), 1.0);
+			fragColor = vec4((lightComponentIllumination) + (ambient * diffuse.rgb * occlusion), 1.0);
 		}
 	}
 	else if(views == 1){		

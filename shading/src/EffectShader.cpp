@@ -90,7 +90,7 @@ void EffectShader::runShader(Effect* effectObject, float seconds) {
         viewNoTrans.getFlatBuffer()[7] = 0.0;
         viewNoTrans.getFlatBuffer()[11] = 0.0;
 
-        auto modelView = cameraMVP.getViewMatrix() * lightMVP.getModelMatrix() * Matrix::scale(0.05);
+        auto modelView = cameraMVP.getViewMatrix() * lightMVP.getModelMatrix();
         glUniformMatrix4fv(_modelViewLocation, 1, GL_TRUE, modelView.getFlatBuffer());
 
         auto projection = cameraMVP.getProjectionMatrix();
@@ -125,7 +125,7 @@ void EffectShader::runShader(Effect* effectObject, float seconds) {
         viewNoTrans.getFlatBuffer()[7] = 0.0;
         viewNoTrans.getFlatBuffer()[11] = 0.0;
 
-        auto modelView = cameraMVP.getViewMatrix() * lightMVP.getModelMatrix();
+        auto modelView = cameraMVP.getViewMatrix() * lightMVP.getModelMatrix() * Matrix::scale(20.0f);
         glUniformMatrix4fv(_modelViewLocation, 1, GL_TRUE, modelView.getFlatBuffer());
 
         auto projection = cameraMVP.getProjectionMatrix();
@@ -154,7 +154,7 @@ void EffectShader::runShader(Effect* effectObject, float seconds) {
         viewNoTrans.getFlatBuffer()[11] = 0.0;
 
         auto modelView = cameraMVP.getViewMatrix() * Matrix::cameraRotationAroundX(90.0f)
-           * Matrix::translation(0.0f, 0.0f, 0.2f)
+           * Matrix::translation(20.0f, -40.0f, -1.0f)
             * Matrix::scale(100.0f); //add to z component of translation to lower water line.
 
         glUniformMatrix4fv(_modelViewLocation, 1, GL_TRUE, modelView.getFlatBuffer());

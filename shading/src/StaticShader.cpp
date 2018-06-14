@@ -106,7 +106,7 @@ void StaticShader::runShader(Model* model) {
             }
 
 
-            glDrawElements(GL_TRIANGLES, (GLsizei)textureStride.second, GL_UNSIGNED_INT, (void*)strideLocation);
+            glDrawArrays(GL_TRIANGLES, strideLocation, (GLsizei)textureStride.second);
             strideLocation += textureStride.second;
         }
         else {
@@ -143,13 +143,13 @@ void StaticShader::runShader(Model* model) {
                     glUniform1i(_tex3Location, 3);
                 }
 
-                glDrawElements(GL_TRIANGLES, (GLsizei)textureStride.second, GL_UNSIGNED_INT, (void*)strideLocation);
+                //Draw triangles using the bound buffer vertices at starting index 0 and number of triangles
+                glDrawArrays(GL_TRIANGLES, strideLocation, (GLsizei)textureStride.second);
             }
             strideLocation += textureStride.second;
         }
     }
     glBindVertexArray(0);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     glBindTexture(GL_TEXTURE_2D, 0); //Unbind texture
     glUseProgram(0);//end using this shader
 }

@@ -45,7 +45,8 @@ void ShadowStaticShader::runShader(Model* model, Light* light) {
         verticesSize += textureStride.second;
     }
 
-    glDrawElements(GL_TRIANGLES, verticesSize, GL_UNSIGNED_INT, (void*)0);
+    //Draw triangles using the bound buffer vertices at starting index 0 and number of vertices
+    glDrawArrays(GL_TRIANGLES, 0, (GLsizei)verticesSize);
 
     glBindVertexArray(0);
     glUseProgram(0);//end using this shader

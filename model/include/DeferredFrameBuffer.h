@@ -1,6 +1,6 @@
 /*
-* Blur is part of the ReBoot distribution (https://github.com/octopusprime314/ReBoot.git).
-* Copyright (c) 2018 Peter Morley.
+* DeferredFrameBuffer is part of the ReBoot distribution (https://github.com/octopusprime314/ReBoot.git).
+* Copyright (c) 2017 Peter Morley.
 *
 * ReBoot is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -16,19 +16,23 @@
 */
 
 /**
-*  Blur class. Compute shaders that blurs a screen space texture
+*  DeferredFrameBuffer class. Handles multiple render targets and creates multiple color
+*  attachments to a single frame buffer object
 */
 
 #pragma once
-#include "ComputeShader.h"
-class SSAO;
-class Blur {
+#include "GLIncludes.h"
+#include <iostream>
+#include <vector>
 
-    ComputeShader* _computeShader;
-	unsigned int _colorBufferBlur;
+class DeferredFrameBuffer {
+
+    GLuint _frameBufferContext;
+    GLuint _fbTextureContext; //Use for color attachment in framebuffer
+
 public:
-	Blur();
-	~Blur();
-	unsigned int getBlurTexture();
-    void computeBlur(SSAO* ssao);
+    DeferredFrameBuffer();
+    ~DeferredFrameBuffer();
+    GLuint getFrameBufferContext();
+    GLuint getTextureContext();
 };

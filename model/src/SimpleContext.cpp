@@ -65,11 +65,14 @@ SimpleContext::SimpleContext(int* argc, char** argv, unsigned int viewportWidth,
            glGetString(GL_SHADING_LANGUAGE_VERSION),
            glGetString(GL_VENDOR));
 
-    //PER SAMPLE PROCESSING DEFAULTS
+    //Depth buffer settings
     glClearDepth(1.0);
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
+    //Color buffer settings
     glClearColor(0.0, 0.0, 0.0, 0.0);
+    //Stencil buffer settings
+    glClearStencil(0);
 
     //Disable mouse cursor view
     glfwSetInputMode(_window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);

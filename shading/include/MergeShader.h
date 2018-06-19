@@ -1,6 +1,6 @@
 /*
-* Blur is part of the ReBoot distribution (https://github.com/octopusprime314/ReBoot.git).
-* Copyright (c) 2018 Peter Morley.
+* MergeShader is part of the ReBoot distribution (https://github.com/octopusprime314/ReBoot.git).
+* Copyright (c) 2017 Peter Morley.
 *
 * ReBoot is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -16,19 +16,26 @@
 */
 
 /**
-*  Blur class. Compute shaders that blurs a screen space texture
+*  MergeShader class. Takes multiple frame buffers and merges them
 */
 
 #pragma once
-#include "ComputeShader.h"
-class SSAO;
-class Blur {
+#include "Shader.h"
+#include "Matrix.h"
+#include "MVP.h"
+class Light;
+class Water;
+class Effect;
+class ViewManager;
 
-    ComputeShader* _computeShader;
-	unsigned int _colorBufferBlur;
+class MergeShader : public Shader {
+
+protected:
+    GLint       _deferredTextureLocation;
+    GLint       _bloomTextureLocation;
+    GLuint      _dummyVAO;
 public:
-	Blur();
-	~Blur();
-	unsigned int getBlurTexture();
-    void computeBlur(SSAO* ssao);
+    MergeShader();
+    virtual ~MergeShader();
+    virtual void runShader(GLuint deferredTexture, GLuint bloomTexture);
 };

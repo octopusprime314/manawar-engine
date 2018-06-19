@@ -12,6 +12,9 @@
 #include "ProcIsland.h"
 #include "Water.h"
 #include "Font.h"
+#include "DeferredFrameBuffer.h"
+#include "MergeShader.h"
+#include "SSComputeRGB.h"
 
 #include <Triangle.h>
 #include <chrono>
@@ -56,6 +59,12 @@ SceneManager::SceneManager(int* argc, char** argv, unsigned int viewportWidth, u
     _fontRenderer = new FontRenderer("ubuntu_mono_regular.fnt");
     glCheck();
 
+    _deferredFBO = new DeferredFrameBuffer();
+    glCheck();
+
+    _mergeShader = new MergeShader();
+    glCheck();
+
     //Setup pre and post draw callback events received when a draw call is issued
     SimpleContextEvents::setPreDrawCallback(std::bind(&SceneManager::_preDraw, this));
     SimpleContextEvents::setPostDrawCallback(std::bind(&SceneManager::_postDraw, this));
@@ -92,21 +101,21 @@ SceneManager::SceneManager(int* argc, char** argv, unsigned int viewportWidth, u
     _lightList.push_back(Factory::make<Light>(pointLightMVP, 
                                               LightType::POINT, 
                                               EffectType::Fire, 
-                                              Vector4(1.0f, 0.4f, 0.1f, 1.0f), 
+                                              Vector4(1.0f, 0.8f, 0.3f, 1.0f), 
                                               true));
 
     pointLightMVP.setModel(Matrix::translation(198.45f, 24.68f, 186.71f));
     _lightList.push_back(Factory::make<Light>(pointLightMVP, 
                                               LightType::POINT, 
                                               EffectType::Fire, 
-                                              Vector4(1.0f, 0.4f, 0.1f, 1.0f), 
+                                              Vector4(1.0f, 0.8f, 0.3f, 1.0f), 
                                               false));
 
     pointLightMVP.setModel(Matrix::translation(178.45f, 143.59f, 240.71f));
     _lightList.push_back(Factory::make<Light>(pointLightMVP, 
                                               LightType::POINT, 
                                               EffectType::Smoke, 
-                                              Vector4(0.2f, 0.2f, 0.2f, 1.0f), 
+                                              Vector4(0.4f, 0.4f, 0.4f, 1.0f), 
                                               false));
    
     MasterClock::instance()->run(); //Scene manager kicks off the clock event manager
@@ -160,7 +169,6 @@ void SceneManager::_preDraw() {
 }
 void SceneManager::_postDraw() {
     glCheck();
-
     //Render the water around the island
     _water->render();
 
@@ -170,25 +178,77 @@ void SceneManager::_postDraw() {
     //Only compute ssao for opaque objects
     _ssaoPass->computeSSAO(_deferredRenderer->getGBuffers(), _viewManager);
 
-    //Render on default color, depth and stencil buffers
-    //Clear color buffer from frame buffer otherwise framebuffer will contain data from the last draw
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    //Pass lights to deferred shading pass
-    _deferredRenderer->deferredLighting(_shadowRenderer, _lightList, _viewManager, _pointShadowMap, _ssaoPass, _environmentMap);
-
     if (_viewManager->getViewState() == ViewManager::ViewState::DEFERRED_LIGHTING) {
+
+        static DeferredFrameBuffer deferredFBO;
+
+        //Bind frame buffer
+        glBindFramebuffer(GL_FRAMEBUFFER, deferredFBO.getFrameBufferContext());
+
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        //Pass lights to deferred shading pass
+        _deferredRenderer->deferredLighting(_shadowRenderer, _lightList, _viewManager, _pointShadowMap, _ssaoPass, _environmentMap);
 
         //Draw transparent objects onto of the deferred renderer
         _forwardRenderer->forwardLighting(_modelList, _viewManager, _shadowRenderer, _lightList, _pointShadowMap);
-        
+
         // Lights - including the fire point lights
         for (auto light : _lightList) {
             if (light->getType() == LightType::POINT) {
                 light->render();
             }
         }
+
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+        //Bloom PASS
+        static SSComputeRGB bloom("highLuminanceFilter");
+
+        bloom.compute(deferredFBO.getTextureContext());
+
+        static SSComputeRGB horizontalBlur("blurHorizontalShaderRGB");
+        static SSComputeRGB verticalBlur("blurVerticalShaderRGB");
+
+        //Do a horizontal and then a vertical blur pass!
+        horizontalBlur.compute(bloom.getTextureContext());
+        verticalBlur.compute(horizontalBlur.getTextureContext());
+
+        //Blur 4 more times!
+        for (int i = 0; i < 4; i++) {
+            horizontalBlur.compute(verticalBlur.getTextureContext());
+            verticalBlur.compute(horizontalBlur.getTextureContext());
+        }
+
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        _mergeShader->runShader(deferredFBO.getTextureContext(), verticalBlur.getTextureContext());
     }
+    else if (_viewManager->getViewState() == ViewManager::ViewState::DEFERRED_LIGHTING_NO_BLOOM) {
+
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        //Pass lights to deferred shading pass
+        _deferredRenderer->deferredLighting(_shadowRenderer, _lightList, _viewManager, _pointShadowMap, _ssaoPass, _environmentMap);
+
+        //Draw transparent objects onto of the deferred renderer
+        _forwardRenderer->forwardLighting(_modelList, _viewManager, _shadowRenderer, _lightList, _pointShadowMap);
+
+        // Lights - including the fire point lights
+        for (auto light : _lightList) {
+            if (light->getType() == LightType::POINT) {
+                light->render();
+            }
+        }
+
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    }
+    else {
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        //Pass lights to deferred shading pass
+        _deferredRenderer->deferredLighting(_shadowRenderer, _lightList, _viewManager, _pointShadowMap, _ssaoPass, _environmentMap);
+    }
+
 
     /*static uint64_t time = nowMs();
     glClear(GL_DEPTH_BUFFER_BIT);

@@ -82,6 +82,7 @@ DeferredShader::DeferredShader(std::string shaderName) : Shader(shaderName) {
     _skyboxNightTextureLocation = glGetUniformLocation(_shaderContext, "skyboxNightTexture");
     _ssaoTextureLocation = glGetUniformLocation(_shaderContext, "ssaoTexture");
     _environmentMapTextureLocation = glGetUniformLocation(_shaderContext, "environmentMapTexture");
+    _bloomTextureLocation = glGetUniformLocation(_shaderContext, "bloomTexture");
 
     //Get skybox texture
     TextureBroker* textureManager = TextureBroker::instance();
@@ -214,7 +215,6 @@ void DeferredShader::runShader(ShadowRenderer* shadowRenderer,
 
     //Depth texture
     glActiveTexture(GL_TEXTURE3);
-    /*glBindTexture(GL_TEXTURE_2D, shadowRenderer->getAnimatedDepthTexture());*/
     glBindTexture(GL_TEXTURE_2D, shadowRenderer->getStaticDepthTexture());
 
     //Depth texture

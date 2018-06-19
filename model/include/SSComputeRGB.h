@@ -1,5 +1,5 @@
 /*
-* Blur is part of the ReBoot distribution (https://github.com/octopusprime314/ReBoot.git).
+* SSComputeRGB is part of the ReBoot distribution (https://github.com/octopusprime314/ReBoot.git).
 * Copyright (c) 2018 Peter Morley.
 *
 * ReBoot is free software: you can redistribute it and/or modify
@@ -16,19 +16,18 @@
 */
 
 /**
-*  Blur class. Compute shaders that blurs a screen space texture
+*  SSComputeRGB class. Generic screen space compute shader that outputs RGB in unsigned byte format
 */
 
 #pragma once
 #include "ComputeShader.h"
-class SSAO;
-class Blur {
 
+class SSComputeRGB {
     ComputeShader* _computeShader;
-	unsigned int _colorBufferBlur;
+    unsigned int   _colorBuffer;
 public:
-	Blur();
-	~Blur();
-	unsigned int getBlurTexture();
-    void computeBlur(SSAO* ssao);
+    SSComputeRGB(std::string computeShader);
+    ~SSComputeRGB();
+    unsigned int getTextureContext();
+    void compute(GLuint readTexture);
 };

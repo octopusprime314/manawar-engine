@@ -90,7 +90,7 @@ void EffectShader::runShader(Effect* effectObject, float seconds) {
         viewNoTrans.getFlatBuffer()[7] = 0.0;
         viewNoTrans.getFlatBuffer()[11] = 0.0;
 
-        auto modelView = cameraMVP.getViewMatrix() * lightMVP.getModelMatrix();
+        auto modelView = cameraMVP.getViewMatrix() * lightMVP.getModelMatrix() * Matrix::scale(2.0f);
         glUniformMatrix4fv(_modelViewLocation, 1, GL_TRUE, modelView.getFlatBuffer());
 
         auto projection = cameraMVP.getProjectionMatrix();

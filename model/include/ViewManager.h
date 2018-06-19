@@ -47,7 +47,8 @@ public:
         SCREEN_SPACE_AMBIENT_OCCLUSION,
         DIRECTIONAL_SHADOW,
         POINT_SHADOW,
-        ENVIRONMENT_MAP
+        ENVIRONMENT_MAP,
+        DEFERRED_LIGHTING_NO_BLOOM
     };
 
 private:

@@ -33,6 +33,8 @@ class SSAO;
 class EnvironmentMap;
 class Water;
 class FontRenderer;
+class DeferredFrameBuffer;
+class MergeShader;
 
 class SceneManager {
     ViewManager*        _viewManager; //manages the view/camera matrix from the user's perspective
@@ -48,6 +50,8 @@ class SceneManager {
     EnvironmentMap*     _environmentMap;
     Water*              _water;
     FontRenderer*       _fontRenderer; // Manages text rendering
+    DeferredFrameBuffer* _deferredFBO;
+    MergeShader*         _mergeShader;
 
     void _preDraw(); //Prior to drawing objects call this function
     void _postDraw(); //Post of drawing objects call this function

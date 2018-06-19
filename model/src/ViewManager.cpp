@@ -138,6 +138,9 @@ void ViewManager::_updateKeyboard(int key, int x, int y) { //Do stuff based on k
     else if (key == GLFW_KEY_8) {
         _viewState = ViewState::ENVIRONMENT_MAP;
     }
+    else if (key == GLFW_KEY_9) {
+        _viewState = ViewState::DEFERRED_LIGHTING_NO_BLOOM;
+    }
 
     if (key == GLFW_KEY_W || key == GLFW_KEY_S || key == GLFW_KEY_A || key == GLFW_KEY_D || key == GLFW_KEY_E) {
 

@@ -39,16 +39,14 @@ float fbm(vec2 uv) {
 	return f;
 }
 
-// no defines, standard redish flames
-//#define BLUE_FLAME
-//#define GREEN_FLAME
-
 out vec4 fragColor;
 in vec2 texCoord;
 in vec3 position;
 uniform float time;
 uniform float farPlane;
 uniform vec3 fireColor;
+
+uniform float weight[5] = float[] (0.227027, 0.1945946, 0.1216216, 0.054054, 0.016216);
 
 void main(){
     
@@ -64,22 +62,15 @@ void main(){
 	q.y -= 0.25;
 	float n = fbm(strength*q - vec2(0,T3));
 	float c = 1. - 16. * pow( max( 0., length(q*vec2(1.8+q.y*1.5,.75) ) - n * max( 0., q.y+.25 ) ),1.2 );
-//	float c1 = n * c * (1.5-pow(1.25*uv.y,4.));
 	float c1 = n * c * (1.5-pow(2.50*uv.y,4.));
 	c1=clamp(c1,0.,1.);
 
 	vec3 col = vec3(1.5*c1, 1.5*c1*c1*c1, c1*c1*c1*c1*c1*c1);
-	
-#ifdef BLUE_FLAME
-	col = col.zyx;
-#endif
-#ifdef GREEN_FLAME
-	col = 0.85*col.yxz;
-#endif
-	
+
 	float a = c * (1.-pow((uv.y),3.));
 	fragColor = vec4( mix(vec3(0.),col.xxx*fireColor,a), 1.0);
-	if(fragColor.r > 0.1){
+	
+	if(fragColor.r > 0.25){
 		gl_FragDepth = (length(position)/farPlane) / 2.0f;
 	}
 	else{

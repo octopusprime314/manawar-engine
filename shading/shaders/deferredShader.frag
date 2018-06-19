@@ -72,7 +72,7 @@ void main(){
 	shadowMappingMap = shadowMappingMap/shadowMappingMap.w; 
 	vec2 shadowTextureCoordinatesMap = shadowMappingMap.xy * vec2(0.5,0.5) + vec2(0.5,0.5);
 
-	if(views == 0){
+	if(views == 0 || views == 8){
 		if(position.x == 0.0 && position.y == 0.0 && position.z == 0.0){
 			vec4 dayColor = texture(skyboxDayTexture, vec3(vsViewDirection.x, -vsViewDirection.y, vsViewDirection.z));
 			vec4 nightColor = texture(skyboxNightTexture, vec3(vsViewDirection.x, -vsViewDirection.y, vsViewDirection.z));

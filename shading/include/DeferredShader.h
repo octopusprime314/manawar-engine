@@ -55,6 +55,7 @@ class DeferredShader : public Shader {
     GLuint _farPlaneLocation;
     GLuint _ssaoTextureLocation;
     GLuint _environmentMapTextureLocation;
+    GLuint _bloomTextureLocation;
 
     GLuint _skyboxDayTextureLocation;
     GLuint _skyboxNightTextureLocation;

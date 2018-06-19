@@ -3,6 +3,9 @@
 #include "GLIncludes.h"
 
 Blur::Blur() {
+
+    _computeShader = new ComputeShader("blurShader");
+
 	glGenTextures(1, &_colorBufferBlur);
 	glBindTexture(GL_TEXTURE_2D, _colorBufferBlur);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, screenPixelWidth, screenPixelHeight, 0, GL_RGB, GL_FLOAT, NULL);
@@ -20,5 +23,5 @@ unsigned int Blur::getBlurTexture() {
 }
 
 void Blur::computeBlur(SSAO* ssao) {
-    _computeShader.runShader(this, ssao);
+    _computeShader->runShader(_colorBufferBlur, ssao->getSSAOTexture(), false);
 }

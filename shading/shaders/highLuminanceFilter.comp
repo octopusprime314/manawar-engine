@@ -1,0 +1,21 @@
+#version 430
+
+uniform sampler2D readTexture;
+uniform layout(rgba8) writeonly image2D writeTexture;
+layout (local_size_x = 16, local_size_y = 16) in;
+ 
+void main() {
+	
+	ivec2 ID = ivec2(gl_GlobalInvocationID.xy); 
+    ivec2 size = imageSize(writeTexture);
+    vec2 texCoords = vec2(float(ID.x)/float(size.x),float(ID.y)/float(size.y));
+	vec3 color = texture(readTexture, texCoords).rgb;
+	
+    // check whether fragment output is higher than threshold, if so output as brightness color
+    float brightness = dot(color.rgb, vec3(0.2126, 0.7152, 0.0722));
+	vec3 brightColor = vec3(0.0, 0.0, 0.0);
+    if(brightness >= 0.67){
+        brightColor = vec3(color.rgb);
+	}
+	imageStore(writeTexture, ID, vec4(brightColor.rgb, 1.0));
+}

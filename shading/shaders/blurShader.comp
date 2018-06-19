@@ -1,24 +1,24 @@
 #version 430
  
-uniform sampler2D ssaoTexture;
-uniform layout(r8) writeonly image2D blurredSSAOTexture;
+uniform sampler2D readTexture;
+uniform layout(r8) writeonly image2D writeTexture;
  
 layout (local_size_x = 16, local_size_y = 16) in;
  
 void main() {
     ivec2 ID = ivec2(gl_GlobalInvocationID.xy); 
-    ivec2 size = imageSize(blurredSSAOTexture);
+    ivec2 size = imageSize(writeTexture);
     vec2 texCoords = vec2(float(ID.x)/float(size.x),float(ID.y)/float(size.y));
  
-	vec2 texelSize = 1.0 / vec2(textureSize(ssaoTexture, 0));
+	vec2 texelSize = 1.0 / vec2(textureSize(readTexture, 0));
     float result = 0.0;
     for (int x = -2; x < 2; ++x) 
     {
         for (int y = -2; y < 2; ++y) 
         {
             vec2 offset = vec2(float(x), float(y)) * size;
-            result += texture(ssaoTexture, texCoords + offset).r;
+            result += texture(readTexture, texCoords + offset).r;
         }
     }
-    imageStore(blurredSSAOTexture, ID, vec4(result/16.0));
+    imageStore(writeTexture, ID, vec4(result/16.0));
 }

@@ -27,10 +27,10 @@ class SSAO;
 
 class ComputeShader : public Shader {
 
-	unsigned int _SSAOTextureLocation;
-	unsigned int _blurredSSAOTextureLocation;
+	unsigned int _readTextureLocation;
+	unsigned int _writeTextureLocation;
 public:
-	ComputeShader();
+	ComputeShader(std::string computeShaderName);
 	~ComputeShader();
-	void runShader(Blur* blur, SSAO* ssao);
+	void runShader(GLuint writeTexture, GLuint readTexture, bool rgb);
 };

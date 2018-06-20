@@ -215,7 +215,7 @@ void SceneManager::_postDraw() {
         verticalBlur.compute(horizontalBlur.getTextureContext());
 
         //Blur 4 more times!
-        for (int i = 0; i < 4; i++) {
+        for (int i = 0; i < 8; i++) {
             horizontalBlur.compute(verticalBlur.getTextureContext());
             verticalBlur.compute(horizontalBlur.getTextureContext());
         }

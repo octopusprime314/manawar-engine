@@ -20,7 +20,12 @@ void ComputeShader::runShader(GLuint writeTexture, GLuint readTexture, bool rgb)
     //Bind textures
     glUniform1i(_readTextureLocation, 0);
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, readTexture);
+    if (rgb) {
+        glBindImageTexture(0, readTexture, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA8);
+    }
+    else {
+        glBindImageTexture(0, readTexture, 0, GL_FALSE, 0, GL_READ_ONLY, GL_R8);
+    }
 
     //Bind color textures
     glUniform1i(_writeTextureLocation, 1);
@@ -33,7 +38,6 @@ void ComputeShader::runShader(GLuint writeTexture, GLuint readTexture, bool rgb)
     //Dispatch the shader
     glDispatchCompute(static_cast<GLuint>(ceilf(static_cast<float>(screenPixelWidth) / 16.0f)),
         static_cast<GLuint>(ceilf(static_cast<float>(screenPixelHeight) / 16.0f)), 1);
-
 
     glUseProgram(0);
 }

@@ -22,10 +22,6 @@
 
 #pragma once
 
-#include "CubeMap.h"
-#include <vector>
-#include "Light.h"
-#include "Model.h"
 #include "ShadowAnimatedPointShader.h"
 #include "CubeMapRenderer.h"
 

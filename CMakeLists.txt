@@ -25,6 +25,27 @@ endif()
 if (NOT IS_DIRECTORY "${CMAKE_SOURCE_DIR}/libs/fmod")
     message(WARNING "Missing directory ${CMAKE_SOURCE_DIR}/libs/fmod")
 endif()
+if (NOT IS_DIRECTORY "${CMAKE_SOURCE_DIR}/buffers")
+    message(WARNING "Missing directory ${CMAKE_SOURCE_DIR}/buffers")
+endif()
+if (NOT IS_DIRECTORY "${CMAKE_SOURCE_DIR}/events")
+    message(WARNING "Missing directory ${CMAKE_SOURCE_DIR}/events")
+endif()
+if (NOT IS_DIRECTORY "${CMAKE_SOURCE_DIR}/math")
+    message(WARNING "Missing directory ${CMAKE_SOURCE_DIR}/math")
+endif()
+if (NOT IS_DIRECTORY "${CMAKE_SOURCE_DIR}/procedural")
+    message(WARNING "Missing directory ${CMAKE_SOURCE_DIR}/procedural")
+endif()
+if (NOT IS_DIRECTORY "${CMAKE_SOURCE_DIR}/renderer")
+    message(WARNING "Missing directory ${CMAKE_SOURCE_DIR}/renderer")
+endif()
+if (NOT IS_DIRECTORY "${CMAKE_SOURCE_DIR}/screenspace")
+    message(WARNING "Missing directory ${CMAKE_SOURCE_DIR}/screenspace")
+endif()
+if (NOT IS_DIRECTORY "${CMAKE_SOURCE_DIR}/texture")
+    message(WARNING "Missing directory ${CMAKE_SOURCE_DIR}/texture")
+endif()
 
 set(CMAKE_INSTALL_PREFIX "${CMAKE_SOURCE_DIR}/4fps-dist")
 
@@ -36,22 +57,51 @@ include_directories("${CMAKE_SOURCE_DIR}/model/include")
 include_directories("${CMAKE_SOURCE_DIR}/physics/include")
 include_directories("${CMAKE_SOURCE_DIR}/shading/include")
 include_directories("${CMAKE_SOURCE_DIR}/audio/include")
+include_directories("${CMAKE_SOURCE_DIR}/buffers/include")
+include_directories("${CMAKE_SOURCE_DIR}/events/include")
+include_directories("${CMAKE_SOURCE_DIR}/math/include")
+include_directories("${CMAKE_SOURCE_DIR}/procedural/include")
+include_directories("${CMAKE_SOURCE_DIR}/renderer/include")
+include_directories("${CMAKE_SOURCE_DIR}/screenspace/include")
+include_directories("${CMAKE_SOURCE_DIR}/texture/include")
 
 FILE(GLOB MODEL_HEADER_FILES ${CMAKE_SOURCE_DIR}/model/include/*.h)
 FILE(GLOB PHYSICS_HEADER_FILES ${CMAKE_SOURCE_DIR}/physics/include/*.h)
 FILE(GLOB SHADING_HEADER_FILES ${CMAKE_SOURCE_DIR}/shading/include/*.h)
 FILE(GLOB AUDIO_HEADER_FILES ${CMAKE_SOURCE_DIR}/audio/include/*.h)
+FILE(GLOB BUFFERS_HEADER_FILES ${CMAKE_SOURCE_DIR}/buffers/include/*.h)
+FILE(GLOB EVENTS_HEADER_FILES ${CMAKE_SOURCE_DIR}/events/include/*.h)
+FILE(GLOB MATH_HEADER_FILES ${CMAKE_SOURCE_DIR}/math/include/*.h)
+FILE(GLOB PROCEDURAL_HEADER_FILES ${CMAKE_SOURCE_DIR}/procedural/include/*.h)
+FILE(GLOB RENDERER_HEADER_FILES ${CMAKE_SOURCE_DIR}/renderer/include/*.h)
+FILE(GLOB SCREENSPACE_HEADER_FILES ${CMAKE_SOURCE_DIR}/screenspace/include/*.h)
+FILE(GLOB TEXTURE_HEADER_FILES ${CMAKE_SOURCE_DIR}/texture/include/*.h)
+
 FILE(GLOB MODEL_SRC_FILES ${CMAKE_SOURCE_DIR}/model/src/*.cpp)
 FILE(GLOB PHYSICS_SRC_FILES ${CMAKE_SOURCE_DIR}/physics/src/*.cpp)
 FILE(GLOB SHADING_SRC_FILES ${CMAKE_SOURCE_DIR}/shading/src/*.cpp)
 FILE(GLOB GLFWPROC_SRC_FILES ${CMAKE_SOURCE_DIR}/glfw/src/*.c)
 FILE(GLOB AUDIO_SRC_FILES ${CMAKE_SOURCE_DIR}/audio/src/*.cpp)
+FILE(GLOB BUFFERS_SRC_FILES ${CMAKE_SOURCE_DIR}/buffers/src/*.cpp)
+FILE(GLOB EVENTS_SRC_FILES ${CMAKE_SOURCE_DIR}/events/src/*.cpp)
+FILE(GLOB MATH_SRC_FILES ${CMAKE_SOURCE_DIR}/math/src/*.cpp)
+FILE(GLOB PROCEDURAL_SRC_FILES ${CMAKE_SOURCE_DIR}/procedural/src/*.cpp)
+FILE(GLOB RENDERER_SRC_FILES ${CMAKE_SOURCE_DIR}/renderer/src/*.cpp)
+FILE(GLOB SCREENSPACE_SRC_FILES ${CMAKE_SOURCE_DIR}/screenspace/src/*.cpp)
+FILE(GLOB TEXTURE_SRC_FILES ${CMAKE_SOURCE_DIR}/texture/src/*.cpp)
 
 source_group("model"   FILES ${MODEL_HEADER_FILES} ${MODEL_SRC_FILES})
 source_group("physics" FILES ${PHYSICS_HEADER_FILES} ${PHYSICS_SRC_FILES})
 source_group("shading" FILES ${SHADING_HEADER_FILES} ${SHADING_SRC_FILES})
 source_group("glfw"    FILES ${GLFWPROC_SRC_FILES})
 source_group("audio"   FILES ${AUDIO_HEADER_FILES} ${AUDIO_SRC_FILES})
+source_group("buffers"   FILES ${BUFFERS_HEADER_FILES} ${BUFFERS_SRC_FILES})
+source_group("events" FILES ${EVENTS_HEADER_FILES} ${EVENTS_SRC_FILES})
+source_group("math" FILES ${MATH_HEADER_FILES} ${MATH_SRC_FILES})
+source_group("procedural"    FILES ${PROCEDURAL_HEADER_FILES} ${PROCEDURAL_SRC_FILES})
+source_group("renderer"   FILES ${RENDERER_HEADER_FILES} ${RENDERER_SRC_FILES})
+source_group("screenspace"    FILES ${SCREENSPACE_HEADER_FILES} ${SCREENSPACE_SRC_FILES})
+source_group("texture"   FILES ${TEXTURE_HEADER_FILES} ${TEXTURE_SRC_FILES})
 
 add_executable(ReBoot
     # WIN32
@@ -63,7 +113,21 @@ add_executable(ReBoot
                 ${MODEL_HEADER_FILES}
                 ${PHYSICS_HEADER_FILES}
                 ${SHADING_HEADER_FILES}
-                ${AUDIO_HEADER_FILES})
+                ${AUDIO_HEADER_FILES}
+				${BUFFERS_HEADER_FILES} 
+				${BUFFERS_SRC_FILES}
+				${EVENTS_HEADER_FILES}
+				${EVENTS_SRC_FILES}
+				${MATH_HEADER_FILES}
+				${MATH_SRC_FILES}
+				${PROCEDURAL_HEADER_FILES}
+				${PROCEDURAL_SRC_FILES}
+				${RENDERER_HEADER_FILES} 
+				${RENDERER_SRC_FILES}
+				${SCREENSPACE_HEADER_FILES} 
+				${SCREENSPACE_SRC_FILES}
+				${TEXTURE_HEADER_FILES}
+				${TEXTURE_SRC_FILES})
 
 target_compile_features(ReBoot PRIVATE cxx_range_for)
 

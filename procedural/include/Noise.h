@@ -12,7 +12,7 @@ static constexpr uint32_t kRngSeed = 0x8d1;
 template <typename T>
 T lerp(T t, T lo, T hi)
 {
-    return t*lo + (1 - t)*hi;
+    return t * lo + (1 - t)*hi;
 }
 
 template <typename T>

@@ -27,9 +27,9 @@ namespace VectorUtil {
 
 #define DEDUCE_TYPE(ptr) std::remove_pointer<decltype(ptr)>::type
 
-    template<typename FromType, typename ToType> 
+    template<typename FromType, typename ToType>
     struct CastTo {
-        ToType operator()(FromType value) const { return static_cast<ToType>(value);}
+        ToType operator()(FromType value) const { return static_cast<ToType>(value); }
     };
 
     template<typename FromType, typename ToType>

@@ -53,7 +53,7 @@ public:
 
     void                subscribeToKeyboard(std::function<void(int, int, int)> func); //Use this call to connect functions up to key updates
     void                subscribeToReleaseKeyboard(std::function<void(int, int, int)> func); //Use this call to connect functions up to key release updates
-	void                subscribeToMouse(std::function<void(double, double)> func); //Use this call to connect functions up to mouse updates
+    void                subscribeToMouse(std::function<void(double, double)> func); //Use this call to connect functions up to mouse updates
     void                subscribeToDraw(std::function<void()> func); //Use this call to connect functions up to draw updates
 
 private:

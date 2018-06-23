@@ -33,5 +33,5 @@ public:
     PointShadowMap(GLuint width, GLuint height);
     ~PointShadowMap();
 
-    void render(std::vector<Model*> modelList, Light* light);
+    void                       render(std::vector<Model*> modelList, Light* light);
 };

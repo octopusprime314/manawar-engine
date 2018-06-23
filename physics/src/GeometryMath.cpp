@@ -251,7 +251,7 @@ bool GeometryMath::triangleCubeDetection(Triangle* triangle, Cube* cube) {
     p0 = v0.dotProduct(a00);
     p1 = v1.dotProduct(a00);
     p2 = v2.dotProduct(a00);
-    r = e0*abs(u0.dotProduct(a00)) + e1*abs(u1.dotProduct(a00)) + e2*abs(u2.dotProduct(a00));
+    r = e0 * abs(u0.dotProduct(a00)) + e1 * abs(u1.dotProduct(a00)) + e2 * abs(u2.dotProduct(a00));
     if ((_max(p2, _max(p0, p1)) < -r) || (_min(p2, _min(p0, p1)) > r)) {
         return false; // Axis is a separating axis
     }
@@ -260,7 +260,7 @@ bool GeometryMath::triangleCubeDetection(Triangle* triangle, Cube* cube) {
     p0 = v0.dotProduct(a01);
     p1 = v1.dotProduct(a01);
     p2 = v2.dotProduct(a01);
-    r = e0*abs(u0.dotProduct(a01)) + e1*abs(u1.dotProduct(a01)) + e2*abs(u2.dotProduct(a01));
+    r = e0 * abs(u0.dotProduct(a01)) + e1 * abs(u1.dotProduct(a01)) + e2 * abs(u2.dotProduct(a01));
     if ((_max(p2, _max(p0, p1)) < -r) || (_min(p2, _min(p0, p1)) > r)) {
         return false; // Axis is a separating axis
     }
@@ -269,7 +269,7 @@ bool GeometryMath::triangleCubeDetection(Triangle* triangle, Cube* cube) {
     p0 = v0.dotProduct(a02);
     p1 = v1.dotProduct(a02);
     p2 = v2.dotProduct(a02);
-    r = e0*abs(u0.dotProduct(a02)) + e1*abs(u1.dotProduct(a02)) + e2*abs(u2.dotProduct(a02));
+    r = e0 * abs(u0.dotProduct(a02)) + e1 * abs(u1.dotProduct(a02)) + e2 * abs(u2.dotProduct(a02));
     if ((_max(p2, _max(p0, p1)) < -r) || (_min(p2, _min(p0, p1)) > r)) {
         return false; // Axis is a separating axis
     }
@@ -278,7 +278,7 @@ bool GeometryMath::triangleCubeDetection(Triangle* triangle, Cube* cube) {
     p0 = v0.dotProduct(a10);
     p1 = v1.dotProduct(a10);
     p2 = v2.dotProduct(a10);
-    r = e0*abs(u0.dotProduct(a10)) + e1*abs(u1.dotProduct(a10)) + e2*abs(u2.dotProduct(a10));
+    r = e0 * abs(u0.dotProduct(a10)) + e1 * abs(u1.dotProduct(a10)) + e2 * abs(u2.dotProduct(a10));
     if ((_max(p2, _max(p0, p1)) < -r) || (_min(p2, _min(p0, p1)) > r)) {
         return false; // Axis is a separating axis
     }
@@ -287,7 +287,7 @@ bool GeometryMath::triangleCubeDetection(Triangle* triangle, Cube* cube) {
     p0 = v0.dotProduct(a11);
     p1 = v1.dotProduct(a11);
     p2 = v2.dotProduct(a11);
-    r = e0*abs(u0.dotProduct(a11)) + e1*abs(u1.dotProduct(a11)) + e2*abs(u2.dotProduct(a11));
+    r = e0 * abs(u0.dotProduct(a11)) + e1 * abs(u1.dotProduct(a11)) + e2 * abs(u2.dotProduct(a11));
     if ((_max(p2, _max(p0, p1)) < -r) || (_min(p2, _min(p0, p1)) > r)) {
         return false; // Axis is a separating axis
     }
@@ -296,7 +296,7 @@ bool GeometryMath::triangleCubeDetection(Triangle* triangle, Cube* cube) {
     p0 = v0.dotProduct(a12);
     p1 = v1.dotProduct(a12);
     p2 = v2.dotProduct(a12);
-    r = e0*abs(u0.dotProduct(a12)) + e1*abs(u1.dotProduct(a12)) + e2*abs(u2.dotProduct(a12));
+    r = e0 * abs(u0.dotProduct(a12)) + e1 * abs(u1.dotProduct(a12)) + e2 * abs(u2.dotProduct(a12));
     if ((_max(p2, _max(p0, p1)) < -r) || (_min(p2, _min(p0, p1)) > r)) {
         return false; // Axis is a separating axis
     }
@@ -305,7 +305,7 @@ bool GeometryMath::triangleCubeDetection(Triangle* triangle, Cube* cube) {
     p0 = v0.dotProduct(a20);
     p1 = v1.dotProduct(a20);
     p2 = v2.dotProduct(a20);
-    r = e0*abs(u0.dotProduct(a20)) + e1*abs(u1.dotProduct(a20)) + e2*abs(u2.dotProduct(a20));
+    r = e0 * abs(u0.dotProduct(a20)) + e1 * abs(u1.dotProduct(a20)) + e2 * abs(u2.dotProduct(a20));
     if ((_max(p2, _max(p0, p1)) < -r) || (_min(p2, _min(p0, p1)) > r)) {
         return false; // Axis is a separating axis
     }
@@ -314,7 +314,7 @@ bool GeometryMath::triangleCubeDetection(Triangle* triangle, Cube* cube) {
     p0 = v0.dotProduct(a21);
     p1 = v1.dotProduct(a21);
     p2 = v2.dotProduct(a21);
-    r = e0*abs(u0.dotProduct(a21)) + e1*abs(u1.dotProduct(a21)) + e2*abs(u2.dotProduct(a21));
+    r = e0 * abs(u0.dotProduct(a21)) + e1 * abs(u1.dotProduct(a21)) + e2 * abs(u2.dotProduct(a21));
     if ((_max(p2, _max(p0, p1)) < -r) || (_min(p2, _min(p0, p1)) > r)) {
         return false; // Axis is a separating axis
     }
@@ -323,7 +323,7 @@ bool GeometryMath::triangleCubeDetection(Triangle* triangle, Cube* cube) {
     p0 = v0.dotProduct(a22);
     p1 = v1.dotProduct(a22);
     p2 = v2.dotProduct(a22);
-    r = e0*abs(u0.dotProduct(a22)) + e1*abs(u1.dotProduct(a22)) + e2*abs(u2.dotProduct(a22));
+    r = e0 * abs(u0.dotProduct(a22)) + e1 * abs(u1.dotProduct(a22)) + e2 * abs(u2.dotProduct(a22));
     if ((_max(p2, _max(p0, p1)) < -r) || (_min(p2, _min(p0, p1)) > r)) {
         return false; // Axis is a separating axis
     }
@@ -497,7 +497,7 @@ void GeometryMath::sphereTriangleResolution(Model* modelA, Sphere& sphere, Model
     //Compute the speed of the resultant velocity along the normal for sliding collision resolution
     float normalComponent = modelStateA->getLinearVelocity().dotProduct(normal);
     //Resultant velocity vector
-    Vector4 n = normal*normalComponent;
+    Vector4 n = normal * normalComponent;
     //Subtract original velocity vectory with the new velocity vector along the normal
     Vector4 resultantVelocity = modelStateA->getLinearVelocity() - n;
 
@@ -549,7 +549,7 @@ Vector4 GeometryMath::_closestPoint(Sphere* sphere, Triangle* triangle)
         return B; // Barycentric coordinates are (0,1,0).
 
     // Check if P is in edge region of AB, and if so, return the projection of P onto AB.
-    float vc = d1*d4 - d3*d2;
+    float vc = d1 * d4 - d3 * d2;
     if (vc <= 0.f && d1 >= 0.f && d3 <= 0.f)
     {
         float v = d1 / (d1 - d3);
@@ -563,7 +563,7 @@ Vector4 GeometryMath::_closestPoint(Sphere* sphere, Triangle* triangle)
         return C; // The barycentric coordinates are (0,0,1).
 
     // Check if P is in edge region of AC, and if so, return the projection of P onto AC.
-    float vb = d5*d2 - d1*d6;
+    float vb = d5 * d2 - d1 * d6;
     if (vb <= 0.f && d2 >= 0.f && d6 <= 0.f)
     {
         float w = d2 / (d2 - d6);
@@ -571,7 +571,7 @@ Vector4 GeometryMath::_closestPoint(Sphere* sphere, Triangle* triangle)
     }
 
     // Check if P is in edge region of BC, and if so, return the projection of P onto BC.
-    float va = d3*d6 - d5*d4;
+    float va = d3 * d6 - d5 * d4;
     if (va <= 0.f && (d4 - d3) >= 0.f && (d5 - d6) >= 0.f)
     {
         float w = (d4 - d3) / (d4 - d3 + d5 - d6);

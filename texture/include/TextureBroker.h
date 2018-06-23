@@ -25,10 +25,13 @@
 #include <map>
 #include <vector>
 
-class TextureBroker{
-    std::map<std::string, Texture*> _textures;
-    std::map<std::string, LayeredTexture*> _layeredTextures;
+using LayeredTextureMap = std::map<std::string, LayeredTexture*>;
+using TextureMap = std::map<std::string, Texture*>;
+
+class TextureBroker {
     TextureBroker();
+    TextureMap                      _textures;
+    LayeredTextureMap               _layeredTextures;
     static TextureBroker*           _broker;
 public:
     static TextureBroker*           instance();

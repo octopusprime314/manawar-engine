@@ -41,8 +41,8 @@ class ShadowRenderer {
 public:
     ShadowRenderer(GLuint width, GLuint height);
     ~ShadowRenderer();
-    void generateShadowBuffer(std::vector<Model*> modelList, std::vector<Light*>& lights);
-    GLuint getStaticDepthTexture();
-    GLuint getAnimatedDepthTexture();
-    GLuint getMapDepthTexture();
+    void                 generateShadowBuffer(std::vector<Model*> modelList, std::vector<Light*>& lights);
+    GLuint               getStaticDepthTexture();
+    GLuint               getAnimatedDepthTexture();
+    GLuint               getMapDepthTexture();
 };

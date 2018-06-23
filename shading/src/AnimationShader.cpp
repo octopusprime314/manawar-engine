@@ -2,7 +2,7 @@
 #include "AnimatedModel.h"
 
 AnimationShader::AnimationShader(std::string shaderName) : StaticShader(shaderName) {
-	//Grab uniforms needed in a staticshader
+    //Grab uniforms needed in a staticshader
 
     //glUniform mat4 combined model and world matrix
     _bonesLocation = glGetUniformLocation(_shaderContext, "bones");
@@ -37,21 +37,21 @@ void AnimationShader::runShader(Model* modelIn) {
 
     //Bone uniforms
     auto bones = model->getBones();
-    float* bonesArray = new float[ 16 * bones->size() ]; //4x4 times number of bones
+    float* bonesArray = new float[16 * bones->size()]; //4x4 times number of bones
     int bonesArrayIndex = 0;
-    for(auto bone : *bones) {
-        for(int i = 0; i < 16; i++) {
+    for (auto bone : *bones) {
+        for (int i = 0; i < 16; i++) {
             float* buff = bone.getFlatBuffer();
             bonesArray[bonesArrayIndex++] = buff[i];
         }
     }
     glUniformMatrix4fv(_bonesLocation, static_cast<GLsizei>(bones->size()), GL_TRUE, bonesArray);
-    delete [] bonesArray;
+    delete[] bonesArray;
 
     //Grab strides of vertex sets that have a single texture associated with them
     auto textureStrides = model->getTextureStrides();
     unsigned int strideLocation = 0;
-    for(auto textureStride : textureStrides) {
+    for (auto textureStride : textureStrides) {
 
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, model->getTexture(textureStride.first)->getContext()); //grab first texture of model and return context

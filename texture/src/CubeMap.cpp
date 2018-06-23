@@ -43,25 +43,6 @@ CubeMap::CubeMap(unsigned int width, unsigned int height, bool isDepth) :
     }
     else {
         glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, _cubemap, 0);
-
-        ////Needs to attach a depth render buffer to the frame buffer object!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        ////I got hosed on this super hard!!!!!!!!!!!!!!!!!!!!!!!!!
-        //GLuint depth_rb;
-        //glGenRenderbuffers(1, &depth_rb);
-        //glBindRenderbuffer(GL_RENDERBUFFER, depth_rb);
-        //glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, _width, _height);
-
-        ////Attach depth buffer to FBO
-        //glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depth_rb);
-
-        ////check the frame buffer's health
-        //GLuint status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-        //if (status != GL_FRAMEBUFFER_COMPLETE) {
-        //    std::cout << "Frame buffer cannot be generated! Status: " << status << std::endl;
-        //}
-
-        ////remove framebuffer context
-        //glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);

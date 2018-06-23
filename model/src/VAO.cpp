@@ -1,26 +1,26 @@
 #include "VAO.h"
 #include "Model.h"
 
-VAO::VAO(){
+VAO::VAO() {
 
 }
-VAO::~VAO(){
+VAO::~VAO() {
 
 }
 
-void VAO::setVertexContext(GLuint context){
+void VAO::setVertexContext(GLuint context) {
     _vertexBufferContext = context;
 }
 
-void VAO::setNormalContext(GLuint context){
+void VAO::setNormalContext(GLuint context) {
     _normalBufferContext = context;
 }
 
-void VAO::setTextureContext(GLuint context){
+void VAO::setTextureContext(GLuint context) {
     _textureBufferContext = context;
 }
 
-void VAO::setNormalDebugContext(GLuint context){
+void VAO::setNormalDebugContext(GLuint context) {
     _debugNormalBufferContext = context;
 }
 

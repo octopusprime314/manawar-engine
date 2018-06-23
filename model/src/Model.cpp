@@ -15,8 +15,7 @@ Model::Model(ViewManagerEvents* eventWrapper, RenderBuffers& renderBuffers, Stat
     _geometryType(GeometryType::Triangle),
     _renderBuffers(std::move(renderBuffers)),
     _shaderProgram(pStaticShader),
-    _isInstanced(false)
-{
+    _isInstanced(false) {
     _vao.createVAO(&_renderBuffers, _classId);
 }
 

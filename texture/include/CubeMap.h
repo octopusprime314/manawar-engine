@@ -29,7 +29,7 @@ class CubeMap {
 protected:
     unsigned int _cubemap; //Cube texture reference
     unsigned int _cubeFrameBuffer; //Cube frame buffer used for render to cube texture
-    //Width and height are used to change viewport when rendering
+                                   //Width and height are used to change viewport when rendering
     unsigned int _width; //Width of texture 
     unsigned int _height; //Height of texture
 public:

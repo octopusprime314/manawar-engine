@@ -35,6 +35,7 @@ class Water;
 class FontRenderer;
 class DeferredFrameBuffer;
 class MergeShader;
+class Bloom;
 
 class SceneManager {
     ViewManager*        _viewManager; //manages the view/camera matrix from the user's perspective
@@ -51,6 +52,7 @@ class SceneManager {
     Water*              _water;
     FontRenderer*       _fontRenderer; // Manages text rendering
     DeferredFrameBuffer* _deferredFBO;
+    Bloom*               _bloom;
     MergeShader*         _mergeShader;
 
     void _preDraw(); //Prior to drawing objects call this function

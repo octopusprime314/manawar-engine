@@ -26,7 +26,7 @@
 #include "Light.h"
 
 namespace Factory {
-    
+
     // View event wrapper that allows subscription to game events
     extern ViewManagerEvents* _viewEventWrapper;
 
@@ -41,7 +41,7 @@ namespace Factory {
     T* make(MVP mvp,
         LightType type,
         EffectType effect = EffectType::None,
-        Vector4 color = { 1.0f, 1.0f, 1.0f, 1.0f }, 
+        Vector4 color = { 1.0f, 1.0f, 1.0f, 1.0f },
         bool shadowCaster = false) {
         return new T(_viewEventWrapper, mvp, type, effect, color, shadowCaster);
     }

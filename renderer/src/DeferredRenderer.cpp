@@ -2,7 +2,7 @@
 #include "Model.h"
 #include "SSAO.h"
 
-DeferredRenderer::DeferredRenderer() : _mrtFBO(3), _deferredShader("deferredShader"){
+DeferredRenderer::DeferredRenderer() : _mrtFBO(3), _deferredShader("deferredShader") {
 
 }
 
@@ -12,7 +12,7 @@ DeferredRenderer::~DeferredRenderer() {
 
 void DeferredRenderer::deferredLighting(ShadowRenderer* shadowRenderer, std::vector<Light*>& lights, ViewManager* viewManager,
     PointShadowMap* pointShadowMap, SSAO* ssao, EnvironmentMap* environmentMap) {
-	_deferredShader.runShader(shadowRenderer, lights, viewManager, _mrtFBO, pointShadowMap, ssao, environmentMap);
+    _deferredShader.runShader(shadowRenderer, lights, viewManager, _mrtFBO, pointShadowMap, ssao, environmentMap);
 }
 
 void DeferredRenderer::bind() {

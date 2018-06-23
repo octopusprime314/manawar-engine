@@ -26,7 +26,7 @@
 #include "Model.h"
 #include "Light.h"
 
-class ShadowStaticShader : public Shader{
+class ShadowStaticShader : public Shader {
 
 protected:
     GLint       _viewLocation;
@@ -34,9 +34,9 @@ protected:
     GLint       _projectionLocation;
 public:
     ShadowStaticShader(std::string shaderName);
-    virtual		 ~ShadowStaticShader();
-	void         runShader(Model* model, Light* light);
-    GLint        getViewLocation();
-    GLint        getModelLocation();
-    GLint        getProjectionLocation();
+    virtual     ~ShadowStaticShader();
+    void        runShader(Model* model, Light* light);
+    GLint       getViewLocation();
+    GLint       getModelLocation();
+    GLint       getProjectionLocation();
 };

@@ -6,18 +6,18 @@ ShadowAnimatedShader::ShadowAnimatedShader(std::string shaderName) : ShadowStati
     _bonesLocation = glGetUniformLocation(_shaderContext, "bones");
 }
 
-ShadowAnimatedShader::~ShadowAnimatedShader(){
+ShadowAnimatedShader::~ShadowAnimatedShader() {
 
 }
 
 void ShadowAnimatedShader::runShader(Model* model, Light* light) {
 
-	AnimatedModel* animationModel = static_cast<AnimatedModel*>(model);
+    AnimatedModel* animationModel = static_cast<AnimatedModel*>(model);
 
-	//Load in vbo buffers
+    //Load in vbo buffers
     VAO* vao = model->getVAO();
     MVP* modelMVP = animationModel->getMVP();
-	MVP lightMVP = light->getLightMVP();
+    MVP lightMVP = light->getLightMVP();
 
     //Use one single shadow shader and replace the vbo buffer from each model
     glUseProgram(_shaderContext); //use context for loaded shader

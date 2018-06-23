@@ -38,7 +38,7 @@ public:
 
 protected:
     virtual void _updateKeyboard(int key, int x, int y) = 0;
-	virtual void _updateReleaseKeyboard(int key, int x, int y) = 0;
+    virtual void _updateReleaseKeyboard(int key, int x, int y) = 0;
     virtual void _updateMouse(double x, double y) = 0;
     virtual void _updateDraw() = 0;
     virtual void _updateView(Matrix view); //optional to implement overriden function

@@ -16,7 +16,7 @@ Vector4::Vector4(float x, float y, float z, float w) {
     _vec[3] = w;
 }
 
-Vector4::Vector4(const Vector4& other){
+Vector4::Vector4(const Vector4& other) {
     const float* vector = other._vec;
     _vec[0] = vector[0];
     _vec[1] = vector[1];
@@ -61,7 +61,7 @@ Vector4 Vector4::operator + (Vector4 other) {
 }
 
 Vector4& Vector4::operator += (Vector4 other) {
-    float* this2  = this->getFlatBuffer();
+    float* this2 = this->getFlatBuffer();
     float* other2 = other.getFlatBuffer();
     this2[0] = this2[0] + other2[0];
     this2[1] = this2[1] + other2[1];
@@ -99,9 +99,9 @@ Vector4 Vector4::crossProduct(Vector4 other) {
     //y = x1*z2 - z1*x2
     //z = x1*y2 - y1*x2
     //result = x - y + z
-    vector[0] =  (_vec[1] * vector2[2]) - (_vec[2] * vector2[1]);
+    vector[0] = (_vec[1] * vector2[2]) - (_vec[2] * vector2[1]);
     vector[1] = -(_vec[0] * vector2[2]) + (_vec[2] * vector2[0]);
-    vector[2] =  (_vec[0] * vector2[1]) - (_vec[1] * vector2[0]);
+    vector[2] = (_vec[0] * vector2[1]) - (_vec[1] * vector2[0]);
     vector[3] = 0.f;
     return result;
 }
@@ -125,7 +125,7 @@ void Vector4::normalize() {
 //Prints out the result in row major
 void Vector4::display() {
     std::cout << setprecision(2) << std::setw(6) << _vec[0] << " " << std::setw(6) << _vec[1]
-    << " " << std::setw(6) << _vec[2] << " " << std::setw(6) << _vec[3] << " " << std::endl;
+        << " " << std::setw(6) << _vec[2] << " " << std::setw(6) << _vec[3] << " " << std::endl;
 }
 
 float Vector4::getx() {
@@ -167,6 +167,6 @@ bool Vector4::operator != (Vector4 other) {
 std::ostream& operator << (std::ostream& output, Vector4 &other) {
     float* vec = other.getFlatBuffer();
     output << setprecision(2) << std::setw(6) << vec[0] << " " << std::setw(6) << vec[1]
-    << " " << std::setw(6) << vec[2] << " " << std::setw(6) << vec[3] << " " << std::endl;
+        << " " << std::setw(6) << vec[2] << " " << std::setw(6) << vec[3] << " " << std::endl;
     return output;
 }

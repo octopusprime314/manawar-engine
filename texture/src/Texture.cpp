@@ -1,6 +1,6 @@
 #include "Texture.h"
 
-Texture::Texture(){
+Texture::Texture() {
 
 }
 
@@ -15,16 +15,15 @@ Texture::Texture(std::string textureName, bool cubeMap) :
         }
     }
     else {
-
         _buildCubeMapTexture(textureName);
     }
 }
 
-Texture::~Texture(){
+Texture::~Texture() {
 
 }
 
-GLuint Texture::getContext(){
+GLuint Texture::getContext() {
     return _textureContext;
 }
 
@@ -209,7 +208,7 @@ void Texture::_decodeTexture(std::string textureName, unsigned int textureType) 
     // glGenerateMipmap() above frequently generates an error. Instead of dealing with it, ignore it.
     if (glGetError() != GL_NO_ERROR) {
         printf("%s:%d %s(): Something involving mipmaps generated an error, and we are going to ignore it.\n",
-               __FILE__, __LINE__, __func__);
+            __FILE__, __LINE__, __func__);
     }
     // Now this call will "pass"
     glCheck();
@@ -218,4 +217,3 @@ void Texture::_decodeTexture(std::string textureName, unsigned int textureType) 
 bool Texture::getTransparency() {
     return _alphaValues;
 }
-

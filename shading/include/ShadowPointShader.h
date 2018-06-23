@@ -16,7 +16,7 @@
 */
 
 /**
-*  ShadowPointShader class. Uses vertex, geometry and fragment shader to generate 
+*  ShadowPointShader class. Uses vertex, geometry and fragment shader to generate
 *  a texture cube map containing depth information around a single point in space
 */
 
@@ -24,14 +24,14 @@
 #include "ShadowStaticShader.h"
 #include "Light.h"
 
-class ShadowPointShader : public Shader{
+class ShadowPointShader : public Shader {
 
 protected:
-    GLint       _viewLocation;
-    GLint       _modelLocation;
-    GLint       _lightCubeTransformsLocation;
-    GLint       _lightPosLocation;
-    GLint       _farPlaneLocation;
+    GLint        _viewLocation;
+    GLint        _modelLocation;
+    GLint        _lightCubeTransformsLocation;
+    GLint        _lightPosLocation;
+    GLint        _farPlaneLocation;
 public:
     ShadowPointShader(std::string shaderName);
     virtual      ~ShadowPointShader();

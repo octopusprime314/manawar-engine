@@ -29,7 +29,7 @@
 template<typename T>
 class OctNode {
     std::vector<OctNode*> _children; //8 children in an oct node
-    T _data;
+    T                     _data;
 
     //Maps models to a list of triangles in the oct node
     //if a model's triangles are involved in a collision then changes can be propogated back to the model

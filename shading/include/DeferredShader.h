@@ -68,8 +68,8 @@ class DeferredShader : public Shader {
 public:
     DeferredShader(std::string shaderName);
     virtual ~DeferredShader();
-    void runShader(ShadowRenderer* shadowRenderer, std::vector<Light*>& lights, 
-        ViewManager* viewManager, MRTFrameBuffer& mrtFBO, 
+    void runShader(ShadowRenderer* shadowRenderer, std::vector<Light*>& lights,
+        ViewManager* viewManager, MRTFrameBuffer& mrtFBO,
         PointShadowMap* pointShadowMap,
         SSAO* ssao,
         EnvironmentMap* environmentMap);

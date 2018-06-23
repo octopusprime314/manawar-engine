@@ -46,7 +46,7 @@ Vector4 Light::getPosition() {
     return _position;
 }
 
-LightType Light::getType(){
+LightType Light::getType() {
     return _type;
 }
 
@@ -82,7 +82,7 @@ float Light::getRange() {
     //return modulation * farVal;
 }
 
-void Light::setMVP(MVP mvp){
+void Light::setMVP(MVP mvp) {
     _lightMVP = mvp;
 }
 
@@ -120,5 +120,3 @@ void Light::render() {
     float realTimeMilliSeconds = static_cast<float>(_milliSecondTime) / static_cast<float>(updateTimeAmplified);
     _effectShader.runShader(this, realTimeMilliSeconds / 1000.f);
 }
-
-

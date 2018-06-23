@@ -61,9 +61,9 @@ SimpleContext::SimpleContext(int* argc, char** argv, unsigned int viewportWidth,
         std::cout << "OpenGL 3.2 not supported\n" << std::endl;
     }
     printf("OpenGL: %s\nGLSL: %s\nVendor: %s\n",
-           glGetString(GL_VERSION),
-           glGetString(GL_SHADING_LANGUAGE_VERSION),
-           glGetString(GL_VENDOR));
+        glGetString(GL_VERSION),
+        glGetString(GL_SHADING_LANGUAGE_VERSION),
+        glGetString(GL_VENDOR));
 
     //Depth buffer settings
     glClearDepth(1.0);
@@ -112,7 +112,7 @@ void SimpleContext::subscribeToDraw(std::function<void()> func) { //Use this cal
 //All keyboard input from glfw will be notified here
 void SimpleContext::_keyboardUpdate(GLFWwindow* window, int key, int scancode, int action, int mods) {
 
-    if(action == GLFW_PRESS){
+    if (action == GLFW_PRESS) {
 
         if (key == GLFW_KEY_ESCAPE) { //Escape key pressed, hard exit no cleanup, TODO FIX THIS!!!!
             glfwDestroyWindow(_window);
@@ -123,7 +123,7 @@ void SimpleContext::_keyboardUpdate(GLFWwindow* window, int key, int scancode, i
 
         SimpleContextEvents::updateKeyboard(key, 0, 0);
     }
-    else if(action == GLFW_RELEASE){
+    else if (action == GLFW_RELEASE) {
         SimpleContextEvents::releaseKeyboard(key, 0, 0);
     }
 
@@ -146,13 +146,13 @@ void SimpleContext::_drawUpdate() {
             //_renderLock.lock();
 
             //do {
-                SimpleContextEvents::updateDraw(_window);
-                //Decrement trigger
-                //_renderNow--;
-            //} while(_renderNow > 0);
+        SimpleContextEvents::updateDraw(_window);
+        //Decrement trigger
+        //_renderNow--;
+    //} while(_renderNow > 0);
 
-            //_renderLock.unlock();
-        //}
+    //_renderLock.unlock();
+//}
     }
 }
 
@@ -162,10 +162,10 @@ void SimpleContext::_mouseUpdate(GLFWwindow* window, double x, double y) {
     SimpleContextEvents::updateMouse(x, y);
 
     //Bring cursor back to center position
-    glfwSetCursorPos(_window, screenPixelWidth/2, screenPixelHeight/2);
+    glfwSetCursorPos(_window, screenPixelWidth / 2, screenPixelHeight / 2);
 }
 
-void SimpleContext::_frameRateTrigger(int milliSeconds){
+void SimpleContext::_frameRateTrigger(int milliSeconds) {
     //Triggers the simple context to draw a frame
     _renderLock.lock();
     _renderNow++;

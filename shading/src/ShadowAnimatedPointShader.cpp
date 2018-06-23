@@ -1,6 +1,6 @@
 #include "ShadowAnimatedPointShader.h"
 
-ShadowAnimatedPointShader::ShadowAnimatedPointShader(std::string shaderName) : ShadowPointShader(shaderName){
+ShadowAnimatedPointShader::ShadowAnimatedPointShader(std::string shaderName) : ShadowPointShader(shaderName) {
 
     _bonesLocation = glGetUniformLocation(_shaderContext, "bones");
 }
@@ -29,7 +29,7 @@ void ShadowAnimatedPointShader::runShader(Model* model, Light* light, std::vecto
     //glUniform mat4 combined model and world matrix, GL_TRUE is telling GL we are passing in the matrix as row major
     glUniformMatrix4fv(_viewLocation, 1, GL_TRUE, modelMVP->getViewBuffer());
 
-    float* lightCubeTransforms = new float[6*16];
+    float* lightCubeTransforms = new float[6 * 16];
     int index = 0;
     for (Matrix lightTransform : lightTransforms) {
         float* mat = lightTransform.getFlatBuffer();

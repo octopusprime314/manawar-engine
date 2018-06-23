@@ -4,7 +4,7 @@
 
 Effect::Effect(ViewManagerEvents* eventWrapper, std::string shaderName, EffectType effectType) :
     UpdateInterface(eventWrapper),
-    _effectShader(shaderName) ,
+    _effectShader(shaderName),
     _effectType(effectType) {
 }
 

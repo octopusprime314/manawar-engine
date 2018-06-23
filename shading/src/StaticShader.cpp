@@ -3,7 +3,7 @@
 
 StaticShader::StaticShader(std::string shaderName) : Shader(shaderName) {
 
-	//Grab uniforms needed in a staticshader
+    //Grab uniforms needed in a staticshader
 
     //glUniform mat4 combined model and world matrix
     _modelLocation = glGetUniformLocation(_shaderContext, "model");
@@ -58,7 +58,7 @@ void StaticShader::runShader(Model* model) {
 
     auto textureStrides = model->getTextureStrides();
     unsigned int strideLocation = 0;
-    for(auto textureStride : textureStrides) {
+    for (auto textureStride : textureStrides) {
 
         //If the texture has layered encoded into the string then it is indeed layered
         if (textureStride.first.substr(0, 7) == "Layered") {

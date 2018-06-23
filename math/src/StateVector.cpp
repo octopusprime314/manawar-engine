@@ -97,7 +97,7 @@ bool StateVector::getActive() {
     return _active;
 }
 
-bool StateVector::getContact(){
+bool StateVector::getContact() {
     return _contact;
 }
 
@@ -109,32 +109,32 @@ void StateVector::setLinearPosition(Vector4 position) {
     _linearPosition = position;
 }
 
-void StateVector::setAngularPosition(Vector4 position){
+void StateVector::setAngularPosition(Vector4 position) {
     _angularPosition = position;
 }
 
-void StateVector::setLinearVelocity(Vector4 velocity){
+void StateVector::setLinearVelocity(Vector4 velocity) {
     _linearVelocity = velocity;
 }
 
-void StateVector::setAngularVelocity(Vector4 velocity){
+void StateVector::setAngularVelocity(Vector4 velocity) {
     _angularVelocity = velocity;
 }
 
-void StateVector::setLinearAcceleration(Vector4 acceleration){
+void StateVector::setLinearAcceleration(Vector4 acceleration) {
     _linearAcceleration = acceleration;
 }
 
-void StateVector::setAngularAcceleration(Vector4 acceleration){
+void StateVector::setAngularAcceleration(Vector4 acceleration) {
     _angularAcceleration = acceleration;
 }
 
 void StateVector::setForce(Vector4 force) {
     //Can't set force if not touching an item to push off from i.e. in the air
-    if(_contact || !_gravity){
+    if (_contact || !_gravity) {
         _force = force;
     }
-    else{
+    else {
         _force = Vector4(0.0f, 0.0f, 0.0f, 1.0f);
     }
 }

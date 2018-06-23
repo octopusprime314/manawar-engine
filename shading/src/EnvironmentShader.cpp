@@ -60,7 +60,7 @@ void EnvironmentShader::runShader(Model* model, std::vector<Matrix> viewTransfor
 
     auto textureStrides = model->getTextureStrides();
     unsigned int strideLocation = 0;
-    for(auto textureStride : textureStrides) {
+    for (auto textureStride : textureStrides) {
 
         //If the texture has layered encoded into the string then it is indeed layered
         if (textureStride.first.substr(0, 7) == "Layered") {

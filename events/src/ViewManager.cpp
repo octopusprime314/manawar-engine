@@ -205,7 +205,7 @@ void ViewManager::_updateKeyboard(int key, int x, int y) { //Do stuff based on k
             //TODO rotation
             //state->setAngularPosition(_rotation * Vector4(0, 0, 0, 0)); //Set angular (rotation) position vector based on view rotation
         }
-        else if(_godState){
+        else if (_godState) {
 
             float* pos = _state.getLinearPosition().getFlatBuffer();
             _translation = Matrix::cameraTranslation(pos[0], pos[1], pos[2]); //Update the translation state matrix
@@ -308,7 +308,7 @@ void ViewManager::_updateDraw() { //Do draw stuff
         //TODO rotation
         //state->setAngularPosition(_rotation * Vector4(0, 0, 0, 0)); //Set angular (rotation) position vector based on view rotation
     }
-    else if(_godState) {
+    else if (_godState) {
         float* pos = _state.getLinearPosition().getFlatBuffer();
         _translation = Matrix::cameraTranslation(pos[0], pos[1], pos[2]); //Update the translation state matrix
 

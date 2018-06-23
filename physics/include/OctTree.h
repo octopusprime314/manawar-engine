@@ -44,7 +44,7 @@ public:
                 childCount++;
             }
         }
-        else{
+        else {
             _root = new OctNode<T>(data);
             return _root;
         }

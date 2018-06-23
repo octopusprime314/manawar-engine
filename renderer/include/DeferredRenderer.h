@@ -34,14 +34,14 @@
 class Model;
 
 class DeferredRenderer {
-    
+
     DeferredShader _deferredShader;
     MRTFrameBuffer _mrtFBO;
 
 public:
     DeferredRenderer();
     ~DeferredRenderer();
-    void deferredLighting(ShadowRenderer* shadowRenderer, 
+    void deferredLighting(ShadowRenderer* shadowRenderer,
         std::vector<Light*>& lights, ViewManager* viewManager,
         PointShadowMap* pointShadowRenderer,
         SSAO* ssao,

@@ -16,7 +16,7 @@ InstancedForwardShader::~InstancedForwardShader() {
 }
 
 void InstancedForwardShader::runShader(Model* model, ViewManager* viewManager, ShadowRenderer* shadowRenderer,
-        std::vector<Light*>& lights, PointShadowMap* pointShadowMap) {
+    std::vector<Light*>& lights, PointShadowMap* pointShadowMap) {
 
     //LOAD IN SHADER
     glUseProgram(_shaderContext); //use context for loaded shader

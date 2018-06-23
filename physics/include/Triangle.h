@@ -28,5 +28,4 @@ public:
     Triangle(Vector4 A, Vector4 B, Vector4 C);
     ~Triangle();
     Vector4x3 getTrianglePoints();
-
 };

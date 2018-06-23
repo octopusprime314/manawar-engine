@@ -4,22 +4,22 @@
 MasterClock* MasterClock::_clock = nullptr;
 
 MasterClock::MasterClock() : _frameTime(DEFAULT_FRAME_TIME),
-    _animationTime(DEFAULT_FRAME_TIME){
+_animationTime(DEFAULT_FRAME_TIME) {
 
 }
 
-MasterClock::~MasterClock(){
+MasterClock::~MasterClock() {
 
 }
 
-MasterClock* MasterClock::instance(){
-    if(_clock == nullptr){
+MasterClock* MasterClock::instance() {
+    if (_clock == nullptr) {
         _clock = new MasterClock();
     }
     return _clock;
 }
 
-void MasterClock::run(){
+void MasterClock::run() {
 
     //Run the clock event processes that are responsible for sending time events to subscribers
     _physicsThread = new std::thread(&MasterClock::_physicsProcess, _clock);
@@ -27,40 +27,40 @@ void MasterClock::run(){
     _animationThread = new std::thread(&MasterClock::_animationProcess, _clock);
 }
 
-void MasterClock::_physicsProcess(){
+void MasterClock::_physicsProcess() {
     int milliSecondCounter = 0;
-    while(true){
+    while (true) {
         auto start = std::chrono::high_resolution_clock::now();
         //If the millisecond amount is divisible by kinematics time then trigger a kinematic calculation time event to subscribers
-        if(milliSecondCounter == KINEMATICS_TIME){
+        if (milliSecondCounter == KINEMATICS_TIME) {
             milliSecondCounter = 0;
-            for(auto funcs : _kinematicsRateFuncs){
+            for (auto funcs : _kinematicsRateFuncs) {
                 funcs(KINEMATICS_TIME);
             }
         }
         auto end = std::chrono::high_resolution_clock::now();
-		double milliseconds = std::chrono::duration<double, std::milli>(end - start).count();
-		int deltaTime = static_cast<int>(static_cast<double>(KINEMATICS_TIME) - milliseconds);
+        double milliseconds = std::chrono::duration<double, std::milli>(end - start).count();
+        int deltaTime = static_cast<int>(static_cast<double>(KINEMATICS_TIME) - milliseconds);
         if (deltaTime > 0) {
-			//std::cout << "left over time: " << deltaTime << std::endl;
+            //std::cout << "left over time: " << deltaTime << std::endl;
             //Wait for remaining milliseconds
             std::this_thread::sleep_for(std::chrono::milliseconds(deltaTime));
         }
-        else if(deltaTime < 0) {
+        else if (deltaTime < 0) {
             //std::cout << "Extra time being used on physics calculations: " << milliseconds - KINEMATICS_TIME << std::endl;
         }
-		milliSecondCounter += KINEMATICS_TIME;
+        milliSecondCounter += KINEMATICS_TIME;
     }
 }
 
-void MasterClock::_fpsProcess(){
+void MasterClock::_fpsProcess() {
     int milliSecondCounter = 0;
-    while(true){
+    while (true) {
         auto start = std::chrono::high_resolution_clock::now();
         //If the millisecond amount is divisible by frame time then trigger a frame time event to subscribers
-        if(milliSecondCounter == _frameTime){
+        if (milliSecondCounter == _frameTime) {
             milliSecondCounter = 0;
-            for(auto funcs : _frameRateFuncs){
+            for (auto funcs : _frameRateFuncs) {
                 funcs(_frameTime);
             }
         }
@@ -73,14 +73,14 @@ void MasterClock::_fpsProcess(){
     }
 }
 
-void MasterClock::_animationProcess(){
+void MasterClock::_animationProcess() {
     int milliSecondCounter = 0;
-    while(true){
+    while (true) {
         auto start = std::chrono::high_resolution_clock::now();
         //If the millisecond amount is divisible by frame time then trigger a frame time event to subscribers
-        if(milliSecondCounter == _animationTime){
+        if (milliSecondCounter == _animationTime) {
             milliSecondCounter = 0;
-            for(auto funcs : _animationRateFuncs){
+            for (auto funcs : _animationRateFuncs) {
                 funcs(_animationTime);
             }
         }
@@ -94,17 +94,17 @@ void MasterClock::_animationProcess(){
 }
 
 void MasterClock::setFrameRate(int framesPerSecond) {
-    _frameTime = static_cast<int>((1.0/static_cast<double>(framesPerSecond)) * 1000.0);
+    _frameTime = static_cast<int>((1.0 / static_cast<double>(framesPerSecond)) * 1000.0);
 }
 
-void MasterClock::subscribeFrameRate(std::function<void(int)> func){
+void MasterClock::subscribeFrameRate(std::function<void(int)> func) {
     _frameRateFuncs.push_back(func);
 }
 
-void MasterClock::subscribeAnimationRate(std::function<void(int)> func){
+void MasterClock::subscribeAnimationRate(std::function<void(int)> func) {
     _animationRateFuncs.push_back(func);
 }
 
-void MasterClock::subscribeKinematicsRate(std::function<void(int)> func){
+void MasterClock::subscribeKinematicsRate(std::function<void(int)> func) {
     _kinematicsRateFuncs.push_back(func);
 }

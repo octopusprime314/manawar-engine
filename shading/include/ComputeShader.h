@@ -22,15 +22,20 @@
 
 #pragma once
 #include "Shader.h"
-class Blur;
-class SSAO;
+
+enum class Format {
+    RGBUB = 0, //RGB Unsigned Bytes
+    RGBF,      //RGB Floats
+    RU,        //RU  Unsigned Byte
+    RF,        //RF  Float
+};
 
 class ComputeShader : public Shader {
 
-	unsigned int _readTextureLocation;
-	unsigned int _writeTextureLocation;
+    unsigned int _readTextureLocation;
+    unsigned int _writeTextureLocation;
 public:
-	ComputeShader(std::string computeShaderName);
-	~ComputeShader();
-	void runShader(GLuint writeTexture, GLuint readTexture, bool rgb);
+    ComputeShader(std::string computeShaderName);
+    ~ComputeShader();
+    void         runShader(GLuint writeTexture, GLuint readTexture, Format format);
 };

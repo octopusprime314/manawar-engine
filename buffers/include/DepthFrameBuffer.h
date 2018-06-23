@@ -16,7 +16,7 @@
 */
 
 /**
-*  DepthFrameBuffer class. Stores framebuffer depth 
+*  DepthFrameBuffer class. Stores framebuffer depth
    into a texture format for post processing and offscreen rendering
 */
 

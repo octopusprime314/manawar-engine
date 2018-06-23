@@ -10,7 +10,7 @@
 * WITHOUT ANY WARRANTY; without even the implied warranty of
 * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
 * General Public License for more details.
-* 
+*
 * You should have received a copy of the GNU General Public License
 * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
@@ -33,7 +33,7 @@ enum class LightType {
     SPOTLIGHT
 };
 
-class Light : public Effect{
+class Light : public Effect {
     MVP                     _lightMVP; //Light's Model view matrix for light
     Vector4                 _position; //Position of light
     LightType               _type; //Light type enum
@@ -43,20 +43,19 @@ class Light : public Effect{
     bool                    _shadowCaster;
 
 public:
-    Light(ViewManagerEvents* eventWrapper, 
-        MVP mvp, 
-        LightType type, 
+    Light(ViewManagerEvents* eventWrapper,
+        MVP mvp,
+        LightType type,
         EffectType effect,
-        Vector4 color, 
+        Vector4 color,
         bool shadowCaster);
-    MVP                         getLightMVP();
-    MVP                         getCameraMVP();
-    Vector4                     getPosition();
-    LightType                   getType();
-    Vector4&                    getColor();
-    float                       getRange();
-    bool                        isShadowCaster();
-    void                        setMVP(MVP mvp);
-    void                        render();
-
+    MVP                     getLightMVP();
+    MVP                     getCameraMVP();
+    Vector4                 getPosition();
+    LightType               getType();
+    Vector4&                getColor();
+    float                   getRange();
+    bool                    isShadowCaster();
+    void                    setMVP(MVP mvp);
+    void                    render();
 };

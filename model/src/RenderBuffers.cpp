@@ -1,9 +1,9 @@
 #include "RenderBuffers.h"
 
-RenderBuffers::RenderBuffers(){
+RenderBuffers::RenderBuffers() {
 
 }
-RenderBuffers::~RenderBuffers(){
+RenderBuffers::~RenderBuffers() {
 
 }
 
@@ -19,7 +19,7 @@ std::vector<Tex2>* RenderBuffers::getTextures() {
     return &_textures;
 }
 
-std::vector<Vector4>* RenderBuffers::getDebugNormals(){
+std::vector<Vector4>* RenderBuffers::getDebugNormals() {
     return &_debugNormals;
 }
 
@@ -31,7 +31,7 @@ void RenderBuffers::addNormal(Vector4 normal) {
     _normals.push_back(normal);
 }
 
-void RenderBuffers::addTexture(Tex2 texture){
+void RenderBuffers::addTexture(Tex2 texture) {
     _textures.push_back(texture);
 }
 
@@ -50,4 +50,3 @@ void RenderBuffers::addVertexIndices(std::vector<int> indices) {
 std::vector<int>* RenderBuffers::getIndices() {
     return &_indices;
 }
-

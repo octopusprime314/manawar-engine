@@ -39,7 +39,7 @@ void Physics::_physicsProcess(int milliseconds) {
 
     std::vector<bool> prevContactStates;
     std::map<Model*, bool> newContactStates;
-    for(Model* model : _models){
+    for (Model* model : _models) {
         prevContactStates.push_back(model->getStateVector()->getContact());
     }
 
@@ -116,7 +116,7 @@ void Physics::_physicsProcess(int milliseconds) {
                             //    modelSphereState->setContact(false);
                             //}
                         }
-                        else{
+                        else {
                             //Remove geometry from osp node
                             subspaceNode->removeGeometry(sphereMap.first, sphere);
                         }
@@ -130,8 +130,8 @@ void Physics::_physicsProcess(int milliseconds) {
     }
 
     int i = 0;
-    for(Model* model : _models){
-        if(prevContactStates[i++] && !newContactStates[model]){
+    for (Model* model : _models) {
+        if (prevContactStates[i++] && !newContactStates[model]) {
             model->getStateVector()->setContact(false);
         }
     }
@@ -160,5 +160,3 @@ void Physics::_slowDetection() {
         ++modelPosition;
     }
 }
-
-

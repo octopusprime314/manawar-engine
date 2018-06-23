@@ -128,7 +128,7 @@ FontRenderer::FontRenderer(std::string fileName)
 
     TextureBroker* pTb = TextureBroker::instance();
     pTb->addTexture("../assets/textures/font/ubuntu_mono_regular_0.png");
-    
+
     // create vertex buffer
     glGenVertexArrays(1, &vao);
     glBindVertexArray(vao);
@@ -181,7 +181,7 @@ void FontRenderer::DrawFont(float x, float y, std::string s, uint64_t timeDelta)
         vec3 bottomLeftPos = { x + xoffset, y - yoffset - height, 0 };
         vec3 bottomRightPos = { x + xoffset + width, y - yoffset - height, 0 };
 
-        vec3 cursorPosition[] = { bottomLeftPos, topLeftPos, topRightPos, topRightPos, bottomRightPos, bottomLeftPos};
+        vec3 cursorPosition[] = { bottomLeftPos, topLeftPos, topRightPos, topRightPos, bottomRightPos, bottomLeftPos };
 
         cursorPosition[0].x += cursorAdvance;
         cursorPosition[1].x += cursorAdvance;
@@ -190,12 +190,12 @@ void FontRenderer::DrawFont(float x, float y, std::string s, uint64_t timeDelta)
         cursorPosition[4].x += cursorAdvance;
         cursorPosition[5].x += cursorAdvance;
 
-        cursorPosition[0].y += sin(cursorPosition[0].x * 10)/ 15;
-        cursorPosition[1].y += sin(cursorPosition[0].x * 10)/ 15;
-        cursorPosition[2].y += sin(cursorPosition[0].x * 10)/ 15;
-        cursorPosition[3].y += sin(cursorPosition[0].x * 10)/ 15;
-        cursorPosition[4].y += sin(cursorPosition[0].x * 10)/ 15;
-        cursorPosition[5].y += sin(cursorPosition[0].x * 10)/ 15;
+        cursorPosition[0].y += sin(cursorPosition[0].x * 10) / 15;
+        cursorPosition[1].y += sin(cursorPosition[0].x * 10) / 15;
+        cursorPosition[2].y += sin(cursorPosition[0].x * 10) / 15;
+        cursorPosition[3].y += sin(cursorPosition[0].x * 10) / 15;
+        cursorPosition[4].y += sin(cursorPosition[0].x * 10) / 15;
+        cursorPosition[5].y += sin(cursorPosition[0].x * 10) / 15;
 
 
 

@@ -1,5 +1,5 @@
 /*
-* ModelFactory is part of the ReBoot distribution (https://github.com/octopusprime314/ReBoot.git).
+* Font is part of the ReBoot distribution (https://github.com/octopusprime314/ReBoot.git).
 * Copyright (c) 2017 John Lukasiewicz.
 *
 * ReBoot is free software: you can redistribute it and/or modify

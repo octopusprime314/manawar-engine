@@ -38,12 +38,12 @@ public:
     std::vector<Vector4>*       getVertices();
     std::vector<Vector4>*       getNormals();
     std::vector<Tex2>*          getTextures();
-    std::vector<int>*		    getIndices();
-    std::vector<Vector4>*		getDebugNormals();
+    std::vector<int>*           getIndices();
+    std::vector<Vector4>*       getDebugNormals();
     void                        addVertex(Vector4 vertex);
     void                        addNormal(Vector4 normal);
     void                        addTexture(Tex2 texture);
     void                        addDebugNormal(Vector4 normal);
-    void						setVertexIndices(std::vector<int> indices);
+    void                        setVertexIndices(std::vector<int> indices);
     void                        addVertexIndices(std::vector<int> indices);
 };

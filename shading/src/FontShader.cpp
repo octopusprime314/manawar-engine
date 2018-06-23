@@ -16,7 +16,6 @@ void FontShader::runShader(GLuint vao, std::string& s)
     TextureBroker* pTb = TextureBroker::instance();
     Texture* tex = pTb->getTexture("../assets/textures/font/ubuntu_mono_regular_0.png");
 
-    //glDisable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -41,5 +40,4 @@ void FontShader::runShader(GLuint vao, std::string& s)
     glBindVertexArray(0);
     glBindTexture(GL_TEXTURE_2D, 0); //Unbind texture
     glUseProgram(0);//end using this shader
-    glEnable(GL_DEPTH_TEST);
 }

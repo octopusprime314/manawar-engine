@@ -3,7 +3,7 @@
 
 ShadowRenderer::ShadowRenderer(GLuint width, GLuint height) :
     _staticShadowShader("staticShadowShader"),
-	_animatedShadowShader("animatedShadowShader"),
+    _animatedShadowShader("animatedShadowShader"),
     _staticRendered(false),
     _staticShadowFBO(width, height),
     _animatedShadowFBO(width, height),
@@ -37,27 +37,27 @@ void ShadowRenderer::generateShadowBuffer(std::vector<Model*> modelList, std::ve
     //if(!_staticRendered){
 
         //Bind frame buffer
-        glBindFramebuffer(GL_FRAMEBUFFER, _mapShadowFBO.getFrameBufferContext());
+    glBindFramebuffer(GL_FRAMEBUFFER, _mapShadowFBO.getFrameBufferContext());
 
-        //Need to change viewport to the resolution of the shadow texture
-        glViewport(0, 0, _mapShadowFBO.getWidth(), _mapShadowFBO.getHeight());
+    //Need to change viewport to the resolution of the shadow texture
+    glViewport(0, 0, _mapShadowFBO.getWidth(), _mapShadowFBO.getHeight());
 
-        //Clear depth buffer
-        glClear(GL_DEPTH_BUFFER_BIT);
+    //Clear depth buffer
+    glClear(GL_DEPTH_BUFFER_BIT);
 
-        glDrawBuffers(1, buffers);
+    glDrawBuffers(1, buffers);
 
-        light = lights[1];
-        for (Model* model : modelList) {
+    light = lights[1];
+    for (Model* model : modelList) {
 
-            if (model->getClassType() == ModelClass::ModelType) {
-				_staticShadowShader.runShader(model, light);
-            }
+        if (model->getClassType() == ModelClass::ModelType) {
+            _staticShadowShader.runShader(model, light);
         }
+    }
 
-        //remove framebuffer context
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        _staticRendered = true;
+    //remove framebuffer context
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    _staticRendered = true;
 
     //}
 
@@ -114,7 +114,7 @@ void ShadowRenderer::generateShadowBuffer(std::vector<Model*> modelList, std::ve
     for (Model* model : modelList) {
 
         if (model->getClassType() == ModelClass::AnimatedModelType) {
-			_animatedShadowShader.runShader(model, light);
+            _animatedShadowShader.runShader(model, light);
         }
     }
 

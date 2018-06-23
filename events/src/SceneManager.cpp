@@ -14,8 +14,7 @@
 #include "Font.h"
 #include "DeferredFrameBuffer.h"
 #include "MergeShader.h"
-#include "SSComputeRGB.h"
-
+#include "Bloom.h"
 #include <Triangle.h>
 #include <chrono>
 
@@ -26,7 +25,9 @@ uint64_t nowMs();
 // We define this here because this file is basically main.
 volatile bool g_AssertOnBadOpenGlCall = false;
 
-SceneManager::SceneManager(int* argc, char** argv, unsigned int viewportWidth, unsigned int viewportHeight, float nearPlaneDistance, float farPlaneDistance) {
+SceneManager::SceneManager(int* argc, char** argv,
+    unsigned int viewportWidth, unsigned int viewportHeight,
+    float nearPlaneDistance, float farPlaneDistance) {
     _viewManager = new ViewManager(argc, argv, viewportWidth, viewportHeight);
     glCheck();
 
@@ -38,7 +39,7 @@ SceneManager::SceneManager(int* argc, char** argv, unsigned int viewportWidth, u
     _forwardRenderer = new ForwardRenderer();
     glCheck();
 
-    _shadowRenderer = new ShadowRenderer(8*1024, 8*1024);
+    _shadowRenderer = new ShadowRenderer(8 * 1024, 8 * 1024);
     glCheck();
 
     _pointShadowMap = new PointShadowMap(2000, 2000);
@@ -48,7 +49,7 @@ SceneManager::SceneManager(int* argc, char** argv, unsigned int viewportWidth, u
     glCheck();
 
     //_environmentMap = new EnvironmentMap(2000, 2000);
-    glCheck();
+    //glCheck();
 
     _water = new Water(_viewManager->getEventWrapper());
     glCheck();
@@ -63,6 +64,12 @@ SceneManager::SceneManager(int* argc, char** argv, unsigned int viewportWidth, u
     glCheck();
 
     _mergeShader = new MergeShader();
+    glCheck();
+
+    _bloom = new Bloom();
+    glCheck();
+
+    _deferredFBO = new DeferredFrameBuffer();
     glCheck();
 
     //Setup pre and post draw callback events received when a draw call is issued
@@ -98,26 +105,26 @@ SceneManager::SceneManager(int* argc, char** argv, unsigned int viewportWidth, u
 
     //Placing the lights in equidistant locations for testing
     pointLightMVP.setModel(Matrix::translation(212.14f, 24.68f, 186.46f));
-    _lightList.push_back(Factory::make<Light>(pointLightMVP, 
-                                              LightType::POINT, 
-                                              EffectType::Fire, 
-                                              Vector4(1.0f, 0.8f, 0.3f, 1.0f), 
-                                              true));
+    _lightList.push_back(Factory::make<Light>(pointLightMVP,
+        LightType::POINT,
+        EffectType::Fire,
+        Vector4(1.0f, 0.8f, 0.3f, 1.0f),
+        true));
 
     pointLightMVP.setModel(Matrix::translation(198.45f, 24.68f, 186.71f));
-    _lightList.push_back(Factory::make<Light>(pointLightMVP, 
-                                              LightType::POINT, 
-                                              EffectType::Fire, 
-                                              Vector4(1.0f, 0.8f, 0.3f, 1.0f), 
-                                              false));
+    _lightList.push_back(Factory::make<Light>(pointLightMVP,
+        LightType::POINT,
+        EffectType::Fire,
+        Vector4(1.0f, 0.8f, 0.3f, 1.0f),
+        false));
 
     pointLightMVP.setModel(Matrix::translation(178.45f, 143.59f, 240.71f));
-    _lightList.push_back(Factory::make<Light>(pointLightMVP, 
-                                              LightType::POINT, 
-                                              EffectType::Smoke, 
-                                              Vector4(0.4f, 0.4f, 0.4f, 1.0f), 
-                                              false));
-   
+    _lightList.push_back(Factory::make<Light>(pointLightMVP,
+        LightType::POINT,
+        EffectType::Smoke,
+        Vector4(0.4f, 0.4f, 0.4f, 1.0f),
+        false));
+
     MasterClock::instance()->run(); //Scene manager kicks off the clock event manager
 
     _audioManager->StartAll();
@@ -180,10 +187,9 @@ void SceneManager::_postDraw() {
 
     if (_viewManager->getViewState() == ViewManager::ViewState::DEFERRED_LIGHTING) {
 
-        static DeferredFrameBuffer deferredFBO;
 
         //Bind frame buffer
-        glBindFramebuffer(GL_FRAMEBUFFER, deferredFBO.getFrameBufferContext());
+        glBindFramebuffer(GL_FRAMEBUFFER, _deferredFBO->getFrameBufferContext());
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -202,27 +208,12 @@ void SceneManager::_postDraw() {
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-        //Bloom PASS
-        static SSComputeRGB bloom("highLuminanceFilter");
-
-        bloom.compute(deferredFBO.getTextureContext());
-
-        static SSComputeRGB horizontalBlur("blurHorizontalShaderRGB");
-        static SSComputeRGB verticalBlur("blurVerticalShaderRGB");
-
-        //Do a horizontal and then a vertical blur pass!
-        horizontalBlur.compute(bloom.getTextureContext());
-        verticalBlur.compute(horizontalBlur.getTextureContext());
-
-        //Blur 4 more times!
-        for (int i = 0; i < 8; i++) {
-            horizontalBlur.compute(verticalBlur.getTextureContext());
-            verticalBlur.compute(horizontalBlur.getTextureContext());
-        }
+        //Compute bloom from deferred fbo texture
+        _bloom->compute(_deferredFBO->getTextureContext());
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        _mergeShader->runShader(deferredFBO.getTextureContext(), verticalBlur.getTextureContext());
+        _mergeShader->runShader(_deferredFBO->getTextureContext(), _bloom->getTextureContext());
     }
     else if (_viewManager->getViewState() == ViewManager::ViewState::DEFERRED_LIGHTING_NO_BLOOM) {
 

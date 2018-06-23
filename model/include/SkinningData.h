@@ -34,8 +34,8 @@ public:
     SkinningData(FbxCluster* skinData, FbxNode* node, int animationFrames, int indexOffset);
     ~SkinningData();
 
-    std::vector<int>*          getIndexes();
-    std::vector<float>*        getWeights();
-    std::vector<Matrix>*       getFrameVertexTransforms();
-    int                        getIndexOffset();
+    std::vector<int>*         getIndexes();
+    std::vector<float>*       getWeights();
+    std::vector<Matrix>*      getFrameVertexTransforms();
+    int                       getIndexOffset();
 };

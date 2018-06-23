@@ -2,7 +2,7 @@
 
 ShadowStaticShader::ShadowStaticShader(std::string shaderName) : Shader(shaderName) {
 
-	//Grab uniforms needed in a staticshader
+    //Grab uniforms needed in a staticshader
 
     //glUniform mat4 combined model and world matrix
     _modelLocation = glGetUniformLocation(_shaderContext, "model");
@@ -14,18 +14,18 @@ ShadowStaticShader::ShadowStaticShader(std::string shaderName) : Shader(shaderNa
     _projectionLocation = glGetUniformLocation(_shaderContext, "projection");
 }
 
-ShadowStaticShader::~ShadowStaticShader(){
+ShadowStaticShader::~ShadowStaticShader() {
 
 }
 
 void ShadowStaticShader::runShader(Model* model, Light* light) {
 
-	//Load in vbo buffers
+    //Load in vbo buffers
     VAO* vao = model->getVAO();
     MVP* modelMVP = model->getMVP();
-	MVP lightMVP = light->getLightMVP();
+    MVP lightMVP = light->getLightMVP();
 
-	//Use one single shadow shader and replace the vbo buffer from each model
+    //Use one single shadow shader and replace the vbo buffer from each model
     glUseProgram(_shaderContext); //use context for loaded shader
 
     glBindVertexArray(vao->getVAOShadowContext());

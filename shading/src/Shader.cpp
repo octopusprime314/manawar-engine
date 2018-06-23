@@ -9,14 +9,14 @@
 static volatile bool g_VerboseShaders = false;
 
 Shader::Shader(std::string vertexShaderName, std::string fragmentShaderName) {
-	//set vertex name
-	_vertexShaderName = vertexShaderName;
+    //set vertex name
+    _vertexShaderName = vertexShaderName;
     //set fragment name if different from vertex shader name
     if (fragmentShaderName != "") {
         _fragmentShaderName = fragmentShaderName;
     }
-	//build it
-	_build();
+    //build it
+    _build();
 }
 
 Shader::~Shader() {
@@ -105,7 +105,8 @@ void Shader::_link(unsigned int vertexSH, unsigned int fragmentSH, unsigned int 
         if (g_VerboseShaders) {
             printf("Shader #%d linked   (Shader* this = %p)\n", _shaderContext, this);
         }
-    } else {
+    }
+    else {
         GLint errorLoglength;
         GLint actualErrorLogLength;
         //Attempt to get the length of our error log.
@@ -171,7 +172,7 @@ unsigned int Shader::_compile(char* filename, unsigned int type)
         files, //An array of const char * data, which represents the source code of theshaders
         nullptr);
 
-     glCompileShader(handle);
+    glCompileShader(handle);
 
     //Compilation checking.
     glGetShaderiv(handle, GL_COMPILE_STATUS, &result);
@@ -181,7 +182,8 @@ unsigned int Shader::_compile(char* filename, unsigned int type)
         if (g_VerboseShaders) {
             printf("Shader #%d compiled (filename = \"%s\")\n", handle, filename);
         }
-    } else {
+    }
+    else {
         //We failed to compile.
         printf("Shader '%s' failed compilation.\n", filename);
 

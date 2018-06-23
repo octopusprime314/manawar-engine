@@ -20,16 +20,16 @@ float ValueNoise2D::noise(float x, float y) {
     uint32_t y2 = (y1 + h - 1) % h;
 
     return bilerp(xf, yf,
-                  data[x1][y1],
-                  data[x1][y2],
-                  data[x2][y1],
-                  data[x2][y2]);
+        data[x1][y1],
+        data[x1][y2],
+        data[x2][y1],
+        data[x2][y2]);
 }
 
 float ValueNoise2D::turbulence(float x, float y, uint8_t octaves) {
     float val = 0.f;
-    for (auto w = PowerOfTwo<uint64_t>(octaves); w >= 1; w /=2) {
-        val += w * noise(x/w, y/w);
+    for (auto w = PowerOfTwo<uint64_t>(octaves); w >= 1; w /= 2) {
+        val += w * noise(x / w, y / w);
     }
     val /= PowerOfTwo<float>(octaves + 1);
 

@@ -16,7 +16,7 @@ TextureBroker::~TextureBroker() {
 
 void TextureBroker::addTexture(std::string textureName) {
 
-    if(_textures.find(textureName) == _textures.end()){
+    if (_textures.find(textureName) == _textures.end()) {
         _textures[textureName] = new Texture(textureName);
     }
 }

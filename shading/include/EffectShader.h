@@ -16,7 +16,7 @@
 */
 
 /**
-*  EffectShader class. Generic effects class 
+*  EffectShader class. Generic effects class
 */
 
 #pragma once

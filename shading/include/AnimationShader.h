@@ -32,5 +32,5 @@ class AnimationShader : public StaticShader {
 public:
     AnimationShader(std::string shaderName);
     ~AnimationShader();
-    void runShader(Model* modelIn);
+    void  runShader(Model* modelIn);
 };

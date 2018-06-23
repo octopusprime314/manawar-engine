@@ -18,7 +18,7 @@
 /**
 *  The ForwardShader class shades all of the transparent objects onto the existing deferred shading buffer
 *  by first doing an alpha test to discard the fragment and then a depth test with the g pass depth buffer
-*  to draw or discard the fragment 
+*  to draw or discard the fragment
 */
 
 #pragma once

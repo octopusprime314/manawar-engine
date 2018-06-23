@@ -45,8 +45,8 @@ public:
     int  getFrameCount();
     void setFrames(int animationFrames);
     void nextFrame(); //set to the next animation frame
-    void setBoneIndexWeights( std::vector<std::vector<int>>* boneIndexes, std::vector<std::vector<float>>* boneWeights); 
-    void addBoneTransforms(std::vector<Matrix>* boneTransforms); 
+    void setBoneIndexWeights(std::vector<std::vector<int>>* boneIndexes, std::vector<std::vector<float>>* boneWeights);
+    void addBoneTransforms(std::vector<Matrix>* boneTransforms);
     std::vector<Matrix>* getBones();
     std::vector<std::vector<int>>* getBoneIndexes();
     std::vector<std::vector<float>>* getBoneWeights();

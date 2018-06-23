@@ -33,16 +33,16 @@ static Model* GenerateTerrain()
 
     static_assert(minX <= maxX, "Check X min/max bounds");
     static_assert(minZ <= maxZ, "Check Z min/max bounds");
-    static_assert(delta > 0.f,  "Check your delta");
+    static_assert(delta > 0.f, "Check your delta");
 
     // Generate Vertices. We'll do indices and normals after.
     std::vector<Vector4> verts;
     verts.reserve(static_cast<int>(((maxX - minX) / delta + 1.f) *
-                                   ((maxZ - minZ) / delta + 1.f )));
+        ((maxZ - minZ) / delta + 1.f)));
     for (float z = minZ; z <= maxZ; z += delta) {
         for (float x = minX; x <= maxX; x += delta) {
             float y = ScaleNoiseToTerrainHeight(kNoise.turbulence(2500.f*x / 150.f, 3250.f*z / 150 + 400, 9));
-            verts.emplace_back(x - minX - dX/2, y, z - minZ - dZ/2, 1.f);
+            verts.emplace_back(x - minX - dX / 2, y, z - minZ - dZ / 2, 1.f);
         }
     }
 
@@ -54,21 +54,21 @@ static Model* GenerateTerrain()
         if ((b + 1) % stride == 0) {
             continue;
         }
-        indices.emplace_back(b + stride);   assert((b + stride)   < verts.size());
-        indices.emplace_back(b + 1);        assert((b + 1)        < verts.size());
-        indices.emplace_back(b + 0);        assert((b + 0)        < verts.size());
+        indices.emplace_back(b + stride);   assert((b + stride) < verts.size());
+        indices.emplace_back(b + 1);        assert((b + 1) < verts.size());
+        indices.emplace_back(b + 0);        assert((b + 0) < verts.size());
 
-        indices.emplace_back(b + stride);   assert((b + stride)   < verts.size());
-        indices.emplace_back(b + 1+stride); assert((b + 1+stride) < verts.size());
-        indices.emplace_back(b + 1);        assert((b + 1)        < verts.size());
+        indices.emplace_back(b + stride);   assert((b + stride) < verts.size());
+        indices.emplace_back(b + 1 + stride); assert((b + 1 + stride) < verts.size());
+        indices.emplace_back(b + 1);        assert((b + 1) < verts.size());
     }
 
     // Populate Normals
     std::vector<Vector4> normals(verts.size(), Vector4(0.f, 0.f, 0.f, 0.f));
-    for (int i = 0; i+2 < indices.size(); i += 3) {
-        Vector4 vert0 = verts[indices[i+0]];
-        Vector4 vert1 = verts[indices[i+1]];
-        Vector4 vert2 = verts[indices[i+2]];
+    for (int i = 0; i + 2 < indices.size(); i += 3) {
+        Vector4 vert0 = verts[indices[i + 0]];
+        Vector4 vert1 = verts[indices[i + 1]];
+        Vector4 vert2 = verts[indices[i + 2]];
 
         Vector4 a = vert0 - vert1;
         Vector4 b = vert0 - vert2;
@@ -77,9 +77,9 @@ static Model* GenerateTerrain()
         assert(normal.gety() > 0.f);
         normal.normalize();
 
-        normals[indices[i+0]] += normal;
-        normals[indices[i+1]] += normal;
-        normals[indices[i+2]] += normal;
+        normals[indices[i + 0]] += normal;
+        normals[indices[i + 1]] += normal;
+        normals[indices[i + 2]] += normal;
     }
     // Normalize at the end, since any index could potentially modify any normal.
     for (Vector4& normal : normals) {
@@ -103,15 +103,15 @@ static Model* GenerateTerrain()
 
     RenderBuffers renderBuffers;
     *renderBuffers.getVertices() = std::move(verts);
-    *renderBuffers.getIndices()  = std::move(indices);
-    *renderBuffers.getNormals()  = std::move(normals);
+    *renderBuffers.getIndices() = std::move(indices);
+    *renderBuffers.getNormals() = std::move(normals);
     *renderBuffers.getTextures() = std::move(texs);
     // This is a relatively expensive copy, and I don't think we need it. (???)
     // *renderBuffers.getDebugNormals() = *renderBuffers.getNormals();
 
     Model* pModel = new Model(Factory::_viewEventWrapper,
-                              std::move(renderBuffers),
-                              new StaticShader("staticTerrainShader"));
+        std::move(renderBuffers),
+        new StaticShader("staticTerrainShader"));
     // We use this texture for its strides - the actualy texture loaded doesn't matter.
     // ***THIS MUST NOT HAVE AN ALPHA CHANNEL!***.
     // The existance of an alpha channel triggers extra functionality that we do not want.
@@ -132,12 +132,12 @@ static Model* GenerateTrees()
     constexpr int minZ = 80;
     constexpr int maxZ = 110;
 
-    constexpr float trunkSize  = 0.012f;
+    constexpr float trunkSize = 0.012f;
     constexpr float treeHeight = trunkSize * 20.f;
 
     constexpr float delta = trunkSize * 100.f;
-    constexpr int deltaX  = maxX - minX + 1;
-    constexpr int deltaZ  = maxZ - minZ + 1;
+    constexpr int deltaX = maxX - minX + 1;
+    constexpr int deltaZ = maxZ - minZ + 1;
 
     std::vector<Vector4> offsets;
     for (float x = minX; x <= maxX; x += delta) {
@@ -147,8 +147,8 @@ static Model* GenerateTrees()
             if (!(0.25 < y && y < 1.6)) {
                 continue;
             }
-            float offsetX =  x - ((110 - 50) / 2.f + 50 + (maxX - minX) / 2);
-            float offsetZ =  z - ((110 - 50) / 2.f + 50 + (maxZ - minZ) / 2);
+            float offsetX = x - ((110 - 50) / 2.f + 50 + (maxX - minX) / 2);
+            float offsetZ = z - ((110 - 50) / 2.f + 50 + (maxZ - minZ) / 2);
             offsets.push_back(Vector4(offsetX, y, offsetZ, 0.0));
         }
     }

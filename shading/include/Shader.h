@@ -16,7 +16,7 @@
 */
 
 /**
-*  Shader class. Basic shader class that is responsible only for compilation and 
+*  Shader class. Basic shader class that is responsible only for compilation and
 *  storing the gl context of the shader
 */
 
@@ -35,16 +35,16 @@ class Shader {
 
 protected:
     GLuint       _shaderContext; //keeps track of the shader context
-	std::string  _vertexShaderName;
+    std::string  _vertexShaderName;
     std::string  _fragmentShaderName;
     unsigned int _compile(char* filename, unsigned int type);
-    void         _link(unsigned int vertexSH, unsigned int fragmentSH, 
-                       unsigned int geomSH, unsigned int computeSH);
+    void         _link(unsigned int vertexSH, unsigned int fragmentSH,
+        unsigned int geomSH, unsigned int computeSH);
     void         _build();
 
 public:
     Shader(std::string vertexShaderName, std::string fragmentShaderName = "");
     virtual      ~Shader();
     GLint        getShaderContext();
-    
+
 };

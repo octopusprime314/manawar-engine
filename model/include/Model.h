@@ -53,14 +53,14 @@ enum class GeometryType {
 using TextureMetaData = std::vector<std::pair<std::string, int>>;
 
 class Model : public UpdateInterface {
-    
+
 public:
 
     Model(ViewManagerEvents* eventWrapper, RenderBuffers& renderBuffers, StaticShader* pStaticShader);
 
     Model(ViewManagerEvents* eventWrapper, ModelClass classId = ModelClass::ModelType)
-    : UpdateInterface(eventWrapper),
-      _classId(classId)
+        : UpdateInterface(eventWrapper),
+        _classId(classId)
     {}
 
     //Default model to type to base class

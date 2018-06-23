@@ -42,9 +42,9 @@ public:
     StaticShader(std::string shaderName);
     virtual ~StaticShader();
     virtual void runShader(Model* model);
-    GLint        getViewLocation();
-    GLint        getModelLocation();
-    GLint        getProjectionLocation();
-    GLint        getNormalLocation();
-    GLint        getTextureLocation();
+    GLint       getViewLocation();
+    GLint       getModelLocation();
+    GLint       getProjectionLocation();
+    GLint       getNormalLocation();
+    GLint       getTextureLocation();
 };

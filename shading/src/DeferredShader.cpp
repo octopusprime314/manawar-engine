@@ -3,11 +3,11 @@
 DeferredShader::DeferredShader(std::string shaderName) : Shader(shaderName) {
     glCheck();
 
-	//Build 2 triangles for screen space quad
-	const float length = 1.0f;
+    //Build 2 triangles for screen space quad
+    const float length = 1.0f;
     const float depth = 0.0f;
     //2 triangles in screen space
-    float triangles[] = {-length, -length, depth,
+    float triangles[] = { -length, -length, depth,
                          -length, length, depth,
                          length, length, depth,
 
@@ -21,7 +21,7 @@ DeferredShader::DeferredShader(std::string shaderName) : Shader(shaderName) {
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     //2 texture coordinates in screen space
-    float textures[] = {  0.0, 0.0,
+    float textures[] = { 0.0, 0.0,
                           0.0, 1.0,
                           1.0, 1.0,
 
@@ -100,12 +100,12 @@ DeferredShader::~DeferredShader() {
 }
 
 void DeferredShader::runShader(ShadowRenderer* shadowRenderer,
-							   std::vector<Light*>& lights,
-							   ViewManager* viewManager,
-							   MRTFrameBuffer& mrtFBO,
-                               PointShadowMap* pointShadowMap,
-                               SSAO* ssao,
-                               EnvironmentMap* environmentMap) {
+    std::vector<Light*>& lights,
+    ViewManager* viewManager,
+    MRTFrameBuffer& mrtFBO,
+    PointShadowMap* pointShadowMap,
+    SSAO* ssao,
+    EnvironmentMap* environmentMap) {
     //Take the generated texture data and do deferred shading
     //LOAD IN SHADER
     glUseProgram(_shaderContext); //use context for loaded shader
@@ -149,7 +149,7 @@ void DeferredShader::runShader(ShadowRenderer* shadowRenderer,
     glUniform3fv(_pointLightPositionsLocation, static_cast<GLsizei>(pointLights), lightPosArray);
     glUniform3fv(_pointLightColorsLocation, static_cast<GLsizei>(pointLights), lightColorsArray);
     glUniform1fv(_pointLightRangesLocation, static_cast<GLsizei>(pointLights), lightRangesArray);
-    delete [] lightPosArray;  delete [] lightColorsArray; delete[] lightRangesArray;
+    delete[] lightPosArray;  delete[] lightColorsArray; delete[] lightRangesArray;
 
     //Change of basis from camera view position back to world position
     MVP lightMVP = lights[0]->getLightMVP();
@@ -232,7 +232,7 @@ void DeferredShader::runShader(ShadowRenderer* shadowRenderer,
     glBindTexture(GL_TEXTURE_CUBE_MAP, _skyBoxNightTexture->getContext());
 
     glActiveTexture(GL_TEXTURE8);
-    glBindTexture(GL_TEXTURE_2D, ssao->getBlur()->getBlurTexture());
+    glBindTexture(GL_TEXTURE_2D, ssao->getBlur()->getTextureContext());
 
     /*glActiveTexture(GL_TEXTURE9);
     glBindTexture(GL_TEXTURE_CUBE_MAP, environmentMap->getCubeMapTexture());*/

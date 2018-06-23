@@ -57,7 +57,6 @@ std::vector<float>* SkinningData::getWeights() {
 std::vector<Matrix>* SkinningData::getFrameVertexTransforms() {
     return &_frameVertexTransforms;
 }
-int SkinningData::getIndexOffset(){
+int SkinningData::getIndexOffset() {
     return _indexOffset;
 }
-

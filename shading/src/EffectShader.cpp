@@ -102,7 +102,7 @@ void EffectShader::runShader(Effect* effectObject, float seconds) {
     else if (effectObject->getType() == EffectType::Smoke) {
 
         //Pass game time to shader
-        glUniform1f(_timeLocation, seconds/4.0f);
+        glUniform1f(_timeLocation, seconds / 4.0f);
 
         Light* light = static_cast<Light*>(effectObject);
         auto lightMVP = light->getLightMVP();
@@ -134,7 +134,7 @@ void EffectShader::runShader(Effect* effectObject, float seconds) {
         auto inverseViewNoTrans = viewNoTrans.inverse();
         glUniformMatrix4fv(_inverseViewLocation, 1, GL_TRUE, inverseViewNoTrans.getFlatBuffer());
     }
-    else if(effectObject->getType() == EffectType::Water) {
+    else if (effectObject->getType() == EffectType::Water) {
 
         //Pass game time to shader
         glUniform1f(_timeLocation, seconds);
@@ -154,7 +154,7 @@ void EffectShader::runShader(Effect* effectObject, float seconds) {
         viewNoTrans.getFlatBuffer()[11] = 0.0;
 
         auto modelView = cameraMVP.getViewMatrix() * Matrix::cameraRotationAroundX(90.0f)
-           * Matrix::translation(20.0f, -40.0f, -1.0f)
+            * Matrix::translation(20.0f, -40.0f, -1.0f)
             * Matrix::scale(100.0f); //add to z component of translation to lower water line.
 
         glUniformMatrix4fv(_modelViewLocation, 1, GL_TRUE, modelView.getFlatBuffer());

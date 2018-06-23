@@ -16,7 +16,7 @@
 */
 
 /**
-*  ShadowAnimatedPointShader class. Uses vertex, geometry and fragment shader to generate 
+*  ShadowAnimatedPointShader class. Uses vertex, geometry and fragment shader to generate
 *  a texture cube map containing depth information around a single point in space
 */
 

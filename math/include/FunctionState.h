@@ -17,7 +17,7 @@
 
 /**
 *  FunctionState class. Takes a lamda as an mathematical expression
-*  and keeps track of the state of the function.  For example if a 
+*  and keeps track of the state of the function.  For example if a
 *  function f(t) is created for an acceleration model then internally
 *  time must be kept track of.
 */
@@ -33,18 +33,18 @@
 #include <chrono>
 #include "Vector4.h"
 
-class FunctionState{
-	
-	std::thread _lambdaThread; //Lambda thread
+class FunctionState {
+
+    std::thread _lambdaThread; //Lambda thread
     bool        _terminate;
 public:
 
-	FunctionState(std::function<void(Vector4)> functionPointer, std::function<Vector4(float)> equationLambda,
-        int milliseconds, int duration = INT_MAX) : _terminate(false){ 
+    FunctionState(std::function<void(Vector4)> functionPointer, std::function<Vector4(float)> equationLambda,
+        int milliseconds, int duration = INT_MAX) : _terminate(false) {
 
         //time, function pointer and milliseconds timer update
         _lambdaThread = std::thread([=]() {
-       
+
             Vector4 ft(0.0, 0.0, 0.0, 1.0);
             int t = 0;
             float scalar = 1.0f;
@@ -66,11 +66,11 @@ public:
                 t += milliseconds;
 
             } while (t < duration && !_terminate); //Stop updates and kill lambda thread when equation has reached a threshold value
-            
+
             functionPointer(Vector4(0.0f, 0.0f, 0.0f, 1.0f)); //kill acceleration
         });
-	}
-    ~FunctionState(){
+    }
+    ~FunctionState() {
         _terminate = true;
         _lambdaThread.join();
     }

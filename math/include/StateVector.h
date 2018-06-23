@@ -50,7 +50,7 @@ public:
     Vector4 getAngularAcceleration();
     Vector4 getForce(); //get linear force
     Vector4 getTorque(); //get angular force
-    bool    getContact(); 
+    bool    getContact();
     float   getMass(); // get mass of object
     bool    getActive(); //get whether an object is in motion or not
     void    setActive(bool active); //set whether an object is in motion or not

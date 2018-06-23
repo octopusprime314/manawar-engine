@@ -49,7 +49,7 @@ void OSP::generateOSP(std::vector<Model*>& models) {
     _buildOctetTree(_octTree.getRoot()->getData(), node);
 }
 
-void OSP::updateOSP(std::vector<Model*>& models){
+void OSP::updateOSP(std::vector<Model*>& models) {
 
     //Go through all of the models and populate
     for (auto model : models) {
@@ -87,7 +87,7 @@ bool OSP::_insertSphereSubspaces(Model* model, Sphere& sphere, OctNode<Cube*>* n
     for (int i = 0; i < 8; ++i) {
 
         //If the sphere is in this cube then keep looking in the subdivision tree
-        if(childrenNodes[i] != nullptr && GeometryMath::sphereCubeDetection(&sphere, childrenNodes[i]->getData())) {
+        if (childrenNodes[i] != nullptr && GeometryMath::sphereCubeDetection(&sphere, childrenNodes[i]->getData())) {
 
             //Recursively call until end of tree is found
             if (!_insertSphereSubspaces(model, sphere, childrenNodes[i])) {
@@ -95,7 +95,7 @@ bool OSP::_insertSphereSubspaces(Model* model, Sphere& sphere, OctNode<Cube*>* n
                 inserted = true;
             }
             //Add geometry to model
-            childrenNodes[i]->addGeometry(model,&sphere);
+            childrenNodes[i]->addGeometry(model, &sphere);
         }
     }
     return inserted;

@@ -1,9 +1,10 @@
-#version 330
-in vec4 FragPos;
+#version 430
 
 uniform vec3 lightPos;
 uniform float farPlane;
 out float fragColor;
+in vec4 FragPos;
+
 void main()
 {
     // get distance between fragment and light source

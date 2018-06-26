@@ -26,17 +26,6 @@
 
 class EnvironmentShader : public Shader {
 
-protected:
-    GLint        _modelViewProjectionLocation;
-    GLint        _normalLocation;
-    GLint        _textureLocation;
-    GLint        _tex0Location;
-    GLint        _tex1Location;
-    GLint        _tex2Location;
-    GLint        _tex3Location;
-    GLint        _alphatex0Location;
-    GLint        _layeredSwitchLocation;
-    GLint        _cubeTransformsLocation;
 public:
     EnvironmentShader(std::string shaderName);
     virtual ~EnvironmentShader();

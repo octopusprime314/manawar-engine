@@ -2,17 +2,13 @@
 #include "Font.h"
 #include "TextureBroker.h"
 
-FontShader::FontShader(std::string shaderName) : Shader(shaderName)
-{
-    _textureLocation = glGetUniformLocation(_shaderContext, "tex");
+FontShader::FontShader(std::string shaderName) : Shader(shaderName) {
 }
 
-FontShader::~FontShader()
-{
+FontShader::~FontShader() {
 }
 
-void FontShader::runShader(GLuint vao, std::string& s)
-{
+void FontShader::runShader(GLuint vao, std::string& s) {
     TextureBroker* pTb = TextureBroker::instance();
     Texture* tex = pTb->getTexture("../assets/textures/font/ubuntu_mono_regular_0.png");
 
@@ -20,17 +16,8 @@ void FontShader::runShader(GLuint vao, std::string& s)
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     glUseProgram(_shaderContext); //use context for loaded shader
-    glCheck();
-    glUniform1i(_textureLocation, 0);
-    glCheck();
 
-    glActiveTexture(GL_TEXTURE0);
-    if (tex != nullptr)
-    {
-        glBindTexture(GL_TEXTURE_2D, tex->getContext());
-    }
-
-    glCheck();
+    updateUniform("tex", GL_TEXTURE0, tex->getContext(), GL_TEXTURE_2D);
 
     glBindVertexArray(vao);
     glDrawArrays(GL_TRIANGLES, 0, 6 * static_cast<GLsizei>(s.size()));

@@ -27,7 +27,6 @@
 
 class ShadowAnimatedShader : public ShadowStaticShader {
 
-    GLint       _bonesLocation;
 public:
     ShadowAnimatedShader(std::string shaderName);
     virtual     ~ShadowAnimatedShader();

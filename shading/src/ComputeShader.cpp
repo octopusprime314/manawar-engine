@@ -18,8 +18,6 @@ void ComputeShader::runShader(GLuint writeTexture, GLuint readTexture, Format fo
 
     //Bind read textures
     glUniform1i(_readTextureLocation, 0);
-    glActiveTexture(GL_TEXTURE0);
-
     if (format == Format::RGBUB || format == Format::RGBF) {
         glBindImageTexture(0, readTexture, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA8);
     }

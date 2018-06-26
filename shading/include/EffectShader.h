@@ -30,21 +30,9 @@ class ViewManager;
 
 class EffectShader : public Shader {
 
-protected:
-    GLint       _timeLocation;
-    GLint       _lightPosLocation;
-    GLint       _modelViewLocation;
-    GLint       _projectionLocation;
-    GLint       _inverseViewLocation;
-    GLint       _fireTypeLocation;
-    GLint       _farPlaneLocation;
-    GLint       _noiseTextureLocation;
-    GLuint      _vaoContext;
-    GLuint      _quadBufferContext;
-    GLint       _normalLocation;
-    GLint       _fireColorLocation;
+    GLuint       _vaoContext;
 public:
     EffectShader(std::string shaderName);
-    virtual ~EffectShader();
+    virtual      ~EffectShader();
     virtual void runShader(Effect* effectObject, float seconds);
 };

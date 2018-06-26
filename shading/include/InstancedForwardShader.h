@@ -29,12 +29,9 @@ class PointShadowMap;
 
 class InstancedForwardShader : public ForwardShader {
 
-protected:
-    GLint       _offsetsLocation;
 public:
     InstancedForwardShader(std::string shaderName);
     virtual ~InstancedForwardShader();
     virtual void runShader(Model* model, ViewManager* viewManager, ShadowRenderer* shadowRenderer,
         std::vector<Light*>& lights, PointShadowMap* pointShadowMap);
-    void setInstances(std::vector<Vector4> offsets);
 };

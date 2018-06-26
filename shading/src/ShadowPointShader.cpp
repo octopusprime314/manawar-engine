@@ -2,11 +2,6 @@
 
 ShadowPointShader::ShadowPointShader(std::string shaderName) : Shader(shaderName) {
 
-    _modelLocation = glGetUniformLocation(_shaderContext, "model");
-    _viewLocation = glGetUniformLocation(_shaderContext, "view");
-    _lightCubeTransformsLocation = glGetUniformLocation(_shaderContext, "shadowMatrices");
-    _lightPosLocation = glGetUniformLocation(_shaderContext, "lightPos");
-    _farPlaneLocation = glGetUniformLocation(_shaderContext, "farPlane");
 }
 
 ShadowPointShader::~ShadowPointShader() {
@@ -26,10 +21,10 @@ void ShadowPointShader::runShader(Model* model, Light* light, std::vector<Matrix
     glBindVertexArray(vao->getVAOShadowContext());
 
     //glUniform mat4 combined model and world matrix, GL_TRUE is telling GL we are passing in the matrix as row major
-    glUniformMatrix4fv(_modelLocation, 1, GL_TRUE, modelMVP->getModelBuffer());
+    updateUniform("model", modelMVP->getModelBuffer());
 
-    //glUniform mat4 combined model and world matrix, GL_TRUE is telling GL we are passing in the matrix as row major
-    glUniformMatrix4fv(_viewLocation, 1, GL_TRUE, modelMVP->getViewBuffer());
+    //glUniform mat4 view matrix, GL_TRUE is telling GL we are passing in the matrix as row major
+    updateUniform("view", modelMVP->getViewBuffer());
 
     float* lightCubeTransforms = new float[6 * 16];
     int index = 0;
@@ -41,19 +36,19 @@ void ShadowPointShader::runShader(Model* model, Light* light, std::vector<Matrix
     }
     //glUniform mat4 light cube map transforms, GL_TRUE is telling GL we are passing in the matrix as row major
     //6 faces and each transform is 16 floats in a 4x4 matrix
-    glUniformMatrix4fv(_lightCubeTransformsLocation, 6, GL_TRUE, lightCubeTransforms);
+    updateUniform("shadowMatrices[0]", lightCubeTransforms);
     delete[] lightCubeTransforms;
 
     //Set light position for point light
-    auto lightPos = light->getPosition();
-    glUniform3f(_lightPosLocation, lightPos.getx(), lightPos.gety(), lightPos.getz());
+    auto lightPos = light->getPosition().getFlatBuffer();
+    updateUniform("lightPos", lightPos);
 
     //Set far plane for depth scaling
     //Quick trick to get far value out of projection matrix
     auto projMatrix = lightMVP.getProjectionBuffer();
     float nearVal = (2.0f*projMatrix[11]) / (2.0f*projMatrix[10] - 2.0f);
     float farVal = ((projMatrix[10] - 1.0f)*nearVal) / (projMatrix[10] + 1.0f);
-    glUniform1f(_farPlaneLocation, farVal);
+    updateUniform("farPlane", &farVal);
 
     auto textureStrides = model->getTextureStrides();
     unsigned int verticesSize = 0;

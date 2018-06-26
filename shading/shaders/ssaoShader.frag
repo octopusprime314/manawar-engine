@@ -1,7 +1,10 @@
 #version 330
 
 out vec4 fragColor;
-in vec2 texCoord;
+in VsData
+{
+	vec2 texCoord;
+} vsData;
 
 uniform sampler2D positionTexture;
 uniform sampler2D normalTexture;
@@ -18,11 +21,11 @@ void main()
 	int kernelSize = 64;
 	float radius   = 5.0;
 	float bias     = 0.05;
-    vec3 fragPos   = texture(positionTexture, texCoord).xyz;
+    vec3 fragPos   = texture(positionTexture, vsData.texCoord).xyz;
 	
 	if(fragPos.x != 0.0 && fragPos.y != 0.0 && fragPos.z != 0.0){
-		vec3 normal    = texture(normalTexture, texCoord).rgb;
-		vec3 randomVec = texture(noiseTexture, texCoord * noiseScale).xyz;  
+		vec3 normal    = texture(normalTexture, vsData.texCoord).rgb;
+		vec3 randomVec = texture(noiseTexture, vsData.texCoord * noiseScale).xyz;  
 
 		vec3 tangent   = normalize(randomVec - normal * dot(randomVec, normal));
 		vec3 bitangent = cross(normal, tangent);

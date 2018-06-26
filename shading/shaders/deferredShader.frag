@@ -1,4 +1,4 @@
-#version 330
+#version 430
 
 uniform sampler2D diffuseTexture;   //Diffuse texture data array
 uniform sampler2D normalTexture;    //Normal texture data array
@@ -11,8 +11,6 @@ uniform samplerCube skyboxNightTexture;	//skybox night
 uniform sampler2D   ssaoTexture;      //depth texture data array with values 1.0 to 0.0, with 0.0 being closer
 //uniform samplerCube environmentMapTexture;      //depth texture data array with values 1.0 to 0.0, with 0.0 being closer
 
-in vec3 vsViewDirection;
-
 uniform mat4 lightViewMatrix;     	//Light perspective's view matrix
 uniform mat4 lightMapViewMatrix;    //Light perspective's view matrix
 uniform mat4 viewToModelMatrix;		//Inverse camera view space matrix
@@ -23,10 +21,14 @@ uniform float pointLightRanges[20];//max lights is 20 for now
 uniform int  numPointLights;
 
 uniform int views;   //views set to 0 is diffuse mapping, set to 1 is shadow mapping and set to 2 is normal mapping
-
 uniform vec3 light;  
 uniform float farPlane;
-in vec2 textureCoordinateOut; // Passthrough
+
+in VsData
+{
+	vec2 texCoordOut; 
+	vec3 vsViewDirection;
+} vsData;
 
 vec2 poissonDisk[4] = vec2[](
   vec2( -0.94201624, -0.39906216 ),
@@ -42,13 +44,13 @@ out vec4 fragColor;
 void main(){
 
 	//extract position from position texture
-	vec4 position = texture(positionTexture, textureCoordinateOut.xy);
+	vec4 position = texture(positionTexture, vsData.texCoordOut.xy);
 	//extract normal from normal texture
-	vec3 normalizedNormal = normalize(texture(normalTexture, textureCoordinateOut.xy).xyz); 
+	vec3 normalizedNormal = normalize(texture(normalTexture, vsData.texCoordOut.xy).xyz); 
 	//extract color from diffuse texture
-	vec4 diffuse = texture(diffuseTexture, textureCoordinateOut.xy);
+	vec4 diffuse = texture(diffuseTexture, vsData.texCoordOut.xy);
 	
-	float occlusion = texture(ssaoTexture, textureCoordinateOut.xy).r;
+	float occlusion = texture(ssaoTexture, vsData.texCoordOut.xy).r;
 	
 	if(position.x != 0.0 && position.y != 0.0 && position.z != 0.0){
 		gl_FragDepth = (length(position.xyz)/farPlane) / 2.0f;
@@ -74,8 +76,8 @@ void main(){
 
 	if(views == 0 || views == 8){
 		if(position.x == 0.0 && position.y == 0.0 && position.z == 0.0){
-			vec4 dayColor = texture(skyboxDayTexture, vec3(vsViewDirection.x, -vsViewDirection.y, vsViewDirection.z));
-			vec4 nightColor = texture(skyboxNightTexture, vec3(vsViewDirection.x, -vsViewDirection.y, vsViewDirection.z));
+			vec4 dayColor = texture(skyboxDayTexture, vec3(vsData.vsViewDirection.x, -vsData.vsViewDirection.y, vsData.vsViewDirection.z));
+			vec4 nightColor = texture(skyboxNightTexture, vec3(vsData.vsViewDirection.x, -vsData.vsViewDirection.y, vsData.vsViewDirection.z));
 			fragColor = (((1.0 - light.y)/2.0) * dayColor) + (((1.0 + light.y)/2.0) * nightColor);
 		}
 		else {
@@ -167,7 +169,7 @@ void main(){
 		fragColor = vec4(occlusion, occlusion, occlusion, 1.0); 
 	}
 	else if(views == 5){
-		float depth = texture(mapDepthTexture, textureCoordinateOut).x;
+		float depth = texture(mapDepthTexture, vsData.texCoordOut).x;
 		fragColor = vec4(depth, depth, depth, 1.0);
 	}
 	else if(views == 6){
@@ -176,6 +178,6 @@ void main(){
 		fragColor = vec4(vec3(cubeDepth), 1.0);
 	}
 	else if(views == 7){
-		//fragColor = vec4(texture(environmentMapTexture, vec3(vsViewDirection.x, vsViewDirection.y, vsViewDirection.z)).rgb, 1.0);
+		//fragColor = vec4(texture(environmentMapTexture, vec3(vsData.vsViewDirection.x, vsData.vsViewDirection.y, vsData.vsViewDirection.z)).rgb, 1.0);
 	}
 }

@@ -1,5 +1,4 @@
-#version 330
-
+#version 430
 in vec4 FragPos;
 in vec2 textureCoordinateOut;// Texture coordinate
 out vec4 fragColor;

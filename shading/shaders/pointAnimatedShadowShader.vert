@@ -1,4 +1,4 @@
-#version 330
+#version 430
 
 layout(location = 0) in vec3 vertexIn;			   // Each vertex supplied 
 layout(location = 1) in vec4 indexes1;              // First 4 bone indexes
@@ -6,9 +6,7 @@ layout(location = 2) in vec4 indexes2;              // Second 4 bone indexes
 layout(location = 3) in vec4 weights1;              // First 4 bone weights
 layout(location = 4) in vec4 weights2;              // Second 4 bone weights
 
-uniform mat4 view;		 // View transformation matrix
 uniform mat4 model;		 // Model and World transformation matrix
-
 uniform mat4 bones[150]; // 150 maximum bones for an animation
 
 void main(){

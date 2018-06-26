@@ -26,12 +26,6 @@
 
 class ShadowPointShader : public Shader {
 
-protected:
-    GLint        _viewLocation;
-    GLint        _modelLocation;
-    GLint        _lightCubeTransformsLocation;
-    GLint        _lightPosLocation;
-    GLint        _farPlaneLocation;
 public:
     ShadowPointShader(std::string shaderName);
     virtual      ~ShadowPointShader();

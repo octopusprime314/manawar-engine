@@ -30,26 +30,6 @@ class PointShadowMap;
 
 class ForwardShader : public Shader {
 
-protected:
-    GLint _viewLocation;
-    GLint _modelLocation;
-    GLint _projectionLocation;
-    GLint _normalLocation;
-    GLint _textureLocation;
-    GLint _farPlaneLocation;
-    GLuint _lightLocation;
-    GLuint _lightViewLocation;
-    GLuint _lightMapViewLocation;
-    GLuint _viewsLocation;
-    GLuint _pointLightCountLocation;
-    GLuint _pointLightPositionsLocation;
-    GLuint _pointLightColorsLocation;
-    GLuint _pointLightRangesLocation;
-    GLuint _pointLightDepthMapLocation;
-    GLuint _viewToModelSpaceMatrixLocation;
-    GLuint _cameraDepthTextureLocation;
-    GLuint _mapDepthTextureLocation;
-
 public:
     ForwardShader(std::string vertexShaderName, std::string fragmentShaderName = "");
     ~ForwardShader();

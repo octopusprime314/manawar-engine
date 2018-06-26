@@ -1,14 +1,17 @@
-#version 330
+#version 430
 
 uniform sampler2D tex0;
 uniform sampler2D tex1;
 uniform sampler2D tex2;
 uniform sampler2D tex3;
 
-in vec3 normalOut;
-in vec3 texOut;
-in vec3 positionOut;
-in vec2 texCoordOut;
+in VsData
+{
+	vec3 normalOut;
+	vec3 texOut;
+	vec3 positionOut;
+	vec2 texCoordOut;
+}  vsData;
 
 layout(location = 0) out vec4 color4;
 layout(location = 1) out vec4 normal4;
@@ -77,14 +80,14 @@ void main(){
 	//float mapWidth = 14.0;
 	//float mapHeight = 35.0;
 	//transform position to uv indexing
-	//float texCoordX = (texOut.x + mapWidth/2.0)/mapWidth;
-	//float texCoordY = (texOut.y + mapHeight/2.0)/mapHeight;
-	vec3 c_sand   = texture(tex0, texCoordOut*5.0).rgb * texture(tex0, texCoordOut*150.0).rgb;
-    vec3 c_grass1 = texture(tex1, texCoordOut*5.0).rgb * texture(tex1, texCoordOut*150.0).rgb;
-    vec3 c_grass2 = texture(tex1, texCoordOut*5.0).rgb * texture(tex1, texCoordOut*150.0).rgb;
-    vec3 c_rock1  = texture(tex2, texCoordOut*5.0).rgb * texture(tex2, texCoordOut*150.0).rgb;
-    vec3 c_rock2  = texture(tex2, texCoordOut*5.0).rgb * texture(tex2, texCoordOut*150.0).rgb;
-	vec3 c_snow   = texture(tex3, texCoordOut*5.0).rgb * texture(tex3, texCoordOut*150.0).rgb;
+	//float texCoordX = (vsData.texOut.x + mapWidth/2.0)/mapWidth;
+	//float texCoordY = (vsData.texOut.y + mapHeight/2.0)/mapHeight;
+	vec3 c_sand   = texture(tex0, vsData.texCoordOut*5.0).rgb * texture(tex0, vsData.texCoordOut*150.0).rgb;
+    vec3 c_grass1 = texture(tex1, vsData.texCoordOut*5.0).rgb * texture(tex1, vsData.texCoordOut*150.0).rgb;
+    vec3 c_grass2 = texture(tex1, vsData.texCoordOut*5.0).rgb * texture(tex1, vsData.texCoordOut*150.0).rgb;
+    vec3 c_rock1  = texture(tex2, vsData.texCoordOut*5.0).rgb * texture(tex2, vsData.texCoordOut*150.0).rgb;
+    vec3 c_rock2  = texture(tex2, vsData.texCoordOut*5.0).rgb * texture(tex2, vsData.texCoordOut*150.0).rgb;
+	vec3 c_snow   = texture(tex3, vsData.texCoordOut*5.0).rgb * texture(tex3, vsData.texCoordOut*150.0).rgb;
 	
 	/*//Start as white texture
 	vec3 lerpComponent = vec3(1.0, 1.0, 1.0);
@@ -98,8 +101,8 @@ void main(){
     // Coordinate this with `::ScaleNoiseToTerrainHeight()`
     float min = -2.0;
     float max =  1.7;
-    float wiggle = 0.1 * snoise(texOut.xz);
-    float height = texOut.y + wiggle;
+    float wiggle = 0.1 * snoise(vsData.texOut.xz);
+    float height = vsData.texOut.y + wiggle;
 
 	float heightWiggle = 0.25;
 	
@@ -128,7 +131,6 @@ void main(){
     }
 
     color4    = vec4(color3, 1.0);
-	//color4    = vec4(color3/255.0, 1.0);
-    normal4   = vec4(normalize(normalOut), 1.0);
-    position4 = vec4(positionOut.xyz, 1.0);
+    normal4   = vec4(normalize(vsData.normalOut), 1.0);
+    position4 = vec4(vsData.positionOut.xyz, 1.0);
 }

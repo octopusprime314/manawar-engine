@@ -25,7 +25,6 @@
 class FontRenderer;
 
 class FontShader : public Shader {
-    GLint  _textureLocation;
     GLuint _vaoContext;
 public:
     FontShader(std::string shaderName);

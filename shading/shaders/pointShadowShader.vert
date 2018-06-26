@@ -1,9 +1,8 @@
-#version 330
+#version 430
 
-layout(location = 0) in vec3 vertexIn;			   // Each vertex supplied 
+layout(location = 0) in vec3 vertexIn; // Each vertex supplied 
 
-uniform mat4 view;		 // View transformation matrix
-uniform mat4 model;		 // Model and World transformation matrix
+uniform mat4 model; // Model and World transformation matrix
 
 void main(){
 	// The vertex is first transformed by the model and world, then 

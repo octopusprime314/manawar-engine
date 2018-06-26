@@ -5,13 +5,6 @@
 #include "MVP.h"
 
 SSAOShader::SSAOShader() : Shader("ssaoShader") {
-
-    _positionTextureLocation = glGetUniformLocation(_shaderContext, "positionTexture");
-    _normalTextureLocation = glGetUniformLocation(_shaderContext, "normalTexture");
-    _noiseTextureLocation = glGetUniformLocation(_shaderContext, "noiseTexture");
-    _kernelLocation = glGetUniformLocation(_shaderContext, "kernel");
-    _projectionLocation = glGetUniformLocation(_shaderContext, "projection");
-
     glGenVertexArrays(1, &_dummyVAO);
 }
 
@@ -26,9 +19,8 @@ void SSAOShader::runShader(SSAO* ssao, MRTFrameBuffer* mrtBuffer, ViewManager* v
 
     glBindVertexArray(_dummyVAO);
 
-    //glUniform mat4 projection matrix, GL_TRUE is telling GL we are passing in the matrix as row major
-    glUniformMatrix4fv(_projectionLocation, 1, GL_TRUE, viewManager->getProjection().getFlatBuffer());
-
+    updateUniform("projection", viewManager->getProjection().getFlatBuffer());
+    
     auto kernel = ssao->getKernel();
 
     float* kernelArray = new float[3 * kernel.size()];
@@ -40,22 +32,14 @@ void SSAOShader::runShader(SSAO* ssao, MRTFrameBuffer* mrtBuffer, ViewManager* v
         }
     }
 
-    glUniform3fv(_kernelLocation, static_cast<GLsizei>(kernel.size()), kernelArray);
+    updateUniform("kernel[0]", kernelArray);
     delete[] kernelArray;
 
     auto textures = mrtBuffer->getTextureContexts();
 
-    glUniform1i(_positionTextureLocation, 0);
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, textures[2]);
-
-    glUniform1i(_normalTextureLocation, 1);
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, textures[1]);
-
-    glUniform1i(_noiseTextureLocation, 2);
-    glActiveTexture(GL_TEXTURE2);
-    glBindTexture(GL_TEXTURE_2D, ssao->getNoiseTexture());
+    updateUniform("positionTexture", GL_TEXTURE0, textures[2],             GL_TEXTURE_2D);
+    updateUniform("normalTexture",   GL_TEXTURE1, textures[1],             GL_TEXTURE_2D);
+    updateUniform("noiseTexture",    GL_TEXTURE2, ssao->getNoiseTexture(), GL_TEXTURE_2D);
 
     glDrawArrays(GL_TRIANGLE_STRIP, 0, (GLsizei)4);
 

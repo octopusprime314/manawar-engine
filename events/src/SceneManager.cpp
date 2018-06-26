@@ -80,6 +80,7 @@ SceneManager::SceneManager(int* argc, char** argv,
     //glCheck();
 
     _modelList.push_back(Factory::make<Model>("landscape/landscape.fbx")); //Add a static model to the scene
+    _modelList.push_back(Factory::make<AnimatedModel>("werewolf/werewolf_jump.fbx")); //Add a static model to the scene
 
     //_physics.addModels(_modelList); //Gives physics a pointer to all models which allows access to underlying geometry
     //_physics.run(); //Dispatch physics to start kinematics

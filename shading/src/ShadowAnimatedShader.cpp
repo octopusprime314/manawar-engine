@@ -2,8 +2,6 @@
 
 ShadowAnimatedShader::ShadowAnimatedShader(std::string shaderName) : ShadowStaticShader(shaderName) {
 
-    //glUniform mat4 combined model and world matrix
-    _bonesLocation = glGetUniformLocation(_shaderContext, "bones");
 }
 
 ShadowAnimatedShader::~ShadowAnimatedShader() {
@@ -25,13 +23,13 @@ void ShadowAnimatedShader::runShader(Model* model, Light* light) {
     glBindVertexArray(vao->getVAOShadowContext());
 
     //glUniform mat4 combined model and world matrix, GL_TRUE is telling GL we are passing in the matrix as row major
-    glUniformMatrix4fv(_modelLocation, 1, GL_TRUE, modelMVP->getModelBuffer());
+    updateUniform("model", modelMVP->getModelBuffer());
 
     //glUniform mat4 view matrix, GL_TRUE is telling GL we are passing in the matrix as row major
-    glUniformMatrix4fv(_viewLocation, 1, GL_TRUE, lightMVP.getViewBuffer());
+    updateUniform("view", lightMVP.getViewBuffer());
 
     //glUniform mat4 projection matrix, GL_TRUE is telling GL we are passing in the matrix as row major
-    glUniformMatrix4fv(_projectionLocation, 1, GL_TRUE, lightMVP.getProjectionBuffer());
+    updateUniform("projection", lightMVP.getProjectionBuffer());
 
     //Bone uniforms
     auto bones = animationModel->getBones();
@@ -43,7 +41,7 @@ void ShadowAnimatedShader::runShader(Model* model, Light* light) {
             bonesArray[bonesArrayIndex++] = buff[i];
         }
     }
-    glUniformMatrix4fv(_bonesLocation, static_cast<GLsizei>(bones->size()), GL_TRUE, bonesArray);
+    updateUniform("bones[0]", bonesArray);
     delete[] bonesArray;
 
     auto textureStrides = model->getTextureStrides();

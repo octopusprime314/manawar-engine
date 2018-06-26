@@ -2,87 +2,7 @@
 
 DeferredShader::DeferredShader(std::string shaderName) : Shader(shaderName) {
     glCheck();
-
-    //Build 2 triangles for screen space quad
-    const float length = 1.0f;
-    const float depth = 0.0f;
-    //2 triangles in screen space
-    float triangles[] = { -length, -length, depth,
-                         -length, length, depth,
-                         length, length, depth,
-
-                         -length, -length, depth,
-                         length, length, depth,
-                         length, -length, depth };
-
-    glGenBuffers(1, &_quadBufferContext);
-    glBindBuffer(GL_ARRAY_BUFFER, _quadBufferContext);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 6 * 3, triangles, GL_STATIC_DRAW);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-    //2 texture coordinates in screen space
-    float textures[] = { 0.0, 0.0,
-                          0.0, 1.0,
-                          1.0, 1.0,
-
-                          0.0, 0.0,
-                          1.0, 1.0,
-                          1.0, 0.0 };
-
-    glGenBuffers(1, &_textureBufferContext);
-    glBindBuffer(GL_ARRAY_BUFFER, _textureBufferContext);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 6 * 2, textures, GL_STATIC_DRAW);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-
     glGenVertexArrays(1, &_vaoContext);
-    glBindVertexArray(_vaoContext);
-
-    glBindBuffer(GL_ARRAY_BUFFER, _quadBufferContext);
-
-    //Say that the vertex data is associated with attribute 0 in the context of a shader program
-    //Each vertex contains 3 floats per vertex
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-
-    //Now enable vertex buffer at location 0
-    glEnableVertexAttribArray(0);
-
-    //Bind texture coordinate buff context to current buffer
-    glBindBuffer(GL_ARRAY_BUFFER, _textureBufferContext);
-
-    //Say that the texture coordinate data is associated with attribute 2 in the context of a shader program
-    //Each texture coordinate contains 2 floats per texture
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, 0);
-
-    //Now enable texture buffer at location 2
-    glEnableVertexAttribArray(1);
-
-    glBindVertexArray(0);
-
-    //Manually find the two texture locations for loaded shader
-    _diffuseTextureLocation = glGetUniformLocation(_shaderContext, "diffuseTexture");
-    _normalTextureLocation = glGetUniformLocation(_shaderContext, "normalTexture");
-    _positionTextureLocation = glGetUniformLocation(_shaderContext, "positionTexture");
-    _cameraDepthTextureLocation = glGetUniformLocation(_shaderContext, "cameraDepthTexture");
-    _mapDepthTextureLocation = glGetUniformLocation(_shaderContext, "mapDepthTexture");
-    _lightLocation = glGetUniformLocation(_shaderContext, "light");
-    _lightViewLocation = glGetUniformLocation(_shaderContext, "lightViewMatrix");
-    _lightMapViewLocation = glGetUniformLocation(_shaderContext, "lightMapViewMatrix");
-    _viewsLocation = glGetUniformLocation(_shaderContext, "views");
-    _pointLightCountLocation = glGetUniformLocation(_shaderContext, "numPointLights");
-    _pointLightColorsLocation = glGetUniformLocation(_shaderContext, "pointLightColors");
-    _pointLightRangesLocation = glGetUniformLocation(_shaderContext, "pointLightRanges");
-    _pointLightPositionsLocation = glGetUniformLocation(_shaderContext, "pointLightPositions");
-    _pointLightDepthMapLocation = glGetUniformLocation(_shaderContext, "depthMap");
-    _viewToModelSpaceMatrixLocation = glGetUniformLocation(_shaderContext, "viewToModelMatrix");
-    _farPlaneLocation = glGetUniformLocation(_shaderContext, "farPlane");
-
-    _inverseViewLocation = glGetUniformLocation(_shaderContext, "inverseView");
-    _inverseProjectionLocation = glGetUniformLocation(_shaderContext, "inverseProjection");
-    _skyboxDayTextureLocation = glGetUniformLocation(_shaderContext, "skyboxDayTexture");
-    _skyboxNightTextureLocation = glGetUniformLocation(_shaderContext, "skyboxNightTexture");
-    _ssaoTextureLocation = glGetUniformLocation(_shaderContext, "ssaoTexture");
-    _environmentMapTextureLocation = glGetUniformLocation(_shaderContext, "environmentMapTexture");
-    _bloomTextureLocation = glGetUniformLocation(_shaderContext, "bloomTexture");
 
     //Get skybox texture
     TextureBroker* textureManager = TextureBroker::instance();
@@ -115,7 +35,8 @@ void DeferredShader::runShader(ShadowRenderer* shadowRenderer,
     //Get light view matrix "look at" vector which is located in the third column
     //of the inner rotation matrix at index 2,6,10
     auto viewMatrix = lights[0]->getLightMVP().getViewBuffer();
-    glUniform3f(_lightLocation, viewMatrix[2], viewMatrix[6], viewMatrix[10]);
+    Vector4 lightPosition(viewMatrix[2], viewMatrix[6], viewMatrix[10]);
+    updateUniform("light", lightPosition.getFlatBuffer());
 
     //Get point light positions
     //TODO add max point light constant
@@ -145,10 +66,11 @@ void DeferredShader::runShader(ShadowRenderer* shadowRenderer,
             lightRangesArray[lightRangeIndex++] = light->getRange();
         }
     }
-    glUniform1i(_pointLightCountLocation, static_cast<GLsizei>(pointLights));
-    glUniform3fv(_pointLightPositionsLocation, static_cast<GLsizei>(pointLights), lightPosArray);
-    glUniform3fv(_pointLightColorsLocation, static_cast<GLsizei>(pointLights), lightColorsArray);
-    glUniform1fv(_pointLightRangesLocation, static_cast<GLsizei>(pointLights), lightRangesArray);
+
+    updateUniform("numPointLights", &pointLights);
+    updateUniform("pointLightColors[0]", lightColorsArray);
+    updateUniform("pointLightRanges[0]", lightRangesArray);
+    updateUniform("pointLightPositions[0]", lightPosArray);
     delete[] lightPosArray;  delete[] lightColorsArray; delete[] lightRangesArray;
 
     //Change of basis from camera view position back to world position
@@ -157,8 +79,7 @@ void DeferredShader::runShader(ShadowRenderer* shadowRenderer,
         lightMVP.getViewMatrix() *
         viewManager->getView().inverse();
 
-    //glUniform mat4 view matrix, GL_TRUE is telling GL we are passing in the matrix as row major
-    glUniformMatrix4fv(_lightViewLocation, 1, GL_TRUE, cameraToLightSpace.getFlatBuffer());
+    updateUniform("lightViewMatrix", cameraToLightSpace.getFlatBuffer());
 
     //Change of basis from camera view position back to world position
     MVP lightMapMVP = lights[1]->getLightMVP();
@@ -166,79 +87,38 @@ void DeferredShader::runShader(ShadowRenderer* shadowRenderer,
         lightMapMVP.getViewMatrix() *
         viewManager->getView().inverse();
 
-    //glUniform mat4 view matrix, GL_TRUE is telling GL we are passing in the matrix as row major
-    glUniformMatrix4fv(_lightMapViewLocation, 1, GL_TRUE, cameraToLightMapSpace.getFlatBuffer());
+    updateUniform("lightMapViewMatrix", cameraToLightMapSpace.getFlatBuffer());
 
     //Change of basis from camera view position back to world position
     Matrix viewToModelSpace = viewManager->getView().inverse();
 
-    //glUniform mat4 view matrix, GL_TRUE is telling GL we are passing in the matrix as row major
-    glUniformMatrix4fv(_viewToModelSpaceMatrixLocation, 1, GL_TRUE, viewToModelSpace.getFlatBuffer());
+    updateUniform("viewToModelMatrix", viewToModelSpace.getFlatBuffer());
 
-    //glUniform mat4 view matrix, GL_TRUE is telling GL we are passing in the matrix as row major
-    glUniformMatrix4fv(_inverseViewLocation, 1, GL_TRUE, viewManager->getView().inverse().getFlatBuffer());
-    //glUniform mat4 view matrix, GL_TRUE is telling GL we are passing in the matrix as row major
-    glUniformMatrix4fv(_inverseProjectionLocation, 1, GL_TRUE, viewManager->getProjection().inverse().getFlatBuffer());
+    updateUniform("inverseView", viewManager->getView().inverse().getFlatBuffer());
+    updateUniform("inverseProjection", viewManager->getProjection().inverse().getFlatBuffer());
 
-    glUniform1i(_viewsLocation, static_cast<GLint>(viewManager->getViewState()));
+    auto viewState = viewManager->getViewState();
+    updateUniform("views", &viewState);
 
     auto projMatrix = viewManager->getProjection().getFlatBuffer();
     float nearVal = (2.0f*projMatrix[11]) / (2.0f*projMatrix[10] - 2.0f);
     float farVal = ((projMatrix[10] - 1.0f)*nearVal) / (projMatrix[10] + 1.0f);
-    glUniform1f(_farPlaneLocation, farVal);
+    updateUniform("farPlane", &farVal);
 
     auto textures = mrtFBO.getTextureContexts();
 
-    //glUniform texture
-    glUniform1i(_diffuseTextureLocation, 0);
-    glUniform1i(_normalTextureLocation, 1);
-    glUniform1i(_positionTextureLocation, 2);
-    glUniform1i(_cameraDepthTextureLocation, 3);
-    glUniform1i(_mapDepthTextureLocation, 4);
-    glUniform1i(_pointLightDepthMapLocation, 5);
-    glUniform1i(_skyboxDayTextureLocation, 6);
-    glUniform1i(_skyboxNightTextureLocation, 7);
-    glUniform1i(_ssaoTextureLocation, 8);
-    //glUniform1i(_environmentMapTextureLocation, 9);
-
-    //Diffuse texture
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, textures[0]);
-
-    //Normal texture
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, textures[1]);
-
-    //Position texture
-    glActiveTexture(GL_TEXTURE2);
-    glBindTexture(GL_TEXTURE_2D, textures[2]);
-
-    //Depth texture
-    glActiveTexture(GL_TEXTURE3);
-    glBindTexture(GL_TEXTURE_2D, shadowRenderer->getStaticDepthTexture());
-
-    //Depth texture
-    glActiveTexture(GL_TEXTURE4);
-    glBindTexture(GL_TEXTURE_2D, shadowRenderer->getMapDepthTexture());
-
-    //Depth cube texture map for point lights
-    glActiveTexture(GL_TEXTURE5);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, pointShadowMap->getCubeMapTexture());
-
-    //Skybox day and night textures
-    glActiveTexture(GL_TEXTURE6);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, _skyBoxDayTexture->getContext());
-    glActiveTexture(GL_TEXTURE7);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, _skyBoxNightTexture->getContext());
-
-    glActiveTexture(GL_TEXTURE8);
-    glBindTexture(GL_TEXTURE_2D, ssao->getBlur()->getTextureContext());
-
-    /*glActiveTexture(GL_TEXTURE9);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, environmentMap->getCubeMapTexture());*/
+    updateUniform("diffuseTexture",     GL_TEXTURE0, textures[0],                             GL_TEXTURE_2D);
+    updateUniform("normalTexture",      GL_TEXTURE1, textures[1],                             GL_TEXTURE_2D);
+    updateUniform("positionTexture",    GL_TEXTURE2, textures[2],                             GL_TEXTURE_2D);
+    updateUniform("cameraDepthTexture", GL_TEXTURE3, shadowRenderer->getStaticDepthTexture(), GL_TEXTURE_2D);
+    updateUniform("mapDepthTexture",    GL_TEXTURE4, shadowRenderer->getMapDepthTexture(),    GL_TEXTURE_2D);
+    updateUniform("depthMap",           GL_TEXTURE5, pointShadowMap->getCubeMapTexture(),     GL_TEXTURE_CUBE_MAP);
+    updateUniform("skyboxDayTexture",   GL_TEXTURE6, _skyBoxDayTexture->getContext(),         GL_TEXTURE_CUBE_MAP);
+    updateUniform("skyboxNightTexture", GL_TEXTURE7, _skyBoxNightTexture->getContext(),       GL_TEXTURE_CUBE_MAP);
+    updateUniform("ssaoTexture",        GL_TEXTURE8, ssao->getBlur()->getTextureContext(),    GL_TEXTURE_2D);
 
     //Draw triangles using the bound buffer vertices at starting index 0 and number of vertices
-    glDrawArrays(GL_TRIANGLES, 0, (GLsizei)6);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, (GLsizei)4);
 
     glBindVertexArray(0);
     glBindTexture(GL_TEXTURE_2D, 0); //Unbind texture

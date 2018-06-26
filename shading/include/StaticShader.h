@@ -26,25 +26,8 @@
 
 class StaticShader : public Shader {
 
-protected:
-    GLint       _viewLocation;
-    GLint       _modelLocation;
-    GLint       _projectionLocation;
-    GLint       _normalLocation;
-    GLint       _textureLocation;
-    GLint       _tex0Location;
-    GLint       _tex1Location;
-    GLint       _tex2Location;
-    GLint       _tex3Location;
-    GLint       _alphatex0Location;
-    GLint       _layeredSwitchLocation;
 public:
     StaticShader(std::string shaderName);
     virtual ~StaticShader();
     virtual void runShader(Model* model);
-    GLint       getViewLocation();
-    GLint       getModelLocation();
-    GLint       getProjectionLocation();
-    GLint       getNormalLocation();
-    GLint       getTextureLocation();
 };

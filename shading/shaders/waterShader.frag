@@ -1,4 +1,4 @@
-#version 330
+#version 430
 
 // Water + Terrain shader   
 // 10/2014 Created by Frank Hugenroth /frankenburgh/
@@ -28,15 +28,16 @@ vec3 light;
 uniform sampler2D noiseTexture;
 uniform float time;
 uniform mat4 normal;     // Normal matrix
-in vec2 texCoordOut;
-in vec3 positionOut;
+
+in VsData
+{
+	vec2 texCoordOut;
+	vec3 positionOut;
+} vsData;
 
 layout(location = 0) out vec4 out_1;
 layout(location = 1) out vec4 out_2;
 layout(location = 2) out vec4 out_3;
-
-#define USETEXTUREHEIGHT 0
-//#define USETEXTUREHEIGHT 1
 
 
 // calculate random value
@@ -134,7 +135,7 @@ void main()
 {
 	light = vec3(0.0, 0.0, 1.5); // position of the sun
     //light = vec3(-0., sin(time*0.5)*.5 + .35, 2.8); // position of the sun
-	vec2 uv = (texCoordOut - vec2(-0.12, +0.25));
+	vec2 uv = (vsData.texCoordOut - vec2(-0.12, +0.25));
 
     float WATER_LEVEL = 0.94; // Water level (range: 0.0 - 2.0)
     
@@ -187,8 +188,5 @@ void main()
         
 	out_1 = vec4(col , 1.0);
 	out_2 = vec4(normalize(normwater), 1.0);
-	out_3 = vec4(positionOut.xyz, 1.0);
-	
-	//fragColor = vec4(col , 1.0);
-	//gl_FragDepth = (length(position)/farPlane) / 2.0f;
+	out_3 = vec4(vsData.positionOut.xyz, 1.0);
 }

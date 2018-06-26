@@ -131,6 +131,10 @@ add_executable(ReBoot
 
 target_compile_features(ReBoot PRIVATE cxx_range_for)
 
+if (MSVC)
+    add_definitions("/MP")
+endif()
+
 target_link_libraries(ReBoot legacy_stdio_definitions.lib)
 target_link_libraries(ReBoot ${CMAKE_SOURCE_DIR}/libs/FreeImage/lib/FreeImage.lib)
 target_link_libraries(ReBoot ${CMAKE_SOURCE_DIR}/libs/glfw/lib/glfw3.lib)

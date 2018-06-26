@@ -31,8 +31,6 @@ class ViewManager;
 class MergeShader : public Shader {
 
 protected:
-    GLint       _deferredTextureLocation;
-    GLint       _bloomTextureLocation;
     GLuint      _dummyVAO;
 public:
     MergeShader();

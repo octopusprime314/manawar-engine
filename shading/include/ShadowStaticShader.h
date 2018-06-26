@@ -28,15 +28,8 @@
 
 class ShadowStaticShader : public Shader {
 
-protected:
-    GLint       _viewLocation;
-    GLint       _modelLocation;
-    GLint       _projectionLocation;
 public:
     ShadowStaticShader(std::string shaderName);
     virtual     ~ShadowStaticShader();
     void        runShader(Model* model, Light* light);
-    GLint       getViewLocation();
-    GLint       getModelLocation();
-    GLint       getProjectionLocation();
 };

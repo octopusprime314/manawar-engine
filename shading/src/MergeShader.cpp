@@ -4,9 +4,6 @@
 #include "MVP.h"
 
 MergeShader::MergeShader() : Shader("mergeShader") {
-
-    _deferredTextureLocation = glGetUniformLocation(_shaderContext, "deferredTexture");
-    _bloomTextureLocation = glGetUniformLocation(_shaderContext, "bloomTexture");
     glGenVertexArrays(1, &_dummyVAO);
 }
 
@@ -18,16 +15,10 @@ void MergeShader::runShader(GLuint deferredTexture, GLuint bloomTexture) {
 
     //LOAD IN SHADER
     glUseProgram(_shaderContext); //use context for loaded shader
-
     glBindVertexArray(_dummyVAO);
 
-    glUniform1i(_deferredTextureLocation, 0);
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, deferredTexture);
-
-    glUniform1i(_deferredTextureLocation, 1);
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, bloomTexture);
+    updateUniform("deferredTexture", GL_TEXTURE0, deferredTexture, GL_TEXTURE_2D);
+    updateUniform("bloomTexture", GL_TEXTURE1, bloomTexture, GL_TEXTURE_2D);
 
     glDrawArrays(GL_TRIANGLE_STRIP, 0, (GLsizei)4);
 

@@ -3,31 +3,6 @@
 
 StaticShader::StaticShader(std::string shaderName) : Shader(shaderName) {
 
-    //Grab uniforms needed in a staticshader
-
-    //glUniform mat4 combined model and world matrix
-    _modelLocation = glGetUniformLocation(_shaderContext, "model");
-
-    //glUniform mat4 view matrix
-    _viewLocation = glGetUniformLocation(_shaderContext, "view");
-
-    //glUniform mat4 projection matrix
-    _projectionLocation = glGetUniformLocation(_shaderContext, "projection");
-
-    //glUniform mat4 normal matrix
-    _normalLocation = glGetUniformLocation(_shaderContext, "normal");
-
-    //glUniform texture map sampler location
-    _textureLocation = glGetUniformLocation(_shaderContext, "textureMap");
-
-    //glUniform texture map sampler location
-    _tex0Location = glGetUniformLocation(_shaderContext, "tex0");
-    _tex1Location = glGetUniformLocation(_shaderContext, "tex1");
-    _tex2Location = glGetUniformLocation(_shaderContext, "tex2");
-    _tex3Location = glGetUniformLocation(_shaderContext, "tex3");
-    _alphatex0Location = glGetUniformLocation(_shaderContext, "alphatex0");
-
-    _layeredSwitchLocation = glGetUniformLocation(_shaderContext, "isLayeredTexture");
 }
 
 StaticShader::~StaticShader() {
@@ -45,16 +20,16 @@ void StaticShader::runShader(Model* model) {
 
     MVP* mvp = model->getMVP();
     //glUniform mat4 combined model and world matrix, GL_TRUE is telling GL we are passing in the matrix as row major
-    glUniformMatrix4fv(_modelLocation, 1, GL_TRUE, mvp->getModelBuffer());
+    updateUniform("model", mvp->getModelBuffer());
 
     //glUniform mat4 view matrix, GL_TRUE is telling GL we are passing in the matrix as row major
-    glUniformMatrix4fv(_viewLocation, 1, GL_TRUE, mvp->getViewBuffer());
+    updateUniform("view", mvp->getViewBuffer());
 
     //glUniform mat4 projection matrix, GL_TRUE is telling GL we are passing in the matrix as row major
-    glUniformMatrix4fv(_projectionLocation, 1, GL_TRUE, mvp->getProjectionBuffer());
+    updateUniform("projection", mvp->getProjectionBuffer());
 
     //glUniform mat4 normal matrix, GL_TRUE is telling GL we are passing in the matrix as row major
-    glUniformMatrix4fv(_normalLocation, 1, GL_TRUE, mvp->getNormalBuffer());
+    updateUniform("normal", mvp->getNormalBuffer());
 
     auto textureStrides = model->getTextureStrides();
     unsigned int strideLocation = 0;
@@ -67,45 +42,22 @@ void StaticShader::runShader(Model* model) {
             auto textures = layeredTexture->getTextures();
 
             //We have a layered texture
-            glUniform1i(_layeredSwitchLocation, 1);
+            int isLayered = 1;
+            updateUniform("isLayeredTexture", &isLayered);
 
             if (textures.size() > 4) {
-
-                glUniform1i(_tex0Location, 1);
-                glUniform1i(_tex1Location, 2);
-                glUniform1i(_tex2Location, 3);
-                glUniform1i(_tex3Location, 4);
-                glUniform1i(_alphatex0Location, 5);
-
-                glActiveTexture(GL_TEXTURE1);
-                glBindTexture(GL_TEXTURE_2D, textures[0]->getContext()); //grab first texture of model and return context
-                glActiveTexture(GL_TEXTURE2);
-                glBindTexture(GL_TEXTURE_2D, textures[1]->getContext()); //grab first texture of model and return context
-                glActiveTexture(GL_TEXTURE3);
-                glBindTexture(GL_TEXTURE_2D, textures[2]->getContext()); //grab first texture of model and return context
-                glActiveTexture(GL_TEXTURE4);
-                glBindTexture(GL_TEXTURE_2D, textures[3]->getContext()); //grab first texture of model and return context
-                glActiveTexture(GL_TEXTURE5);
-                glBindTexture(GL_TEXTURE_2D, textures[7]->getContext()); //grab first texture of model and return context
+                updateUniform("tex0", GL_TEXTURE1, textures[0]->getContext(), GL_TEXTURE_2D);
+                updateUniform("tex1", GL_TEXTURE2, textures[1]->getContext(), GL_TEXTURE_2D);
+                updateUniform("tex2", GL_TEXTURE3, textures[2]->getContext(), GL_TEXTURE_2D);
+                updateUniform("tex3", GL_TEXTURE4, textures[3]->getContext(), GL_TEXTURE_2D);
+                updateUniform("alphatex0", GL_TEXTURE5, textures[7]->getContext(), GL_TEXTURE_2D);
             }
             else {
-
-                glUniform1i(_tex0Location, 1);
-                glUniform1i(_tex1Location, 2);
-                glUniform1i(_tex2Location, 3);
-                glUniform1i(_alphatex0Location, 5);
-
-                glActiveTexture(GL_TEXTURE1);
-                glBindTexture(GL_TEXTURE_2D, textures[0]->getContext()); //grab first texture of model and return context
-                glActiveTexture(GL_TEXTURE2);
-                glBindTexture(GL_TEXTURE_2D, textures[1]->getContext()); //grab first texture of model and return context
-                glActiveTexture(GL_TEXTURE3);
-                glBindTexture(GL_TEXTURE_2D, textures[2]->getContext()); //grab first texture of model and return context
-                glActiveTexture(GL_TEXTURE5);
-                glBindTexture(GL_TEXTURE_2D, textures[3]->getContext()); //grab first texture of model and return context
+                updateUniform("tex0", GL_TEXTURE1, textures[0]->getContext(), GL_TEXTURE_2D);
+                updateUniform("tex1", GL_TEXTURE2, textures[1]->getContext(), GL_TEXTURE_2D);
+                updateUniform("tex2", GL_TEXTURE3, textures[2]->getContext(), GL_TEXTURE_2D);
+                updateUniform("alphatex0", GL_TEXTURE5, textures[3]->getContext(), GL_TEXTURE_2D);
             }
-
-
             glDrawArrays(GL_TRIANGLES, strideLocation, (GLsizei)textureStride.second);
             strideLocation += textureStride.second;
         }
@@ -113,34 +65,24 @@ void StaticShader::runShader(Model* model) {
             //If triangle's textures supports transparency then do NOT draw
             //Transparent objects will be rendered after the deferred lighting pass
             if (!model->getTexture(textureStride.first)->getTransparency()) {
-                //Not layered texture
-                glUniform1i(_layeredSwitchLocation, 0);
 
-                glActiveTexture(GL_TEXTURE0);
-                glBindTexture(GL_TEXTURE_2D, model->getTexture(textureStride.first)->getContext()); //grab first texture of model and return context
-                //glUniform texture
-                //The second parameter has to be equal to GL_TEXTURE(X) so X must be 0 because we activated texture GL_TEXTURE0 two calls before
-                glUniform1i(_textureLocation, 0);
+                //Not a layered texture
+                int isLayered = 0;
+                updateUniform("isLayeredTexture", &isLayered);
 
-                if (_tex0Location != -1 && model->getTexture("../assets/textures/landscape/dirt.jpg") != nullptr) {
-                    glActiveTexture(GL_TEXTURE0);
-                    glBindTexture(GL_TEXTURE_2D, model->getTexture("../assets/textures/landscape/dirt.jpg")->getContext());
-                    glUniform1i(_tex0Location, 0);
+                updateUniform("textureMap", GL_TEXTURE0, model->getTexture(textureStride.first)->getContext(), GL_TEXTURE_2D);
+
+                if (model->getTexture("../assets/textures/landscape/dirt.jpg") != nullptr) {
+                    updateUniform("tex0", GL_TEXTURE0, model->getTexture("../assets/textures/landscape/dirt.jpg")->getContext(), GL_TEXTURE_2D);
                 }
-                if (_tex1Location != -1 && model->getTexture("../assets/textures/landscape/grass.jpg") != nullptr) {
-                    glActiveTexture(GL_TEXTURE1);
-                    glBindTexture(GL_TEXTURE_2D, model->getTexture("../assets/textures/landscape/grass.jpg")->getContext());
-                    glUniform1i(_tex1Location, 1);
+                if (model->getTexture("../assets/textures/landscape/grass.jpg") != nullptr) {
+                    updateUniform("tex1", GL_TEXTURE1, model->getTexture("../assets/textures/landscape/grass.jpg")->getContext(), GL_TEXTURE_2D);
                 }
-                if (_tex2Location != -1 && model->getTexture("../assets/textures/landscape/rocks.jpg") != nullptr) {
-                    glActiveTexture(GL_TEXTURE2);
-                    glBindTexture(GL_TEXTURE_2D, model->getTexture("../assets/textures/landscape/rocks.jpg")->getContext());
-                    glUniform1i(_tex2Location, 2);
+                if (model->getTexture("../assets/textures/landscape/rocks.jpg") != nullptr) {
+                    updateUniform("tex2", GL_TEXTURE2, model->getTexture("../assets/textures/landscape/rocks.jpg")->getContext(), GL_TEXTURE_2D);
                 }
-                if (_tex3Location != -1 && model->getTexture("../assets/textures/landscape/snow.jpg") != nullptr) {
-                    glActiveTexture(GL_TEXTURE3);
-                    glBindTexture(GL_TEXTURE_2D, model->getTexture("../assets/textures/landscape/snow.jpg")->getContext());
-                    glUniform1i(_tex3Location, 3);
+                if (model->getTexture("../assets/textures/landscape/snow.jpg") != nullptr) {
+                    updateUniform("tex3", GL_TEXTURE3, model->getTexture("../assets/textures/landscape/snow.jpg")->getContext(), GL_TEXTURE_2D);
                 }
 
                 //Draw triangles using the bound buffer vertices at starting index 0 and number of triangles
@@ -152,24 +94,4 @@ void StaticShader::runShader(Model* model) {
     glBindVertexArray(0);
     glBindTexture(GL_TEXTURE_2D, 0); //Unbind texture
     glUseProgram(0);//end using this shader
-}
-
-GLint StaticShader::getViewLocation() {
-    return _viewLocation;
-}
-
-GLint StaticShader::getModelLocation() {
-    return _modelLocation;
-}
-
-GLint StaticShader::getProjectionLocation() {
-    return _projectionLocation;
-}
-
-GLint StaticShader::getNormalLocation() {
-    return _normalLocation;
-}
-
-GLint StaticShader::getTextureLocation() {
-    return _textureLocation;
 }

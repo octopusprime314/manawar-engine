@@ -1,15 +1,34 @@
-#version 330
+#version 430
+out VsData
+{
+	vec2 texCoordOut; 
+	vec3 vsViewDirection;
+} vsData;
 
-layout(location = 0) in vec3 vertexIn;
-layout(location = 1) in vec2 textureCoordinateIn;
-out vec2 textureCoordinateOut; // Passthrough
-out vec3 vsViewDirection;
-uniform mat4 inverseView;		 // View/Camera transformation matrix
-uniform mat4 inverseProjection; // Projection transformation matrix
+uniform mat4 inverseView; // Inverse View/Camera transformation matrix
+uniform mat4 inverseProjection; // Inverse Projection transformation matrix
 
-void main(){
+void main() {
 
-	textureCoordinateOut = textureCoordinateIn; //Passthrough
-	gl_Position = vec4(vertexIn.xy, 1.0, 1.0); //Passthrough
-	vsViewDirection = mat3(inverseView) * (inverseProjection * gl_Position).xyz;
+	vec2 vertex = vec2(0.0);
+	if(gl_VertexID == 0) {
+		vertex             = vec2(-1.0, 1.0);  
+		vsData.texCoordOut = vec2( 0.0, 1.0);
+	}
+	else if(gl_VertexID == 1) {
+		vertex             = vec2(-1.0, -1.0);  
+		vsData.texCoordOut = vec2( 0.0,  0.0);
+	}
+	else if(gl_VertexID == 2) {
+		vertex             = vec2(1.0, 1.0);  
+		vsData.texCoordOut = vec2(1.0, 1.0);
+	}
+	else if(gl_VertexID == 3) {
+		vertex             = vec2(1.0, -1.0);  
+		vsData.texCoordOut = vec2(1.0,  0.0);
+	}
+	
+	gl_Position = vec4(vertex.xy, 1.0, 1.0); 
+	vsData.vsViewDirection = mat3(inverseView) * (inverseProjection * gl_Position).xyz;
+	
 }

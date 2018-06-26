@@ -35,32 +35,6 @@
 
 class DeferredShader : public Shader {
 
-    GLuint _normalTextureLocation;
-    GLuint _diffuseTextureLocation;
-    GLuint _positionTextureLocation;
-    GLuint _cameraDepthTextureLocation;
-    GLuint _mapDepthTextureLocation;
-    GLuint _quadBufferContext;
-    GLuint _textureBufferContext;
-    GLuint _lightLocation;
-    GLuint _lightViewLocation;
-    GLuint _lightMapViewLocation;
-    GLuint _viewsLocation;
-    GLuint _pointLightCountLocation;
-    GLuint _pointLightPositionsLocation;
-    GLuint _pointLightColorsLocation;
-    GLuint _pointLightRangesLocation;
-    GLuint _pointLightDepthMapLocation;
-    GLuint _viewToModelSpaceMatrixLocation;
-    GLuint _farPlaneLocation;
-    GLuint _ssaoTextureLocation;
-    GLuint _environmentMapTextureLocation;
-    GLuint _bloomTextureLocation;
-
-    GLuint _skyboxDayTextureLocation;
-    GLuint _skyboxNightTextureLocation;
-    GLuint _inverseViewLocation;
-    GLuint _inverseProjectionLocation;
     Texture* _skyBoxDayTexture;
     Texture* _skyBoxNightTexture;
     GLuint   _vaoContext;
@@ -68,9 +42,11 @@ class DeferredShader : public Shader {
 public:
     DeferredShader(std::string shaderName);
     virtual ~DeferredShader();
-    void runShader(ShadowRenderer* shadowRenderer, std::vector<Light*>& lights,
-        ViewManager* viewManager, MRTFrameBuffer& mrtFBO,
-        PointShadowMap* pointShadowMap,
-        SSAO* ssao,
-        EnvironmentMap* environmentMap);
+    void runShader(ShadowRenderer* shadowRenderer, 
+                   std::vector<Light*>& lights,
+                   ViewManager* viewManager, 
+                   MRTFrameBuffer& mrtFBO,
+                   PointShadowMap* pointShadowMap,
+                   SSAO* ssao,
+                   EnvironmentMap* environmentMap);
 };

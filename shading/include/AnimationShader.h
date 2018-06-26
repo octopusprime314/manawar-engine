@@ -27,8 +27,6 @@ class Model;
 
 class AnimationShader : public StaticShader {
 
-    GLint _bonesLocation;
-
 public:
     AnimationShader(std::string shaderName);
     ~AnimationShader();

@@ -2,16 +2,6 @@
 
 ShadowStaticShader::ShadowStaticShader(std::string shaderName) : Shader(shaderName) {
 
-    //Grab uniforms needed in a staticshader
-
-    //glUniform mat4 combined model and world matrix
-    _modelLocation = glGetUniformLocation(_shaderContext, "model");
-
-    //glUniform mat4 view matrix
-    _viewLocation = glGetUniformLocation(_shaderContext, "view");
-
-    //glUniform mat4 projection matrix
-    _projectionLocation = glGetUniformLocation(_shaderContext, "projection");
 }
 
 ShadowStaticShader::~ShadowStaticShader() {
@@ -30,14 +20,15 @@ void ShadowStaticShader::runShader(Model* model, Light* light) {
 
     glBindVertexArray(vao->getVAOShadowContext());
 
+    MVP* mvp = model->getMVP();
     //glUniform mat4 combined model and world matrix, GL_TRUE is telling GL we are passing in the matrix as row major
-    glUniformMatrix4fv(_modelLocation, 1, GL_TRUE, modelMVP->getModelBuffer());
+    updateUniform("model", mvp->getModelBuffer());
 
     //glUniform mat4 view matrix, GL_TRUE is telling GL we are passing in the matrix as row major
-    glUniformMatrix4fv(_viewLocation, 1, GL_TRUE, lightMVP.getViewBuffer());
+    updateUniform("view", lightMVP.getViewBuffer());
 
     //glUniform mat4 projection matrix, GL_TRUE is telling GL we are passing in the matrix as row major
-    glUniformMatrix4fv(_projectionLocation, 1, GL_TRUE, lightMVP.getProjectionBuffer());
+    updateUniform("projection", lightMVP.getProjectionBuffer());
 
     auto textureStrides = model->getTextureStrides();
     unsigned int verticesSize = 0;
@@ -50,16 +41,4 @@ void ShadowStaticShader::runShader(Model* model, Light* light) {
 
     glBindVertexArray(0);
     glUseProgram(0);//end using this shader
-}
-
-GLint ShadowStaticShader::getViewLocation() {
-    return _viewLocation;
-}
-
-GLint ShadowStaticShader::getModelLocation() {
-    return _modelLocation;
-}
-
-GLint ShadowStaticShader::getProjectionLocation() {
-    return _projectionLocation;
 }

@@ -3,6 +3,7 @@
 #include "Light.h"
 #include <iostream>
 #include <fstream>
+#include "Uniforms.h"
 
 // You can hit this in a debugger.
 // Set to 'true' to printf every shader that is linked or compiled.
@@ -17,6 +18,9 @@ Shader::Shader(std::string vertexShaderName, std::string fragmentShaderName) {
     }
     //build it
     _build();
+
+    //collect uniforms
+    _uniforms = new Uniforms(_shaderContext);
 }
 
 Shader::~Shader() {
@@ -140,7 +144,7 @@ unsigned int Shader::_compile(char* filename, unsigned int type)
     const GLchar* files[1];
 
     // shader Compilation variable
-    GLint result;				// Compilation code result
+    GLint result;
     GLint errorLoglength;
     char* errorLogText;
     GLsizei actualErrorLogLength;
@@ -208,4 +212,20 @@ unsigned int Shader::_compile(char* filename, unsigned int type)
 
 GLint Shader::getShaderContext() {
     return _shaderContext;
+}
+
+GLint Shader::getLocation(std::string uniformName) {
+    return _uniforms->getUniformLocation(uniformName);
+}
+
+void Shader::updateUniform(std::string uniformName, void* data) {
+    _uniforms->updateUniform(uniformName, data);
+}
+
+void Shader::updateUniform(std::string uniformName, 
+    GLuint textureUnit, 
+    GLuint textureContext,
+    GLuint textureType) {
+
+    _uniforms->updateUniform(uniformName, textureUnit, textureContext, textureType);
 }

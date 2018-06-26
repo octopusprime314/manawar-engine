@@ -27,7 +27,6 @@
 #include "AnimatedModel.h"
 class ShadowAnimatedPointShader : public ShadowPointShader {
 
-    GLint       _bonesLocation;
 public:
     ShadowAnimatedPointShader(std::string shaderName);
     virtual      ~ShadowAnimatedPointShader();

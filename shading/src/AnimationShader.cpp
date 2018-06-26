@@ -2,10 +2,7 @@
 #include "AnimatedModel.h"
 
 AnimationShader::AnimationShader(std::string shaderName) : StaticShader(shaderName) {
-    //Grab uniforms needed in a staticshader
 
-    //glUniform mat4 combined model and world matrix
-    _bonesLocation = glGetUniformLocation(_shaderContext, "bones");
 }
 
 AnimationShader::~AnimationShader() {
@@ -19,21 +16,20 @@ void AnimationShader::runShader(Model* modelIn) {
     //LOAD IN SHADER
     VAO* vao = model->getVAO();
     glUseProgram(_shaderContext); //use context for loaded shader
-
     glBindVertexArray(vao->getVAOContext());
 
     MVP* mvp = model->getMVP();
     //glUniform mat4 combined model and world matrix, GL_TRUE is telling GL we are passing in the matrix as row major
-    glUniformMatrix4fv(_modelLocation, 1, GL_TRUE, mvp->getModelBuffer());
+    updateUniform("model", mvp->getModelBuffer());
 
     //glUniform mat4 view matrix, GL_TRUE is telling GL we are passing in the matrix as row major
-    glUniformMatrix4fv(_viewLocation, 1, GL_TRUE, mvp->getViewBuffer());
+    updateUniform("view", mvp->getViewBuffer());
 
     //glUniform mat4 projection matrix, GL_TRUE is telling GL we are passing in the matrix as row major
-    glUniformMatrix4fv(_projectionLocation, 1, GL_TRUE, mvp->getProjectionBuffer());
+    updateUniform("projection", mvp->getProjectionBuffer());
 
     //glUniform mat4 normal matrix, GL_TRUE is telling GL we are passing in the matrix as row major
-    glUniformMatrix4fv(_normalLocation, 1, GL_TRUE, mvp->getNormalBuffer());
+    updateUniform("normal", mvp->getNormalBuffer());
 
     //Bone uniforms
     auto bones = model->getBones();
@@ -45,7 +41,7 @@ void AnimationShader::runShader(Model* modelIn) {
             bonesArray[bonesArrayIndex++] = buff[i];
         }
     }
-    glUniformMatrix4fv(_bonesLocation, static_cast<GLsizei>(bones->size()), GL_TRUE, bonesArray);
+    updateUniform("bones[0]", bonesArray);
     delete[] bonesArray;
 
     //Grab strides of vertex sets that have a single texture associated with them
@@ -53,17 +49,12 @@ void AnimationShader::runShader(Model* modelIn) {
     unsigned int strideLocation = 0;
     for (auto textureStride : textureStrides) {
 
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, model->getTexture(textureStride.first)->getContext()); //grab first texture of model and return context
-        //glUniform texture
-        //The second parameter has to be equal to GL_TEXTURE(X) so X must be 0 because we activated texture GL_TEXTURE0 two calls before
-        glUniform1i(_textureLocation, 0);
+        updateUniform("textureMap", GL_TEXTURE0, model->getTexture(textureStride.first)->getContext(), GL_TEXTURE_2D);
 
         //Draw triangles using the bound buffer vertices at starting index 0 and number of vertices
         glDrawArrays(GL_TRIANGLES, strideLocation, (GLsizei)textureStride.second);
 
         strideLocation += textureStride.second;
-
     }
 
     glBindVertexArray(0);

@@ -1,8 +1,11 @@
-#version 330
+#version 430
 
-in vec3 normalOut;			 // Transformed normal based on the vertex shader
-in vec2 textureCoordinateOut;// Texture coordinate
-in vec3 positionOut; 
+in VsData
+{
+	vec3 normalOut;			   // Transformed normal based on the normal matrix transform
+	vec2 textureCoordinateOut; // Passthrough
+	vec3 positionOut;          // Passthrough for deferred shadow rendering
+} vsData;
 
 layout(location = 0) out vec4 out_1;
 layout(location = 1) out vec4 out_2;
@@ -23,17 +26,17 @@ void main(){
 	vec4 vTexColor = vec4(0.0, 0.0, 0.0, 1.0);
 	
 	if(isLayeredTexture == 1){
-		vec4 backgroundTexture = texture2D(tex0, textureCoordinateOut.st*150);   
-		vec4 red1 = texture2D(tex1, textureCoordinateOut.st*100);   
-		vec4 green1 = texture2D(tex2, textureCoordinateOut.st*150);  
-		vec4 blue1 = texture2D(tex3, textureCoordinateOut.st*150);   
-		vec4 alpha1 = texture2D(alphatex0, textureCoordinateOut.st);       //alpha map 0
+		vec4 backgroundTexture = texture2D(tex0, vsData.textureCoordinateOut.st*150);   
+		vec4 red1 = texture2D(tex1, vsData.textureCoordinateOut.st*100);   
+		vec4 green1 = texture2D(tex2, vsData.textureCoordinateOut.st*150);  
+		vec4 blue1 = texture2D(tex3, vsData.textureCoordinateOut.st*150);   
+		vec4 alpha1 = texture2D(alphatex0, vsData.textureCoordinateOut.st);       //alpha map 0
 		
 		//Used to prevent tiling
-		vec4 tRandoBackground = texture2D(tex0, textureCoordinateOut.st*5.0);       //backgroundTexture
-		vec4 tRandoR1 = texture2D(tex1, textureCoordinateOut.st*5.0);      			//red1
-		vec4 tRandoG1 = texture2D(tex2, textureCoordinateOut.st*5.0);      			//green1
-		vec4 tRandoB1 = texture2D(tex3, textureCoordinateOut.st*5.0);      			//blue1
+		vec4 tRandoBackground = texture2D(tex0, vsData.textureCoordinateOut.st*5.0);       //backgroundTexture
+		vec4 tRandoR1 = texture2D(tex1, vsData.textureCoordinateOut.st*5.0);      			//red1
+		vec4 tRandoG1 = texture2D(tex2, vsData.textureCoordinateOut.st*5.0);      			//green1
+		vec4 tRandoB1 = texture2D(tex3, vsData.textureCoordinateOut.st*5.0);      			//blue1
 		
 		vec4 tBackGround1 = backgroundTexture * tRandoBackground;
 		vec4 tR1 = red1 * tRandoR1;
@@ -43,8 +46,6 @@ void main(){
 		float redVal1 = alpha1.r;
 		float greenVal1 = alpha1.g;
 		float blueVal1 = alpha1.b;
-		
-		
 		
 		//Start with grass as base lerpComponent
 		vec4 lerpComponent = tBackGround1;
@@ -58,10 +59,10 @@ void main(){
 		vTexColor = vec4(lerpComponent.rgb, 1.0);
 	}
 	else{
-		vTexColor = vec4(texture(textureMap, textureCoordinateOut).rgb, 1.0);
+		vTexColor = vec4(texture(textureMap, vsData.textureCoordinateOut).rgb, 1.0);
 	}
 
 	out_1 = vTexColor;
-	out_2 = vec4(normalize(normalOut), 1.0);
-	out_3 = vec4(positionOut.xyz, 1.0);
+	out_2 = vec4(normalize(vsData.normalOut), 1.0);
+	out_3 = vec4(vsData.positionOut.xyz, 1.0);
 }

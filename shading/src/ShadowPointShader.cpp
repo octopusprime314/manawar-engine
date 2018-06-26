@@ -23,9 +23,6 @@ void ShadowPointShader::runShader(Model* model, Light* light, std::vector<Matrix
     //glUniform mat4 combined model and world matrix, GL_TRUE is telling GL we are passing in the matrix as row major
     updateUniform("model", modelMVP->getModelBuffer());
 
-    //glUniform mat4 view matrix, GL_TRUE is telling GL we are passing in the matrix as row major
-    updateUniform("view", modelMVP->getViewBuffer());
-
     float* lightCubeTransforms = new float[6 * 16];
     int index = 0;
     for (Matrix lightTransform : lightTransforms) {

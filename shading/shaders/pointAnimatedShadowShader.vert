@@ -7,7 +7,7 @@ layout(location = 3) in vec4 weights1;              // First 4 bone weights
 layout(location = 4) in vec4 weights2;              // Second 4 bone weights
 
 uniform mat4 model;		 // Model and World transformation matrix
-uniform mat4 bones[150]; // 150 maximum bones for an animation
+uniform mat4 bones[100]; // 100 maximum bones for an animation
 
 void main(){
 	mat4 animationTransform1 = (bones[int(indexes1.x)] * weights1.x) + (bones[int(indexes1.y)] * weights1.y) + (bones[int(indexes1.z)] * weights1.z) + (bones[int(indexes1.w)] * weights1.w);

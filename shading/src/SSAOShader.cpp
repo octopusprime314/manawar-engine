@@ -37,9 +37,9 @@ void SSAOShader::runShader(SSAO* ssao, MRTFrameBuffer* mrtBuffer, ViewManager* v
 
     auto textures = mrtBuffer->getTextureContexts();
 
-    updateUniform("positionTexture", GL_TEXTURE0, textures[2],             GL_TEXTURE_2D);
-    updateUniform("normalTexture",   GL_TEXTURE1, textures[1],             GL_TEXTURE_2D);
-    updateUniform("noiseTexture",    GL_TEXTURE2, ssao->getNoiseTexture(), GL_TEXTURE_2D);
+    updateUniform("positionTexture", GL_TEXTURE0, textures[2]);
+    updateUniform("normalTexture",   GL_TEXTURE1, textures[1]);
+    updateUniform("noiseTexture",    GL_TEXTURE2, ssao->getNoiseTexture());
 
     glDrawArrays(GL_TRIANGLE_STRIP, 0, (GLsizei)4);
 

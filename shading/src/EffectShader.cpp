@@ -74,7 +74,7 @@ void EffectShader::runShader(Effect* effectObject, float seconds) {
         auto normalMatrix = (view * model).inverse().transpose();
         updateUniform("normal", normalMatrix.getFlatBuffer());
 
-        updateUniform("noiseTexture", GL_TEXTURE0, water->getNoiseTexture(), GL_TEXTURE_2D);
+        updateUniform("noiseTexture", GL_TEXTURE0, water->getNoiseTexture());
     }
 
     //Pass game time to shader

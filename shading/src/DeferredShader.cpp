@@ -107,15 +107,15 @@ void DeferredShader::runShader(ShadowRenderer* shadowRenderer,
 
     auto textures = mrtFBO.getTextureContexts();
 
-    updateUniform("diffuseTexture",     GL_TEXTURE0, textures[0],                             GL_TEXTURE_2D);
-    updateUniform("normalTexture",      GL_TEXTURE1, textures[1],                             GL_TEXTURE_2D);
-    updateUniform("positionTexture",    GL_TEXTURE2, textures[2],                             GL_TEXTURE_2D);
-    updateUniform("cameraDepthTexture", GL_TEXTURE3, shadowRenderer->getStaticDepthTexture(), GL_TEXTURE_2D);
-    updateUniform("mapDepthTexture",    GL_TEXTURE4, shadowRenderer->getMapDepthTexture(),    GL_TEXTURE_2D);
-    updateUniform("depthMap",           GL_TEXTURE5, pointShadowMap->getCubeMapTexture(),     GL_TEXTURE_CUBE_MAP);
-    updateUniform("skyboxDayTexture",   GL_TEXTURE6, _skyBoxDayTexture->getContext(),         GL_TEXTURE_CUBE_MAP);
-    updateUniform("skyboxNightTexture", GL_TEXTURE7, _skyBoxNightTexture->getContext(),       GL_TEXTURE_CUBE_MAP);
-    updateUniform("ssaoTexture",        GL_TEXTURE8, ssao->getBlur()->getTextureContext(),    GL_TEXTURE_2D);
+    updateUniform("diffuseTexture",     GL_TEXTURE0, textures[0]);
+    updateUniform("normalTexture",      GL_TEXTURE1, textures[1]);
+    updateUniform("positionTexture",    GL_TEXTURE2, textures[2]);
+    updateUniform("cameraDepthTexture", GL_TEXTURE3, shadowRenderer->getStaticDepthTexture());
+    updateUniform("mapDepthTexture",    GL_TEXTURE4, shadowRenderer->getMapDepthTexture());
+    updateUniform("depthMap",           GL_TEXTURE5, pointShadowMap->getCubeMapTexture());
+    updateUniform("skyboxDayTexture",   GL_TEXTURE6, _skyBoxDayTexture->getContext());
+    updateUniform("skyboxNightTexture", GL_TEXTURE7, _skyBoxNightTexture->getContext());
+    updateUniform("ssaoTexture",        GL_TEXTURE8, ssao->getBlur()->getTextureContext());
 
     //Draw triangles using the bound buffer vertices at starting index 0 and number of vertices
     glDrawArrays(GL_TRIANGLE_STRIP, 0, (GLsizei)4);

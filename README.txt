@@ -8,9 +8,9 @@ BUILD INSTRUCTIONS:
     cmake --build . --config Release
 
 Copy contents of extracted zip folder called demo-party-data.zip at the root directory level located below.
-https://drive.google.com/file/d/1xrwsMf72oB9pwKUzrLlmUbwheE5Vs44C/view?usp=sharing
+https://drive.google.com/file/d/1HxfFZkj8OfFZyIJ7DvqHO0fV_lsw_tho/view?usp=sharing
 
-Copy the libs/freeimage/lib/FreeImage.dll into the executable directory.
+Copy the libs/freeimage/lib/FreeImage.dll and libs/fmod/lowlevel/lib/fmod64.dll into the executable directory.
 
 PUNCH LIST:
 

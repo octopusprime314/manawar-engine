@@ -115,10 +115,10 @@ void ForwardShader::runShader(Model* model, ViewManager* viewManager, ShadowRend
             model->getClassType() != ModelClass::AnimatedModelType &&
             model->getTexture(textureStride.first)->getTransparency()) {
 
-            updateUniform("textureMap",         GL_TEXTURE0, model->getTexture(textureStride.first)->getContext(), GL_TEXTURE_2D);
-            updateUniform("cameraDepthTexture", GL_TEXTURE1, shadowRenderer->getAnimatedDepthTexture(),            GL_TEXTURE_2D);
-            updateUniform("mapDepthTexture",    GL_TEXTURE2, shadowRenderer->getMapDepthTexture(),                 GL_TEXTURE_2D);
-            updateUniform("depthMap",           GL_TEXTURE3, pointShadowMap->getCubeMapTexture(),                  GL_TEXTURE_CUBE_MAP);
+            updateUniform("textureMap",         GL_TEXTURE0, model->getTexture(textureStride.first)->getContext());
+            updateUniform("cameraDepthTexture", GL_TEXTURE1, shadowRenderer->getAnimatedDepthTexture());
+            updateUniform("mapDepthTexture",    GL_TEXTURE2, shadowRenderer->getMapDepthTexture());
+            updateUniform("depthMap",           GL_TEXTURE3, pointShadowMap->getCubeMapTexture());
 
             //Draw triangles using the bound buffer vertices at starting index 0 and number of triangles
             glDrawArrays(GL_TRIANGLES, strideLocation, (GLsizei)textureStride.second);

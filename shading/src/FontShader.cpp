@@ -17,7 +17,7 @@ void FontShader::runShader(GLuint vao, std::string& s) {
 
     glUseProgram(_shaderContext); //use context for loaded shader
 
-    updateUniform("tex", GL_TEXTURE0, tex->getContext(), GL_TEXTURE_2D);
+    updateUniform("tex", GL_TEXTURE0, tex->getContext());
 
     glBindVertexArray(vao);
     glDrawArrays(GL_TRIANGLES, 0, 6 * static_cast<GLsizei>(s.size()));

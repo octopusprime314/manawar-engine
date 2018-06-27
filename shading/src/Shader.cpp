@@ -3,7 +3,6 @@
 #include "Light.h"
 #include <iostream>
 #include <fstream>
-#include "Uniforms.h"
 
 // You can hit this in a debugger.
 // Set to 'true' to printf every shader that is linked or compiled.
@@ -224,8 +223,15 @@ void Shader::updateUniform(std::string uniformName, void* data) {
 
 void Shader::updateUniform(std::string uniformName, 
     GLuint textureUnit, 
-    GLuint textureContext,
-    GLuint textureType) {
+    GLuint textureContext) {
 
-    _uniforms->updateUniform(uniformName, textureUnit, textureContext, textureType);
+    _uniforms->updateUniform(uniformName, textureUnit, textureContext);
+}
+
+void Shader::updateUniform(std::string uniformName,
+    GLuint textureUnit,
+    GLuint textureContext,
+    ImageData imageInfo) {
+
+    _uniforms->updateUniform(uniformName, textureUnit, textureContext, imageInfo);
 }

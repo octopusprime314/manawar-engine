@@ -17,8 +17,8 @@ void MergeShader::runShader(GLuint deferredTexture, GLuint bloomTexture) {
     glUseProgram(_shaderContext); //use context for loaded shader
     glBindVertexArray(_dummyVAO);
 
-    updateUniform("deferredTexture", GL_TEXTURE0, deferredTexture, GL_TEXTURE_2D);
-    updateUniform("bloomTexture", GL_TEXTURE1, bloomTexture, GL_TEXTURE_2D);
+    updateUniform("deferredTexture", GL_TEXTURE0, deferredTexture);
+    updateUniform("bloomTexture",    GL_TEXTURE1, bloomTexture);
 
     glDrawArrays(GL_TRIANGLE_STRIP, 0, (GLsizei)4);
 

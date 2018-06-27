@@ -24,10 +24,10 @@
 #include <string>
 #include <iostream>
 #include "GLIncludes.h"
+#include "Uniforms.h"
 
 class Model;
 class Light;
-class Uniforms;
 
 const std::string SHADERS_LOCATION = "../shading/shaders/";
 
@@ -49,9 +49,16 @@ public:
     virtual      ~Shader();
     GLint        getShaderContext();
     GLint        getLocation(std::string uniformName);
-    void         updateUniform(std::string uniformName, void* data);
+    //Updates most mat, vec, etc. data types in glsl
+    void         updateUniform(std::string uniformName, 
+                    void* data);
+    //Updates samplers in glsl
     void         updateUniform(std::string uniformName, 
                     GLuint textureUnit, 
+                    GLuint textureContext);
+    //Updates images in glsl used primarily in compute shaders
+    void         updateUniform(std::string uniformName,
+                    GLuint textureUnit,
                     GLuint textureContext,
-                    GLuint textureType);
+                    ImageData imageInfo);
 };

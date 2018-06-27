@@ -73,8 +73,7 @@ void Uniforms::updateUniform(std::string uniformName, void* value) {
 
 void Uniforms::updateUniform(std::string uniformName, 
     GLuint textureUnit, 
-    GLuint textureContext,
-    GLuint textureType) {
+    GLuint textureContext) {
 
     //Clear out all the errors in the pipe before settings shader uniforms
     while (glGetError() != GL_NO_ERROR);
@@ -85,12 +84,43 @@ void Uniforms::updateUniform(std::string uniformName,
     case GL_SAMPLER_2D:
         glUniform1i(_uniformMap[uniformName].location, textureUnit - GL_TEXTURE0);
         glActiveTexture(textureUnit);
-        glBindTexture(textureType, textureContext);
+        glBindTexture(GL_TEXTURE_2D, textureContext);
         break;
     case GL_SAMPLER_CUBE:
         glUniform1i(_uniformMap[uniformName].location, textureUnit - GL_TEXTURE0);
         glActiveTexture(textureUnit);
-        glBindTexture(textureType, textureContext);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, textureContext);
+        break;
+    default:
+        std::cout << "Unknown uniform: " << uniformName << std::endl;
+        break;
+    }
+
+    if (glGetError() != GL_NO_ERROR)
+    {
+        std::cout << "Uniform " << uniformName << " not updated properly in the shader!" << std::endl;
+    }
+}
+
+void Uniforms::updateUniform(std::string uniformName,
+    GLuint textureUnit,
+    GLuint textureContext,
+    ImageData imageInfo) { 
+
+    //Clear out all the errors in the pipe before settings shader uniforms
+    while (glGetError() != GL_NO_ERROR);
+
+    //Find the type of the uniform
+    switch (_uniformMap[uniformName].type)
+    {
+    case GL_IMAGE_2D:
+        glUniform1i(_uniformMap[uniformName].location, textureUnit - GL_TEXTURE0);
+        if (imageInfo.readOnly) {
+            glBindImageTexture(textureUnit - GL_TEXTURE0, textureContext, 0, GL_FALSE, 0, GL_READ_ONLY, imageInfo.format);
+        }
+        else {
+            glBindImageTexture(textureUnit - GL_TEXTURE0, textureContext, 0, GL_FALSE, 0, GL_WRITE_ONLY, imageInfo.format);
+        }
         break;
     default:
         std::cout << "Unknown uniform: " << uniformName << std::endl;

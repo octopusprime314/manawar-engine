@@ -49,7 +49,7 @@ void AnimationShader::runShader(Model* modelIn) {
     unsigned int strideLocation = 0;
     for (auto textureStride : textureStrides) {
 
-        updateUniform("textureMap", GL_TEXTURE0, model->getTexture(textureStride.first)->getContext(), GL_TEXTURE_2D);
+        updateUniform("textureMap", GL_TEXTURE0, model->getTexture(textureStride.first)->getContext());
 
         //Draw triangles using the bound buffer vertices at starting index 0 and number of vertices
         glDrawArrays(GL_TRIANGLES, strideLocation, (GLsizei)textureStride.second);

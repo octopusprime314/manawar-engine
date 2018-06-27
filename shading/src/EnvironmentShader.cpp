@@ -53,17 +53,17 @@ void EnvironmentShader::runShader(Model* model, std::vector<Matrix> viewTransfor
             updateUniform("isLayeredTexture", &isLayered);
 
             if (textures.size() > 4) {
-                updateUniform("tex0",      GL_TEXTURE1, textures[0]->getContext(), GL_TEXTURE_2D);
-                updateUniform("tex1",      GL_TEXTURE2, textures[1]->getContext(), GL_TEXTURE_2D);
-                updateUniform("tex2",      GL_TEXTURE3, textures[2]->getContext(), GL_TEXTURE_2D);
-                updateUniform("tex3",      GL_TEXTURE4, textures[3]->getContext(), GL_TEXTURE_2D);
-                updateUniform("alphatex0", GL_TEXTURE5, textures[7]->getContext(), GL_TEXTURE_2D);
+                updateUniform("tex0",      GL_TEXTURE1, textures[0]->getContext());
+                updateUniform("tex1",      GL_TEXTURE2, textures[1]->getContext());
+                updateUniform("tex2",      GL_TEXTURE3, textures[2]->getContext());
+                updateUniform("tex3",      GL_TEXTURE4, textures[3]->getContext());
+                updateUniform("alphatex0", GL_TEXTURE5, textures[7]->getContext());
             }
             else {
-                updateUniform("tex0",      GL_TEXTURE1, textures[0]->getContext(), GL_TEXTURE_2D);
-                updateUniform("tex1",      GL_TEXTURE2, textures[1]->getContext(), GL_TEXTURE_2D);
-                updateUniform("tex2",      GL_TEXTURE3, textures[2]->getContext(), GL_TEXTURE_2D);
-                updateUniform("alphatex0", GL_TEXTURE5, textures[3]->getContext(), GL_TEXTURE_2D);
+                updateUniform("tex0",      GL_TEXTURE1, textures[0]->getContext());
+                updateUniform("tex1",      GL_TEXTURE2, textures[1]->getContext());
+                updateUniform("tex2",      GL_TEXTURE3, textures[2]->getContext());
+                updateUniform("alphatex0", GL_TEXTURE5, textures[3]->getContext());
             }
             glDrawArrays(GL_TRIANGLES, strideLocation, (GLsizei)textureStride.second);
             strideLocation += textureStride.second;
@@ -76,7 +76,7 @@ void EnvironmentShader::runShader(Model* model, std::vector<Matrix> viewTransfor
                 int isLayered = 0;
                 updateUniform("isLayeredTexture", &isLayered);
 
-                updateUniform("textureMap", GL_TEXTURE0, model->getTexture(textureStride.first)->getContext(), GL_TEXTURE_2D);
+                updateUniform("textureMap", GL_TEXTURE0, model->getTexture(textureStride.first)->getContext());
 
                 //Draw triangles using the bound buffer vertices at starting index 0 and number of triangles
                 glDrawArrays(GL_TRIANGLES, strideLocation, (GLsizei)textureStride.second);

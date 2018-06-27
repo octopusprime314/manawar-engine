@@ -1,5 +1,6 @@
 #include "ComputeShader.h"
 #include "SSAO.h"
+#include "Uniforms.h"
 
 
 ComputeShader::ComputeShader(std::string computeShaderName) : Shader(computeShaderName) {
@@ -16,23 +17,27 @@ void ComputeShader::runShader(GLuint writeTexture, GLuint readTexture, Format fo
 
     glUseProgram(_shaderContext);
 
+    ImageData imageInfo = {};
+
     //Bind read textures
-    glUniform1i(_readTextureLocation, 0);
+    imageInfo.readOnly = true;
     if (format == Format::RGBUB || format == Format::RGBF) {
-        glBindImageTexture(0, readTexture, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA8);
+        imageInfo.format = GL_RGBA8;
     }
     else if (format == Format::RF || format == Format::RU) {
-        glBindImageTexture(0, readTexture, 0, GL_FALSE, 0, GL_READ_ONLY, GL_R8);
+        imageInfo.format = GL_R8;
     }
+    updateUniform("readTexture", GL_TEXTURE0, readTexture, imageInfo);
 
     //Bind write textures
-    glUniform1i(_writeTextureLocation, 1);
+    imageInfo.readOnly = false;
     if (format == Format::RGBUB || format == Format::RGBF) {
-        glBindImageTexture(1, writeTexture, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA8);
+        imageInfo.format = GL_RGBA8;
     }
     else if (format == Format::RF || format == Format::RU) {
-        glBindImageTexture(1, writeTexture, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_R8);
+        imageInfo.format = GL_R8;
     }
+    updateUniform("writeTexture", GL_TEXTURE1, writeTexture, imageInfo);
 
     //Dispatch the shader
     glDispatchCompute(static_cast<GLuint>(ceilf(static_cast<float>(screenPixelWidth) / 16.0f)),

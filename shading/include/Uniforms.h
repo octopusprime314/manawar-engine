@@ -17,13 +17,17 @@
 
 /**
 *  Uniforms class. Queries the uniforms and maintains them for a shader.
-*  A shader class will contain a Uniforms object.
+*  A shader class contains a Uniforms object.
 */
 
 #pragma once
 #include <map>
 #include "GLIncludes.h"
 
+struct ImageData {
+    bool   readOnly;
+    GLuint format;
+};
 
 class Uniforms {
 
@@ -42,6 +46,10 @@ public:
     void  updateUniform(std::string uniformName, void* value);
     void  updateUniform(std::string uniformName, 
         GLuint textureUnit, 
+        GLuint textureContext);
+    void updateUniform(std::string uniformName,
+        GLuint textureUnit,
         GLuint textureContext,
-        GLuint textureType);
+        ImageData imageInfo);
+
 };

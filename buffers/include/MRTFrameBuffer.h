@@ -21,18 +21,20 @@
 */
 
 #pragma once
+#include "RenderTexture.h"
 #include "GLIncludes.h"
 #include <iostream>
 #include <vector>
 
 class MRTFrameBuffer {
 
-    GLuint _frameBufferContext;
-    std::vector<GLuint> _fbTextureContexts; //Use for color attachments in framebuffer
+    GLuint                     _frameBufferContext;
+    std::vector<RenderTexture> _gBufferTextures;
+    std::vector<GLuint>        _fbTextureContexts; //Use for color attachments in framebuffer
 
 public:
     MRTFrameBuffer(int colorAttachments);
     ~MRTFrameBuffer();
-    GLuint getFrameBufferContext();
-    std::vector<GLuint> getTextureContexts();
+    GLuint                     getFrameBufferContext();
+    std::vector<GLuint>        getTextureContexts();
 };

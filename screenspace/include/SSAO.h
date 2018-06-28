@@ -25,6 +25,7 @@
 #include <vector>
 #include "SSAOShader.h"
 #include "SSCompute.h"
+#include "RenderTexture.h"
 class MRTFrameBuffer;
 class ViewManager;
 
@@ -35,15 +36,14 @@ class SSAO {
     std::vector<Vector4>  _ssaoNoise;
     unsigned int          _noiseTexture;
     unsigned int          _ssaoFBO;
-    unsigned int          _ssaoColorBuffer;
     SSAOShader            _ssaoShader;
     SSCompute*            _blur;
+    RenderTexture         _renderTexture;
 public:
     SSAO();
     ~SSAO();
     void                  computeSSAO(MRTFrameBuffer* mrtBuffer, ViewManager* viewManager);
     unsigned int          getNoiseTexture();
-    unsigned int          getSSAOTexture();
     std::vector<Vector4>& getKernel();
     SSCompute*            getBlur();
 };

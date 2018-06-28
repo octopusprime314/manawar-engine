@@ -74,7 +74,7 @@ public:
     size_t                      getArrayCount();
     void                        addTexture(std::string textureName, int stride);
     void                        addLayeredTexture(std::vector<std::string> textureNames, int stride);
-    Texture*                    getTexture(std::string textureName);
+    AssetTexture*               getTexture(std::string textureName);
     LayeredTexture*             getLayeredTexture(std::string textureName);
     TextureMetaData&            getTextureStrides();
     GeometryType                getGeometryType();

@@ -20,13 +20,13 @@
 */
 
 #pragma once
-#include "Texture.h"
+#include "AssetTexture.h"
 #include "LayeredTexture.h"
 #include <map>
 #include <vector>
 
 using LayeredTextureMap = std::map<std::string, LayeredTexture*>;
-using TextureMap = std::map<std::string, Texture*>;
+using TextureMap = std::map<std::string, AssetTexture*>;
 
 class TextureBroker {
     TextureBroker();
@@ -39,6 +39,6 @@ public:
     void                            addTexture(std::string textureName);
     void                            addLayeredTexture(std::vector<std::string> textureNames);
     void                            addCubeTexture(std::string textureName);
-    Texture*                        getTexture(std::string textureName);
+    AssetTexture*                   getTexture(std::string textureName);
     LayeredTexture*                 getLayeredTexture(std::string textureName);
 };

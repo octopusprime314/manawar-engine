@@ -22,17 +22,19 @@
 
 #pragma once
 #include "GLIncludes.h"
+#include "RenderTexture.h"
 #include <iostream>
 #include <vector>
 
 class DeferredFrameBuffer {
 
-    GLuint _frameBufferContext;
-    GLuint _fbTextureContext; //Use for color attachment in framebuffer
+    GLuint        _frameBufferContext;
+    RenderTexture _renderTexture;
 
 public:
     DeferredFrameBuffer();
     ~DeferredFrameBuffer();
-    GLuint getFrameBufferContext();
-    GLuint getTextureContext();
+    GLuint        getFrameBufferContext();
+    GLuint        getTextureContext();
+    Texture*      getTexture();
 };

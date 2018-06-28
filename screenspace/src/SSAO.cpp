@@ -4,23 +4,17 @@
 #include "MRTFrameBuffer.h"
 #include "ViewManager.h"
 
-SSAO::SSAO() {
+SSAO::SSAO() :
+    _renderTexture(screenPixelWidth, screenPixelHeight, TextureFormat::R_FLOAT) {
 
-    _blur = new SSCompute("blurShader", Format::RF);
+    _blur = new SSCompute("blurShader", screenPixelWidth, screenPixelHeight, TextureFormat::R_FLOAT);
 
     glGenFramebuffers(1, &_ssaoFBO);
     glBindFramebuffer(GL_FRAMEBUFFER, _ssaoFBO);
 
-    glGenTextures(1, &_ssaoColorBuffer);
-    glBindTexture(GL_TEXTURE_2D, _ssaoColorBuffer);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, screenPixelWidth, screenPixelHeight, 0, GL_RGB, GL_FLOAT, NULL);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _ssaoColorBuffer, 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _renderTexture.getContext(), 0);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    glBindTexture(GL_TEXTURE_2D, 0);
-
+   
     _generateKernelNoise();
 }
 
@@ -86,15 +80,11 @@ void SSAO::computeSSAO(MRTFrameBuffer* mrtBuffer, ViewManager* viewManager) {
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-    _blur->compute(_ssaoColorBuffer);
+    _blur->compute(&_renderTexture);
 }
 
 unsigned int SSAO::getNoiseTexture() {
     return _noiseTexture;
-}
-
-unsigned int SSAO::getSSAOTexture() {
-    return _ssaoColorBuffer;
 }
 
 std::vector<Vector4>& SSAO::getKernel() {

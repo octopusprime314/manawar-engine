@@ -26,14 +26,17 @@
 
 #pragma once
 class SSCompute;
+class Texture;
 class Bloom {
 
     SSCompute*   _luminanceFilter;
     SSCompute*   _horizontalBlur;
     SSCompute*   _verticalBlur;
+    SSCompute*   _downSample;
+    SSCompute*   _upSample;
 public:
     Bloom();
     ~Bloom();
     unsigned int getTextureContext();
-    void         compute(unsigned int deferredFBOTexture);
+    void         compute(Texture* deferredFBOTexture);
 };

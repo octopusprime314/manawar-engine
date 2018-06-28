@@ -20,15 +20,15 @@
 */
 
 #pragma once
-#include "Texture.h"
+#include "AssetTexture.h"
 #include <vector>
 
 class LayeredTexture {
 
     LayeredTexture(); //Make the default constructor private which forces coder to allocate a Texture with a string name
-    std::vector<Texture*> _textures;
+    std::vector<AssetTexture*> _textures;
 public:
     LayeredTexture(std::vector<std::string> textureNames); //if true then it is a special cube map
     ~LayeredTexture();
-    std::vector<Texture*> getTextures();
+    std::vector<AssetTexture*> getTextures();
 };

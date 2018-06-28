@@ -165,7 +165,7 @@ void Model::addLayeredTexture(std::vector<std::string> textureNames, int stride)
     _textureManager->addLayeredTexture(textureNames);
 }
 
-Texture* Model::getTexture(std::string textureName) {
+AssetTexture* Model::getTexture(std::string textureName) {
     return _textureManager->getTexture(textureName);
 }
 

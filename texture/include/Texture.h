@@ -25,24 +25,29 @@
 #include "FreeImage.h"
 #include <iostream>
 
+enum class TextureFormat {
+    RGBA_UNSIGNED_BYTE,
+    RGBA_FLOAT,
+    DEPTH32_FLOAT,
+    R_FLOAT,
+    R_UNSIGNED_BYTE
+};
+
 class Texture {
 
+protected:
     Texture(); //Make the default constructor private which forces coder to allocate a Texture with a string name
-    void        _build2DTexture(std::string textureName);
-    void        _buildCubeMapTexture(std::string skyboxName);
-    bool        _getTextureData(std::string textureName);
-    void        _decodeTexture(std::string textureName, unsigned int textureType);
-
     GLuint      _textureContext;
-    int         _width;
-    int         _height;
-    BYTE*       _bits;
-    bool        _alphaValues;
-    FIBITMAP*   _dib;
+    GLuint      _width;
+    GLuint      _height;
     std::string _name;
 public:
-    Texture(std::string textureName, bool cubeMap = false); //if true then it is a special cube map
+    Texture(std::string name);
+    Texture(std::string name, GLuint width, GLuint height); 
+
     ~Texture();
     GLuint      getContext();
-    bool        getTransparency();
+    GLuint      getWidth();
+    GLuint      getHeight();
+    std::string getName();
 };

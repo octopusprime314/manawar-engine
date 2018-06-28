@@ -21,14 +21,16 @@
 
 #pragma once
 #include "ComputeShader.h"
+#include "RenderTexture.h"
 
 class SSCompute {
     ComputeShader* _computeShader;
-    unsigned int   _colorBuffer;
-    Format         _format;
+    TextureFormat  _format;
+    RenderTexture  _renderTexture;
 public:
-    SSCompute(std::string computeShader, Format format);
+    SSCompute(std::string computeShader, GLuint width, GLuint height, TextureFormat format);
     ~SSCompute();
     unsigned int   getTextureContext();
-    void           compute(GLuint readTexture);
+    Texture*       getTexture();
+    void           compute(Texture* readTexture);
 };

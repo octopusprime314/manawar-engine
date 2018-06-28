@@ -17,7 +17,7 @@ TextureBroker::~TextureBroker() {
 void TextureBroker::addTexture(std::string textureName) {
 
     if (_textures.find(textureName) == _textures.end()) {
-        _textures[textureName] = new Texture(textureName);
+        _textures[textureName] = new AssetTexture(textureName);
     }
 }
 
@@ -34,11 +34,11 @@ void TextureBroker::addLayeredTexture(std::vector<std::string> textureNames) {
 
 void TextureBroker::addCubeTexture(std::string textureName) {
     if (_textures.find(textureName) == _textures.end()) {
-        _textures[textureName] = new Texture(textureName, true);
+        _textures[textureName] = new AssetTexture(textureName, true);
     }
 }
 
-Texture* TextureBroker::getTexture(std::string textureName) {
+AssetTexture* TextureBroker::getTexture(std::string textureName) {
     return _textures[textureName];
 }
 

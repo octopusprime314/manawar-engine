@@ -22,20 +22,14 @@
 
 #pragma once
 #include "Shader.h"
-
-enum class Format {
-    RGBUB = 0, //RGB Unsigned Bytes
-    RGBF,      //RGB Floats
-    RU,        //RU  Unsigned Byte
-    RF,        //RF  Float
-};
+#include "Texture.h"
 
 class ComputeShader : public Shader {
 
-    unsigned int _readTextureLocation;
-    unsigned int _writeTextureLocation;
 public:
     ComputeShader(std::string computeShaderName);
     ~ComputeShader();
-    void         runShader(GLuint writeTexture, GLuint readTexture, Format format);
+    void         runShader(Texture* writeTexture, 
+                           Texture* readTexture, 
+                           TextureFormat format);
 };

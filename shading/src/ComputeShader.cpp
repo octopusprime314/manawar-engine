@@ -5,15 +5,13 @@
 
 ComputeShader::ComputeShader(std::string computeShaderName) : Shader(computeShaderName) {
 
-    _readTextureLocation = glGetUniformLocation(_shaderContext, "readTexture");
-    _writeTextureLocation = glGetUniformLocation(_shaderContext, "writeTexture");
 }
 
 ComputeShader::~ComputeShader() {
 
 }
 
-void ComputeShader::runShader(GLuint writeTexture, GLuint readTexture, Format format) {
+void ComputeShader::runShader(Texture* writeTexture, Texture* readTexture, TextureFormat format) {
 
     glUseProgram(_shaderContext);
 
@@ -21,27 +19,20 @@ void ComputeShader::runShader(GLuint writeTexture, GLuint readTexture, Format fo
 
     //Bind read textures
     imageInfo.readOnly = true;
-    if (format == Format::RGBUB || format == Format::RGBF) {
+    if (format == TextureFormat::RGBA_UNSIGNED_BYTE || format == TextureFormat::RGBA_FLOAT) {
         imageInfo.format = GL_RGBA8;
     }
-    else if (format == Format::RF || format == Format::RU) {
+    else if (format == TextureFormat::R_FLOAT || format == TextureFormat::R_UNSIGNED_BYTE) {
         imageInfo.format = GL_R8;
     }
-    updateUniform("readTexture", GL_TEXTURE0, readTexture, imageInfo);
+    updateUniform("readTexture", GL_TEXTURE0, readTexture->getContext(), imageInfo);
 
-    //Bind write textures
     imageInfo.readOnly = false;
-    if (format == Format::RGBUB || format == Format::RGBF) {
-        imageInfo.format = GL_RGBA8;
-    }
-    else if (format == Format::RF || format == Format::RU) {
-        imageInfo.format = GL_R8;
-    }
-    updateUniform("writeTexture", GL_TEXTURE1, writeTexture, imageInfo);
+    updateUniform("writeTexture", GL_TEXTURE1, writeTexture->getContext(), imageInfo);
 
     //Dispatch the shader
-    glDispatchCompute(static_cast<GLuint>(ceilf(static_cast<float>(screenPixelWidth) / 16.0f)),
-        static_cast<GLuint>(ceilf(static_cast<float>(screenPixelHeight) / 16.0f)), 1);
+    glDispatchCompute(static_cast<GLuint>(ceilf(static_cast<float>(writeTexture->getWidth()) / 16.0f)),
+        static_cast<GLuint>(ceilf(static_cast<float>(writeTexture->getHeight()) / 16.0f)), 1);
 
     glUseProgram(0);
 }

@@ -210,7 +210,7 @@ void SceneManager::_postDraw() {
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
         //Compute bloom from deferred fbo texture
-        _bloom->compute(_deferredFBO->getTextureContext());
+        _bloom->compute(_deferredFBO->getTexture());
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 

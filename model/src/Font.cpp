@@ -115,9 +115,6 @@ void parseFontFile(std::string& filename, FontInfo& out)
 
 using namespace std;
 
-extern const int screenPixelWidth;
-extern const int screenPixelHeight;
-
 const float ratio = static_cast<float>(screenPixelHeight) / screenPixelWidth;
 
 FontRenderer::FontRenderer(std::string fileName)

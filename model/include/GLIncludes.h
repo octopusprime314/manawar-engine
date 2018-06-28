@@ -26,8 +26,8 @@
 #include <string>
 #include <cassert>
 
-const int screenPixelWidth = 1920;
-const int screenPixelHeight = 1080;
+static int screenPixelWidth = 1920;
+static int screenPixelHeight = 1080;
 
 const std::string ASSET_LOCATION = "../assets/";
 const std::string MESH_LOCATION = ASSET_LOCATION + "meshes/";

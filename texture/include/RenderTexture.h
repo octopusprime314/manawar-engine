@@ -1,5 +1,5 @@
 /*
-* FrameBuffer is part of the ReBoot distribution (https://github.com/octopusprime314/ReBoot.git).
+* RenderTexture is part of the ReBoot distribution (https://github.com/octopusprime314/ReBoot.git).
 * Copyright (c) 2017 Peter Morley.
 *
 * ReBoot is free software: you can redistribute it and/or modify
@@ -16,25 +16,17 @@
 */
 
 /**
-*  DepthFrameBuffer class. Stores framebuffer depth
-   into a texture format for post processing and offscreen rendering
+*  The RenderTexture class creates a texture that typically attaches to a frame buffer object
 */
 
 #pragma once
-#include "GLIncludes.h"
-#include "RenderTexture.h"
-#include <iostream>
+#include "Texture.h"
 
-class DepthFrameBuffer {
+class RenderTexture : public Texture {
 
-    GLuint        _frameBufferContext;
-    RenderTexture _renderTexture;
+    RenderTexture(); //Make the default constructor private which forces coder to allocate a Texture with a string name
 
 public:
-    DepthFrameBuffer(unsigned int width, unsigned int height);
-    ~DepthFrameBuffer();
-    GLuint        getFrameBufferContext();
-    GLuint        getTextureContext();
-    GLuint        getWidth();
-    GLuint        getHeight();
+    RenderTexture(GLuint width, GLuint height, TextureFormat format); 
+    ~RenderTexture();
 };

@@ -1,14 +1,15 @@
 #include "ShadowRenderer.h"
 #include "ViewManager.h"
 
+ShaderBroker* ShadowRenderer::_shaderManager = ShaderBroker::instance();
+
 ShadowRenderer::ShadowRenderer(GLuint width, GLuint height) :
-    _staticShadowShader("staticShadowShader"),
-    _animatedShadowShader("animatedShadowShader"),
     _staticRendered(false),
     _staticShadowFBO(width, height),
     _animatedShadowFBO(width, height),
-    _mapShadowFBO(width, height) {
-
+    _mapShadowFBO(width, height),
+    _staticShadowShader(static_cast<ShadowStaticShader*>(_shaderManager->getShader("staticShadowShader"))),
+    _animatedShadowShader(static_cast<ShadowAnimatedShader*>(_shaderManager->getShader("animatedShadowShader"))) {
 }
 
 ShadowRenderer::~ShadowRenderer() {
@@ -51,7 +52,7 @@ void ShadowRenderer::generateShadowBuffer(std::vector<Model*> modelList, std::ve
     for (Model* model : modelList) {
 
         if (model->getClassType() == ModelClass::ModelType) {
-            _staticShadowShader.runShader(model, light);
+            _staticShadowShader->runShader(model, light);
         }
     }
 
@@ -76,7 +77,7 @@ void ShadowRenderer::generateShadowBuffer(std::vector<Model*> modelList, std::ve
     for (Model* model : modelList) {
 
         if (model->getClassType() == ModelClass::ModelType) {
-            _staticShadowShader.runShader(model, light);
+            _staticShadowShader->runShader(model, light);
         }
     }
 
@@ -114,7 +115,7 @@ void ShadowRenderer::generateShadowBuffer(std::vector<Model*> modelList, std::ve
     for (Model* model : modelList) {
 
         if (model->getClassType() == ModelClass::AnimatedModelType) {
-            _animatedShadowShader.runShader(model, light);
+            _animatedShadowShader->runShader(model, light);
         }
     }
 

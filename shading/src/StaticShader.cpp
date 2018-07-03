@@ -31,6 +31,13 @@ void StaticShader::runShader(Model* model) {
     //glUniform mat4 normal matrix, GL_TRUE is telling GL we are passing in the matrix as row major
     updateUniform("normal", mvp->getNormalBuffer());
 
+    MVP* prevMVP = model->getPrevMVP();
+    //glUniform mat4 combined model and world matrix, GL_TRUE is telling GL we are passing in the matrix as row major
+    updateUniform("prevModel", prevMVP->getModelBuffer());
+
+    //glUniform mat4 view matrix, GL_TRUE is telling GL we are passing in the matrix as row major
+    updateUniform("prevView", prevMVP->getViewBuffer());
+
     auto textureStrides = model->getTextureStrides();
     unsigned int strideLocation = 0;
     for (auto textureStride : textureStrides) {

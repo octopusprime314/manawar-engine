@@ -37,6 +37,7 @@ class FunctionState {
 
     std::thread _lambdaThread; //Lambda thread
     bool        _terminate;
+    Vector4     _currValue;
 public:
 
     FunctionState(std::function<void(Vector4)> functionPointer, std::function<Vector4(float)> equationLambda,
@@ -54,10 +55,10 @@ public:
                 float seconds = t / 1000.0f;
 
                 //Calculate new equation value
-                ft = equationLambda(seconds);
+                _currValue = equationLambda(seconds);
 
                 //Call function pointer
-                functionPointer(ft);
+                functionPointer(_currValue);
 
                 //sleep for the designated timer interval
                 std::this_thread::sleep_for(std::chrono::milliseconds(milliseconds));
@@ -73,5 +74,9 @@ public:
     ~FunctionState() {
         _terminate = true;
         _lambdaThread.join();
+    }
+
+    Vector4 getVectorState() {
+        return _currValue;
     }
 };

@@ -37,8 +37,7 @@ void Uniforms::updateUniform(std::string uniformName, void* value) {
     while (glGetError() != GL_NO_ERROR);
 
     //Find the type of the uniform
-    switch (_uniformMap[uniformName].type)
-    {
+    switch (_uniformMap[uniformName].type) {
     case GL_FLOAT:
         glUniform1fv(_uniformMap[uniformName].location, _uniformMap[uniformName].size, static_cast<GLfloat*>(value));
         break;
@@ -65,8 +64,7 @@ void Uniforms::updateUniform(std::string uniformName, void* value) {
         break;
     }
 
-    if (glGetError() != GL_NO_ERROR)
-    {
+    if (glGetError() != GL_NO_ERROR) {
         std::cout << "Uniform " << uniformName << " not updated properly in the shader!" << std::endl;
     }
 }
@@ -79,8 +77,7 @@ void Uniforms::updateUniform(std::string uniformName,
     while (glGetError() != GL_NO_ERROR);
 
     //Find the type of the uniform
-    switch (_uniformMap[uniformName].type)
-    {
+    switch (_uniformMap[uniformName].type) {
     case GL_SAMPLER_2D:
         glUniform1i(_uniformMap[uniformName].location, textureUnit - GL_TEXTURE0);
         glActiveTexture(textureUnit);
@@ -96,8 +93,7 @@ void Uniforms::updateUniform(std::string uniformName,
         break;
     }
 
-    if (glGetError() != GL_NO_ERROR)
-    {
+    if (glGetError() != GL_NO_ERROR) {
         std::cout << "Uniform " << uniformName << " not updated properly in the shader!" << std::endl;
     }
 }
@@ -111,8 +107,7 @@ void Uniforms::updateUniform(std::string uniformName,
     while (glGetError() != GL_NO_ERROR);
 
     //Find the type of the uniform
-    switch (_uniformMap[uniformName].type)
-    {
+    switch (_uniformMap[uniformName].type) {
     case GL_IMAGE_2D:
         glUniform1i(_uniformMap[uniformName].location, textureUnit - GL_TEXTURE0);
         if (imageInfo.readOnly) {
@@ -127,8 +122,7 @@ void Uniforms::updateUniform(std::string uniformName,
         break;
     }
 
-    if (glGetError() != GL_NO_ERROR)
-    {
+    if (glGetError() != GL_NO_ERROR) {
         std::cout << "Uniform " << uniformName << " not updated properly in the shader!" << std::endl;
     }
 }

@@ -75,7 +75,7 @@ SimpleContext::SimpleContext(int* argc, char** argv, unsigned int viewportWidth,
     glClearStencil(0);
 
     //Disable mouse cursor view
-    glfwSetInputMode(_window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+    glfwSetInputMode(_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     MasterClock* masterClock = MasterClock::instance();
     masterClock->setFrameRate(60); //Establishes the frame rate of the draw context
@@ -160,9 +160,6 @@ void SimpleContext::_drawUpdate() {
 void SimpleContext::_mouseUpdate(GLFWwindow* window, double x, double y) {
 
     SimpleContextEvents::updateMouse(x, y);
-
-    //Bring cursor back to center position
-    glfwSetCursorPos(_window, screenPixelWidth / 2, screenPixelHeight / 2);
 }
 
 void SimpleContext::_frameRateTrigger(int milliSeconds) {

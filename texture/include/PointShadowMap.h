@@ -27,8 +27,10 @@
 
 class PointShadowMap : public CubeMapRenderer {
 
-    ShadowPointShader          _pointShadowShader;//Shader that generates point light cube map shadows
-    ShadowAnimatedPointShader  _pointAnimatedShadowShader;//Animated Shader that generates point light cube map shadows
+    ShadowPointShader*          _pointShadowShader; //Shader that generates point light cube map shadows
+    ShadowAnimatedPointShader*  _pointAnimatedShadowShader; //Animated Shader that generates point light cube map shadows
+    static ShaderBroker*        _shaderManager;        //Static shader manager for shader reuse purposes, all models have access
+
 public:
     PointShadowMap(GLuint width, GLuint height);
     ~PointShadowMap();

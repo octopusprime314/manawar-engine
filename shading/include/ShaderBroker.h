@@ -1,5 +1,5 @@
 /*
-* MergeShader is part of the ReBoot distribution (https://github.com/octopusprime314/ReBoot.git).
+* ShaderBroker is part of the ReBoot distribution (https://github.com/octopusprime314/ReBoot.git).
 * Copyright (c) 2017 Peter Morley.
 *
 * ReBoot is free software: you can redistribute it and/or modify
@@ -16,24 +16,25 @@
 */
 
 /**
-*  MergeShader class. Takes multiple frame buffers and merges them
+*  The ShaderBroker class is a singleton that manages all shaders in a scene
 */
 
 #pragma once
 #include "Shader.h"
-#include "Matrix.h"
-#include "MVP.h"
-class Light;
-class Water;
-class Effect;
-class ViewManager;
+#include <map>
+#include <vector>
 
-class MergeShader : public Shader {
+using ShaderMap = std::map<std::string, Shader*>;
 
-protected:
-    GLuint      _dummyVAO;
+class ShaderBroker {
+    ShaderBroker();
+    ShaderMap            _shaders;
+    static ShaderBroker* _broker;
+    void                 _gatherShaderNames();
 public:
-    MergeShader();
-    virtual ~MergeShader();
-    virtual void runShader(GLuint deferredTexture, GLuint velocityTexture);
+    static ShaderBroker* instance();
+    ~ShaderBroker();
+    Shader*              getShader(std::string shaderName);
+    void                 compileShaders();
+    void                 recompileShader(std::string shaderName);
 };

@@ -27,9 +27,6 @@ RenderTexture::RenderTexture(GLuint width, GLuint height, TextureFormat format) 
         //spell out texture format, RGB format but can use RGB, data pointer is null
         //because the frame buffer is responsible for allocating and populating texture data
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, _width, _height, 0, GL_RGBA, GL_FLOAT, NULL);
-
-        //Might be the same as above
-        //glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, screenPixelWidth, screenPixelHeight, 0, GL_RGBA, GL_FLOAT, NULL);
     }
     else if (format == TextureFormat::R_FLOAT) {
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, _width, _height, 0, GL_RGB, GL_FLOAT, NULL);
@@ -39,6 +36,8 @@ RenderTexture::RenderTexture(GLuint width, GLuint height, TextureFormat format) 
     }
 
     //texture filter parameters
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 

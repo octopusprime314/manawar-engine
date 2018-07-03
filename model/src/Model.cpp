@@ -4,6 +4,7 @@
 #include "GeometryBuilder.h"
 
 TextureBroker* Model::_textureManager = TextureBroker::instance();
+ShaderBroker*  Model::_shaderManager  = ShaderBroker::instance();
 
 Model::Model(ViewManagerEvents* eventWrapper, RenderBuffers& renderBuffers, StaticShader* pStaticShader)
     : UpdateInterface(eventWrapper),
@@ -11,10 +12,8 @@ Model::Model(ViewManagerEvents* eventWrapper, RenderBuffers& renderBuffers, Stat
     _fbxLoader(nullptr),
     _clock(MasterClock::instance()),
     _debugMode(false),
-    _debugShaderProgram(new DebugShader("debugShader")),
     _geometryType(GeometryType::Triangle),
     _renderBuffers(std::move(renderBuffers)),
-    _shaderProgram(pStaticShader),
     _isInstanced(false) {
     _vao.createVAO(&_renderBuffers, _classId);
 }
@@ -32,7 +31,7 @@ _clock(MasterClock::instance()) {
     _debugMode = false;
 
     //Load debug shader
-    _debugShaderProgram = new DebugShader("debugShader");
+    _debugShaderProgram = static_cast<DebugShader*>(_shaderManager->getShader("debugShader"));
 
     //Load in fbx object
     _fbxLoader = new FbxLoader(MESH_LOCATION + name);
@@ -52,7 +51,7 @@ _clock(MasterClock::instance()) {
     if (_classId == ModelClass::ModelType) {
 
         //Load default shader
-        _shaderProgram = new StaticShader("staticShader");
+        _shaderProgram = static_cast<StaticShader*>(_shaderManager->getShader("staticShader"));
 
         //If the object is a standard model then it is modeled with triangles
         _geometryType = GeometryType::Triangle;
@@ -79,8 +78,8 @@ _clock(MasterClock::instance()) {
 }
 
 Model::~Model() {
-    delete _debugShaderProgram;
-    delete _shaderProgram;
+    //delete _debugShaderProgram;
+    //delete _shaderProgram;
 }
 
 void Model::_updateDraw() {
@@ -106,6 +105,8 @@ void Model::_updateMouse(double x, double y) {
 
 void Model::_updateView(Matrix view) {
 
+    _prevMVP.setView(_mvp.getViewMatrix());
+
     _mvp.setView(view); //Receive updates when the view matrix has changed
 
     //If view changes then change our normal matrix
@@ -119,6 +120,8 @@ void Model::_updateProjection(Matrix projection) {
 void Model::_updateKinematics(int milliSeconds) {
     //Do kinematic calculations
     _state.update(milliSeconds);
+
+    _prevMVP.setModel(_mvp.getModelMatrix());
 
     //Pass position information to model matrix
     Vector4 position = _state.getLinearPosition();
@@ -202,6 +205,9 @@ Geometry* Model::getGeometry() {
 MVP* Model::getMVP() {
     return &_mvp;
 }
+MVP* Model::getPrevMVP() {
+    return &_prevMVP;
+}
 
 RenderBuffers* Model::getRenderBuffers() {
     return &_renderBuffers;
@@ -215,6 +221,9 @@ void Model::setPosition(Vector4 position) {
     _state.setLinearPosition(position);
     //Pass position information to model matrix
     _geometry.updatePosition(position);
+
+    _prevMVP.setModel(_mvp.getModelMatrix());
+
     _mvp.setModel(Matrix::translation(position.getx(), position.gety(), position.getz()));
 }
 

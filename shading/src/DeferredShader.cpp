@@ -110,12 +110,13 @@ void DeferredShader::runShader(ShadowRenderer* shadowRenderer,
     updateUniform("diffuseTexture",     GL_TEXTURE0, textures[0]);
     updateUniform("normalTexture",      GL_TEXTURE1, textures[1]);
     updateUniform("positionTexture",    GL_TEXTURE2, textures[2]);
-    updateUniform("cameraDepthTexture", GL_TEXTURE3, shadowRenderer->getStaticDepthTexture());
-    updateUniform("mapDepthTexture",    GL_TEXTURE4, shadowRenderer->getMapDepthTexture());
-    updateUniform("depthMap",           GL_TEXTURE5, pointShadowMap->getCubeMapTexture());
-    updateUniform("skyboxDayTexture",   GL_TEXTURE6, _skyBoxDayTexture->getContext());
-    updateUniform("skyboxNightTexture", GL_TEXTURE7, _skyBoxNightTexture->getContext());
-    updateUniform("ssaoTexture",        GL_TEXTURE8, ssao->getBlur()->getTextureContext());
+    updateUniform("velocityTexture",    GL_TEXTURE3, textures[3]);
+    updateUniform("cameraDepthTexture", GL_TEXTURE4, shadowRenderer->getStaticDepthTexture());
+    updateUniform("mapDepthTexture",    GL_TEXTURE5, shadowRenderer->getMapDepthTexture());
+    updateUniform("depthMap",           GL_TEXTURE6, pointShadowMap->getCubeMapTexture());
+    updateUniform("skyboxDayTexture",   GL_TEXTURE7, _skyBoxDayTexture->getContext());
+    updateUniform("skyboxNightTexture", GL_TEXTURE8, _skyBoxNightTexture->getContext());
+    updateUniform("ssaoTexture",        GL_TEXTURE9, ssao->getBlur()->getTextureContext());
 
     //Draw triangles using the bound buffer vertices at starting index 0 and number of vertices
     glDrawArrays(GL_TRIANGLE_STRIP, 0, (GLsizei)4);

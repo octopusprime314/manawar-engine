@@ -4,10 +4,15 @@
 #include "MRTFrameBuffer.h"
 #include "ViewManager.h"
 
-SSAO::SSAO() :
-    _renderTexture(screenPixelWidth, screenPixelHeight, TextureFormat::R_FLOAT) {
+ShaderBroker* SSAO::_shaderManager = ShaderBroker::instance();
 
-    _blur = new SSCompute("blurShader", screenPixelWidth, screenPixelHeight, TextureFormat::R_FLOAT);
+SSAO::SSAO() :
+    _renderTexture(screenPixelWidth, screenPixelHeight, TextureFormat::R_FLOAT),
+    _ssaoShader(static_cast<SSAOShader*>(_shaderManager->getShader("ssaoShader"))) {
+
+    _blur = new SSCompute("blurShader", screenPixelWidth / 4, screenPixelHeight / 4, TextureFormat::R_FLOAT);
+    _downSample = new SSCompute("downsample", screenPixelWidth / 4, screenPixelHeight / 4, TextureFormat::R_FLOAT);
+    _upSample = new SSCompute("upsample", screenPixelWidth, screenPixelHeight, TextureFormat::R_FLOAT);
 
     glGenFramebuffers(1, &_ssaoFBO);
     glBindFramebuffer(GL_FRAMEBUFFER, _ssaoFBO);
@@ -76,11 +81,18 @@ void SSAO::computeSSAO(MRTFrameBuffer* mrtBuffer, ViewManager* viewManager) {
 
     glClear(GL_COLOR_BUFFER_BIT);
 
-    _ssaoShader.runShader(this, mrtBuffer, viewManager);
+    _ssaoShader->runShader(this, mrtBuffer, viewManager);
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-    _blur->compute(&_renderTexture);
+    //Downsample by a 1/4
+    _downSample->compute(&_renderTexture);
+
+    //Blur in downsampled 
+    _blur->compute(_downSample->getTexture());
+
+    //upsample back to original
+    _upSample->compute(_blur->getTexture());
 }
 
 unsigned int SSAO::getNoiseTexture() {
@@ -92,5 +104,5 @@ std::vector<Vector4>& SSAO::getKernel() {
 }
 
 SSCompute* SSAO::getBlur() {
-    return _blur;
+    return _upSample;
 }

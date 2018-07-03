@@ -44,7 +44,7 @@ void StateVector::update(int milliSeconds) {
             _angularAcceleration.getz() * deltaTime,
             1.0f);
         //Add to angular velocity
-        _angularVelocity = _angularVelocity + deltaAngularVelocity;
+        _angularVelocity = (_angularVelocity + deltaAngularVelocity) * ((_contact || !_gravity) ? FRICTION : 1.0f);
 
         //Calculate angular position changes with delta time
         Vector4 deltaAngularPosition(_angularVelocity.getx() * deltaTime,
@@ -140,7 +140,13 @@ void StateVector::setForce(Vector4 force) {
 }
 
 void StateVector::setTorque(Vector4 torque) {
-    _torque = torque;
+    //Can't set torque if not touching an item to push off from i.e. in the air
+    if (_contact || !_gravity) {
+        _torque = torque;
+    }
+    else {
+        _torque = Vector4(0.0f, 0.0f, 0.0f, 1.0f);
+    }
 }
 
 void StateVector::setContact(bool contact) {

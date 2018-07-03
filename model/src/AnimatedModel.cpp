@@ -25,7 +25,7 @@ AnimatedModel::AnimatedModel(std::string name, ViewManagerEvents* eventWrapper) 
     geometryLoader.loadGeometry(this, geometryLoader.getScene()->GetRootNode());
 
     //Override default shader with a bone animation shader
-    _shaderProgram = new AnimationShader("animatedShader");
+    _shaderProgram = static_cast<AnimationShader*>(_shaderManager->getShader("animatedShader"));
 
     _currBones = _animations[_currentAnimation]->getBones();
 

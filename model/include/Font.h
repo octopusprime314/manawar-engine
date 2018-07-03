@@ -24,6 +24,7 @@
 #include <string>
 #include "GLIncludes.h"
 #include "FontShader.h"
+#include "ShaderBroker.h"
 
 const std::string FONT_LOCATION = "../assets/textures/font/";
 
@@ -97,12 +98,14 @@ public:
 private:
     const int bufferSize = 65536;
     FontInfo fontInfo;
-    FontShader fontShader;
+    FontShader* fontShader;
 
     GLuint fontTex;
     GLuint vao;
     GLuint texCoordsVbo;
     GLuint vbo;
     GLuint shader;
+
+    static ShaderBroker* _shaderManager;        //Static shader manager for shader reuse purposes, all models have access
 
 };

@@ -27,6 +27,7 @@ in VsData
 
 out vec4 fragColor;
 uniform float farPlane;
+uniform vec3 light;
 
 void main(){
 

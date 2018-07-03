@@ -36,24 +36,29 @@ class FontRenderer;
 class DeferredFrameBuffer;
 class MergeShader;
 class Bloom;
+class SSCompute;
+class ShaderBroker;
+
 
 class SceneManager {
-    ViewManager*        _viewManager; //manages the view/camera matrix from the user's perspective
-    std::vector<Model*> _modelList; //Contains models active in scene
-    std::vector<Light*> _lightList; //Contains all lights in a scene
-    Physics             _physics; //Manages physical interactions between models
-    DeferredRenderer*   _deferredRenderer; //Manages deferred shading g buffers
-    ForwardRenderer*    _forwardRenderer; //Manages forward shading transparent objects
-    ShadowRenderer*     _shadowRenderer;   //Manages shadow rendering
-    PointShadowMap*     _pointShadowMap; //Manages point shadow lights
-    AudioManager*       _audioManager;  // Manages audio playback
-    SSAO*               _ssaoPass;
-    EnvironmentMap*     _environmentMap;
-    Water*              _water;
-    FontRenderer*       _fontRenderer; // Manages text rendering
+    ViewManager*         _viewManager; //manages the view/camera matrix from the user's perspective
+    std::vector<Model*>  _modelList; //Contains models active in scene
+    std::vector<Light*>  _lightList; //Contains all lights in a scene
+    Physics              _physics; //Manages physical interactions between models
+    DeferredRenderer*    _deferredRenderer; //Manages deferred shading g buffers
+    ForwardRenderer*     _forwardRenderer; //Manages forward shading transparent objects
+    ShadowRenderer*      _shadowRenderer;   //Manages shadow rendering
+    PointShadowMap*      _pointShadowMap; //Manages point shadow lights
+    AudioManager*        _audioManager;  // Manages audio playback
+    SSAO*                _ssaoPass;
+    EnvironmentMap*      _environmentMap;
+    Water*               _water;
+    FontRenderer*        _fontRenderer; // Manages text rendering
     DeferredFrameBuffer* _deferredFBO;
     Bloom*               _bloom;
     MergeShader*         _mergeShader;
+    SSCompute*           _add;
+    static ShaderBroker* _shaderManager;
 
     void _preDraw(); //Prior to drawing objects call this function
     void _postDraw(); //Post of drawing objects call this function

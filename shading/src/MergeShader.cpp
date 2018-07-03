@@ -11,14 +11,14 @@ MergeShader::~MergeShader() {
 
 }
 
-void MergeShader::runShader(GLuint deferredTexture, GLuint bloomTexture) {
+void MergeShader::runShader(GLuint deferredTexture, GLuint velocityTexture) {
 
     //LOAD IN SHADER
     glUseProgram(_shaderContext); //use context for loaded shader
     glBindVertexArray(_dummyVAO);
 
     updateUniform("deferredTexture", GL_TEXTURE0, deferredTexture);
-    updateUniform("bloomTexture",    GL_TEXTURE1, bloomTexture);
+    updateUniform("velocityTexture", GL_TEXTURE1, velocityTexture);
 
     glDrawArrays(GL_TRIANGLE_STRIP, 0, (GLsizei)4);
 

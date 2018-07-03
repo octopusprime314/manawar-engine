@@ -26,6 +26,7 @@
 #include "SSAOShader.h"
 #include "SSCompute.h"
 #include "RenderTexture.h"
+#include "ShaderBroker.h"
 class MRTFrameBuffer;
 class ViewManager;
 
@@ -36,9 +37,13 @@ class SSAO {
     std::vector<Vector4>  _ssaoNoise;
     unsigned int          _noiseTexture;
     unsigned int          _ssaoFBO;
-    SSAOShader            _ssaoShader;
+    SSAOShader*           _ssaoShader;
     SSCompute*            _blur;
-    RenderTexture         _renderTexture;
+    SSCompute*            _downSample;
+    SSCompute*            _upSample;
+    RenderTexture         _renderTexture; 
+    static ShaderBroker* _shaderManager;        //Static shader manager for shader reuse purposes, all models have access
+
 public:
     SSAO();
     ~SSAO();

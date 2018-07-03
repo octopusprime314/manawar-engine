@@ -25,7 +25,7 @@
 #include "GLIncludes.h"
 
 struct ImageData {
-    bool   readOnly;
+    GLuint readOnly;
     GLuint format;
 };
 

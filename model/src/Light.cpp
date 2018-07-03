@@ -118,5 +118,5 @@ void Light::render() {
     const uint64_t dayLengthMilliseconds = 24 * 60 * 60 * 1000;
     uint64_t updateTimeAmplified = dayLengthMilliseconds / (60 * 1000);
     float realTimeMilliSeconds = static_cast<float>(_milliSecondTime) / static_cast<float>(updateTimeAmplified);
-    _effectShader.runShader(this, realTimeMilliSeconds / 1000.f);
+    _effectShader->runShader(this, realTimeMilliSeconds / 1000.f);
 }

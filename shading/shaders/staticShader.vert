@@ -9,8 +9,13 @@ out VsData
 	vec3 normalOut;			   // Transformed normal based on the normal matrix transform
 	vec2 textureCoordinateOut; // Passthrough
 	vec3 positionOut;          // Passthrough for deferred shadow rendering
+	vec4 projPositionOut;
+	vec4 prevProjPositionOut;
 } vsData;
 
+
+uniform mat4 prevModel;  // Previous Model transformation matrix
+uniform mat4 prevView;   // Previous View/Camera transformation matrix
 uniform mat4 model;		 // Model and World transformation matrix
 uniform mat4 view;		 // View/Camera transformation matrix
 uniform mat4 projection; // Projection transformation matrix
@@ -28,6 +33,9 @@ void main(){
 	vsData.normalOut = vec3((normal * vec4(normalIn, 0.0)).xyz); //Transform normal coordinate in with the normal matrix
 	
 	vsData.textureCoordinateOut = textureCoordinateIn; //Passthrough
+	
+	vsData.prevProjPositionOut = projection * prevView * prevModel * vec4(vertexIn.xyz, 1.0); //vertex buffer previous
+	vsData.projPositionOut = transformedVert; //vertex buffer current
 	
 	//Pass the transformed vertex to the fragment shader
 	gl_Position = transformedVert; 

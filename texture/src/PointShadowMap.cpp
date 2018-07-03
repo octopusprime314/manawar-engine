@@ -1,9 +1,10 @@
 #include "PointShadowMap.h"
+ShaderBroker* PointShadowMap::_shaderManager = ShaderBroker::instance();
 
 PointShadowMap::PointShadowMap(GLuint width, GLuint height) :
     CubeMapRenderer(width, height, true),
-    _pointShadowShader("pointShadowShader"),
-    _pointAnimatedShadowShader("pointAnimatedShadowShader") {
+    _pointShadowShader(static_cast<ShadowPointShader*>(_shaderManager->getShader("pointShadowShader"))),
+    _pointAnimatedShadowShader(static_cast<ShadowAnimatedPointShader*>(_shaderManager->getShader("pointAnimatedShadowShader"))) {
 
 }
 
@@ -22,10 +23,10 @@ void PointShadowMap::render(std::vector<Model*> modelList, Light* light) {
 
         for (Model* model : modelList) {
             if (model->getClassType() == ModelClass::ModelType) {
-                _pointShadowShader.runShader(model, light, _transforms);
+                _pointShadowShader->runShader(model, light, _transforms);
             }
             else if (model->getClassType() == ModelClass::AnimatedModelType) {
-                _pointAnimatedShadowShader.runShader(model, light, _transforms);
+                _pointAnimatedShadowShader->runShader(model, light, _transforms);
             }
         }
         //Clean up cube face render contexts

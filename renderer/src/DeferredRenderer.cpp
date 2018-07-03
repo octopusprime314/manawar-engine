@@ -2,7 +2,11 @@
 #include "Model.h"
 #include "SSAO.h"
 
-DeferredRenderer::DeferredRenderer() : _mrtFBO(3), _deferredShader("deferredShader") {
+ShaderBroker* DeferredRenderer::_shaderManager = ShaderBroker::instance();
+
+DeferredRenderer::DeferredRenderer() : 
+    _mrtFBO(), 
+    _deferredShader(static_cast<DeferredShader*>(_shaderManager->getShader("deferredShader"))) {
 
 }
 
@@ -12,7 +16,7 @@ DeferredRenderer::~DeferredRenderer() {
 
 void DeferredRenderer::deferredLighting(ShadowRenderer* shadowRenderer, std::vector<Light*>& lights, ViewManager* viewManager,
     PointShadowMap* pointShadowMap, SSAO* ssao, EnvironmentMap* environmentMap) {
-    _deferredShader.runShader(shadowRenderer, lights, viewManager, _mrtFBO, pointShadowMap, ssao, environmentMap);
+    _deferredShader->runShader(shadowRenderer, lights, viewManager, _mrtFBO, pointShadowMap, ssao, environmentMap);
 }
 
 void DeferredRenderer::bind() {
@@ -23,8 +27,8 @@ void DeferredRenderer::bind() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // Specify what to render an start acquiring
-    GLenum buffers[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
-    glDrawBuffers(3, buffers);
+    GLenum buffers[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3 };
+    glDrawBuffers(4, buffers);
 }
 void DeferredRenderer::unbind() {
     //unbind frame buffer

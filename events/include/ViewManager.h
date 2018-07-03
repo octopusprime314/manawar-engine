@@ -67,7 +67,7 @@ private:
     bool                _godState; //indicates whether the view is in god or model view point mode
     FuncMap             _keyboardState;
     StateVector         _state;
-
+    double              _prevMouseX, _prevMouseY;
     void                _updateKinematics(int milliSeconds);
 
 
@@ -76,7 +76,10 @@ public:
     ViewManager(int* argc, char** argv, unsigned int viewportWidth, unsigned int viewportHeight);
     ~ViewManager();
     void               applyTransform(Matrix transform);
-    void               setProjection(unsigned int viewportWidth, unsigned int viewportHeight, float nearPlaneDistance, float farPlaneDistance);
+    void               setProjection(unsigned int viewportWidth, 
+                                     unsigned int viewportHeight, 
+                                     float nearPlaneDistance, 
+                                     float farPlaneDistance);
     void               setView(Matrix translation, Matrix rotation, Matrix scale);
     void               setModelList(std::vector<Model*> modelList);
     Matrix&            getProjection();

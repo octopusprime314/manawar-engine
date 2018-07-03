@@ -5,11 +5,14 @@ in VsData
 	vec3 normalOut;			   // Transformed normal based on the normal matrix transform
 	vec2 textureCoordinateOut; // Passthrough
 	vec3 positionOut;          // Passthrough for deferred shadow rendering
+	vec4 projPositionOut;      // For computing velocity buffer
+	vec4 prevProjPositionOut;  // For computing velocity buffer
 } vsData;
 
 layout(location = 0) out vec4 out_1;
 layout(location = 1) out vec4 out_2;
 layout(location = 2) out vec4 out_3;
+layout(location = 3) out vec4 out_4;
 
 uniform sampler2D textureMap;   //Texture data array
 
@@ -61,8 +64,13 @@ void main(){
 	else{
 		vTexColor = vec4(texture(textureMap, vsData.textureCoordinateOut).rgb, 1.0);
 	}
+	
+	//Velocity buffer
+	vec2 currProjPos = (vsData.projPositionOut.xy / vsData.projPositionOut.w);
+	vec2 prevProjPos = (vsData.prevProjPositionOut.xy / vsData.prevProjPositionOut.w);
 
 	out_1 = vTexColor;
 	out_2 = vec4(normalize(vsData.normalOut), 1.0);
 	out_3 = vec4(vsData.positionOut.xyz, 1.0);
+	out_4 = vec4(vec2(currProjPos - prevProjPos), 0.0, 1.0);
 }

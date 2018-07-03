@@ -3,6 +3,7 @@
 uniform sampler2D diffuseTexture;   //Diffuse texture data array
 uniform sampler2D normalTexture;    //Normal texture data array
 uniform sampler2D positionTexture;  //Position texture data array
+uniform sampler2D velocityTexture;      //velocity texture data array
 uniform sampler2D cameraDepthTexture;   //depth texture data array with values 1.0 to 0.0, with 0.0 being closer
 uniform sampler2D mapDepthTexture;      //depth texture data array with values 1.0 to 0.0, with 0.0 being closer
 uniform samplerCube depthMap;		//cube depth map for point light shadows
@@ -49,6 +50,8 @@ void main(){
 	vec3 normalizedNormal = normalize(texture(normalTexture, vsData.texCoordOut.xy).xyz); 
 	//extract color from diffuse texture
 	vec4 diffuse = texture(diffuseTexture, vsData.texCoordOut.xy);
+	//extract 2d velocity buffer
+	vec2 velocity = texture(velocityTexture, vsData.texCoordOut.xy).rg;
 	
 	float occlusion = texture(ssaoTexture, vsData.texCoordOut.xy).r;
 	
@@ -178,6 +181,7 @@ void main(){
 		fragColor = vec4(vec3(cubeDepth), 1.0);
 	}
 	else if(views == 7){
+		fragColor = vec4(velocity, 0.0, 1.0);	
 		//fragColor = vec4(texture(environmentMapTexture, vec3(vsData.vsViewDirection.x, vsData.vsViewDirection.y, vsData.vsViewDirection.z)).rgb, 1.0);
 	}
 }

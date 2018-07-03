@@ -25,8 +25,7 @@
 class RenderTexture : public Texture {
 
     RenderTexture(); //Make the default constructor private which forces coder to allocate a Texture with a string name
-
 public:
-    RenderTexture(GLuint width, GLuint height, TextureFormat format); 
+    RenderTexture(GLuint width, GLuint height, TextureFormat format);
     ~RenderTexture();
 };

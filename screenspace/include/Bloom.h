@@ -38,5 +38,6 @@ public:
     Bloom();
     ~Bloom();
     unsigned int getTextureContext();
+    Texture*     getTexture();
     void         compute(Texture* deferredFBOTexture);
 };

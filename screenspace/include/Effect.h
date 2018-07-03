@@ -24,6 +24,7 @@
 #include "UpdateInterface.h"
 #include "Shader.h"
 #include "EffectShader.h"
+#include "ShaderBroker.h"
 
 enum class EffectType {
     None = 0,
@@ -50,6 +51,7 @@ protected:
     MVP           _cameraMVP; //Camera's model view matrix container
     void          _updateTime(int time);
     uint64_t      _milliSecondTime;
-    EffectShader  _effectShader;
+    EffectShader* _effectShader;
     EffectType    _effectType;
+    static ShaderBroker* _shaderManager;        //Static shader manager for shader reuse purposes, all models have access
 };

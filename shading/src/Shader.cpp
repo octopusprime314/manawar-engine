@@ -3,10 +3,12 @@
 #include "Light.h"
 #include <iostream>
 #include <fstream>
+#include "ShaderBroker.h"
 
 // You can hit this in a debugger.
 // Set to 'true' to printf every shader that is linked or compiled.
 static volatile bool g_VerboseShaders = false;
+ShaderBroker* Shader::_shaderManager = ShaderBroker::instance();
 
 Shader::Shader(std::string vertexShaderName, std::string fragmentShaderName) {
     //set vertex name
@@ -24,6 +26,10 @@ Shader::Shader(std::string vertexShaderName, std::string fragmentShaderName) {
 
 Shader::~Shader() {
 
+}
+
+Shader::Shader(const Shader& shader) {
+    *this = shader;
 }
 
 inline bool fileExists(const std::string& name) {

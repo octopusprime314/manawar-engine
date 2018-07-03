@@ -26,17 +26,19 @@
 #include "AnimatedModel.h"
 #include <vector>
 #include "DepthFrameBuffer.h"
+#include "ShaderBroker.h"
 class Model;
 class ViewManager;
 
 class ShadowRenderer {
 
-    ShadowStaticShader   _staticShadowShader;   //Shader that generates static geometry shadows
-    ShadowAnimatedShader _animatedShadowShader; //Shader that generates animated geometry shadows
+    ShadowStaticShader*   _staticShadowShader;   //Shader that generates static geometry shadows
+    ShadowAnimatedShader* _animatedShadowShader; //Shader that generates animated geometry shadows
     DepthFrameBuffer     _staticShadowFBO;      //Depth frame buffer object for static objects that do not change
     DepthFrameBuffer     _animatedShadowFBO;    //Depth frame buffer object for animated objects that change
     DepthFrameBuffer     _mapShadowFBO;         //Low resolution shadow mapping for the entire map
-    bool                 _staticRendered;       //boolean to only get static object shadows at startupqsssssq
+    bool                 _staticRendered;       //boolean to only get static object shadows at startup
+    static ShaderBroker* _shaderManager;        //Static shader manager for shader reuse purposes, all models have access
 
 public:
     ShadowRenderer(GLuint width, GLuint height);

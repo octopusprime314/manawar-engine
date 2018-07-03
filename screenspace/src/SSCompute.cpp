@@ -1,10 +1,11 @@
 #include "SSCompute.h"
 #include "GLIncludes.h"
+ShaderBroker* SSCompute::_shaderManager = ShaderBroker::instance();
 
 SSCompute::SSCompute(std::string computeShader, GLuint width, GLuint height, TextureFormat format) :
-    _renderTexture(width, height, format){
+    _renderTexture(width, height, format),
+    _computeShader(static_cast<ComputeShader*>(_shaderManager->getShader(computeShader))) {
 
-    _computeShader = new ComputeShader(computeShader);
     _format = format;
 }
 
@@ -23,4 +24,8 @@ Texture* SSCompute::getTexture() {
 
 void SSCompute::compute(Texture* readTexture) {
     _computeShader->runShader(&_renderTexture, readTexture, _format);
+}
+
+void SSCompute::compute(Texture* readTexture, Texture* writeTexture) {
+    _computeShader->runShader(writeTexture, readTexture, _format);
 }

@@ -29,6 +29,9 @@ ViewManager::ViewManager(int* argc, char** argv, unsigned int viewportWidth, uns
 
     _viewState = ViewManager::ViewState::DEFERRED_LIGHTING;
 
+    _prevMouseX = screenPixelWidth / 2;
+    _prevMouseY = screenPixelHeight / 2;
+
     //Used for god mode
     _state.setGravity(false);
     //Hook up to kinematic update for proper physics handling
@@ -96,7 +99,7 @@ ViewManagerEvents* ViewManager::getEventWrapper() {
 }
 
 void ViewManager::_updateReleaseKeyboard(int key, int x, int y) { //Do stuff based on keyboard release update
-    //If function state exists
+                                                                  //If function state exists
     if (_keyboardState.find(key) != _keyboardState.end()) {
         delete _keyboardState[key];
         _keyboardState.erase(key); //erase by keyq
@@ -180,10 +183,6 @@ void ViewManager::_updateKeyboard(int key, int x, int y) { //Do stuff based on k
         if (!_godState && _modelIndex < _modelList.size()) {
 
             StateVector* state = _modelList[_modelIndex]->getStateVector();
-            float* pos = state->getLinearPosition().getFlatBuffer();
-            _translation = Matrix::cameraTranslation(pos[0], pos[1], pos[2]); //Update the translation state matrix
-            _view = _thirdPersonTranslation * _rotation * _translation; //translate then rotate around point
-
             //Define lambda equation
             auto lamdaEq = [=](float t) -> Vector4 {
                 if (t > 1.0f) {
@@ -201,15 +200,9 @@ void ViewManager::_updateKeyboard(int key, int x, int y) { //Do stuff based on k
 
             //Keep track to kill function when key is released
             _keyboardState[key] = func;
-
-            //TODO rotation
-            //state->setAngularPosition(_rotation * Vector4(0, 0, 0, 0)); //Set angular (rotation) position vector based on view rotation
         }
         else if (_godState) {
 
-            float* pos = _state.getLinearPosition().getFlatBuffer();
-            _translation = Matrix::cameraTranslation(pos[0], pos[1], pos[2]); //Update the translation state matrix
-            _view = _thirdPersonTranslation * _rotation * _translation; //translate then rotate around point
             _state.setActive(true);
 
             //Define lambda equation
@@ -229,11 +222,7 @@ void ViewManager::_updateKeyboard(int key, int x, int y) { //Do stuff based on k
 
             //Keep track to kill function when key is released
             _keyboardState[key] = func;
-
-            //_translation = Matrix::cameraTranslation(temp[0] / 100.0f, temp[1] / 100.0f, temp[2] / 100.0f) * _translation; //Update the translation state matrix
-            //_view = _rotation * _translation; //translate then rotate around point
         }
-        _viewEvents->updateView(_view); //Send out event to all listeners
     }
     else if (key == GLFW_KEY_G) { //God's eye view change g
         _godState = true;
@@ -270,48 +259,92 @@ void ViewManager::_updateKeyboard(int key, int x, int y) { //Do stuff based on k
 
 void ViewManager::_updateMouse(double x, double y) { //Do stuff based on mouse update
 
-    int widthMidpoint = screenPixelWidth / 2;
-    int heightMidpoint = screenPixelHeight / 2;
-    static const float mouseSensitivity = 1.5f;
+    static const double mouseSensitivity = 1.5f;
 
-    if (x < widthMidpoint || x > widthMidpoint) {
-        if (x < widthMidpoint) { //rotate left around y axis
-            _rotation = _rotation * Matrix::cameraRotationAroundY(mouseSensitivity); //Update the rotation state matrix
-            _inverseRotation = _inverseRotation * Matrix::cameraRotationAroundY(-mouseSensitivity); //Inverse rotation for translation updates
-        }
-        else if (x > widthMidpoint) { //rotate right around y axis
-            _rotation = _rotation * Matrix::cameraRotationAroundY(-mouseSensitivity); //Update the rotation state matrix
-            _inverseRotation = _inverseRotation * Matrix::cameraRotationAroundY(mouseSensitivity); //Inverse rotation for translation updates
+    //Filter out large changes because that causes view twitching
+    if (x != _prevMouseX) {
+    
+        FunctionState* ptr = nullptr;
+        //Use special value 200 to indicate mouse is moving
+        if (_keyboardState.find(200) != _keyboardState.end()) {
+            ptr = _keyboardState[200];
         }
 
-        _view = _rotation * _translation; //translate then rotate around point
+        double diffX = _prevMouseX - x;
+           
+        Vector4 newRot;
+        std::cout << diffX << " " << x << std::endl;
+        if (diffX > 0) { //rotate left around y axis
+            newRot = Vector4(0.0, static_cast<float>(mouseSensitivity * diffX), 0.0);
+        }
+        else if (diffX < 0) { //rotate right around y axis
+            newRot = Vector4(0.0, static_cast<float>(mouseSensitivity * diffX), 0.0);
+        }
+
+        Vector4 rot;
+        if (ptr != nullptr) {
+            rot = ptr->getVectorState();
+        }
+
+        //Define lambda equation
+        auto lamdaEq = [rot, newRot](float t) -> Vector4 {
+            if (t > 0.005f) {
+                return ((static_cast<Vector4>(newRot) + static_cast<Vector4>(rot)) * exp(-10.0f*t));
+            }
+            else {
+                return static_cast<Vector4>(newRot) + static_cast<Vector4>(rot);
+            }
+        };
+
+        //lambda function container that manages force model
+        //Last forever in intervals of 5 milliseconds
+        FunctionState* func = new FunctionState(std::bind(&StateVector::setTorque, &_state, std::placeholders::_1),
+            lamdaEq,
+            5);
+
+        delete _keyboardState[200];
+        _keyboardState.erase(200);
+        _keyboardState[200] = func;
+
         //If not in god camera view mode then push view changes to the model for full control of a model's movements
         if (!_godState) {
             _view = _thirdPersonTranslation * _view;
         }
-        _viewEvents->updateView(_view); //Send out event to all listeners
+        _state.setActive(true);
     }
+
+    if (y != _prevMouseY) {
+
+        double diffY = _prevMouseY - y;
+    }
+
+    _prevMouseX = x;
+    _prevMouseY = y;
 }
 void ViewManager::_updateDraw() { //Do draw stuff
 
-    //If not in god camera view mode then push view changes to the model for full control of a model's movements
+                                  //If not in god camera view mode then push view changes to the model for full control of a model's movements
     if (!_godState && _modelIndex < _modelList.size()) {
 
         StateVector* state = _modelList[_modelIndex]->getStateVector();
         float* pos = state->getLinearPosition().getFlatBuffer();
+        float* rot = _state.getAngularPosition().getFlatBuffer();
         _translation = Matrix::cameraTranslation(pos[0], pos[1], pos[2]); //Update the translation state matrix
+        _rotation = Matrix::cameraRotationAroundY(rot[1]); //Update the rotation state matrix
+        _inverseRotation = Matrix::cameraRotationAroundY(-rot[1]);
 
-         //Last transform to be applied to achieve third person view
+        //Last transform to be applied to achieve third person view
         _view = _thirdPersonTranslation * _rotation * _translation; //translate then rotate around point
         _viewEvents->updateView(_view); //Send out event to all listeners to offset locations essentially
 
-        //TODO rotation
-        //state->setAngularPosition(_rotation * Vector4(0, 0, 0, 0)); //Set angular (rotation) position vector based on view rotation
     }
     else if (_godState) {
         float* pos = _state.getLinearPosition().getFlatBuffer();
+        float* rot = _state.getAngularPosition().getFlatBuffer();
         _translation = Matrix::cameraTranslation(pos[0], pos[1], pos[2]); //Update the translation state matrix
-
+        _rotation = Matrix::cameraRotationAroundY(rot[1]); //Update the rotation state matrix
+        _inverseRotation = Matrix::cameraRotationAroundY(-rot[1]);
+        
         _view = _rotation * _translation; //translate then rotate around point
         _viewEvents->updateView(_view); //Send out event to all listeners to offset locations essentially
     }

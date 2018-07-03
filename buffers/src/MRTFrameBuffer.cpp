@@ -1,6 +1,6 @@
 #include "MRTFrameBuffer.h"
 
-MRTFrameBuffer::MRTFrameBuffer(int colorAttachments) {
+MRTFrameBuffer::MRTFrameBuffer() {
 
     //Generate a context for the frame buffer
     glGenFramebuffers(1, &_frameBufferContext);
@@ -25,6 +25,12 @@ MRTFrameBuffer::MRTFrameBuffer(int colorAttachments) {
     //Finally attach the texture to the previously generated frame buffer
     //the texture will be used in later shader texture sampling
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, _gBufferTextures[2].getContext(), 0);
+
+    _gBufferTextures.push_back(RenderTexture(screenPixelWidth, screenPixelHeight, TextureFormat::RGBA_FLOAT));
+
+    //Finally attach the texture to the previously generated frame buffer
+    //the texture will be used in later shader texture sampling
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, _gBufferTextures[3].getContext(), 0);
 
     //Needs to attach a depth render buffer to the frame buffer object!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     //I got hosed on this super hard!!!!!!!!!!!!!!!!!!!!!!!!!

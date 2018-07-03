@@ -16,6 +16,8 @@
 #include "MergeShader.h"
 #include "Bloom.h"
 #include <Triangle.h>
+#include "SSCompute.h"
+#include "ShaderBroker.h"
 #include <chrono>
 
 using namespace std::chrono;
@@ -25,6 +27,8 @@ uint64_t nowMs();
 // We define this here because this file is basically main.
 volatile bool g_AssertOnBadOpenGlCall = false;
 
+ShaderBroker*  SceneManager::_shaderManager = ShaderBroker::instance();
+
 SceneManager::SceneManager(int* argc, char** argv,
     unsigned int viewportWidth, unsigned int viewportHeight,
     float nearPlaneDistance, float farPlaneDistance) {
@@ -32,6 +36,10 @@ SceneManager::SceneManager(int* argc, char** argv,
     glCheck();
 
     Factory::setViewWrapper(_viewManager); //Set the reference to the view model event interface
+
+    //Load and compile all shaders for the shader broker
+    _shaderManager->compileShaders();
+    glCheck();
 
     _deferredRenderer = new DeferredRenderer();
     glCheck();
@@ -63,7 +71,7 @@ SceneManager::SceneManager(int* argc, char** argv,
     _deferredFBO = new DeferredFrameBuffer();
     glCheck();
 
-    _mergeShader = new MergeShader();
+    _mergeShader = static_cast<MergeShader*>(_shaderManager->getShader("mergeShader"));
     glCheck();
 
     _bloom = new Bloom();
@@ -71,6 +79,8 @@ SceneManager::SceneManager(int* argc, char** argv,
 
     _deferredFBO = new DeferredFrameBuffer();
     glCheck();
+
+    _add = new SSCompute("add", screenPixelWidth, screenPixelHeight, TextureFormat::RGBA_UNSIGNED_BYTE);
 
     //Setup pre and post draw callback events received when a draw call is issued
     SimpleContextEvents::setPreDrawCallback(std::bind(&SceneManager::_preDraw, this));
@@ -212,9 +222,14 @@ void SceneManager::_postDraw() {
         //Compute bloom from deferred fbo texture
         _bloom->compute(_deferredFBO->getTexture());
 
+        //If adding a second texture then all writes are to this texture second param
+        _add->compute(_deferredFBO->getTexture(), _bloom->getTexture());
+
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        _mergeShader->runShader(_deferredFBO->getTextureContext(), _bloom->getTextureContext());
+        //_mergeShader->runShader(_deferredFBO->getTextureContext(), _bloom->getTextureContext());
+        GLuint velocityBufferContext = _deferredRenderer->getGBuffers()->getTextureContexts()[3];
+        _mergeShader->runShader(_bloom->getTextureContext(), velocityBufferContext);
     }
     else if (_viewManager->getViewState() == ViewManager::ViewState::DEFERRED_LIGHTING_NO_BLOOM) {
 

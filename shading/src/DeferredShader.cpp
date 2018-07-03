@@ -35,7 +35,7 @@ void DeferredShader::runShader(ShadowRenderer* shadowRenderer,
     //Get light view matrix "look at" vector which is located in the third column
     //of the inner rotation matrix at index 2,6,10
     auto viewMatrix = lights[0]->getLightMVP().getViewBuffer();
-    Vector4 lightPosition(viewMatrix[2], viewMatrix[6], viewMatrix[10]);
+    Vector4 lightPosition(-viewMatrix[2], viewMatrix[6], -viewMatrix[10]);
     updateUniform("light", lightPosition.getFlatBuffer());
 
     //Get point light positions

@@ -1,15 +1,13 @@
 #include "ShadowRenderer.h"
 #include "ViewManager.h"
 
-ShaderBroker* ShadowRenderer::_shaderManager = ShaderBroker::instance();
-
 ShadowRenderer::ShadowRenderer(GLuint width, GLuint height) :
     _staticRendered(false),
     _staticShadowFBO(width, height),
     _animatedShadowFBO(width, height),
     _mapShadowFBO(width, height),
-    _staticShadowShader(static_cast<ShadowStaticShader*>(_shaderManager->getShader("staticShadowShader"))),
-    _animatedShadowShader(static_cast<ShadowAnimatedShader*>(_shaderManager->getShader("animatedShadowShader"))) {
+    _staticShadowShader(static_cast<ShadowStaticShader*>(ShaderBroker::instance()->getShader("staticShadowShader"))),
+    _animatedShadowShader(static_cast<ShadowAnimatedShader*>(ShaderBroker::instance()->getShader("animatedShadowShader"))) {
 }
 
 ShadowRenderer::~ShadowRenderer() {
@@ -34,10 +32,7 @@ void ShadowRenderer::generateShadowBuffer(std::vector<Model*> modelList, std::ve
     GLenum buffers[] = { GL_NONE };
     Light* light = nullptr;
 
-    //Only render static objects once to generate depth texture
-    //if(!_staticRendered){
-
-        //Bind frame buffer
+    //Bind frame buffer
     glBindFramebuffer(GL_FRAMEBUFFER, _mapShadowFBO.getFrameBufferContext());
 
     //Need to change viewport to the resolution of the shadow texture
@@ -60,8 +55,6 @@ void ShadowRenderer::generateShadowBuffer(std::vector<Model*> modelList, std::ve
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     _staticRendered = true;
 
-    //}
-
     //Bind frame buffer
     glBindFramebuffer(GL_FRAMEBUFFER, _staticShadowFBO.getFrameBufferContext());
 
@@ -82,7 +75,7 @@ void ShadowRenderer::generateShadowBuffer(std::vector<Model*> modelList, std::ve
     }
 
     //remove framebuffer context
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    //glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     //REMOVE BLIT CAUSE ITS SLOW!!!
     ////Bind frame buffer
@@ -103,13 +96,13 @@ void ShadowRenderer::generateShadowBuffer(std::vector<Model*> modelList, std::ve
     //glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 
     //Bind frame buffer
-    glBindFramebuffer(GL_FRAMEBUFFER, _animatedShadowFBO.getFrameBufferContext());
+    //glBindFramebuffer(GL_FRAMEBUFFER, _animatedShadowFBO.getFrameBufferContext());
 
     //Need to change viewport to the resolution of the shadow texture
-    glViewport(0, 0, _animatedShadowFBO.getWidth(), _animatedShadowFBO.getHeight());
+    //glViewport(0, 0, _animatedShadowFBO.getWidth(), _animatedShadowFBO.getHeight());
 
     // Specify what to render an start acquiring
-    glDrawBuffers(1, buffers);
+    //glDrawBuffers(1, buffers);
 
     light = lights[0];
     for (Model* model : modelList) {

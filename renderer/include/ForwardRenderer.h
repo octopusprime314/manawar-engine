@@ -26,8 +26,7 @@
 class ForwardRenderer {
     ForwardShader*          _forwardShader;
     InstancedForwardShader* _instancedForwardShader;
-    static ShaderBroker*    _shaderManager;        //Static shader manager for shader reuse purposes, all models have access
-
+    
 public:
     ForwardRenderer();
     ~ForwardRenderer();

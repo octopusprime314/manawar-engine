@@ -37,8 +37,7 @@ class DeferredRenderer {
 
     DeferredShader*      _deferredShader;
     MRTFrameBuffer       _mrtFBO;
-    static ShaderBroker* _shaderManager;        //Static shader manager for shader reuse purposes, all models have access
-
+   
 public:
     DeferredRenderer();
     ~DeferredRenderer();

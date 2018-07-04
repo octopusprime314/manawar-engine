@@ -2,11 +2,9 @@
 #include "Model.h"
 #include "SSAO.h"
 
-ShaderBroker* DeferredRenderer::_shaderManager = ShaderBroker::instance();
-
 DeferredRenderer::DeferredRenderer() : 
     _mrtFBO(), 
-    _deferredShader(static_cast<DeferredShader*>(_shaderManager->getShader("deferredShader"))) {
+    _deferredShader(static_cast<DeferredShader*>(ShaderBroker::instance()->getShader("deferredShader"))) {
 
 }
 

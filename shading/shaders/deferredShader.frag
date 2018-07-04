@@ -181,7 +181,9 @@ void main(){
 		fragColor = vec4(vec3(cubeDepth), 1.0);
 	}
 	else if(views == 7){
-		fragColor = vec4(velocity, 0.0, 1.0);	
+		//float depth = texture(cameraDepthTexture, vsData.texCoordOut).x;
+		//fragColor = vec4(depth, depth, depth, 1.0);
+		fragColor = vec4(vec2(abs(velocity.r), abs(velocity.g)), 0.0, 1.0);	
 		//fragColor = vec4(texture(environmentMapTexture, vec3(vsData.vsViewDirection.x, vsData.vsViewDirection.y, vsData.vsViewDirection.z)).rgb, 1.0);
 	}
 }

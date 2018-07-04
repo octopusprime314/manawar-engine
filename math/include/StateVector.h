@@ -22,23 +22,25 @@
 #pragma once
 #include "Matrix.h"
 #include "Vector4.h"
+#include <mutex>
 
 const float GRAVITY = -9.8f; //meters per second squared 
 const float FRICTION = 0.95f; //friction coefficient applied 
 
 class StateVector {
-    Vector4 _linearPosition;
-    Vector4 _angularPosition;
-    Vector4 _linearVelocity;
-    Vector4 _angularVelocity;
-    Vector4 _linearAcceleration;
-    Vector4 _angularAcceleration;
-    Vector4 _force; //linear force
-    Vector4 _torque; //angular force
-    float   _mass; //mass of object used to calculate acceleration on objects
-    bool    _active; //indicates whether an object is in motion or not
-    bool    _contact; //indicates a hit between another state vector has been detected
-    bool    _gravity; //gravity on or off
+    Vector4    _linearPosition;
+    Vector4    _angularPosition;
+    Vector4    _linearVelocity;
+    Vector4    _angularVelocity;
+    Vector4    _linearAcceleration;
+    Vector4    _angularAcceleration;
+    Vector4    _force; //linear force
+    Vector4    _torque; //angular force
+    float      _mass; //mass of object used to calculate acceleration on objects
+    bool       _active; //indicates whether an object is in motion or not
+    bool       _contact; //indicates a hit between another state vector has been detected
+    bool       _gravity; //gravity on or off
+    std::mutex _stateLock;
 public:
     StateVector();
     void    update(int milliSeconds);

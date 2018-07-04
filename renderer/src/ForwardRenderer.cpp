@@ -2,13 +2,9 @@
 #include "Model.h"
 #include "ShaderBroker.h"
 
-ShaderBroker* ForwardRenderer::_shaderManager = ShaderBroker::instance();
-
 ForwardRenderer::ForwardRenderer() :
-    _forwardShader(static_cast<ForwardShader*>(_shaderManager->getShader("forwardShader"))),
-    _instancedForwardShader(static_cast<InstancedForwardShader*>(_shaderManager->getShader("instancedShader")))
-    /*_forwardShader("forwardShader"),
-    _instancedForwardShader("instancedShader")*/ {
+    _forwardShader(static_cast<ForwardShader*>(ShaderBroker::instance()->getShader("forwardShader"))),
+    _instancedForwardShader(static_cast<InstancedForwardShader*>(ShaderBroker::instance()->getShader("instancedShader"))) {
 
 }
 

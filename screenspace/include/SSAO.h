@@ -26,7 +26,6 @@
 #include "SSAOShader.h"
 #include "SSCompute.h"
 #include "RenderTexture.h"
-#include "ShaderBroker.h"
 class MRTFrameBuffer;
 class ViewManager;
 
@@ -42,7 +41,6 @@ class SSAO {
     SSCompute*            _downSample;
     SSCompute*            _upSample;
     RenderTexture         _renderTexture; 
-    static ShaderBroker* _shaderManager;        //Static shader manager for shader reuse purposes, all models have access
 
 public:
     SSAO();

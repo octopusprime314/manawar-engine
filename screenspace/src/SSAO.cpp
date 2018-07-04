@@ -4,11 +4,9 @@
 #include "MRTFrameBuffer.h"
 #include "ViewManager.h"
 
-ShaderBroker* SSAO::_shaderManager = ShaderBroker::instance();
-
 SSAO::SSAO() :
     _renderTexture(screenPixelWidth, screenPixelHeight, TextureFormat::R_FLOAT),
-    _ssaoShader(static_cast<SSAOShader*>(_shaderManager->getShader("ssaoShader"))) {
+    _ssaoShader(static_cast<SSAOShader*>(ShaderBroker::instance()->getShader("ssaoShader"))) {
 
     _blur = new SSCompute("blurShader", screenPixelWidth / 4, screenPixelHeight / 4, TextureFormat::R_FLOAT);
     _downSample = new SSCompute("downsample", screenPixelWidth / 4, screenPixelHeight / 4, TextureFormat::R_FLOAT);

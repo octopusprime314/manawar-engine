@@ -273,7 +273,6 @@ void ViewManager::_updateMouse(double x, double y) { //Do stuff based on mouse u
         double diffX = _prevMouseX - x;
            
         Vector4 newRot;
-        std::cout << diffX << " " << x << std::endl;
         if (diffX > 0) { //rotate left around y axis
             newRot = Vector4(0.0, static_cast<float>(mouseSensitivity * diffX), 0.0);
         }
@@ -288,8 +287,9 @@ void ViewManager::_updateMouse(double x, double y) { //Do stuff based on mouse u
 
         //Define lambda equation
         auto lamdaEq = [rot, newRot](float t) -> Vector4 {
-            if (t > 0.005f) {
-                return ((static_cast<Vector4>(newRot) + static_cast<Vector4>(rot)) * exp(-10.0f*t));
+            if (t > 0.05f) {
+                return Vector4(0.0,0.0,0.0);
+                //return ((static_cast<Vector4>(newRot)/* + static_cast<Vector4>(rot)*/) * exp(-10.0f*t));
             }
             else {
                 return static_cast<Vector4>(newRot) + static_cast<Vector4>(rot);
@@ -314,7 +314,6 @@ void ViewManager::_updateMouse(double x, double y) { //Do stuff based on mouse u
     }
 
     if (y != _prevMouseY) {
-
         double diffY = _prevMouseY - y;
     }
 
@@ -323,7 +322,7 @@ void ViewManager::_updateMouse(double x, double y) { //Do stuff based on mouse u
 }
 void ViewManager::_updateDraw() { //Do draw stuff
 
-                                  //If not in god camera view mode then push view changes to the model for full control of a model's movements
+    //If not in god camera view mode then push view changes to the model for full control of a model's movements
     if (!_godState && _modelIndex < _modelList.size()) {
 
         StateVector* state = _modelList[_modelIndex]->getStateVector();
@@ -339,6 +338,7 @@ void ViewManager::_updateDraw() { //Do draw stuff
 
     }
     else if (_godState) {
+
         float* pos = _state.getLinearPosition().getFlatBuffer();
         float* rot = _state.getAngularPosition().getFlatBuffer();
         _translation = Matrix::cameraTranslation(pos[0], pos[1], pos[2]); //Update the translation state matrix

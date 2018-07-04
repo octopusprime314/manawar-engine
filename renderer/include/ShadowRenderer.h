@@ -38,8 +38,7 @@ class ShadowRenderer {
     DepthFrameBuffer     _animatedShadowFBO;    //Depth frame buffer object for animated objects that change
     DepthFrameBuffer     _mapShadowFBO;         //Low resolution shadow mapping for the entire map
     bool                 _staticRendered;       //boolean to only get static object shadows at startup
-    static ShaderBroker* _shaderManager;        //Static shader manager for shader reuse purposes, all models have access
-
+   
 public:
     ShadowRenderer(GLuint width, GLuint height);
     ~ShadowRenderer();

@@ -27,7 +27,7 @@ void main(){
     //fragColor = vec4(hdrColor, 1.0);
 	
 	//Divide by 2 to prevent overblurring
-	vec2 velocityVector = texture(velocityTexture, vsData.texCoordOut).xy / 2.0;
+	vec2 velocityVector = texture(velocityTexture, vsData.texCoordOut).xy / 8.0;
 
     vec4 result = vec4(0.0);
 	vec2 texCoords = vsData.texCoordOut;

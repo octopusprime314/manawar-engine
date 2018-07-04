@@ -9,7 +9,6 @@
 #include "font.h"
 #include "TextureBroker.h"
 
-ShaderBroker* FontRenderer::_shaderManager = ShaderBroker::instance();
 struct vec2
 {
     float x;
@@ -119,7 +118,7 @@ using namespace std;
 const float ratio = static_cast<float>(screenPixelHeight) / screenPixelWidth;
 
 FontRenderer::FontRenderer(std::string fileName)
-    : fontShader(static_cast<FontShader*>(_shaderManager->getShader("fontShader")))
+    : fontShader(static_cast<FontShader*>(ShaderBroker::instance()->getShader("fontShader")))
 {
     string fullPath = FONT_LOCATION + fileName;
     parseFontFile(fullPath, fontInfo);

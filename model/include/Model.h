@@ -38,7 +38,6 @@
 #include "MVP.h"
 #include "RenderBuffers.h"
 #include "ForwardShader.h"
-#include "ShaderBroker.h"
 
 class SimpleContext;
 
@@ -102,7 +101,6 @@ protected:
     ModelClass                  _classId; //Used to identify which class is being used
     MasterClock*                _clock; //Used to coordinate time with the world
     static TextureBroker*       _textureManager; //Static texture manager for texture reuse purposes, all models have access
-    static ShaderBroker*        _shaderManager; //Static shader manager for shader reuse purposes, all models have access
     TextureMetaData             _textureStrides; //Keeps track of which set of vertices use a certain texture within the large vertex set
     GeometryType                _geometryType; //Indicates whether the collision geometry is sphere or triangle based
     Geometry                    _geometry; //Geometry object that contains all collision information for a model

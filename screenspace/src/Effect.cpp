@@ -1,11 +1,11 @@
 #include "Effect.h"
 #include "MasterClock.h"
+#include "ShaderBroker.h"
 #include <random>
-ShaderBroker* Effect::_shaderManager = ShaderBroker::instance();
 
 Effect::Effect(ViewManagerEvents* eventWrapper, std::string shaderName, EffectType effectType) :
     UpdateInterface(eventWrapper),
-    _effectShader(static_cast<EffectShader*>(_shaderManager->getShader(shaderName))),
+    _effectShader(static_cast<EffectShader*>(ShaderBroker::instance()->getShader(shaderName))),
     _effectType(effectType) {
 }
 

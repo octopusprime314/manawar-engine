@@ -3,6 +3,7 @@
 #include "GLIncludes.h"
 #include "MRTFrameBuffer.h"
 #include "ViewManager.h"
+#include "ShaderBroker.h"
 
 SSAO::SSAO() :
     _renderTexture(screenPixelWidth, screenPixelHeight, TextureFormat::R_FLOAT),

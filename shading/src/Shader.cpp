@@ -3,12 +3,10 @@
 #include "Light.h"
 #include <iostream>
 #include <fstream>
-#include "ShaderBroker.h"
 
 // You can hit this in a debugger.
 // Set to 'true' to printf every shader that is linked or compiled.
 static volatile bool g_VerboseShaders = false;
-ShaderBroker* Shader::_shaderManager = ShaderBroker::instance();
 
 Shader::Shader(std::string vertexShaderName, std::string fragmentShaderName) {
     //set vertex name
@@ -88,7 +86,8 @@ void Shader::_build() {
     _link(vertexSH, fragmentSH, geomSH, computeSH);
 }
 
-void Shader::_link(unsigned int vertexSH, unsigned int fragmentSH, unsigned int geomSH, unsigned int computeSH) {
+void Shader::_link(unsigned int vertexSH, unsigned int fragmentSH, 
+                   unsigned int geomSH, unsigned int computeSH) {
     _shaderContext = glCreateProgram();
 
     if (vertexSH != -1) {

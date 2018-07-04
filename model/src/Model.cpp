@@ -2,9 +2,9 @@
 #include "SimpleContext.h"
 #include "FbxLoader.h"
 #include "GeometryBuilder.h"
+#include "ShaderBroker.h"
 
 TextureBroker* Model::_textureManager = TextureBroker::instance();
-ShaderBroker*  Model::_shaderManager  = ShaderBroker::instance();
 
 Model::Model(ViewManagerEvents* eventWrapper, RenderBuffers& renderBuffers, StaticShader* pStaticShader)
     : UpdateInterface(eventWrapper),
@@ -31,7 +31,7 @@ _clock(MasterClock::instance()) {
     _debugMode = false;
 
     //Load debug shader
-    _debugShaderProgram = static_cast<DebugShader*>(_shaderManager->getShader("debugShader"));
+    _debugShaderProgram = static_cast<DebugShader*>(ShaderBroker::instance()->getShader("debugShader"));
 
     //Load in fbx object
     _fbxLoader = new FbxLoader(MESH_LOCATION + name);
@@ -51,7 +51,7 @@ _clock(MasterClock::instance()) {
     if (_classId == ModelClass::ModelType) {
 
         //Load default shader
-        _shaderProgram = static_cast<StaticShader*>(_shaderManager->getShader("staticShader"));
+        _shaderProgram = static_cast<StaticShader*>(ShaderBroker::instance()->getShader("staticShader"));
 
         //If the object is a standard model then it is modeled with triangles
         _geometryType = GeometryType::Triangle;
@@ -78,8 +78,6 @@ _clock(MasterClock::instance()) {
 }
 
 Model::~Model() {
-    //delete _debugShaderProgram;
-    //delete _shaderProgram;
 }
 
 void Model::_updateDraw() {

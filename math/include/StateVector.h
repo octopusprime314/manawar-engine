@@ -43,27 +43,27 @@ class StateVector {
     std::mutex _stateLock;
 public:
     StateVector();
-    void    update(int milliSeconds);
-    Vector4 getLinearPosition();
-    Vector4 getAngularPosition();
-    Vector4 getLinearVelocity();
-    Vector4 getAngularVelocity();
-    Vector4 getLinearAcceleration();
-    Vector4 getAngularAcceleration();
-    Vector4 getForce(); //get linear force
-    Vector4 getTorque(); //get angular force
-    bool    getContact();
-    float   getMass(); // get mass of object
-    bool    getActive(); //get whether an object is in motion or not
-    void    setActive(bool active); //set whether an object is in motion or not
-    void    setLinearPosition(Vector4 position); //set the position of the state vector
-    void    setAngularPosition(Vector4 position);
-    void    setLinearVelocity(Vector4 velocity);
-    void    setAngularVelocity(Vector4 velocity);
-    void    setLinearAcceleration(Vector4 acceleration);
-    void    setAngularAcceleration(Vector4 acceleration);
-    void    setForce(Vector4 force); //set linear force
-    void    setTorque(Vector4 torque); //set angular force
-    void    setContact(bool contact);
-    void    setGravity(bool enableGravity); //Enable/Disable gravity
+    void       update(int milliSeconds);
+    Vector4    getLinearPosition();
+    Vector4    getAngularPosition();
+    Vector4    getLinearVelocity();
+    Vector4    getAngularVelocity();
+    Vector4    getLinearAcceleration();
+    Vector4    getAngularAcceleration();
+    Vector4    getForce(); //get linear force
+    Vector4    getTorque(); //get angular force
+    bool       getContact();
+    float      getMass(); // get mass of object
+    bool       getActive(); //get whether an object is in motion or not
+    void       setActive(bool active); //set whether an object is in motion or not
+    void       setLinearPosition(Vector4 position); //set the position of the state vector
+    void       setAngularPosition(Vector4 position);
+    void       setLinearVelocity(Vector4 velocity);
+    void       setAngularVelocity(Vector4 velocity);
+    void       setLinearAcceleration(Vector4 acceleration);
+    void       setAngularAcceleration(Vector4 acceleration);
+    void       setForce(Vector4 force); //set linear force
+    void       setTorque(Vector4 torque); //set angular force
+    void       setContact(bool contact);
+    void       setGravity(bool enableGravity); //Enable/Disable gravity
 };

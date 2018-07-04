@@ -57,7 +57,6 @@ class SceneManager {
     Bloom*               _bloom;
     MergeShader*         _mergeShader;
     SSCompute*           _add;
-    static ShaderBroker* _shaderManager;
     Terminal*            _terminal;
 
     void _preDraw(); //Prior to drawing objects call this function

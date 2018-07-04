@@ -24,7 +24,6 @@
 #include "UpdateInterface.h"
 #include "Shader.h"
 #include "EffectShader.h"
-#include "ShaderBroker.h"
 
 enum class EffectType {
     None = 0,
@@ -53,5 +52,4 @@ protected:
     uint64_t      _milliSecondTime;
     EffectShader* _effectShader;
     EffectType    _effectType;
-    static ShaderBroker* _shaderManager;        //Static shader manager for shader reuse purposes, all models have access
 };

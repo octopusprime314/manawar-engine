@@ -28,8 +28,6 @@ uint64_t nowMs();
 // We define this here because this file is basically main.
 volatile bool g_AssertOnBadOpenGlCall = false;
 
-ShaderBroker*  SceneManager::_shaderManager = ShaderBroker::instance();
-
 SceneManager::SceneManager(int* argc, char** argv,
     unsigned int viewportWidth, unsigned int viewportHeight,
     float nearPlaneDistance, float farPlaneDistance) {
@@ -39,7 +37,7 @@ SceneManager::SceneManager(int* argc, char** argv,
     Factory::setViewWrapper(_viewManager); //Set the reference to the view model event interface
 
     //Load and compile all shaders for the shader broker
-    _shaderManager->compileShaders();
+    ShaderBroker::instance()->compileShaders();
     glCheck();
 
     _deferredRenderer = new DeferredRenderer();
@@ -69,7 +67,7 @@ SceneManager::SceneManager(int* argc, char** argv,
     _deferredFBO = new DeferredFrameBuffer();
     glCheck();
 
-    _mergeShader = static_cast<MergeShader*>(_shaderManager->getShader("mergeShader"));
+    _mergeShader = static_cast<MergeShader*>(ShaderBroker::instance()->getShader("mergeShader"));
     glCheck();
 
     _bloom = new Bloom();

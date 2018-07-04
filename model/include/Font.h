@@ -105,7 +105,4 @@ private:
     GLuint texCoordsVbo;
     GLuint vbo;
     GLuint shader;
-
-    static ShaderBroker* _shaderManager; //Static shader manager for shader reuse purposes, all models have access
-
 };

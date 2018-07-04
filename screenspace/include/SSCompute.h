@@ -22,13 +22,11 @@
 #pragma once
 #include "ComputeShader.h"
 #include "RenderTexture.h"
-#include "ShaderBroker.h"
 
 class SSCompute {
     ComputeShader* _computeShader;
     TextureFormat  _format;
     RenderTexture  _renderTexture;
-    static ShaderBroker* _shaderManager;        //Static shader manager for shader reuse purposes, all models have access
 
 public:
     SSCompute(std::string computeShader, GLuint width, GLuint height, TextureFormat format);

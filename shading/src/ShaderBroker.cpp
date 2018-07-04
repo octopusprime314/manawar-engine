@@ -12,6 +12,8 @@
 #include "DeferredShader.h"
 #include "FontShader.h"
 #include "ComputeShader.h"
+#include <algorithm>
+#include <cctype>
 //#include "Logger.h"
 ShaderBroker* ShaderBroker::_broker = nullptr;
 
@@ -28,19 +30,34 @@ ShaderBroker::~ShaderBroker() {
 
 }
 
+//helper function to capitalize everything
+std::string str_toupper(std::string s) {
+    std::transform(s.begin(), s.end(), s.begin(),
+        [](unsigned char c) { return std::toupper(c); } // correct
+    );
+    return s;
+}
+
 void ShaderBroker::compileShaders() {
 
     _gatherShaderNames();
 }
 
 Shader* ShaderBroker::getShader(std::string shaderName) {
-    return _shaders[shaderName];
+    std::string upperCaseMapName = str_toupper(shaderName);
+    return _shaders[upperCaseMapName];
 }
 
 void ShaderBroker::recompileShader(std::string shaderName) {
 
-    if (_shaders.find(shaderName) != _shaders.end()) {
-        _shaders[shaderName] = new Shader(shaderName);
+    std::string upperCaseMapName = str_toupper(shaderName);
+
+    if (_shaders.find(upperCaseMapName) != _shaders.end()) {
+
+        auto shader = new Shader(upperCaseMapName);
+        //Release previous shader
+        glDeleteShader(_shaders[upperCaseMapName]->getShaderContext());
+        _shaders[upperCaseMapName]->updateShader(shader);
     }
     else {
         std::cout << "Shader doesn't exist so we can't recompile it!" << std::endl;
@@ -70,38 +87,39 @@ void ShaderBroker::_gatherShaderNames()
                     //Logger::WriteLog(ent->d_name, "\n");
 
                     std::string mapName = fileName.substr(0, fileName.find("."));
+                    std::string upperCaseMapName = str_toupper(mapName);
                     if (mapName == "staticShader") {
-                        _shaders[mapName] = new StaticShader(mapName);
+                        _shaders[upperCaseMapName] = new StaticShader(mapName);
                     }
                     else if (mapName == "animatedShader") {
-                        _shaders[mapName] = new AnimationShader(mapName);
+                        _shaders[upperCaseMapName] = new AnimationShader(mapName);
                     }
                     else if (mapName == "animatedShadowShader") {
-                        _shaders[mapName] = new ShadowAnimatedShader(mapName);
+                        _shaders[upperCaseMapName] = new ShadowAnimatedShader(mapName);
                     }
                     else if (mapName == "waterShader" || mapName == "fireShader") {
-                        _shaders[mapName] = new EffectShader(mapName);
+                        _shaders[upperCaseMapName] = new EffectShader(mapName);
                     }
                     else if (mapName == "staticShadowShader") {
-                        _shaders[mapName] = new ShadowStaticShader(mapName);
+                        _shaders[upperCaseMapName] = new ShadowStaticShader(mapName);
                     }
                     else if (mapName == "ssaoShader") {
-                        _shaders[mapName] = new SSAOShader();
+                        _shaders[upperCaseMapName] = new SSAOShader();
                     }
                     else if (mapName == "pointShadowShader") {
-                        _shaders[mapName] = new ShadowPointShader(mapName);
+                        _shaders[upperCaseMapName] = new ShadowPointShader(mapName);
                     }
                     else if (mapName == "pointAnimatedShadowShader") {
-                        _shaders[mapName] = new ShadowAnimatedPointShader(mapName);
+                        _shaders[upperCaseMapName] = new ShadowAnimatedPointShader(mapName);
                     }
                     else if (mapName == "mergeShader") {
-                        _shaders[mapName] = new MergeShader();
+                        _shaders[upperCaseMapName] = new MergeShader();
                     }
                     else if (mapName == "forwardShader") {
-                        _shaders[mapName] = new ForwardShader("forwardShader");
+                        _shaders[upperCaseMapName] = new ForwardShader("forwardShader");
                     }
                     else if (mapName == "deferredShader") {
-                        _shaders[mapName] = new DeferredShader(mapName);
+                        _shaders[upperCaseMapName] = new DeferredShader(mapName);
                     }
                     else if (mapName == "add" || 
                         mapName == "blurHorizontalShaderRGB" || 
@@ -113,10 +131,10 @@ void ShaderBroker::_gatherShaderNames()
                         mapName == "motionBlur" ||
                         mapName == "upsample" ||
                         mapName == "upsampleRGB") {
-                        _shaders[mapName] = new ComputeShader(mapName);
+                        _shaders[upperCaseMapName] = new ComputeShader(mapName);
                     }
                     else if (mapName == "fontShader") {
-                        _shaders[mapName] = new FontShader(mapName);
+                        _shaders[upperCaseMapName] = new FontShader(mapName);
                     }
                 }
             }

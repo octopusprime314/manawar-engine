@@ -73,7 +73,7 @@ void main(){
 	float a = c * (1.-pow((uv.y),3.));
 	fragColor = vec4( mix(vec3(0.),col.xxx*fireColor,a), 1.0);
 	
-	if(fragColor.r > 0.25){
+	if(fragColor.r > 0.25 || fragColor.g > 0.25 || fragColor.b > 0.25){
 		gl_FragDepth = (length(vsData.positionOut)/farPlane) / 2.0f;
 	}
 	else{

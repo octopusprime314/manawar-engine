@@ -241,3 +241,12 @@ void Shader::updateUniform(std::string uniformName,
 
     _uniforms->updateUniform(uniformName, textureUnit, textureContext, imageInfo);
 }
+
+Uniforms* Shader::getUniforms() {
+    return _uniforms;
+}
+
+void Shader::updateShader(Shader* shader) {
+    this->_shaderContext = shader->getShaderContext();
+    this->_uniforms = shader->getUniforms();
+}

@@ -52,6 +52,7 @@ public:
     virtual      ~Shader();
     GLint        getShaderContext();
     GLint        getLocation(std::string uniformName);
+    Uniforms*    getUniforms();
     //Updates most mat, vec, etc. data types in glsl
     void         updateUniform(std::string uniformName, 
                     void* data);
@@ -64,4 +65,6 @@ public:
                     GLuint textureUnit,
                     GLuint textureContext,
                     ImageData imageInfo);
+    void         updateShader(Shader* shader);
+
 };

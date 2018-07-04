@@ -38,7 +38,7 @@ class MergeShader;
 class Bloom;
 class SSCompute;
 class ShaderBroker;
-
+class Terminal;
 
 class SceneManager {
     ViewManager*         _viewManager; //manages the view/camera matrix from the user's perspective
@@ -53,12 +53,12 @@ class SceneManager {
     SSAO*                _ssaoPass;
     EnvironmentMap*      _environmentMap;
     Water*               _water;
-    FontRenderer*        _fontRenderer; // Manages text rendering
     DeferredFrameBuffer* _deferredFBO;
     Bloom*               _bloom;
     MergeShader*         _mergeShader;
     SSCompute*           _add;
     static ShaderBroker* _shaderManager;
+    Terminal*            _terminal;
 
     void _preDraw(); //Prior to drawing objects call this function
     void _postDraw(); //Post of drawing objects call this function

@@ -151,7 +151,7 @@ FontRenderer::FontRenderer(std::string fileName)
 void FontRenderer::DrawFont(float x, float y, std::string s, uint64_t timeDelta)
 {
     float cursorAdvance = 0;
-    float scale = 300;
+    float scale = 700;
 
     // convert to ndc
     x -= 1;
@@ -187,14 +187,6 @@ void FontRenderer::DrawFont(float x, float y, std::string s, uint64_t timeDelta)
         cursorPosition[3].x += cursorAdvance;
         cursorPosition[4].x += cursorAdvance;
         cursorPosition[5].x += cursorAdvance;
-
-        cursorPosition[0].y += sin(cursorPosition[0].x * 10) / 15;
-        cursorPosition[1].y += sin(cursorPosition[0].x * 10) / 15;
-        cursorPosition[2].y += sin(cursorPosition[0].x * 10) / 15;
-        cursorPosition[3].y += sin(cursorPosition[0].x * 10) / 15;
-        cursorPosition[4].y += sin(cursorPosition[0].x * 10) / 15;
-        cursorPosition[5].y += sin(cursorPosition[0].x * 10) / 15;
-
 
 
         // generate text coordinates

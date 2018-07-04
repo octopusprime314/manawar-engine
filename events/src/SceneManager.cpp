@@ -18,6 +18,7 @@
 #include <Triangle.h>
 #include "SSCompute.h"
 #include "ShaderBroker.h"
+#include "Terminal.h"
 #include <chrono>
 
 using namespace std::chrono;
@@ -65,9 +66,6 @@ SceneManager::SceneManager(int* argc, char** argv,
     _audioManager = new AudioManager();
     glCheck();
 
-    _fontRenderer = new FontRenderer("ubuntu_mono_regular.fnt");
-    glCheck();
-
     _deferredFBO = new DeferredFrameBuffer();
     glCheck();
 
@@ -79,6 +77,8 @@ SceneManager::SceneManager(int* argc, char** argv,
 
     _deferredFBO = new DeferredFrameBuffer();
     glCheck();
+
+    _terminal = new Terminal();
 
     _add = new SSCompute("add", screenPixelWidth, screenPixelHeight, TextureFormat::RGBA_UNSIGNED_BYTE);
 
@@ -256,11 +256,5 @@ void SceneManager::_postDraw() {
         _deferredRenderer->deferredLighting(_shadowRenderer, _lightList, _viewManager, _pointShadowMap, _ssaoPass, _environmentMap);
     }
 
-
-    /*static uint64_t time = nowMs();
-    glClear(GL_DEPTH_BUFFER_BIT);
-    uint64_t timeDelta = nowMs() - time;
-    std::string stringToDraw("hello everyone                 hawaii needs some help, donate to support volcano disaster relief: http://www.redcross.org/local/hawaii/programs-services/disaster-preparedness/volcano              shoutouts to @party organizers, Khronos group, Artisans asylum, catalyst, jimbo00000, vaahtera, kuemmel, sensenstahl, abaddon, trope, razor1911, fairlight, farbrausch                                       sorry for the lack of cubes, see you next year!     ");
-    _fontRenderer->DrawFont(2 - timeDelta/3000.f, -1.5f, stringToDraw, timeDelta);
-    glCheck();*/
+    _terminal->display();
 }

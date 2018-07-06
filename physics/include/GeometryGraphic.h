@@ -1,5 +1,5 @@
 /*
-* Terminal is part of the ReBoot distribution (https://github.com/octopusprime314/ReBoot.git).
+* GeometryGraphic is part of the ReBoot distribution (https://github.com/octopusprime314/ReBoot.git).
 * Copyright (c) 2017 Peter Morley.
 *
 * ReBoot is free software: you can redistribute it and/or modify
@@ -16,30 +16,22 @@
 */
 
 /**
-*  Terminal class. Used to hold the font renderer to display io a gui terminal
+*  GeometryGraphic class. Creates VAO for physics/geometry debugging!
 */
 
 #pragma once
-#include "Font.h"
-#include "ShaderBroker.h"
+#include "Sphere.h"
+#include "Triangle.h"
+#include <vector>
+#include "VAO.h"
 
-class Terminal {
+class GeometryGraphic {
+
+    VAO _vao;
+
 public:
-
-    Terminal();
-    ~Terminal();
-
-    void         display();
-    bool         inTerminalMode();
-
-private:
-    FontRenderer _fontRenderer;
-    bool         _terminalVisible;
-    std::string  _commandString;
-    std::string  _commandToProcess;
-
-    void         _updateKeyboard(int key, int x, int y);
-    int          _getCursorIndex();
-    static ShaderBroker* _shaderManager; 
-
+    GeometryGraphic(std::vector<Triangle>* triangles);
+    GeometryGraphic(std::vector<Sphere>* spheres);
+    ~GeometryGraphic();
+    VAO* getVAO();
 };

@@ -26,6 +26,8 @@
 #include "Tex2.h"
 #include "RenderBuffers.h"
 #include "Animation.h"
+#include "Sphere.h"
+#include "Triangle.h"
 
 enum class ModelClass; //Forward declaration of enumerated type while not including Model class
 
@@ -40,6 +42,7 @@ class VAO {
     GLuint  _vaoShadowContext;
     GLuint  _indexContext;
     GLuint  _weightContext;
+    GLuint  _vertexLength;
 public:
     VAO();
     ~VAO();
@@ -48,10 +51,14 @@ public:
     GLuint  getVertexContext();
     GLuint  getNormalContext();
     GLuint  getTextureContext();
+    GLuint  getVertexLength();
     GLuint  getNormalDebugContext();
     void    setVertexContext(GLuint context);
     void    setNormalContext(GLuint context);
     void    setTextureContext(GLuint context);
     void    setNormalDebugContext(GLuint context);
     void    createVAO(RenderBuffers* renderBuffers, ModelClass classId, Animation* = nullptr);
+    void    createVAO(std::vector<Sphere>* spheres);
+    void    createVAO(std::vector<Triangle>* triangles);
+
 };

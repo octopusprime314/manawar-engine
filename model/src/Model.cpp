@@ -82,12 +82,12 @@ Model::~Model() {
 
 void Model::_updateDraw() {
 
-    //if debugging normals, etc.
-    if (_debugMode) {
+    ////if debugging normals, etc.
+    //if (_debugMode) {
 
-        //Run debug model shader by allowing the shader to operate on the model
-        _debugShaderProgram->runShader(this);
-    }
+    //    //Run debug model shader by allowing the shader to operate on the model
+    //    _debugShaderProgram->runShader(this);
+    //}
 
     //Run model shader by allowing the shader to operate on the model
     _shaderProgram->runShader(this);

@@ -89,9 +89,10 @@ SceneManager::SceneManager(int* argc, char** argv,
 
     _modelList.push_back(Factory::make<Model>("landscape/landscape.fbx")); //Add a static model to the scene
     _modelList.push_back(Factory::make<AnimatedModel>("werewolf/werewolf_jump.fbx")); //Add a static model to the scene
-
-    //_physics.addModels(_modelList); //Gives physics a pointer to all models which allows access to underlying geometry
-    //_physics.run(); //Dispatch physics to start kinematics
+    
+    _physics = new Physics();
+    _physics->addModels(_modelList); //Gives physics a pointer to all models which allows access to underlying geometry
+    _physics->run(); //Dispatch physics to start kinematics
 
     //Add a directional light pointing down in the negative y axis
 
@@ -165,12 +166,17 @@ SceneManager::~SceneManager() {
 void SceneManager::_preDraw() {
     glCheck();
 
-    //send all vbo data to shadow shader pre pass
-    _shadowRenderer->generateShadowBuffer(_modelList, _lightList);
+    if (_viewManager->getViewState() == ViewManager::ViewState::POINT_SHADOW ||
+        _viewManager->getViewState() == ViewManager::ViewState::DEFERRED_LIGHTING ||
+        _viewManager->getViewState() == ViewManager::ViewState::CAMERA_SHADOW ||
+        _viewManager->getViewState() == ViewManager::ViewState::MAP_SHADOW) {
+        //send all vbo data to shadow shader pre pass
+        _shadowRenderer->generateShadowBuffer(_modelList, _lightList);
 
-    //send all vbo data to point light shadow pre pass
-    for (Light* light : _lightList) {
-        _pointShadowMap->render(_modelList, light);
+        //send all vbo data to point light shadow pre pass
+        for (Light* light : _lightList) {
+            _pointShadowMap->render(_modelList, light);
+        }
     }
 
     //Disable environment mapping onto a texture cube atm
@@ -191,11 +197,11 @@ void SceneManager::_postDraw() {
     //unbind fbo
     _deferredRenderer->unbind();
 
-    //Only compute ssao for opaque objects
-    _ssaoPass->computeSSAO(_deferredRenderer->getGBuffers(), _viewManager);
 
     if (_viewManager->getViewState() == ViewManager::ViewState::DEFERRED_LIGHTING) {
 
+        //Only compute ssao for opaque objects
+        _ssaoPass->computeSSAO(_deferredRenderer->getGBuffers(), _viewManager);
 
         //Bind frame buffer
         glBindFramebuffer(GL_FRAMEBUFFER, _deferredFBO->getFrameBufferContext());
@@ -229,24 +235,9 @@ void SceneManager::_postDraw() {
         GLuint velocityBufferContext = _deferredRenderer->getGBuffers()->getTextureContexts()[3];
         _mergeShader->runShader(_bloom->getTextureContext(), velocityBufferContext);
     }
-    else if (_viewManager->getViewState() == ViewManager::ViewState::DEFERRED_LIGHTING_NO_BLOOM) {
-
+    else if (_viewManager->getViewState() == ViewManager::ViewState::PHYSICS) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        //Pass lights to deferred shading pass
-        _deferredRenderer->deferredLighting(_shadowRenderer, _lightList, _viewManager, _pointShadowMap, _ssaoPass, _environmentMap);
-
-        //Draw transparent objects onto of the deferred renderer
-        _forwardRenderer->forwardLighting(_modelList, _viewManager, _shadowRenderer, _lightList, _pointShadowMap);
-
-        // Lights - including the fire point lights
-        for (auto light : _lightList) {
-            if (light->getType() == LightType::POINT) {
-                light->render();
-            }
-        }
-
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        _physics->visualize();
     }
     else {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

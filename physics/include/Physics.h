@@ -23,18 +23,22 @@
 #include "Model.h"
 #include "OSP.h"
 #include <vector>
+#include "GeometryGraphic.h"
 
 class Physics {
 
-    OSP                 _octalSpacePartioner;
-    std::vector<Model*> _models; //Models containing collision Geometry
-    void                _physicsProcess(int milliseconds); //Physics processing thread
-    void                _slowDetection(); //Keep the slow collision detection around for testing purposes
+    OSP                           _octalSpacePartioner;
+    std::vector<Model*>           _models; //Models containing collision Geometry
+    std::vector<GeometryGraphic*> _graphics; //Visual objects for debugging physics
+    void                          _physicsProcess(int milliseconds); //Physics processing thread
+    void                          _slowDetection(); //Keep the slow collision detection around for testing purposes
+    DebugShader*                  _debugShader;
 
 public:
     Physics();
     ~Physics();
-    void                run();
-    void                addModels(std::vector<Model*> models);
-    void                addModel(Model* model);
+    void                          run();
+    void                          addModels(std::vector<Model*> models);
+    void                          addModel(Model* model);
+    void                          visualize();
 };

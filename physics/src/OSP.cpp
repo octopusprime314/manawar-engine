@@ -67,6 +67,7 @@ void OSP::updateOSP(std::vector<Model*>& models) {
                 //        _insertSphereSubspaces(model, sphere, _octTree.getRoot());
                 //    }
                 //}
+                
                 _sphereCubeCache[&sphere].clear();
                 _insertSphereSubspaces(model, sphere, _octTree.getRoot());
             }

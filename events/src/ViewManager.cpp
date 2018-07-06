@@ -130,19 +130,22 @@ void ViewManager::_updateKeyboard(int key, int x, int y) { //Do stuff based on k
         _viewState = ViewState::POSITION;
     }
     else if (key == GLFW_KEY_5) {
-        _viewState = ViewState::SCREEN_SPACE_AMBIENT_OCCLUSION;
+        _viewState = ViewState::VELOCITY;
     }
     else if (key == GLFW_KEY_6) {
-        _viewState = ViewState::DIRECTIONAL_SHADOW;
+        _viewState = ViewState::SCREEN_SPACE_AMBIENT_OCCLUSION;
     }
     else if (key == GLFW_KEY_7) {
-        _viewState = ViewState::POINT_SHADOW;
+        _viewState = ViewState::CAMERA_SHADOW;
     }
     else if (key == GLFW_KEY_8) {
-        _viewState = ViewState::ENVIRONMENT_MAP;
+        _viewState = ViewState::MAP_SHADOW;
     }
     else if (key == GLFW_KEY_9) {
-        _viewState = ViewState::DEFERRED_LIGHTING_NO_BLOOM;
+        _viewState = ViewState::POINT_SHADOW;
+    }
+    else if (key == GLFW_KEY_0) {
+        _viewState = ViewState::PHYSICS;
     }
 
     if (key == GLFW_KEY_W || key == GLFW_KEY_S || key == GLFW_KEY_A || key == GLFW_KEY_D || key == GLFW_KEY_E) {

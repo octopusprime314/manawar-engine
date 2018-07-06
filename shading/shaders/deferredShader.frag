@@ -77,7 +77,7 @@ void main(){
 	shadowMappingMap = shadowMappingMap/shadowMappingMap.w; 
 	vec2 shadowTextureCoordinatesMap = shadowMappingMap.xy * vec2(0.5,0.5) + vec2(0.5,0.5);
 
-	if(views == 0 || views == 8){
+	if(views == 0){
 		if(position.x == 0.0 && position.y == 0.0 && position.z == 0.0){
 			vec4 dayColor = texture(skyboxDayTexture, vec3(vsData.vsViewDirection.x, -vsData.vsViewDirection.y, vsData.vsViewDirection.z));
 			vec4 nightColor = texture(skyboxNightTexture, vec3(vsData.vsViewDirection.x, -vsData.vsViewDirection.y, vsData.vsViewDirection.z));
@@ -169,21 +169,28 @@ void main(){
 	}
 	else if(views == 4){
 	
-		fragColor = vec4(occlusion, occlusion, occlusion, 1.0); 
+		fragColor = vec4(vec2(abs(velocity.r), abs(velocity.g)), 0.0, 1.0);	
 	}
 	else if(views == 5){
+		fragColor = vec4(occlusion, occlusion, occlusion, 1.0); 
+	}
+	else if(views == 6){
+	
+		float depth = texture(cameraDepthTexture, vsData.texCoordOut).x;
+		fragColor = vec4(depth, depth, depth, 1.0);
+	}
+	else if(views == 7){
+	
 		float depth = texture(mapDepthTexture, vsData.texCoordOut).x;
 		fragColor = vec4(depth, depth, depth, 1.0);
 	}
-	else if(views == 6){
+	else if(views == 8){
+	
 		vec3 cubeMapTexCoords = (viewToModelMatrix * vec4(position.xyz,1.0)).xyz - (viewToModelMatrix * vec4(pointLightPositions[0].xyz, 1.0)).xyz;
 		float cubeDepth = texture(depthMap, normalize(cubeMapTexCoords.xyz)).x;
 		fragColor = vec4(vec3(cubeDepth), 1.0);
 	}
-	else if(views == 7){
-		//float depth = texture(cameraDepthTexture, vsData.texCoordOut).x;
-		//fragColor = vec4(depth, depth, depth, 1.0);
-		fragColor = vec4(vec2(abs(velocity.r), abs(velocity.g)), 0.0, 1.0);	
-		//fragColor = vec4(texture(environmentMapTexture, vec3(vsData.vsViewDirection.x, vsData.vsViewDirection.y, vsData.vsViewDirection.z)).rgb, 1.0);
+	else if(views == 9){
+		//Draw geometry visualizer
 	}
 }

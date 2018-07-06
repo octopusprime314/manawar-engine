@@ -28,8 +28,7 @@
 
 const std::string FONT_LOCATION = "../assets/textures/font/";
 
-struct charInfo
-{
+struct charInfo {
     int32_t id;       // The character id.
     int32_t x;        // The left position of the character image in the texture.
     int32_t y;        // The top position of the character image in the texture.
@@ -42,8 +41,7 @@ struct charInfo
     int32_t chnl;     // The texture channel where the character image is found(1 = blue, 2 = green, 4 = red, 8 = alpha, 15 = all channels).
 };
 
-struct FontInfo
-{
+struct FontInfo {
 #if 0
     // info
     char face[256];        // This is the name of the true type font.
@@ -86,23 +84,22 @@ struct FontInfo
 
 void parseFontFile(std::string& filename, FontInfo& out);
 
-class FontRenderer
-{
+class FontRenderer {
 public:
     FontRenderer() = delete;
     FontRenderer(std::string fileName);
-    void DrawFont(float x, float y, std::string s, uint64_t timeDelta);
-    GLuint getTexture() { return fontTex; }
-    GLuint getVao() { return vao; }
+    void        drawFont(float x, float y, std::string s, uint64_t timeDelta);
+    GLuint      getTexture() { return _fontTex; }
+    GLuint      getVao() { return _vao; }
     ~FontRenderer() {};
 private:
-    const int bufferSize = 65536;
-    FontInfo fontInfo;
-    FontShader* fontShader;
+    const int   _bufferSize = 65536;
+    FontInfo    _fontInfo;
+    FontShader* _fontShader;
 
-    GLuint fontTex;
-    GLuint vao;
-    GLuint texCoordsVbo;
-    GLuint vbo;
-    GLuint shader;
+    GLuint      _fontTex;
+    GLuint      _vao;
+    GLuint      _texCoordsVbo;
+    GLuint      _vbo;
+    GLuint      _shader;
 };

@@ -1,6 +1,9 @@
 #include "StateVector.h"
 
-StateVector::StateVector() : _mass(1.0), _active(false) {
+StateVector::StateVector() : 
+    _mass(1.0), 
+    _active(false),
+    _gravity(true) {
 
 }
 

@@ -21,7 +21,7 @@ void Terminal::display() {
     
     if (_terminalVisible) {
         glClear(GL_DEPTH_BUFFER_BIT);
-        _fontRenderer.DrawFont(0.0f, -1.9f, _commandString, 0);
+        _fontRenderer.drawFont(0.0f, -1.9f, _commandString, 0);
     }
 
     if (_commandToProcess.size() > 0) {

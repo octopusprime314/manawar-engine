@@ -386,7 +386,6 @@ bool GeometryMath::triangleCubeDetection(Triangle* triangle, Cube* cube) {
     }
 
     if (normal.dotProduct(vmax) + d >= 0.0f) {
-
         return true;
     }
 

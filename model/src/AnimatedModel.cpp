@@ -32,6 +32,8 @@ AnimatedModel::AnimatedModel(std::string name, ViewManagerEvents* eventWrapper) 
 
     _vao.createVAO(&_renderBuffers, ModelClass::AnimatedModelType, _animations[_currentAnimation]);
 
+    _state.setActive(true); //initialize animations to be active
+
     //Hook up to framerate update for proper animation progression
     _clock->subscribeAnimationRate(std::bind(&AnimatedModel::_updateAnimation, this, std::placeholders::_1));
 }

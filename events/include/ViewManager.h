@@ -44,11 +44,12 @@ public:
         DIFFUSE,
         NORMAL,
         POSITION,
+        VELOCITY,
         SCREEN_SPACE_AMBIENT_OCCLUSION,
-        DIRECTIONAL_SHADOW,
+        CAMERA_SHADOW,
+        MAP_SHADOW,
         POINT_SHADOW,
-        ENVIRONMENT_MAP,
-        DEFERRED_LIGHTING_NO_BLOOM
+        PHYSICS
     };
 
 private:

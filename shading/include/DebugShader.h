@@ -21,10 +21,11 @@
 
 #pragma once
 #include "Shader.h"
+#include "VAO.h"
 
 class DebugShader : public Shader {
 
 public:
     DebugShader(std::string shaderName);
-    void runShader(Model* model);
+    void runShader(Model* model, VAO *vao);
 };

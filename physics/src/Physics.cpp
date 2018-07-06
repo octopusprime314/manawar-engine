@@ -1,9 +1,12 @@
 #include "Physics.h"
 #include "GeometryMath.h"
+#include "ShaderBroker.h"
 
 //Make OSP (Octal Space Partioner) a 2000 cubic block and ensure only 500 primitives at maximum
 //are within a subspace of the OSP
-Physics::Physics() : _octalSpacePartioner(2000, 500) {
+Physics::Physics() : 
+    _octalSpacePartioner(2000, 500),
+    _debugShader(static_cast<DebugShader*>(ShaderBroker::instance()->getShader("debugShader"))) {
 
 }
 
@@ -21,11 +24,32 @@ void Physics::addModels(std::vector<Model*> models) {
 
     _models.insert(_models.end(), models.begin(), models.end());
 
+    for (auto model : _models) {
+        GeometryType geomType = model->getGeometryType();
+       
+        if (geomType == GeometryType::Sphere) {
+            _graphics.push_back(new GeometryGraphic(model->getGeometry()->getSpheres()));
+        }
+        else if (geomType == GeometryType::Triangle) {
+            _graphics.push_back(new GeometryGraphic(model->getGeometry()->getTriangles()));
+        }
+    }
+
     _octalSpacePartioner.generateOSP(_models); //Generate the octal space partition for collision efficiency
 }
 
 void Physics::addModel(Model* model) {
     _models.push_back(model);
+}
+
+void Physics::visualize() {
+    
+    int i = 0;
+    for (auto geometryGraphic : _graphics) {
+
+        _debugShader->runShader(_models[i], geometryGraphic->getVAO());
+        i++;
+    }
 }
 
 void Physics::_physicsProcess(int milliseconds) {
@@ -117,8 +141,10 @@ void Physics::_physicsProcess(int milliseconds) {
                             //}
                         }
                         else {
+                            //TODO: Fix me because this was causing a crash most likely
+                            // from removing a geometry from the oct node and iterating at the same time.
                             //Remove geometry from osp node
-                            subspaceNode->removeGeometry(sphereMap.first, sphere);
+                            //subspaceNode->removeGeometry(sphereMap.first, sphere);
                         }
                     }
                 }

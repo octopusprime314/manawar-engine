@@ -136,6 +136,12 @@ void ShaderBroker::_gatherShaderNames()
                     else if (mapName == "fontShader") {
                         _shaders[upperCaseMapName] = new FontShader(mapName);
                     }
+                    else if (mapName == "debugShader") {
+                        _shaders[upperCaseMapName] = new DebugShader(mapName);
+                    }
+                    else {
+                        std::cout << "Shader class " << mapName << " not registered!" << std::endl;
+                    }
                 }
             }
         }

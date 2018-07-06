@@ -40,8 +40,241 @@ GLuint VAO::getNormalDebugContext() {
     return _debugNormalBufferContext;
 }
 
-void VAO::createVAO(RenderBuffers* renderBuffers, ModelClass classId, Animation* animation)
-{
+GLuint VAO::getVertexLength() {
+    return _vertexLength;
+}
+
+void VAO::createVAO(std::vector<Triangle>* triangles) {
+    
+    //Making lines for triangles!!!!!
+    auto vertices = triangles->size() * 6;
+    _vertexLength = static_cast<GLuint>(vertices);
+    //Now flatten vertices and normals out for opengl
+    size_t triBuffSize = vertices * 3;
+    float* flattenVerts = new float[triBuffSize]; //Only include the x y and z values not w
+        
+    int i = 0; //iterates through vertices indexes
+    //for (auto vertex : *vertices) {
+    for (auto triangle : *triangles) {
+        auto points = triangle.getTrianglePoints();
+        flattenVerts[i++] = points[0].getx();
+        flattenVerts[i++] = points[0].gety();
+        flattenVerts[i++] = points[0].getz();
+        flattenVerts[i++] = points[1].getx();
+        flattenVerts[i++] = points[1].gety();
+        flattenVerts[i++] = points[1].getz();
+
+        flattenVerts[i++] = points[1].getx();
+        flattenVerts[i++] = points[1].gety();
+        flattenVerts[i++] = points[1].getz();
+        flattenVerts[i++] = points[2].getx();
+        flattenVerts[i++] = points[2].gety();
+        flattenVerts[i++] = points[2].getz();
+
+        flattenVerts[i++] = points[2].getx();
+        flattenVerts[i++] = points[2].gety();
+        flattenVerts[i++] = points[2].getz();
+        flattenVerts[i++] = points[0].getx();
+        flattenVerts[i++] = points[0].gety();
+        flattenVerts[i++] = points[0].getz();
+    }
+    
+    //Create a double buffer that will be filled with the vertex data
+    glGenBuffers(1, &_vertexBufferContext);
+    glBindBuffer(GL_ARRAY_BUFFER, _vertexBufferContext);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float)*triBuffSize, flattenVerts, GL_STATIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    //Bind regular vertex, normal and texture coordinate vao
+    glGenVertexArrays(1, &_vaoContext);
+    glBindVertexArray(_vaoContext);
+
+    //Bind vertex buff context to current buffer
+    glBindBuffer(GL_ARRAY_BUFFER, _vertexBufferContext);
+
+    //Say that the vertex data is associated with attribute 0 in the context of a shader program
+    //Each vertex contains 3 floats per vertex
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+
+    //Now enable vertex buffer at location 0
+    glEnableVertexAttribArray(0);
+
+    //Close vao
+    glBindVertexArray(0);
+
+   
+    delete[] flattenVerts;
+}
+
+void VAO::createVAO(std::vector<Sphere>* spheres) {
+
+    //Making lines for spheres!!!!!
+    int stacks = 20;
+    int slices = 20;
+    auto vertices = spheres->size() * (((stacks - 2) * (slices) * 36) + (2 * slices * 18));
+    _vertexLength = static_cast<GLuint>(vertices / 3);
+    size_t triBuffSize = vertices;
+    float* flattenVerts = new float[triBuffSize]; //Only include the x y and z values not w
+    int i = 0;
+
+    for (Sphere sphere : *spheres) {
+
+        for (int t = 0; t < stacks; t++) {// stacks are ELEVATION so they count theta
+
+            float theta1 = (static_cast<float>(t) / stacks)*PI;
+            float theta2 = (static_cast<float>(t + 1) / stacks)*PI;
+
+            for (int p = 0; p < slices; p++) { // slices are ORANGE SLICES so the count azimuth
+
+                float phi1 = (static_cast<float>(p) / slices) * 2 * PI; // azimuth goes around 0 .. 2*PI
+                float phi2 = (static_cast<float>(p + 1) / slices) * 2 * PI;
+
+                //phi2   phi1
+                // |      |
+                // 2------1 -- theta1
+                // |\ _   |
+                // |    \ |
+                // 3------4 -- theta2
+                //
+
+                float r = sphere.getRadius();
+                Vector4 vertex1(r*sin(phi1)*cos(theta1), r*sin(phi1)*sin(theta1), r*cos(phi1));
+                Vector4 vertex2(r*sin(phi2)*cos(theta1), r*sin(phi2)*sin(theta1), r*cos(phi2));
+                Vector4 vertex3(r*sin(phi2)*cos(theta2), r*sin(phi2)*sin(theta2), r*cos(phi2));
+                Vector4 vertex4(r*sin(phi1)*cos(theta2), r*sin(phi1)*sin(theta2), r*cos(phi1));
+                //vertex1 = vertex on a sphere of radius r at spherical coords theta1, phi1
+                //vertex2 = vertex on a sphere of radius r at spherical coords theta1, phi2
+                //vertex3 = vertex on a sphere of radius r at spherical coords theta2, phi2
+                //vertex4 = vertex on a sphere of radius r at spherical coords theta2, phi1
+
+                // facing out
+                if (t == 0) {// top cap
+                    
+                    flattenVerts[i++] = vertex1.getx();
+                    flattenVerts[i++] = vertex1.gety();
+                    flattenVerts[i++] = vertex1.getz();
+                    flattenVerts[i++] = vertex3.getx();
+                    flattenVerts[i++] = vertex3.gety();
+                    flattenVerts[i++] = vertex3.getz();
+
+                    flattenVerts[i++] = vertex3.getx();
+                    flattenVerts[i++] = vertex3.gety();
+                    flattenVerts[i++] = vertex3.getz();
+                    flattenVerts[i++] = vertex4.getx();
+                    flattenVerts[i++] = vertex4.gety();
+                    flattenVerts[i++] = vertex4.getz();
+
+                    flattenVerts[i++] = vertex4.getx();
+                    flattenVerts[i++] = vertex4.gety();
+                    flattenVerts[i++] = vertex4.getz();
+                    flattenVerts[i++] = vertex1.getx();
+                    flattenVerts[i++] = vertex1.gety();
+                    flattenVerts[i++] = vertex1.getz();
+                    //mesh->addTri(vertex1, vertex3, vertex4); //t1p1, t2p2, t2p1
+                }
+                else if (t + 1 == stacks) {//end cap
+                    
+                    flattenVerts[i++] = vertex3.getx();
+                    flattenVerts[i++] = vertex3.gety();
+                    flattenVerts[i++] = vertex3.getz();
+                    flattenVerts[i++] = vertex1.getx();
+                    flattenVerts[i++] = vertex1.gety();
+                    flattenVerts[i++] = vertex1.getz();
+
+                    flattenVerts[i++] = vertex1.getx();
+                    flattenVerts[i++] = vertex1.gety();
+                    flattenVerts[i++] = vertex1.getz();
+                    flattenVerts[i++] = vertex2.getx();
+                    flattenVerts[i++] = vertex2.gety();
+                    flattenVerts[i++] = vertex2.getz();
+
+                    flattenVerts[i++] = vertex2.getx();
+                    flattenVerts[i++] = vertex2.gety();
+                    flattenVerts[i++] = vertex2.getz();
+                    flattenVerts[i++] = vertex3.getx();
+                    flattenVerts[i++] = vertex3.gety();
+                    flattenVerts[i++] = vertex3.getz();
+                    //mesh->addTri(vertex3, vertex1, vertex2); //t2p2, t1p1, t1p2
+                }
+                else {
+                    // body, facing OUT:
+
+                    flattenVerts[i++] = vertex1.getx();
+                    flattenVerts[i++] = vertex1.gety();
+                    flattenVerts[i++] = vertex1.getz();
+                    flattenVerts[i++] = vertex2.getx();
+                    flattenVerts[i++] = vertex2.gety();
+                    flattenVerts[i++] = vertex2.getz();
+
+                    flattenVerts[i++] = vertex2.getx();
+                    flattenVerts[i++] = vertex2.gety();
+                    flattenVerts[i++] = vertex2.getz();
+                    flattenVerts[i++] = vertex4.getx();
+                    flattenVerts[i++] = vertex4.gety();
+                    flattenVerts[i++] = vertex4.getz();
+
+                    flattenVerts[i++] = vertex4.getx();
+                    flattenVerts[i++] = vertex4.gety();
+                    flattenVerts[i++] = vertex4.getz();
+                    flattenVerts[i++] = vertex1.getx();
+                    flattenVerts[i++] = vertex1.gety();
+                    flattenVerts[i++] = vertex1.getz();
+
+                    flattenVerts[i++] = vertex2.getx();
+                    flattenVerts[i++] = vertex2.gety();
+                    flattenVerts[i++] = vertex2.getz();
+                    flattenVerts[i++] = vertex3.getx();
+                    flattenVerts[i++] = vertex3.gety();
+                    flattenVerts[i++] = vertex3.getz();
+
+                    flattenVerts[i++] = vertex3.getx();
+                    flattenVerts[i++] = vertex3.gety();
+                    flattenVerts[i++] = vertex3.getz();
+                    flattenVerts[i++] = vertex4.getx();
+                    flattenVerts[i++] = vertex4.gety();
+                    flattenVerts[i++] = vertex4.getz();
+
+                    flattenVerts[i++] = vertex4.getx();
+                    flattenVerts[i++] = vertex4.gety();
+                    flattenVerts[i++] = vertex4.getz();
+                    flattenVerts[i++] = vertex2.getx();
+                    flattenVerts[i++] = vertex2.gety();
+                    flattenVerts[i++] = vertex2.getz();
+
+                    //mesh->addTri(vertex1, vertex2, vertex4);
+                    //mesh->addTri(vertex2, vertex3, vertex4);
+                }
+            }
+        }
+    }
+
+    //Create a double buffer that will be filled with the vertex data
+    glGenBuffers(1, &_vertexBufferContext);
+    glBindBuffer(GL_ARRAY_BUFFER, _vertexBufferContext);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float)*triBuffSize, flattenVerts, GL_STATIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    //Bind regular vertex, normal and texture coordinate vao
+    glGenVertexArrays(1, &_vaoContext);
+    glBindVertexArray(_vaoContext);
+
+    //Bind vertex buff context to current buffer
+    glBindBuffer(GL_ARRAY_BUFFER, _vertexBufferContext);
+
+    //Say that the vertex data is associated with attribute 0 in the context of a shader program
+    //Each vertex contains 3 floats per vertex
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+
+    //Now enable vertex buffer at location 0
+    glEnableVertexAttribArray(0);
+
+    //Close vao
+    glBindVertexArray(0);
+
+    delete[] flattenVerts;
+}
+
+void VAO::createVAO(RenderBuffers* renderBuffers, ModelClass classId, Animation* animation) {
     auto vertices = renderBuffers->getVertices();
     auto normals = renderBuffers->getNormals();
     auto textures = renderBuffers->getTextures();

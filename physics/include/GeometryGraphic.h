@@ -22,6 +22,7 @@
 #pragma once
 #include "Sphere.h"
 #include "Triangle.h"
+#include "Cube.h"
 #include <vector>
 #include "VAO.h"
 
@@ -32,6 +33,7 @@ class GeometryGraphic {
 public:
     GeometryGraphic(std::vector<Triangle>* triangles);
     GeometryGraphic(std::vector<Sphere>* spheres);
+    GeometryGraphic(std::vector<Cube>* cubes);
     ~GeometryGraphic();
     VAO* getVAO();
 };

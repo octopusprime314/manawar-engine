@@ -46,10 +46,6 @@ enum class ModelClass {
     AnimatedModelType
 };
 
-enum class GeometryType {
-    Triangle = 0,
-    Sphere = 1
-};
 using TextureMetaData = std::vector<std::pair<std::string, int>>;
 
 class Model : public UpdateInterface {
@@ -95,8 +91,6 @@ protected:
     MVP                         _mvp; //Model view matrix container
     MVP                         _prevMVP; //Previous Model view matrix container for motion blur
     StaticShader*               _shaderProgram; //Container object of the Model's shader
-    DebugShader*                _debugShaderProgram; //Container object of the normal line shader
-    bool                        _debugMode; //Runs an extra shader with debug information include normals
     FbxLoader*                  _fbxLoader; //Used to load fbx data and parse it into engine format
     ModelClass                  _classId; //Used to identify which class is being used
     MasterClock*                _clock; //Used to coordinate time with the world
@@ -109,9 +103,9 @@ protected:
     int                         _instances;
 
     std::string                 _getModelName(std::string name);
-    void                        _updateKeyboard(int key, int x, int y); //Do stuff based on keyboard upate
-    void                        _updateReleaseKeyboard(int key, int x, int y);
-    void                        _updateMouse(double x, double y); //Do stuff based on mouse update
+    void                        _updateKeyboard(int key, int x, int y) {}; //Do stuff based on keyboard upate
+    void                        _updateReleaseKeyboard(int key, int x, int y) {};
+    void                        _updateMouse(double x, double y) {}; //Do stuff based on mouse update
     void                        _updateDraw(); //Do draw stuff
     void                        _updateView(Matrix view); //Get view matrix updates
     void                        _updateProjection(Matrix projection); //Get projection matrix updates

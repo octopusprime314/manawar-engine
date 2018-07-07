@@ -1,7 +1,6 @@
 #include "Model.h"
 #include "SimpleContext.h"
 #include "FbxLoader.h"
-#include "GeometryBuilder.h"
 #include "ShaderBroker.h"
 
 TextureBroker* Model::_textureManager = TextureBroker::instance();
@@ -11,34 +10,22 @@ Model::Model(ViewManagerEvents* eventWrapper, RenderBuffers& renderBuffers, Stat
     _classId(ModelClass::ModelType),
     _fbxLoader(nullptr),
     _clock(MasterClock::instance()),
-    _debugMode(false),
     _geometryType(GeometryType::Triangle),
     _renderBuffers(std::move(renderBuffers)),
     _isInstanced(false) {
     _vao.createVAO(&_renderBuffers, _classId);
 }
 
-Model::Model(std::string name, ViewManagerEvents* eventWrapper, ModelClass classId) : UpdateInterface(eventWrapper),
-_fbxLoader(nullptr),
-_clock(MasterClock::instance()) {
+Model::Model(std::string name, ViewManagerEvents* eventWrapper, ModelClass classId) :
+    UpdateInterface(eventWrapper),
+    _clock(MasterClock::instance()),
+    _isInstanced(false),
+    _classId(classId),
+    _fbxLoader(new FbxLoader(MESH_LOCATION + name)) {
 
-    //Set class id
-    _classId = classId;
-
-    _isInstanced = false;
-
-    //disable debug mode
-    _debugMode = false;
-
-    //Load debug shader
-    _debugShaderProgram = static_cast<DebugShader*>(ShaderBroker::instance()->getShader("debugShader"));
-
-    //Load in fbx object
-    _fbxLoader = new FbxLoader(MESH_LOCATION + name);
+    
     //Populate model with fbx file data and recursivelty search with the root node of the scene
     _fbxLoader->loadModel(this, _fbxLoader->getScene()->GetRootNode());
-
-    //GeometryBuilder::buildCube(this); //Add a generic cube centered at the origin
 
     //Create vao contexts
     if (classId == ModelClass::ModelType) {
@@ -82,23 +69,8 @@ Model::~Model() {
 
 void Model::_updateDraw() {
 
-    ////if debugging normals, etc.
-    //if (_debugMode) {
-
-    //    //Run debug model shader by allowing the shader to operate on the model
-    //    _debugShaderProgram->runShader(this);
-    //}
-
     //Run model shader by allowing the shader to operate on the model
     _shaderProgram->runShader(this);
-
-}
-
-void Model::_updateKeyboard(int key, int x, int y) {
-}
-void Model::_updateReleaseKeyboard(int key, int x, int y) {
-}
-void Model::_updateMouse(double x, double y) {
 }
 
 void Model::_updateView(Matrix view) {
@@ -145,6 +117,7 @@ size_t Model::getArrayCount() {
         return _renderBuffers.getVertices()->size();
     }
     else {
+        std::cout << "What class is this????" << std::endl;
         return 0;
     }
 }

@@ -36,6 +36,8 @@ void Physics::addModels(std::vector<Model*> models) {
     }
 
     _octalSpacePartioner.generateOSP(_models); //Generate the octal space partition for collision efficiency
+
+    _octTreeGraphic = new GeometryGraphic(_octalSpacePartioner.getCubes());
 }
 
 void Physics::addModel(Model* model) {
@@ -47,9 +49,12 @@ void Physics::visualize() {
     int i = 0;
     for (auto geometryGraphic : _graphics) {
 
-        _debugShader->runShader(_models[i], geometryGraphic->getVAO());
+        _debugShader->runShader(_models[i]->getMVP(), geometryGraphic->getVAO());
         i++;
     }
+
+    //Grab any model's mvp
+    _debugShader->runShader(_models[0]->getMVP(), _octTreeGraphic->getVAO());
 }
 
 void Physics::_physicsProcess(int milliseconds) {

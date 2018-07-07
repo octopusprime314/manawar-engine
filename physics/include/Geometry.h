@@ -24,6 +24,12 @@
 #include "Sphere.h"
 #include "Triangle.h"
 #include <vector>
+
+enum class GeometryType {
+    Triangle = 0,
+    Sphere = 1
+};
+
 class Geometry {
 
     std::vector<Sphere>    _spheres;

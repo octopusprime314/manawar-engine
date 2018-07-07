@@ -33,7 +33,7 @@ class Physics {
     void                          _physicsProcess(int milliseconds); //Physics processing thread
     void                          _slowDetection(); //Keep the slow collision detection around for testing purposes
     DebugShader*                  _debugShader;
-
+    GeometryGraphic*              _octTreeGraphic;
 public:
     Physics();
     ~Physics();

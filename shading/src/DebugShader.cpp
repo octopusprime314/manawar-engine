@@ -1,15 +1,13 @@
 #include "DebugShader.h"
-#include "Model.h"
 
 DebugShader::DebugShader(std::string shaderName) : Shader(shaderName) {
 
 }
-void DebugShader::runShader(Model* model, VAO *vao) {
+void DebugShader::runShader(MVP* mvp, VAO *vao) {
     
     glUseProgram(_shaderContext);
     glBindVertexArray(vao->getVAOContext());
 
-    MVP* mvp = model->getMVP();
     //glUniform mat4 combined model and world matrix, GL_TRUE is telling GL we are passing in the matrix as row major
     updateUniform("model", mvp->getModelBuffer());
 

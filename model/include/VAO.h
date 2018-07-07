@@ -28,6 +28,7 @@
 #include "Animation.h"
 #include "Sphere.h"
 #include "Triangle.h"
+#include "Cube.h"
 
 enum class ModelClass; //Forward declaration of enumerated type while not including Model class
 
@@ -60,5 +61,5 @@ public:
     void    createVAO(RenderBuffers* renderBuffers, ModelClass classId, Animation* = nullptr);
     void    createVAO(std::vector<Sphere>* spheres);
     void    createVAO(std::vector<Triangle>* triangles);
-
+    void    createVAO(std::vector<Cube>* cubes);
 };

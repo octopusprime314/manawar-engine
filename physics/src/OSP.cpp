@@ -49,6 +49,30 @@ void OSP::generateOSP(std::vector<Model*>& models) {
     _buildOctetTree(_octTree.getRoot()->getData(), node);
 }
 
+std::vector<Cube>* OSP::getCubes() {
+
+    std::vector<Cube>* cubes = new std::vector<Cube>();
+    
+    _getChildren(cubes, _octTree.getRoot());
+
+    return cubes;
+}
+
+void OSP::_getChildren(std::vector<Cube>* cubes, OctNode<Cube*>* node) {
+    
+    //Grab all of the possible subspace children in the tree
+    auto childrenNodes = node->getChildren();
+
+    //Look through all 8 subspaces in the octree
+    for (int i = 0; i < 8; ++i) {
+        if (childrenNodes[i] != nullptr) {
+            _getChildren(cubes, childrenNodes[i]);
+            cubes->push_back(*childrenNodes[i]->getData());
+        }
+    }
+}
+
+
 void OSP::updateOSP(std::vector<Model*>& models) {
 
     //Go through all of the models and populate

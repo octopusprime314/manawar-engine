@@ -36,10 +36,12 @@ class OSP {
     int                                _subSpace;  //The smallest 3D cubic space a tree
     void                               _buildOctetTree(Cube* rectangle, OctNode<Cube*>* node);
     bool                               _insertSphereSubspaces(Model* model, Sphere& sphere, OctNode<Cube*>* node);
+    void                               _getChildren(std::vector<Cube>* cubes, OctNode<Cube*>* node);
     std::map<Sphere*, std::set<Cube*>> _sphereCubeCache; //Caches previous list of subspace cubes for early out testing
 public:
     OSP(float cubicDimension, int maxGeometries);
     ~OSP();
+    std::vector<Cube>*                 getCubes();
     void                               generateOSP(std::vector<Model*>& models);
     void                               updateOSP(std::vector<Model*>& models);
     std::vector<OctNode<Cube*>*>*      getOSPLeaves();

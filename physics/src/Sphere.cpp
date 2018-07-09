@@ -16,6 +16,10 @@ Vector4 Sphere::getPosition() {
     return _position + _modelPosition;
 }
 
+Vector4 Sphere::getObjectPosition() {
+    return _position;
+}
+
 void Sphere::offsetPosition(Vector4 position) {
     _modelPosition = position;
 }

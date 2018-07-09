@@ -15,7 +15,7 @@ std::vector<OctNode<Cube*>*>* OSP::getOSPLeaves() {
     return &_ospLeaves;
 }
 
-void OSP::generateOSP(std::vector<Model*>& models) {
+void OSP::generateGeometryOSP(std::vector<Model*>& models) {
 
 
     //Initialize a octary tree with a rectangle of cubicDimension located at the origin of the axis
@@ -47,6 +47,89 @@ void OSP::generateOSP(std::vector<Model*>& models) {
 
     //Recursively build Octary Space Partition Tree
     _buildOctetTree(_octTree.getRoot()->getData(), node);
+}
+
+void OSP::generateRenderOSP(std::vector<Model*>& models) {
+
+
+    //Initialize a octary tree with a rectangle of cubicDimension located at the origin of the axis
+    Cube* rootCube = new Cube(_cubicDimension, _cubicDimension, _cubicDimension, Vector4(0.0f, 0.0f, 0.0f, 1.0f));
+    OctNode<Cube*>* node = _octTree.insert(nullptr, rootCube);
+
+    //Go through all of the models and populate
+    for (auto model : models) {
+
+        auto triangleBuffer = model->getRenderBuffers();
+        auto vertices = triangleBuffer->getVertices();
+
+        for (int i = 0; i < vertices->size(); i+=3) {
+             
+            Triangle* tri = new Triangle((*vertices)[i], (*vertices)[i + 1], (*vertices)[i + 2]);
+            //if geometry data is contained within the first octet then build it out
+            if (GeometryMath::triangleCubeDetection(tri, rootCube)) {
+
+                node->addGeometry(model, tri);
+            }
+        }
+    }
+
+    //Recursively build Octary Space Partition Tree
+    _buildOctetTree(_octTree.getRoot()->getData(), node);
+
+    //TODO : Take one models mvp which is easy but needs to be changed soon 
+    MVP* mvpBuffers = models[0]->getMVP();
+    float* mvp = (mvpBuffers->getProjectionMatrix() *
+        mvpBuffers->getViewMatrix() *
+        mvpBuffers->getModelMatrix()).getFlatBuffer();
+
+    std::vector<Cube*> visibleCubes;
+
+    for (OctNode<Cube*>* octNode : _ospLeaves) {
+        
+        auto cube   = octNode->getData();
+        auto center = cube->getCenter();
+        auto length = cube->getLength();
+        auto height = cube->getHeight();
+        auto width  = cube->getWidth();
+        Vector4 mins(center.getx() - length / 2.0f, center.gety() - height / 2.0f, center.getz() - width / 2.0f);
+        Vector4 maxs(center.getx() + length / 2.0f, center.gety() + height / 2.0f, center.getz() + width / 2.0f);
+
+        std::vector<Vector4> planes;
+        // Right clipping plane.
+        planes.push_back(Vector4(mvp[3] - mvp[0], mvp[7] - mvp[4], mvp[11] - mvp[8],  mvp[15] - mvp[12]));
+        // Left clipping plane.
+        planes.push_back(Vector4(mvp[3] + mvp[0], mvp[7] + mvp[4], mvp[11] + mvp[8],  mvp[15] + mvp[12]));
+        // Bottom clipping plane.
+        planes.push_back(Vector4(mvp[3] + mvp[1], mvp[7] + mvp[5], mvp[11] + mvp[9],  mvp[15] + mvp[13]));
+        // Top clipping plane.
+        planes.push_back(Vector4(mvp[3] - mvp[1], mvp[7] - mvp[5], mvp[11] - mvp[9],  mvp[15] - mvp[13]));
+        // Far clipping plane.
+        planes.push_back(Vector4(mvp[3] - mvp[2], mvp[7] - mvp[6], mvp[11] - mvp[10], mvp[15] - mvp[14]));
+        // Near clipping plane.
+        planes.push_back(Vector4(mvp[3] + mvp[2], mvp[7] + mvp[6], mvp[11] + mvp[10], mvp[15] + mvp[14]));
+
+        //// Right clipping plane.
+        //planes.push_back(Vector4(mvp[12] - mvp[0], mvp[13] - mvp[1], mvp[14] - mvp[2], mvp[15] - mvp[3]));
+        //// Left clipping plane.
+        //planes.push_back(Vector4(mvp[12] + mvp[0], mvp[13] + mvp[1], mvp[14] + mvp[2], mvp[15] + mvp[3]));
+        //// Bottom clipping plane.
+        //planes.push_back(Vector4(mvp[12] + mvp[4], mvp[13] + mvp[5], mvp[14] + mvp[6], mvp[15] + mvp[7]));
+        //// Top clipping plane.
+        //planes.push_back(Vector4(mvp[12] - mvp[4], mvp[13] - mvp[5], mvp[14] - mvp[6], mvp[15] - mvp[7]));
+        //// Far clipping plane.
+        //planes.push_back(Vector4(mvp[12] - mvp[8], mvp[13] - mvp[9], mvp[14] - mvp[10], mvp[15] - mvp[11]));
+        //// Near clipping plane.
+        //planes.push_back(Vector4(mvp[12] + mvp[8], mvp[13] + mvp[9], mvp[14] + mvp[10], mvp[15] + mvp[11]));
+
+        // Normalize, this is not always necessary...
+        /*for (unsigned int i = 0; i < 6; i++) {
+            planes[i].normalize();
+        }*/
+        
+        if (GeometryMath::frustumAABBDetection(planes, mins, maxs)) {
+            visibleCubes.push_back(cube);
+        }
+    }
 }
 
 std::vector<Cube>* OSP::getCubes() {

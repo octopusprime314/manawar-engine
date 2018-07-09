@@ -181,6 +181,11 @@ void ViewManager::_updateKeyboard(int key, int x, int y) { //Do stuff based on k
             trans = Vector4(_inverseRotation * force); //Apply transformation based off inverse rotation
             temp = trans.getFlatBuffer();
         }
+        else if (key == GLFW_KEY_E) { //down c
+            force = Vector4(0.0, -velMagnitude, 0.0, 1.0);
+            trans = Vector4(_inverseRotation * force); //Apply transformation based off inverse rotation
+            temp = trans.getFlatBuffer();
+        }
 
         //If not in god camera view mode then push view changes to the model for full control of a model's movements
         if (!_godState && _modelIndex < _modelList.size()) {

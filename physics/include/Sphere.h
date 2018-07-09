@@ -31,5 +31,6 @@ public:
     ~Sphere();
     float   getRadius();
     Vector4 getPosition();
+    Vector4 getObjectPosition();
     void    offsetPosition(Vector4 position); //Offsets the sphere's current position
 };

@@ -1,5 +1,5 @@
 /*
-* DebugShader is part of the ReBoot distribution (https://github.com/octopusprime314/ReBoot.git).
+* Frustum Occlusion is part of the ReBoot distribution (https://github.com/octopusprime314/ReBoot.git).
 * Copyright (c) 2017 Peter Morley.
 *
 * ReBoot is free software: you can redistribute it and/or modify
@@ -16,21 +16,19 @@
 */
 
 /**
-*  DebugShader class. Visualizes a model's normal vectors for lighting tests
+*  Frustum Occlusion class. Trims down the number of vertices needed to be passed through the
+* graphics VS/PS pipeline by using AABBs from an Octal Space Partioning structure.  The AABBs 
+* that are within the view/eye frustum will provide all of the vertexes that need to be rendered.
 */
 
 #pragma once
-#include "Shader.h"
-#include "VAO.h"
-#include "MVP.h"
-#include <set>
+#include "Vector4.h"
+#include "OSP.h"
+#include "Model.h"
+#include <vector>
 
-class DebugShader : public Shader {
-
+class FrustumOcclusion {
+    OSP _octalSpacePartitioner;
 public:
-    DebugShader(std::string shaderName);
-    void runShader(MVP* mvp, 
-                   VAO *vao, 
-                   std::set<Triangle*> triangleIntersectionList,
-                   float* color);
+    FrustumOcclusion(std::vector<Model*> models);
 };

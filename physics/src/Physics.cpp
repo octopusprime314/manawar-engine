@@ -35,7 +35,7 @@ void Physics::addModels(std::vector<Model*> models) {
         }
     }
 
-    _octalSpacePartioner.generateOSP(_models); //Generate the octal space partition for collision efficiency
+    _octalSpacePartioner.generateGeometryOSP(_models); //Generate the octal space partition for collision efficiency
 
     _octTreeGraphic = new GeometryGraphic(_octalSpacePartioner.getCubes());
 }
@@ -46,22 +46,35 @@ void Physics::addModel(Model* model) {
 
 void Physics::visualize() {
     
+    
     int i = 0;
     for (auto geometryGraphic : _graphics) {
 
-        _debugShader->runShader(_models[i]->getMVP(), geometryGraphic->getVAO());
+        float color[] = { 0.0, 0.0, 1.0 };
+
+        _debugShader->runShader(_models[i]->getMVP(), 
+            geometryGraphic->getVAO(), 
+            _triangleIntersectionList[_models[i]],
+            color);
         i++;
     }
 
+    float color[] = { 0.0, 1.0, 0.0 };
     //Grab any model's mvp
-    _debugShader->runShader(_models[0]->getMVP(), _octTreeGraphic->getVAO());
+    _debugShader->runShader(_models[0]->getMVP(), 
+        _octTreeGraphic->getVAO(), 
+        _triangleIntersectionList[_models[0]],
+        color);
+
+    std::lock_guard<std::mutex> lockGuard(_lock);
+
+    _triangleIntersectionList.clear();
 }
 
 void Physics::_physicsProcess(int milliseconds) {
 
     //First update OSP tree then test for collisions
     _octalSpacePartioner.updateOSP(_models);
-
 
     //Returns the subspace partitioning node leaves to test for primitive collisions
     //The nodes necessary to test for collisions are only the end nodes of the oct tree
@@ -130,13 +143,18 @@ void Physics::_physicsProcess(int milliseconds) {
                             bool prevContactState = modelSphereState->getContact();
                             bool newContactState = false;
 
+                            std::lock_guard<std::mutex> lockGuard(_lock);
+
+                            int i = 0;
                             for (Triangle* triangle : triangles) {
                                 //If an overlap between a sphere and a triangle is detected then process the overlap resolution
                                 if (GeometryMath::sphereTriangleDetection(*sphere, *triangle)) {
 
                                     GeometryMath::sphereTriangleResolution(sphereMap.first, *sphere, triangleMap.first, *triangle);
                                     newContactState = true;
+                                    _triangleIntersectionList[sphereMap.first].insert(triangle);
                                 }
+                                i++;
                             }
 
                             newContactStates[sphereMap.first] = newContactState;

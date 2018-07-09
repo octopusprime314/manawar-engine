@@ -19,6 +19,7 @@
 #include "SSCompute.h"
 #include "ShaderBroker.h"
 #include "Terminal.h"
+#include "FrustumOcclusion.h"
 #include <chrono>
 
 using namespace std::chrono;
@@ -90,8 +91,11 @@ SceneManager::SceneManager(int* argc, char** argv,
     _modelList.push_back(Factory::make<Model>("landscape/landscape.fbx")); //Add a static model to the scene
     _modelList.push_back(Factory::make<AnimatedModel>("werewolf/werewolf_jump.fbx")); //Add a static model to the scene
     
+    _modelList[1]->setPosition(Vector4(-0.f, 0.68f, -15.f));
+
     _physics = new Physics();
     _physics->addModels(_modelList); //Gives physics a pointer to all models which allows access to underlying geometry
+    
     _physics->run(); //Dispatch physics to start kinematics
 
     //Add a directional light pointing down in the negative y axis
@@ -142,10 +146,12 @@ SceneManager::SceneManager(int* argc, char** argv,
     // Do this after adding all of our objects.
     _viewManager->setProjection(viewportWidth, viewportHeight, nearPlaneDistance, farPlaneDistance); //Initializes projection matrix and broadcasts upate to all listeners
     // This view is carefully chosen to look at a mountain without showing the (lack of) water in the scene.
-    _viewManager->setView(Matrix::cameraTranslation(7.f, -0.68f, -5.f),
+    _viewManager->setView(Matrix::cameraTranslation(0.f, -0.68f, 7.f),
         Matrix::cameraRotationAroundY(-45.f),
         Matrix());
     _viewManager->setModelList(_modelList);
+
+    _frustumOccluder = new FrustumOcclusion(_modelList);
 
     glCheck();
 

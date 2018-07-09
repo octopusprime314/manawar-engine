@@ -25,6 +25,7 @@
 #include <vector>
 #include "GeometryGraphic.h"
 
+using ModelIntersections = std::map<Model*, std::set<Triangle*>>;
 class Physics {
 
     OSP                           _octalSpacePartioner;
@@ -34,6 +35,8 @@ class Physics {
     void                          _slowDetection(); //Keep the slow collision detection around for testing purposes
     DebugShader*                  _debugShader;
     GeometryGraphic*              _octTreeGraphic;
+    ModelIntersections            _triangleIntersectionList;
+    std::mutex                    _lock;
 public:
     Physics();
     ~Physics();

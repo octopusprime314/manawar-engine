@@ -42,7 +42,8 @@ public:
     OSP(float cubicDimension, int maxGeometries);
     ~OSP();
     std::vector<Cube>*                 getCubes();
-    void                               generateOSP(std::vector<Model*>& models);
+    void                               generateGeometryOSP(std::vector<Model*>& models);
+    void                               generateRenderOSP(std::vector<Model*>& models);
     void                               updateOSP(std::vector<Model*>& models);
     std::vector<OctNode<Cube*>*>*      getOSPLeaves();
 };

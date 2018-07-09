@@ -487,10 +487,10 @@ void GeometryMath::sphereTriangleResolution(Model* modelA, Sphere& sphere, Model
     normal.normalize();
 
     Vector4 closestPointOnTriangle = _closestPoint(&sphere, &triangle);
-    Vector4 overlap = closestPointOnTriangle - spherePosition;
+    Vector4 overlap = spherePosition - closestPointOnTriangle;
     overlap.normalize();
 
-    Vector4 closestPoint = closestPointOnTriangle - ((overlap)*(sphereRadius*1.0001f)) - sphere.getPosition();
+    Vector4 delta = ((overlap)*(sphereRadius*1.0001f)) + closestPointOnTriangle - spherePosition;
 
     //Sliding velocity component
     //Compute the speed of the resultant velocity along the normal for sliding collision resolution
@@ -499,6 +499,8 @@ void GeometryMath::sphereTriangleResolution(Model* modelA, Sphere& sphere, Model
     Vector4 n = normal * normalComponent;
     //Subtract original velocity vectory with the new velocity vector along the normal
     Vector4 resultantVelocity = modelStateA->getLinearVelocity() - n;
+
+    modelA->setPosition(modelStateA->getLinearPosition() + delta);
 
     modelStateA->setLinearVelocity(resultantVelocity);
 
@@ -582,4 +584,58 @@ Vector4 GeometryMath::_closestPoint(Sphere* sphere, Triangle* triangle)
     float v = vb * denom;
     float w = vc * denom;
     return A + ab * v + ac * w;
+}
+
+// Returns: INTERSECT : 0 
+//          INSIDE    : 1 
+//          OUTSIDE   : 2 
+bool GeometryMath::frustumAABBDetection(std::vector<Vector4> planes, Vector4 &mins, Vector4 &maxs) {
+    
+    int ret = 1;
+    Vector4 vmin;
+    Vector4 vmax;
+
+    for (int i = 0; i < 6; ++i) {
+        // X axis 
+        if (planes[i].getx() > 0) {
+            vmin += Vector4(mins.getx(), 0.0, 0.0);
+            vmax += Vector4(maxs.getx(), 0.0, 0.0);
+        }
+        else {
+            vmin += Vector4(maxs.getx(), 0.0, 0.0);
+            vmax += Vector4(mins.getx(), 0.0, 0.0);
+        }
+        // Y axis 
+        if (planes[i].gety() > 0) {
+            vmin += Vector4(0.0, mins.gety(), 0.0);
+            vmax += Vector4(0.0, maxs.gety(), 0.0);
+        }
+        else {
+            vmin += Vector4(0.0, maxs.gety(), 0.0);
+            vmax += Vector4(0.0, mins.gety(), 0.0);
+        }
+        // Z axis 
+        if (planes[i].getz() > 0) {
+            vmin += Vector4(0.0, 0.0, mins.getz());
+            vmax += Vector4(0.0, 0.0, maxs.getz());
+        }
+        else {
+            vmin += Vector4(0.0, 0.0, maxs.getz());
+            vmax += Vector4(0.0, 0.0, mins.getz());
+        }
+        if (planes[i].dotProduct(vmin) + planes[i].getw() > 0) {
+            ret = 2;
+        }
+        if (planes[i].dotProduct(vmax) + planes[i].getw() >= 0) {
+            ret = 0;
+        }
+    }
+
+    //May need to include intersect as another hit
+    if (ret == 1) {
+        return true;
+    }
+    else {
+        return false;
+    }
 }

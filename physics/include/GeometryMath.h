@@ -38,6 +38,8 @@ public:
     static bool triangleCubeDetection(Triangle* triangle, Cube* cube); //Test a single triangle against a single cube
     static bool sphereTriangleDetection(Sphere& sphere, Triangle& triangle); //Returns true if a sphere and triangle overlap
     static bool sphereSphereDetection(Sphere& sphereA, Sphere& sphereB); //Returns true if a sphere and a sphere overlap
+    static bool frustumAABBDetection(std::vector<Vector4> planes, Vector4 &mins, Vector4 &maxs);
+
 
     //Collision resolution functions
     static void sphereTriangleResolution(Model* modelA, Sphere& sphere, Model* modelB, Triangle& triangle); //Resolve collision math

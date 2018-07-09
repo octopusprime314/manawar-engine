@@ -336,10 +336,15 @@ namespace GeometryBuilder {
                     //
 
                     float r = sphere.getRadius();
+                    auto center = sphere.getObjectPosition();
                     Vector4 vertex1(r*sin(phi1)*cos(theta1), r*sin(phi1)*sin(theta1), r*cos(phi1));
                     Vector4 vertex2(r*sin(phi2)*cos(theta1), r*sin(phi2)*sin(theta1), r*cos(phi2));
                     Vector4 vertex3(r*sin(phi2)*cos(theta2), r*sin(phi2)*sin(theta2), r*cos(phi2));
                     Vector4 vertex4(r*sin(phi1)*cos(theta2), r*sin(phi1)*sin(theta2), r*cos(phi1));
+                    vertex1 += center;
+                    vertex2 += center;
+                    vertex3 += center;
+                    vertex4 += center;
                     //vertex1 = vertex on a sphere of radius r at spherical coords theta1, phi1
                     //vertex2 = vertex on a sphere of radius r at spherical coords theta1, phi2
                     //vertex3 = vertex on a sphere of radius r at spherical coords theta2, phi2

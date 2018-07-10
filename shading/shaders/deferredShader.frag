@@ -2,8 +2,8 @@
 
 uniform sampler2D diffuseTexture;   //Diffuse texture data array
 uniform sampler2D normalTexture;    //Normal texture data array
-uniform sampler2D positionTexture;  //Position texture data array
-uniform sampler2D velocityTexture;      //velocity texture data array
+uniform sampler2D velocityTexture; //velocity texture data array
+uniform sampler2D depthTexture;    //depth texture data array
 uniform sampler2D cameraDepthTexture;   //depth texture data array with values 1.0 to 0.0, with 0.0 being closer
 uniform sampler2D mapDepthTexture;      //depth texture data array with values 1.0 to 0.0, with 0.0 being closer
 uniform samplerCube depthMap;		//cube depth map for point light shadows
@@ -12,9 +12,11 @@ uniform samplerCube skyboxNightTexture;	//skybox night
 uniform sampler2D   ssaoTexture;      //depth texture data array with values 1.0 to 0.0, with 0.0 being closer
 //uniform samplerCube environmentMapTexture;      //depth texture data array with values 1.0 to 0.0, with 0.0 being closer
 
+
 uniform mat4 lightViewMatrix;     	//Light perspective's view matrix
 uniform mat4 lightMapViewMatrix;    //Light perspective's view matrix
 uniform mat4 viewToModelMatrix;		//Inverse camera view space matrix
+uniform mat4 projectionToViewMatrix; //Inverse projection matrix
 
 uniform vec3 pointLightPositions[20];//max lights is 20 for now
 uniform vec3 pointLightColors[20]; //max lights is 20 for now
@@ -42,10 +44,19 @@ float ambient = 0.3;
 float shadowEffect = 0.6;
 out vec4 fragColor;
 
+vec3 decodeLocation() {
+  vec4 clipSpaceLocation;
+  clipSpaceLocation.xy = vsData.texCoordOut.xy * 2.0f - 1.0f;
+  clipSpaceLocation.z = texture(depthTexture, vsData.texCoordOut.xy).r * 2.0f - 1.0f;
+  clipSpaceLocation.w = 1.0f;
+  vec4 homogenousLocation = projectionToViewMatrix * clipSpaceLocation;
+  return homogenousLocation.xyz / homogenousLocation.w;
+}
+
 void main(){
 
 	//extract position from position texture
-	vec4 position = texture(positionTexture, vsData.texCoordOut.xy);
+	vec4 position = vec4(decodeLocation(), 1.0); //texture(positionTexture, vsData.texCoordOut.xy);
 	//extract normal from normal texture
 	vec3 normalizedNormal = normalize(texture(normalTexture, vsData.texCoordOut.xy).xyz); 
 	//extract color from diffuse texture

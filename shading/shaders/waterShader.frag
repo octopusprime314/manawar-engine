@@ -188,5 +188,5 @@ void main()
         
 	out_1 = vec4(col , 1.0);
 	out_2 = vec4(normalize(normwater), 1.0);
-	out_3 = vec4(vsData.positionOut.xyz, 1.0);
+	//out_3 = vec4(vec3(0.0), 1.0);
 }

@@ -3,7 +3,6 @@
 layout(location = 0) out vec4 out_1;
 layout(location = 1) out vec4 out_2;
 layout(location = 2) out vec4 out_3;
-layout(location = 3) out vec4 out_4;
 
 in VsData
 {
@@ -25,6 +24,5 @@ void main(){
 	
 	out_1 = vec4(texture(textureMap, vsData.textureCoordinateOut).rgb, 1.0);
 	out_2 = vec4(normalize(vsData.normalOut), 1.0);
-	out_3 = vec4(vsData.positionOut.xyz, 1.0);
-	out_4 = vec4(vec2(currProjPos - prevProjPos), 0.0, 1.0);
+	out_3 = vec4(vec2(currProjPos - prevProjPos), 0.0, 1.0);
 }

@@ -26,21 +26,11 @@ MRTFrameBuffer::MRTFrameBuffer() {
     //the texture will be used in later shader texture sampling
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, _gBufferTextures[2].getContext(), 0);
 
-    _gBufferTextures.push_back(RenderTexture(screenPixelWidth, screenPixelHeight, TextureFormat::RGBA_FLOAT));
+    _gBufferTextures.push_back(RenderTexture(screenPixelWidth, screenPixelHeight, TextureFormat::DEPTH32_FLOAT));
 
     //Finally attach the texture to the previously generated frame buffer
     //the texture will be used in later shader texture sampling
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, _gBufferTextures[3].getContext(), 0);
-
-    //Needs to attach a depth render buffer to the frame buffer object!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    //I got hosed on this super hard!!!!!!!!!!!!!!!!!!!!!!!!!
-    GLuint depth_rb;
-    glGenRenderbuffers(1, &depth_rb);
-    glBindRenderbuffer(GL_RENDERBUFFER, depth_rb);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, screenPixelWidth, screenPixelHeight);
-
-    //Attach depth buffer to FBO
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depth_rb);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, _gBufferTextures[3].getContext(), 0);
 
     //check the frame buffer's health
     GLuint status = glCheckFramebufferStatus(GL_FRAMEBUFFER);

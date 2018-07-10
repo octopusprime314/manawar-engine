@@ -26,7 +26,7 @@ RenderTexture::RenderTexture(GLuint width, GLuint height, TextureFormat format) 
     else if (format == TextureFormat::RGBA_FLOAT) {
         //spell out texture format, RGB format but can use RGB, data pointer is null
         //because the frame buffer is responsible for allocating and populating texture data
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, _width, _height, 0, GL_RGBA, GL_FLOAT, NULL);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, _width, _height, 0, GL_RGBA, GL_FLOAT, NULL);
     }
     else if (format == TextureFormat::R_FLOAT) {
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, _width, _height, 0, GL_RGB, GL_FLOAT, NULL);

@@ -237,8 +237,7 @@ void SceneManager::_postDraw() {
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        //_mergeShader->runShader(_deferredFBO->getTextureContext(), _bloom->getTextureContext());
-        GLuint velocityBufferContext = _deferredRenderer->getGBuffers()->getTextureContexts()[3];
+        GLuint velocityBufferContext = _deferredRenderer->getGBuffers()->getTextureContexts()[2];
         _mergeShader->runShader(_bloom->getTextureContext(), velocityBufferContext);
     }
     else if (_viewManager->getViewState() == ViewManager::ViewState::PHYSICS) {

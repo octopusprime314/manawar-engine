@@ -36,8 +36,7 @@ void SSAO::_generateKernelNoise() {
     std::uniform_real_distribution<float> randomFloats(0.0, 1.0);
     std::default_random_engine generator;
 
-    for (unsigned int i = 0; i < 64; ++i)
-    {
+    for (unsigned int i = 0; i < 64; ++i) {
         Vector4 sample(
             randomFloats(generator) * 2.0f - 1.0f,
             randomFloats(generator) * 2.0f - 1.0f,
@@ -53,8 +52,7 @@ void SSAO::_generateKernelNoise() {
         _ssaoKernel.push_back(sample);
     }
 
-    for (unsigned int i = 0; i < 16; i++)
-    {
+    for (unsigned int i = 0; i < 16; i++) {
         Vector4 noise(
             randomFloats(generator) * 2.0f - 1.0f,
             randomFloats(generator) * 2.0f - 1.0f,

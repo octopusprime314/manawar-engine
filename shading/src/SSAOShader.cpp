@@ -20,6 +20,7 @@ void SSAOShader::runShader(SSAO* ssao, MRTFrameBuffer* mrtBuffer, ViewManager* v
     glBindVertexArray(_dummyVAO);
 
     updateUniform("projection", viewManager->getProjection().getFlatBuffer());
+    updateUniform("projectionToViewMatrix", viewManager->getProjection().inverse().getFlatBuffer());
     
     auto kernel = ssao->getKernel();
 
@@ -37,9 +38,9 @@ void SSAOShader::runShader(SSAO* ssao, MRTFrameBuffer* mrtBuffer, ViewManager* v
 
     auto textures = mrtBuffer->getTextureContexts();
 
-    updateUniform("positionTexture", GL_TEXTURE0, textures[2]);
     updateUniform("normalTexture",   GL_TEXTURE1, textures[1]);
     updateUniform("noiseTexture",    GL_TEXTURE2, ssao->getNoiseTexture());
+    updateUniform("depthTexture",    GL_TEXTURE3, textures[3]);
 
     glDrawArrays(GL_TRIANGLE_STRIP, 0, (GLsizei)4);
 

@@ -34,8 +34,9 @@ void DeferredShader::runShader(ShadowRenderer* shadowRenderer,
 
     //Get light view matrix "look at" vector which is located in the third column
     //of the inner rotation matrix at index 2,6,10
-    auto viewMatrix = lights[0]->getLightMVP().getViewBuffer();
-    Vector4 lightPosition(-viewMatrix[2], viewMatrix[6], -viewMatrix[10]);
+    auto viewMatrix = (viewManager->getView() * lights[0]->getLightMVP().getViewMatrix()).getFlatBuffer();
+
+    Vector4 lightPosition(viewMatrix[2], viewMatrix[6], -viewMatrix[10]);
     updateUniform("light", lightPosition.getFlatBuffer());
 
     //Get point light positions
@@ -94,6 +95,9 @@ void DeferredShader::runShader(ShadowRenderer* shadowRenderer,
 
     updateUniform("viewToModelMatrix", viewToModelSpace.getFlatBuffer());
 
+    Matrix projectionToViewSpace = (viewManager->getProjection()).inverse();
+    updateUniform("projectionToViewMatrix", projectionToViewSpace.getFlatBuffer());
+
     updateUniform("inverseView", viewManager->getView().inverse().getFlatBuffer());
     updateUniform("inverseProjection", viewManager->getProjection().inverse().getFlatBuffer());
 
@@ -109,8 +113,8 @@ void DeferredShader::runShader(ShadowRenderer* shadowRenderer,
 
     updateUniform("diffuseTexture",     GL_TEXTURE0, textures[0]);
     updateUniform("normalTexture",      GL_TEXTURE1, textures[1]);
-    updateUniform("positionTexture",    GL_TEXTURE2, textures[2]);
-    updateUniform("velocityTexture",    GL_TEXTURE3, textures[3]);
+    updateUniform("velocityTexture",    GL_TEXTURE2, textures[2]);
+    updateUniform("depthTexture",       GL_TEXTURE3, textures[3]);
     updateUniform("cameraDepthTexture", GL_TEXTURE4, shadowRenderer->getStaticDepthTexture());
     updateUniform("mapDepthTexture",    GL_TEXTURE5, shadowRenderer->getMapDepthTexture());
     updateUniform("depthMap",           GL_TEXTURE6, pointShadowMap->getCubeMapTexture());

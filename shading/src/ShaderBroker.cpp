@@ -31,7 +31,7 @@ ShaderBroker::~ShaderBroker() {
 }
 
 //helper function to capitalize everything
-std::string str_toupper(std::string s) {
+std::string ShaderBroker::_strToUpper(std::string s) {
     std::transform(s.begin(), s.end(), s.begin(),
         [](unsigned char c) { return std::toupper(c); } // correct
     );
@@ -44,13 +44,13 @@ void ShaderBroker::compileShaders() {
 }
 
 Shader* ShaderBroker::getShader(std::string shaderName) {
-    std::string upperCaseMapName = str_toupper(shaderName);
+    std::string upperCaseMapName = _strToUpper(shaderName);
     return _shaders[upperCaseMapName];
 }
 
 void ShaderBroker::recompileShader(std::string shaderName) {
 
-    std::string upperCaseMapName = str_toupper(shaderName);
+    std::string upperCaseMapName = _strToUpper(shaderName);
 
     if (_shaders.find(upperCaseMapName) != _shaders.end()) {
 
@@ -87,7 +87,7 @@ void ShaderBroker::_gatherShaderNames()
                     //Logger::WriteLog(ent->d_name, "\n");
 
                     std::string mapName = fileName.substr(0, fileName.find("."));
-                    std::string upperCaseMapName = str_toupper(mapName);
+                    std::string upperCaseMapName = _strToUpper(mapName);
                     if (mapName == "staticShader") {
                         _shaders[upperCaseMapName] = new StaticShader(mapName);
                     }

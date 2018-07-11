@@ -1,5 +1,6 @@
 #include "AnimationShader.h"
 #include "AnimatedModel.h"
+#include "Entity.h"
 
 AnimationShader::AnimationShader(std::string shaderName) : StaticShader(shaderName) {
 
@@ -9,16 +10,16 @@ AnimationShader::~AnimationShader() {
 
 }
 
-void AnimationShader::runShader(Model* modelIn) {
+void AnimationShader::runShader(Entity* entity) {
 
-    AnimatedModel* model = static_cast<AnimatedModel*>(modelIn);
+    AnimatedModel* model = static_cast<AnimatedModel*>(entity->getModel());
 
     //LOAD IN SHADER
     VAO* vao = model->getVAO();
     glUseProgram(_shaderContext); //use context for loaded shader
     glBindVertexArray(vao->getVAOContext());
 
-    MVP* mvp = model->getMVP();
+    MVP* mvp = entity->getMVP();
     //glUniform mat4 combined model and world matrix, GL_TRUE is telling GL we are passing in the matrix as row major
     updateUniform("model", mvp->getModelBuffer());
 
@@ -31,7 +32,7 @@ void AnimationShader::runShader(Model* modelIn) {
     //glUniform mat4 normal matrix, GL_TRUE is telling GL we are passing in the matrix as row major
     updateUniform("normal", mvp->getNormalBuffer());
 
-    MVP* prevMVP = model->getPrevMVP();
+    MVP* prevMVP = entity->getPrevMVP();
     //glUniform mat4 combined model and world matrix, GL_TRUE is telling GL we are passing in the matrix as row major
     updateUniform("prevModel", prevMVP->getModelBuffer());
 
@@ -40,7 +41,7 @@ void AnimationShader::runShader(Model* modelIn) {
 
     //Bone uniforms
     auto bones = model->getBones();
-    float* bonesArray = new float[16 * bones->size()]; //4x4 times number of bones
+    float* bonesArray = new float[16 * 150]; //4x4 times number of bones
     int bonesArrayIndex = 0;
     for (auto bone : *bones) {
         for (int i = 0; i < 16; i++) {

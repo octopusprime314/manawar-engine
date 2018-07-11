@@ -55,6 +55,8 @@ public:
     LightType               getType();
     Vector4&                getColor();
     float                   getRange();
+    float                   getWidth();
+    float                   getHeight();
     bool                    isShadowCaster();
     void                    setMVP(MVP mvp);
     void                    render();

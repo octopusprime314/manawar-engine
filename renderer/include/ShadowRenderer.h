@@ -29,21 +29,22 @@
 #include "ShaderBroker.h"
 class Model;
 class ViewManager;
+class Entity;
 
 class ShadowRenderer {
 
     ShadowStaticShader*   _staticShadowShader;   //Shader that generates static geometry shadows
     ShadowAnimatedShader* _animatedShadowShader; //Shader that generates animated geometry shadows
-    DepthFrameBuffer     _staticShadowFBO;      //Depth frame buffer object for static objects that do not change
-    DepthFrameBuffer     _animatedShadowFBO;    //Depth frame buffer object for animated objects that change
-    DepthFrameBuffer     _mapShadowFBO;         //Low resolution shadow mapping for the entire map
-    bool                 _staticRendered;       //boolean to only get static object shadows at startup
+    DepthFrameBuffer      _staticShadowFBO;      //Depth frame buffer object for static objects that do not change
+    DepthFrameBuffer      _animatedShadowFBO;    //Depth frame buffer object for animated objects that change
+    DepthFrameBuffer      _mapShadowFBO;         //Low resolution shadow mapping for the entire map
+    bool                  _staticRendered;       //boolean to only get static object shadows at startup
    
 public:
-    ShadowRenderer(GLuint width, GLuint height);
+    ShadowRenderer(Light* sunLightCam, Light* sunLightMap);
     ~ShadowRenderer();
-    void                 generateShadowBuffer(std::vector<Model*> modelList, std::vector<Light*>& lights);
-    GLuint               getStaticDepthTexture();
-    GLuint               getAnimatedDepthTexture();
-    GLuint               getMapDepthTexture();
+    void                  generateShadowBuffer(std::vector<Entity*> entityList, std::vector<Light*>& lights);
+    GLuint                getStaticDepthTexture();
+    GLuint                getAnimatedDepthTexture();
+    GLuint                getMapDepthTexture();
 };

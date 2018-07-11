@@ -20,28 +20,28 @@ void Physics::run() {
     clock->subscribeKinematicsRate(std::bind(&Physics::_physicsProcess, this, std::placeholders::_1));
 }
 
-void Physics::addModels(std::vector<Model*> models) {
+void Physics::addEntities(std::vector<Entity*> entities) {
 
-    _models.insert(_models.end(), models.begin(), models.end());
+    _entities.insert(_entities.end(), entities.begin(), entities.end());
 
-    for (auto model : _models) {
-        GeometryType geomType = model->getGeometryType();
+    for (auto entity : _entities) {
+        GeometryType geomType = entity->getModel()->getGeometryType();
        
         if (geomType == GeometryType::Sphere) {
-            _graphics.push_back(new GeometryGraphic(model->getGeometry()->getSpheres()));
+            _graphics.push_back(new GeometryGraphic(entity->getModel()->getGeometry()->getSpheres()));
         }
         else if (geomType == GeometryType::Triangle) {
-            _graphics.push_back(new GeometryGraphic(model->getGeometry()->getTriangles()));
+            _graphics.push_back(new GeometryGraphic(entity->getModel()->getGeometry()->getTriangles()));
         }
     }
 
-    _octalSpacePartioner.generateGeometryOSP(_models); //Generate the octal space partition for collision efficiency
+    _octalSpacePartioner.generateGeometryOSP(_entities); //Generate the octal space partition for collision efficiency
 
     _octTreeGraphic = new GeometryGraphic(_octalSpacePartioner.getCubes());
 }
 
-void Physics::addModel(Model* model) {
-    _models.push_back(model);
+void Physics::addEntity(Entity* entity) {
+    _entities.push_back(entity);
 }
 
 void Physics::visualize() {
@@ -52,18 +52,18 @@ void Physics::visualize() {
 
         float color[] = { 0.0, 0.0, 1.0 };
 
-        _debugShader->runShader(_models[i]->getMVP(), 
+        _debugShader->runShader(_entities[i]->getMVP(),
             geometryGraphic->getVAO(), 
-            _triangleIntersectionList[_models[i]],
+            _triangleIntersectionList[_entities[i]],
             color);
         i++;
     }
 
     float color[] = { 0.0, 1.0, 0.0 };
     //Grab any model's mvp
-    _debugShader->runShader(_models[0]->getMVP(), 
+    _debugShader->runShader(_entities[0]->getMVP(),
         _octTreeGraphic->getVAO(), 
-        _triangleIntersectionList[_models[0]],
+        _triangleIntersectionList[_entities[0]],
         color);
 
     std::lock_guard<std::mutex> lockGuard(_lock);
@@ -74,15 +74,15 @@ void Physics::visualize() {
 void Physics::_physicsProcess(int milliseconds) {
 
     //First update OSP tree then test for collisions
-    _octalSpacePartioner.updateOSP(_models);
+    _octalSpacePartioner.updateOSP(_entities);
 
     //Returns the subspace partitioning node leaves to test for primitive collisions
     //The nodes necessary to test for collisions are only the end nodes of the oct tree
 
     std::vector<bool> prevContactStates;
-    std::map<Model*, bool> newContactStates;
-    for (Model* model : _models) {
-        prevContactStates.push_back(model->getStateVector()->getContact());
+    std::map<Entity*, bool> newContactStates;
+    for (Entity* entity : _entities) {
+        prevContactStates.push_back(entity->getStateVector()->getContact());
     }
 
     auto ospEndNodes = _octalSpacePartioner.getOSPLeaves();
@@ -93,11 +93,11 @@ void Physics::_physicsProcess(int milliseconds) {
         auto triangleMaps = subspaceNode->getTriangles();
 
         //Sphere on sphere detections
-        for (std::pair<Model* const, std::set<Sphere*>>& sphereMapA : *sphereMaps) {
+        for (std::pair<Entity* const, std::set<Sphere*>>& sphereMapA : *sphereMaps) {
 
             StateVector* modelSphereStateA = sphereMapA.first->getStateVector();
 
-            for (std::pair<Model* const, std::set<Sphere*>>& sphereMapB : *sphereMaps) {
+            for (std::pair<Entity* const, std::set<Sphere*>>& sphereMapB : *sphereMaps) {
 
                 //Only do detections for different models, do not detect an overlap for a model on itself...
                 if (sphereMapA.first != sphereMapB.first) {
@@ -123,11 +123,11 @@ void Physics::_physicsProcess(int milliseconds) {
         }
 
         //Sphere on triangle detections
-        for (std::pair<Model* const, std::set<Sphere*>>& sphereMap : *sphereMaps) {
+        for (std::pair<Entity* const, std::set<Sphere*>>& sphereMap : *sphereMaps) {
 
             StateVector* modelSphereState = sphereMap.first->getStateVector();
 
-            for (std::pair<Model* const, std::set<Triangle*>>& triangleMap : *triangleMaps) {
+            for (std::pair<Entity* const, std::set<Triangle*>>& triangleMap : *triangleMaps) {
 
                 StateVector* modelTriangleState = triangleMap.first->getStateVector();
                 if (modelSphereState->getActive() || modelTriangleState->getActive()) { //Only test for collisions if one of the models is active
@@ -179,9 +179,9 @@ void Physics::_physicsProcess(int milliseconds) {
     }
 
     int i = 0;
-    for (Model* model : _models) {
-        if (prevContactStates[i++] && !newContactStates[model]) {
-            model->getStateVector()->setContact(false);
+    for (Entity* entity : _entities) {
+        if (prevContactStates[i++] && !newContactStates[entity]) {
+            entity->getStateVector()->setContact(false);
         }
     }
 }
@@ -189,23 +189,25 @@ void Physics::_physicsProcess(int milliseconds) {
 void Physics::_slowDetection() {
 
     // Slow collision detection that does not involve space partitioning
-    int modelPosition = 1; //Used to prevent redudant collision tests
-    for (auto model : _models) {
+    int entityPosition = 1; //Used to prevent redudant collision tests
+    for (auto entity : _entities) {
 
-        for (int modelIndex = modelPosition; modelIndex < _models.size(); ++modelIndex) {
+        auto model = entity->getModel();
+        for (int entityIndex = entityPosition; entityIndex < _entities.size(); ++entityIndex) {
             GeometryType geomTypeA = model->getGeometryType();
-            GeometryType geomTypeB = _models[modelIndex]->getGeometryType();
+            auto modelTest = _entities[entityIndex]->getModel();
+            GeometryType geomTypeB = modelTest->getGeometryType();
             if (geomTypeA == GeometryType::Triangle && geomTypeB == GeometryType::Sphere) {
-                GeometryMath::spheresTrianglesDetection(_models[modelIndex], model);
+                GeometryMath::spheresTrianglesDetection(modelTest, model);
             }
             else if (geomTypeA == GeometryType::Sphere && geomTypeB == GeometryType::Triangle) {
-                GeometryMath::spheresTrianglesDetection(model, _models[modelIndex]);
+                GeometryMath::spheresTrianglesDetection(model, modelTest);
             }
             else if (geomTypeA == GeometryType::Sphere && geomTypeB == GeometryType::Sphere) {
-                GeometryMath::spheresSpheresDetection(model, _models[modelIndex]);
+                GeometryMath::spheresSpheresDetection(model, modelTest);
             }
 
         }
-        ++modelPosition;
+        ++entityPosition;
     }
 }

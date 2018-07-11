@@ -30,6 +30,6 @@ class ForwardRenderer {
 public:
     ForwardRenderer();
     ~ForwardRenderer();
-    void forwardLighting(std::vector<Model*>& modelList, ViewManager* viewManager, ShadowRenderer* shadowRenderer,
+    void forwardLighting(std::vector<Entity*>& entityList, ViewManager* viewManager, ShadowRenderer* shadowRenderer,
         std::vector<Light*>& lights, PointShadowMap* pointShadowMap);
 };

@@ -40,10 +40,11 @@ class SSCompute;
 class ShaderBroker;
 class Terminal;
 class FrustumOcclusion;
+class Entity;
 
 class SceneManager {
     ViewManager*         _viewManager; //manages the view/camera matrix from the user's perspective
-    std::vector<Model*>  _modelList; //Contains models active in scene
+    std::vector<Entity*> _entityList; //Contains models active in scene
     std::vector<Light*>  _lightList; //Contains all lights in a scene
     Physics*             _physics; //Manages physical interactions between models
     DeferredRenderer*    _deferredRenderer; //Manages deferred shading g buffers

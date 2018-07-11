@@ -28,6 +28,8 @@
 #include "CubeMapRenderer.h"
 #include "EnvironmentShader.h"
 
+class Entity;
+
 class EnvironmentMap : public CubeMapRenderer {
 
     EnvironmentShader _environmentShader;
@@ -37,5 +39,5 @@ public:
     EnvironmentMap(GLuint width, GLuint height);
     ~EnvironmentMap();
 
-    void render(std::vector<Model*> modelList, MVP* mvp);
+    void render(std::vector<Entity*> entityList, MVP* mvp);
 };

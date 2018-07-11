@@ -32,6 +32,6 @@ class InstancedForwardShader : public ForwardShader {
 public:
     InstancedForwardShader(std::string shaderName);
     virtual ~InstancedForwardShader();
-    virtual void runShader(Model* model, ViewManager* viewManager, ShadowRenderer* shadowRenderer,
+    virtual void runShader(Entity* entity, ViewManager* viewManager, ShadowRenderer* shadowRenderer,
         std::vector<Light*>& lights, PointShadowMap* pointShadowMap);
 };

@@ -85,6 +85,18 @@ float Light::getRange() {
 void Light::setMVP(MVP mvp) {
     _lightMVP = mvp;
 }
+float Light::getWidth() {
+
+    auto projMatrix = _lightMVP.getProjectionBuffer();
+    float width =  2.0f * (1.0f - projMatrix[3]) / projMatrix[0];
+    return width;
+}
+float Light::getHeight() {
+
+    auto projMatrix = _lightMVP.getProjectionBuffer();
+    float height =  2.0f * (1.0f + projMatrix[7]) / projMatrix[5];
+    return height;
+}
 
 void Light::_updateTime(int time) {
 
@@ -107,8 +119,10 @@ void Light::_updateTime(int time) {
 
         float* inverseModel = _lightMVP.getViewMatrix().getFlatBuffer();
         float radiusOfLight = Vector4(inverseModel[3], inverseModel[7], inverseModel[11], 1.0f).getMagnitude();
-        _lightMVP.setView(Matrix::cameraTranslation(0.0, 0.0, radiusOfLight) *
-            Matrix::cameraRotationAroundX(-90.0f + (posInRotation*360.0f)));
+        /*_lightMVP.setView(Matrix::cameraTranslation(0.0, 0.0, radiusOfLight) *
+            Matrix::cameraRotationAroundX(-90.0f + (posInRotation*360.0f)));*/
+        _lightMVP.setView( Matrix::cameraRotationAroundX((posInRotation*360.0f)) * 
+            Matrix::cameraTranslation(0.0, 0.0, radiusOfLight));
     }
 }
 

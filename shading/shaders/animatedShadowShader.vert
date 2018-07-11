@@ -10,7 +10,7 @@ uniform mat4 model;		 // Model and World transformation matrix
 uniform mat4 view;		 // View/Camera transformation matrix
 uniform mat4 projection; // Projection transformation matrix
 
-uniform mat4 bones[100]; // 100 maximum bones for an animation
+uniform mat4 bones[150]; // 150 maximum bones for an animation
 
 void main(){
 

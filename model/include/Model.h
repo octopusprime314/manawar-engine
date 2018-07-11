@@ -25,7 +25,6 @@
 #include "Tex2.h"
 #include "StateVector.h"
 #include <vector>
-#include "UpdateInterface.h"
 #include "GLIncludes.h"
 #include "StaticShader.h"
 #include "DebugShader.h"
@@ -38,7 +37,8 @@
 #include "MVP.h"
 #include "RenderBuffers.h"
 #include "ForwardShader.h"
-
+#include <mutex>
+class Entity;
 class SimpleContext;
 
 enum class ModelClass {
@@ -48,25 +48,15 @@ enum class ModelClass {
 
 using TextureMetaData = std::vector<std::pair<std::string, int>>;
 
-class Model : public UpdateInterface {
+class Model {
 
 public:
 
-    Model(ViewManagerEvents* eventWrapper, RenderBuffers& renderBuffers, StaticShader* pStaticShader);
-
-    Model(ViewManagerEvents* eventWrapper, ModelClass classId = ModelClass::ModelType)
-        : UpdateInterface(eventWrapper),
-        _classId(classId)
-    {}
-
     //Default model to type to base class
-    Model(std::string name, ViewManagerEvents* eventWrapper, ModelClass classId = ModelClass::ModelType);
+    Model(std::string name, ModelClass classId = ModelClass::ModelType);
     virtual ~Model();
-    MVP*                        getMVP();
-    MVP*                        getPrevMVP();
     VAO*                        getVAO();
     RenderBuffers*              getRenderBuffers();
-    StateVector*                getStateVector();
     ModelClass                  getClassType();
     size_t                      getArrayCount();
     void                        addTexture(std::string textureName, int stride);
@@ -78,22 +68,18 @@ public:
     Geometry*                   getGeometry();
     void                        addGeometryTriangle(Triangle triangle);
     void                        addGeometrySphere(Sphere sphere);
-    void                        setPosition(Vector4 position);
-    void                        setVelocity(Vector4 velocity);
     void                        setInstances(std::vector<Vector4> offsets); //is this model used for instancing
     bool                        getIsInstancedModel();
     float*                      getInstanceOffsets();
+    void                        runShader(Entity* entity);
+    virtual void                updateModel(Model* model);
 
 protected:
-    StateVector                 _state; //Kinematics
     RenderBuffers               _renderBuffers; //Manages vertex, normal and texture data
     VAO                         _vao; //Vao container
-    MVP                         _mvp; //Model view matrix container
-    MVP                         _prevMVP; //Previous Model view matrix container for motion blur
     StaticShader*               _shaderProgram; //Container object of the Model's shader
     FbxLoader*                  _fbxLoader; //Used to load fbx data and parse it into engine format
     ModelClass                  _classId; //Used to identify which class is being used
-    MasterClock*                _clock; //Used to coordinate time with the world
     static TextureBroker*       _textureManager; //Static texture manager for texture reuse purposes, all models have access
     TextureMetaData             _textureStrides; //Keeps track of which set of vertices use a certain texture within the large vertex set
     GeometryType                _geometryType; //Indicates whether the collision geometry is sphere or triangle based
@@ -101,13 +87,6 @@ protected:
     bool                        _isInstanced;
     float                       _offsets[900]; //300 x, y and z offsets
     int                         _instances;
-
     std::string                 _getModelName(std::string name);
-    void                        _updateKeyboard(int key, int x, int y) {}; //Do stuff based on keyboard upate
-    void                        _updateReleaseKeyboard(int key, int x, int y) {};
-    void                        _updateMouse(double x, double y) {}; //Do stuff based on mouse update
-    void                        _updateDraw(); //Do draw stuff
-    void                        _updateView(Matrix view); //Get view matrix updates
-    void                        _updateProjection(Matrix projection); //Get projection matrix updates
-    void                        _updateKinematics(int milliSeconds);
+    std::mutex                  _updateLock;
 };

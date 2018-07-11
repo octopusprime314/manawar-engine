@@ -1,6 +1,7 @@
 #include "ForwardRenderer.h"
 #include "Model.h"
 #include "ShaderBroker.h"
+#include "Entity.h"
 
 ForwardRenderer::ForwardRenderer() :
     _forwardShader(static_cast<ForwardShader*>(ShaderBroker::instance()->getShader("forwardShader"))),
@@ -12,16 +13,16 @@ ForwardRenderer::~ForwardRenderer() {
 
 }
 
-void ForwardRenderer::forwardLighting(std::vector<Model*>& modelList, ViewManager* viewManager, ShadowRenderer* shadowRenderer,
+void ForwardRenderer::forwardLighting(std::vector<Entity*>& entityList, ViewManager* viewManager, ShadowRenderer* shadowRenderer,
     std::vector<Light*>& lights, PointShadowMap* pointShadowMap) {
 
-    for (auto model : modelList) {
-
+    for (auto entity : entityList) {
+        auto model = entity->getModel();
         if (!model->getIsInstancedModel()) {
-            _forwardShader->runShader(model, viewManager, shadowRenderer, lights, pointShadowMap);
+            _forwardShader->runShader(entity, viewManager, shadowRenderer, lights, pointShadowMap);
         }
         else {
-            _instancedForwardShader->runShader(model, viewManager, shadowRenderer, lights, pointShadowMap);
+            _instancedForwardShader->runShader(entity, viewManager, shadowRenderer, lights, pointShadowMap);
         }
     }
 }

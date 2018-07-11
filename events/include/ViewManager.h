@@ -35,6 +35,7 @@
 
 class SimpleContext;
 class Model;
+class Entity;
 class FunctionState;
 using FuncMap = std::map<unsigned char, FunctionState*>;
 class ViewManager : public UpdateInterface {
@@ -63,8 +64,8 @@ private:
     Matrix              _inverseRotation; //Manages how to translate based on the inverse of the actual rotation matrix
     ViewManagerEvents*  _viewEvents;
     SimpleContext*      _glfwContext;
-    std::vector<Model*> _modelList; //used to translate view to a model's transformation
-    int                 _modelIndex; //used to keep track of which model the view is set to
+    std::vector<Entity*> _entityList; //used to translate view to a model's transformation
+    int                 _entityIndex; //used to keep track of which model the view is set to
     bool                _godState; //indicates whether the view is in god or model view point mode
     FuncMap             _keyboardState;
     StateVector         _state;
@@ -82,7 +83,7 @@ public:
                                      float nearPlaneDistance, 
                                      float farPlaneDistance);
     void               setView(Matrix translation, Matrix rotation, Matrix scale);
-    void               setModelList(std::vector<Model*> modelList);
+    void               setEntityList(std::vector<Entity*> entityList);
     Matrix&            getProjection();
     Matrix&            getView();
     ViewState          getViewState();

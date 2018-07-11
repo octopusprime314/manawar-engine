@@ -22,7 +22,7 @@
 #include "Triangle.h"
 #include "Sphere.h"
 #include <unordered_map>
-#include "Model.h"
+#include "Entity.h"
 #include <set>
 #include <vector>
 
@@ -33,10 +33,10 @@ class OctNode {
 
     //Maps models to a list of triangles in the oct node
     //if a model's triangles are involved in a collision then changes can be propogated back to the model
-    std::unordered_map<Model*, std::set<Triangle*>> _triangles;
+    std::unordered_map<Entity*, std::set<Triangle*>> _triangles;
     //Maps models to a list of spheres in the oct node
     //if a model's spheres are involved in a collision then changes can be propogated back to the model
-    std::unordered_map<Model*, std::set<Sphere*>> _spheres;
+    std::unordered_map<Entity*, std::set<Sphere*>> _spheres;
 
 public:
     OctNode(T data) : _data(data) {
@@ -46,22 +46,22 @@ public:
         _children[index] = new OctNode(data);
         return _children[index];
     }
-    void addGeometry(Model* model, Triangle* triangle) {
-        _triangles[model].insert(triangle);
+    void addGeometry(Entity* entity, Triangle* triangle) {
+        _triangles[entity].insert(triangle);
     }
-    void addGeometry(Model* model, Sphere* sphere) {
-        _spheres[model].insert(sphere);
+    void addGeometry(Entity* entity, Sphere* sphere) {
+        _spheres[entity].insert(sphere);
     }
-    void removeGeometry(Model* model, Triangle* triangle) {
-        _triangles[model].erase(triangle);
+    void removeGeometry(Entity* entity, Triangle* triangle) {
+        _triangles[entity].erase(triangle);
     }
-    void removeGeometry(Model* model, Sphere* sphere) {
-        _spheres[model].erase(sphere);
+    void removeGeometry(Entity* entity, Sphere* sphere) {
+        _spheres[entity].erase(sphere);
     }
-    std::unordered_map<Model*, std::set<Triangle*>>* getTriangles() {
+    std::unordered_map<Entity*, std::set<Triangle*>>* getTriangles() {
         return &_triangles;
     }
-    std::unordered_map<Model*, std::set<Sphere*>>* getSpheres() {
+    std::unordered_map<Entity*, std::set<Sphere*>>* getSpheres() {
         return &_spheres;
     }
     OctNode<T>* getChild(int index) { return _children[index]; }

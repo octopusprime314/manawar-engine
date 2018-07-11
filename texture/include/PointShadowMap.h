@@ -24,6 +24,7 @@
 
 #include "ShadowAnimatedPointShader.h"
 #include "CubeMapRenderer.h"
+class Entity;
 
 class PointShadowMap : public CubeMapRenderer {
 
@@ -35,5 +36,5 @@ public:
     PointShadowMap(GLuint width, GLuint height);
     ~PointShadowMap();
 
-    void                       render(std::vector<Model*> modelList, Light* light);
+    void                       render(std::vector<Entity*> entityList, Light* light);
 };

@@ -1,5 +1,5 @@
 /*
-* ShaderBroker is part of the ReBoot distribution (https://github.com/octopusprime314/ReBoot.git).
+* ModelBroker is part of the ReBoot distribution (https://github.com/octopusprime314/ReBoot.git).
 * Copyright (c) 2017 Peter Morley.
 *
 * ReBoot is free software: you can redistribute it and/or modify
@@ -16,26 +16,27 @@
 */
 
 /**
-*  The ShaderBroker class is a singleton that manages all shaders in a scene
+*  The ModelBroker class is a singleton that manages all models in a scene
 */
 
 #pragma once
-#include "Shader.h"
+#include "Model.h"
+#include "AnimatedModel.h"
 #include <map>
 #include <vector>
 
-using ShaderMap = std::map<std::string, Shader*>;
+using ModelMap = std::map<std::string, Model*>;
 
-class ShaderBroker {
-    ShaderBroker();
-    ShaderMap            _shaders;
-    static ShaderBroker* _broker;
-    void                 _gatherShaderNames();
+class ModelBroker {
+    ModelBroker();
+    ModelMap             _models;
+    static ModelBroker*  _broker;
+    void                 _gatherModelNames();
     std::string          _strToUpper(std::string s);
 public:
-    static ShaderBroker* instance();
-    ~ShaderBroker();
-    Shader*              getShader(std::string shaderName);
-    void                 compileShaders();
-    void                 recompileShader(std::string shaderName);
+    static ModelBroker*  instance();
+    ~ModelBroker();
+    Model*               getModel(std::string modelName);
+    void                 buildModels();
+    void                 updateModel(std::string modelName);
 };

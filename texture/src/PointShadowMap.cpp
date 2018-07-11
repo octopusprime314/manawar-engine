@@ -1,5 +1,6 @@
 #include "PointShadowMap.h"
 #include "ShaderBroker.h"
+#include "Entity.h"
 
 PointShadowMap::PointShadowMap(GLuint width, GLuint height) :
     CubeMapRenderer(width, height, true),
@@ -13,20 +14,20 @@ PointShadowMap::~PointShadowMap() {
 }
 
 
-void PointShadowMap::render(std::vector<Model*> modelList, Light* light) {
+void PointShadowMap::render(std::vector<Entity*> entityList, Light* light) {
 
     //Does this light support cube map depth rendering
     if (light->getType() == LightType::POINT && light->isShadowCaster()) {
 
         //Prepare cube face transforms
-        preCubeFaceRender(modelList, &light->getLightMVP());
+        preCubeFaceRender(entityList, &light->getLightMVP());
 
-        for (Model* model : modelList) {
-            if (model->getClassType() == ModelClass::ModelType) {
-                _pointShadowShader->runShader(model, light, _transforms);
+        for (Entity* entity : entityList) {
+            if (entity->getModel()->getClassType() == ModelClass::ModelType) {
+                _pointShadowShader->runShader(entity, light, _transforms);
             }
-            else if (model->getClassType() == ModelClass::AnimatedModelType) {
-                _pointAnimatedShadowShader->runShader(model, light, _transforms);
+            else if (entity->getModel()->getClassType() == ModelClass::AnimatedModelType) {
+                _pointAnimatedShadowShader->runShader(entity, light, _transforms);
             }
         }
         //Clean up cube face render contexts

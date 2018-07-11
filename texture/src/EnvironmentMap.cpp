@@ -1,4 +1,5 @@
 #include "EnvironmentMap.h"
+#include "Entity.h"
 
 EnvironmentMap::EnvironmentMap(GLuint width, GLuint height) :
     CubeMapRenderer(width, height, false),
@@ -11,14 +12,14 @@ EnvironmentMap::~EnvironmentMap() {
 
 }
 
-void EnvironmentMap::render(std::vector<Model*> modelList, MVP* mvp) {
+void EnvironmentMap::render(std::vector<Entity*> entityList, MVP* mvp) {
 
     //Prepare cube face transforms
-    preCubeFaceRender(modelList, mvp);
+    preCubeFaceRender(entityList, mvp);
 
-    for (Model* model : modelList) {
-        if (model->getClassType() == ModelClass::ModelType) {
-            _environmentShader.runShader(model, _transforms);
+    for (Entity* entity : entityList) {
+        if (entity->getModel()->getClassType() == ModelClass::ModelType) {
+            _environmentShader.runShader(entity, _transforms);
         }
     }
 

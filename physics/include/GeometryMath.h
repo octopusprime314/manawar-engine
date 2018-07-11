@@ -42,6 +42,6 @@ public:
 
 
     //Collision resolution functions
-    static void sphereTriangleResolution(Model* modelA, Sphere& sphere, Model* modelB, Triangle& triangle); //Resolve collision math
-    static void sphereSphereResolution(Model* modelA, Sphere& sphereA, Model* modelB, Sphere& sphereB); //resolve collision math
+    static void sphereTriangleResolution(Entity* modelA, Sphere& sphere, Entity* modelB, Triangle& triangle); //Resolve collision math
+    static void sphereSphereResolution(Entity* modelA, Sphere& sphereA, Entity* modelB, Sphere& sphereB); //resolve collision math
 };

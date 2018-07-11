@@ -1,4 +1,5 @@
 #include "ShadowAnimatedPointShader.h"
+#include "Entity.h"
 
 ShadowAnimatedPointShader::ShadowAnimatedPointShader(std::string shaderName) : ShadowPointShader(shaderName) {
 
@@ -8,13 +9,13 @@ ShadowAnimatedPointShader::~ShadowAnimatedPointShader() {
 
 }
 
-void ShadowAnimatedPointShader::runShader(Model* model, Light* light, std::vector<Matrix> lightTransforms) {
+void ShadowAnimatedPointShader::runShader(Entity* entity, Light* light, std::vector<Matrix> lightTransforms) {
 
-    AnimatedModel* animationModel = static_cast<AnimatedModel*>(model);
+    AnimatedModel* animationModel = static_cast<AnimatedModel*>(entity->getModel());
 
     //Load in vbo buffers
     VAO* vao = animationModel->getVAO();
-    MVP* modelMVP = animationModel->getMVP();
+    MVP* modelMVP = entity->getMVP();
     MVP lightMVP = light->getLightMVP();
 
     //Use one single shadow shader and replace the vbo buffer from each model
@@ -51,7 +52,7 @@ void ShadowAnimatedPointShader::runShader(Model* model, Light* light, std::vecto
 
     //Bone uniforms
     auto bones = animationModel->getBones();
-    float* bonesArray = new float[16 * bones->size()]; //4x4 times number of bones
+    float* bonesArray = new float[16 * 150]; //4x4 times number of bones
     int bonesArrayIndex = 0;
     for (auto bone : *bones) {
         for (int i = 0; i < 16; i++) {

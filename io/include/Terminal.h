@@ -22,6 +22,7 @@
 #pragma once
 #include "Font.h"
 #include "ShaderBroker.h"
+#include "ModelBroker.h"
 
 class Terminal {
 public:
@@ -29,17 +30,18 @@ public:
     Terminal();
     ~Terminal();
 
-    void         display();
-    bool         inTerminalMode();
+    void                 display();
+    bool                 inTerminalMode();
 
 private:
-    FontRenderer _fontRenderer;
-    bool         _terminalVisible;
-    std::string  _commandString;
-    std::string  _commandToProcess;
+    FontRenderer         _fontRenderer;
+    bool                 _terminalVisible;
+    std::string          _commandString;
+    std::string          _commandToProcess;
 
-    void         _updateKeyboard(int key, int x, int y);
-    int          _getCursorIndex();
+    void                 _updateKeyboard(int key, int x, int y);
+    int                  _getCursorIndex();
     static ShaderBroker* _shaderManager; 
+    static ModelBroker*  _modelManager;
 
 };

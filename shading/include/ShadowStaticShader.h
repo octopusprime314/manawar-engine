@@ -25,12 +25,11 @@
 #include "Shader.h"
 #include "Model.h"
 #include "Light.h"
-//#include "ShaderBroker.h"
 
 class ShadowStaticShader : public Shader {
 
 public:
     ShadowStaticShader(std::string shaderName);
     virtual     ~ShadowStaticShader();
-    void        runShader(Model* model, Light* light);
+    void        runShader(Entity* entity, Light* light);
 };

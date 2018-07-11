@@ -29,5 +29,5 @@ class StaticShader : public Shader {
 public:
     StaticShader(std::string shaderName);
     virtual ~StaticShader();
-    virtual void runShader(Model* model);
+    virtual void runShader(Entity* entity);
 };

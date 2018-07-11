@@ -24,11 +24,12 @@
 #pragma once
 #include "Vector4.h"
 #include "OSP.h"
-#include "Model.h"
 #include <vector>
+
+class Entity;
 
 class FrustumOcclusion {
     OSP _octalSpacePartitioner;
 public:
-    FrustumOcclusion(std::vector<Model*> models);
+    FrustumOcclusion(std::vector<Entity*> models);
 };

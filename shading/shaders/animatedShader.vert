@@ -24,7 +24,7 @@ uniform mat4 view;		 // View/Camera transformation matrix
 uniform mat4 projection; // Projection transformation matrix
 uniform mat4 normal;     // Normal matrix
 
-uniform mat4 bones[100]; // 100 bones is the maximum bone count 
+uniform mat4 bones[150]; // 150 bones is the maximum bone count 
 
 void main(){
 

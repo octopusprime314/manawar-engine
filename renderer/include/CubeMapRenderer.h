@@ -38,7 +38,7 @@ public:
     CubeMapRenderer(GLuint width, GLuint height, bool isDepth);
     ~CubeMapRenderer();
 
-    void                preCubeFaceRender(std::vector<Model*> modelList, MVP* mvp);
+    void                preCubeFaceRender(std::vector<Entity*> entityList, MVP* mvp);
     void                postCubeFaceRender();
     GLuint              getCubeMapTexture();
 };

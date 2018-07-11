@@ -15,7 +15,7 @@ std::vector<OctNode<Cube*>*>* OSP::getOSPLeaves() {
     return &_ospLeaves;
 }
 
-void OSP::generateGeometryOSP(std::vector<Model*>& models) {
+void OSP::generateGeometryOSP(std::vector<Entity*>& entities) {
 
 
     //Initialize a octary tree with a rectangle of cubicDimension located at the origin of the axis
@@ -23,24 +23,24 @@ void OSP::generateGeometryOSP(std::vector<Model*>& models) {
     OctNode<Cube*>* node = _octTree.insert(nullptr, rootCube);
 
     //Go through all of the models and populate
-    for (auto model : models) {
-        std::vector<Triangle>* triangles = model->getGeometry()->getTriangles();
+    for (auto entity : entities) {
+        std::vector<Triangle>* triangles = entity->getModel()->getGeometry()->getTriangles();
 
         for (Triangle & triangle : *triangles) {
             //if geometry data is contained within the first octet then build it out
             if (GeometryMath::triangleCubeDetection(&triangle, rootCube)) {
 
-                node->addGeometry(model, &triangle);
+                node->addGeometry(entity, &triangle);
             }
         }
 
-        std::vector<Sphere>* spheres = model->getGeometry()->getSpheres();
+        std::vector<Sphere>* spheres = entity->getModel()->getGeometry()->getSpheres();
         for (Sphere & sphere : *spheres) {
 
             //if geometry data is contained within the first octet then build it out
             if (GeometryMath::sphereCubeDetection(&sphere, rootCube)) {
 
-                node->addGeometry(model, &sphere);
+                node->addGeometry(entity, &sphere);
             }
         }
     }
@@ -49,7 +49,7 @@ void OSP::generateGeometryOSP(std::vector<Model*>& models) {
     _buildOctetTree(_octTree.getRoot()->getData(), node);
 }
 
-void OSP::generateRenderOSP(std::vector<Model*>& models) {
+void OSP::generateRenderOSP(std::vector<Entity*>& entities) {
 
 
     //Initialize a octary tree with a rectangle of cubicDimension located at the origin of the axis
@@ -57,9 +57,9 @@ void OSP::generateRenderOSP(std::vector<Model*>& models) {
     OctNode<Cube*>* node = _octTree.insert(nullptr, rootCube);
 
     //Go through all of the models and populate
-    for (auto model : models) {
+    for (auto entity : entities) {
 
-        auto triangleBuffer = model->getRenderBuffers();
+        auto triangleBuffer = entity->getModel()->getRenderBuffers();
         auto vertices = triangleBuffer->getVertices();
 
         for (int i = 0; i < vertices->size(); i+=3) {
@@ -68,7 +68,7 @@ void OSP::generateRenderOSP(std::vector<Model*>& models) {
             //if geometry data is contained within the first octet then build it out
             if (GeometryMath::triangleCubeDetection(tri, rootCube)) {
 
-                node->addGeometry(model, tri);
+                node->addGeometry(entity, tri);
             }
         }
     }
@@ -77,7 +77,7 @@ void OSP::generateRenderOSP(std::vector<Model*>& models) {
     _buildOctetTree(_octTree.getRoot()->getData(), node);
 
     //TODO : Take one models mvp which is easy but needs to be changed soon 
-    MVP* mvpBuffers = models[0]->getMVP();
+    MVP* mvpBuffers = entities[0]->getMVP();
     float* mvp = (mvpBuffers->getProjectionMatrix() *
         mvpBuffers->getViewMatrix() *
         mvpBuffers->getModelMatrix()).getFlatBuffer();
@@ -156,13 +156,13 @@ void OSP::_getChildren(std::vector<Cube>* cubes, OctNode<Cube*>* node) {
 }
 
 
-void OSP::updateOSP(std::vector<Model*>& models) {
+void OSP::updateOSP(std::vector<Entity*>& entities) {
 
     //Go through all of the models and populate
-    for (auto model : models) {
-        if (model->getStateVector()->getActive()) { //Only do osp updates if the model is active
+    for (auto entity : entities){
+        if (entity->getStateVector()->getActive()) { //Only do osp updates if the model is active
 
-            std::vector<Sphere>* spheres = model->getGeometry()->getSpheres();
+            std::vector<Sphere>* spheres = entity->getModel()->getGeometry()->getSpheres();
             for (Sphere& sphere : *spheres) {
 
                 ////Early out test if the sphere is completely contained within this cube,
@@ -176,14 +176,14 @@ void OSP::updateOSP(std::vector<Model*>& models) {
                 //}
                 
                 _sphereCubeCache[&sphere].clear();
-                _insertSphereSubspaces(model, sphere, _octTree.getRoot());
+                _insertSphereSubspaces(entity, sphere, _octTree.getRoot());
             }
         }
     }
 
 }
 
-bool OSP::_insertSphereSubspaces(Model* model, Sphere& sphere, OctNode<Cube*>* node) {
+bool OSP::_insertSphereSubspaces(Entity* entity, Sphere& sphere, OctNode<Cube*>* node) {
 
     //Used to only insert a new cache cube location when the end of the octree is reached
     bool inserted = false;
@@ -198,12 +198,12 @@ bool OSP::_insertSphereSubspaces(Model* model, Sphere& sphere, OctNode<Cube*>* n
         if (childrenNodes[i] != nullptr && GeometryMath::sphereCubeDetection(&sphere, childrenNodes[i]->getData())) {
 
             //Recursively call until end of tree is found
-            if (!_insertSphereSubspaces(model, sphere, childrenNodes[i])) {
+            if (!_insertSphereSubspaces(entity, sphere, childrenNodes[i])) {
                 _sphereCubeCache[&sphere].insert(childrenNodes[i]->getData());
                 inserted = true;
             }
             //Add geometry to model
-            childrenNodes[i]->addGeometry(model, &sphere);
+            childrenNodes[i]->addGeometry(entity, &sphere);
         }
     }
     return inserted;
@@ -235,9 +235,9 @@ void OSP::_buildOctetTree(Cube* cube, OctNode<Cube*>* node) {
     }
     std::vector<int> cubesEntered(8, 0);
 
-    std::unordered_map<Model*, std::set<Triangle*>>* triangleMaps = node->getTriangles();
+    std::unordered_map<Entity*, std::set<Triangle*>>* triangleMaps = node->getTriangles();
 
-    for (std::pair<Model* const, std::set<Triangle*>>& triangleMap : *triangleMaps) {
+    for (std::pair<Entity* const, std::set<Triangle*>>& triangleMap : *triangleMaps) {
         for (Triangle* triangle : triangleMap.second) {
 
             int cubeIndex = 0;
@@ -254,8 +254,8 @@ void OSP::_buildOctetTree(Cube* cube, OctNode<Cube*>* node) {
         }
     }
 
-    std::unordered_map<Model*, std::set<Sphere*>>* sphereMaps = node->getSpheres();
-    for (std::pair<Model* const, std::set<Sphere*>>& sphereMap : *sphereMaps) {
+    std::unordered_map<Entity*, std::set<Sphere*>>* sphereMaps = node->getSpheres();
+    for (std::pair<Entity* const, std::set<Sphere*>>& sphereMap : *sphereMaps) {
         for (Sphere* sphere : sphereMap.second) {
 
             int cubeIndex = 0;
@@ -282,8 +282,8 @@ void OSP::_buildOctetTree(Cube* cube, OctNode<Cube*>* node) {
             _ospLeaves.push_back(nodes[cubeIndex]);
 
             //Recheck spheres location to cache their locations
-            std::unordered_map<Model*, std::set<Sphere*>>* sphereMaps = node->getSpheres();
-            for (std::pair<Model* const, std::set<Sphere*>>& sphereMap : *sphereMaps) {
+            std::unordered_map<Entity*, std::set<Sphere*>>* sphereMaps = node->getSpheres();
+            for (std::pair<Entity* const, std::set<Sphere*>>& sphereMap : *sphereMaps) {
                 for (Sphere* sphere : sphereMap.second) {
                     //if geometry data is contained within the first octet then build it out
                     if (GeometryMath::sphereCubeDetection(sphere, cube)) {

@@ -1,5 +1,6 @@
 #include "StaticShader.h"
 #include "Model.h"
+#include "Entity.h"
 
 StaticShader::StaticShader(std::string shaderName) : Shader(shaderName) {
 
@@ -9,16 +10,16 @@ StaticShader::~StaticShader() {
 
 }
 
-void StaticShader::runShader(Model* model) {
+void StaticShader::runShader(Entity* entity) {
 
     //LOAD IN SHADER
     glUseProgram(_shaderContext); //use context for loaded shader
-
+    auto model = entity->getModel();
     VAO* vao = model->getVAO();
 
     glBindVertexArray(vao->getVAOContext());
 
-    MVP* mvp = model->getMVP();
+    MVP* mvp = entity->getMVP();
     //glUniform mat4 combined model and world matrix, GL_TRUE is telling GL we are passing in the matrix as row major
     updateUniform("model", mvp->getModelBuffer());
 
@@ -31,7 +32,7 @@ void StaticShader::runShader(Model* model) {
     //glUniform mat4 normal matrix, GL_TRUE is telling GL we are passing in the matrix as row major
     updateUniform("normal", mvp->getNormalBuffer());
 
-    MVP* prevMVP = model->getPrevMVP();
+    MVP* prevMVP = entity->getPrevMVP();
     //glUniform mat4 combined model and world matrix, GL_TRUE is telling GL we are passing in the matrix as row major
     updateUniform("prevModel", prevMVP->getModelBuffer());
 

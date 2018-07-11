@@ -6,6 +6,7 @@
 #include "ViewManager.h"
 #include "ShadowRenderer.h"
 #include "PointShadowMap.h"
+#include "Entity.h"
 
 InstancedForwardShader::InstancedForwardShader(std::string shaderName) : ForwardShader(shaderName, "forwardShader") {
 
@@ -14,17 +15,18 @@ InstancedForwardShader::~InstancedForwardShader() {
 
 }
 
-void InstancedForwardShader::runShader(Model* model, ViewManager* viewManager, ShadowRenderer* shadowRenderer,
+void InstancedForwardShader::runShader(Entity* entity, ViewManager* viewManager, ShadowRenderer* shadowRenderer,
     std::vector<Light*>& lights, PointShadowMap* pointShadowMap) {
 
     //LOAD IN SHADER
     glUseProgram(_shaderContext); //use context for loaded shader
 
-                                  //LOAD IN VAO
+    //LOAD IN VAO
+    auto model = entity->getModel();
     VAO* vao = model->getVAO();
     glBindVertexArray(vao->getVAOContext());
 
-    MVP* mvp = model->getMVP();
+    MVP* mvp = entity->getMVP();
     //glUniform mat4 combined model and world matrix, GL_TRUE is telling GL we are passing in the matrix as row major
     updateUniform("model", mvp->getModelBuffer());
 
@@ -54,9 +56,10 @@ void InstancedForwardShader::runShader(Model* model, ViewManager* viewManager, S
             pointLights++;
         }
     }
-    float* lightPosArray = new float[3 * pointLights];
-    float* lightColorsArray = new float[3 * pointLights];
-    float* lightRangesArray = new float[pointLights];
+    //Constant max of 20 lights in shader
+    float* lightPosArray = new float[3 * 20];
+    float* lightColorsArray = new float[3 * 20];
+    float* lightRangesArray = new float[20];
     int lightArrayIndex = 0;
     int lightRangeIndex = 0;
     for (auto& light : lights) {

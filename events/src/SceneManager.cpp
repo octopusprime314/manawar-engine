@@ -20,6 +20,8 @@
 #include "ShaderBroker.h"
 #include "Terminal.h"
 #include "FrustumOcclusion.h"
+#include "Entity.h"
+#include "ModelBroker.h"
 #include <chrono>
 
 using namespace std::chrono;
@@ -41,13 +43,14 @@ SceneManager::SceneManager(int* argc, char** argv,
     ShaderBroker::instance()->compileShaders();
     glCheck();
 
+    //Load and compile all shaders for the shader broker
+    ModelBroker::instance()->buildModels();
+    glCheck();
+
     _deferredRenderer = new DeferredRenderer();
     glCheck();
 
     _forwardRenderer = new ForwardRenderer();
-    glCheck();
-
-    _shadowRenderer = new ShadowRenderer(8 * 1024, 8 * 1024);
     glCheck();
 
     _pointShadowMap = new PointShadowMap(2000, 2000);
@@ -85,30 +88,31 @@ SceneManager::SceneManager(int* argc, char** argv,
     SimpleContextEvents::setPreDrawCallback(std::bind(&SceneManager::_preDraw, this));
     SimpleContextEvents::setPostDrawCallback(std::bind(&SceneManager::_postDraw, this));
 
-    //GenerateProceduralIsland(_modelList, ProcState());
-    //glCheck();
+    auto modelBroker = ModelBroker::instance();
 
-    _modelList.push_back(Factory::make<Model>("landscape/landscape.fbx")); //Add a static model to the scene
-    _modelList.push_back(Factory::make<AnimatedModel>("werewolf/werewolf_jump.fbx")); //Add a static model to the scene
+    _entityList.push_back(new Entity(modelBroker->getModel("landscape/landscape.fbx"), _viewManager->getEventWrapper())); //Add a static model to the scene
+    _entityList.push_back(new Entity(modelBroker->getModel("werewolf/werewolf.fbx"), _viewManager->getEventWrapper())); //Add a static model to the scene
     
-    _modelList[1]->setPosition(Vector4(-0.f, 0.68f, -15.f));
+    _entityList[1]->setPosition(Vector4(-0.f, 0.68f, -15.f));
 
     _physics = new Physics();
-    _physics->addModels(_modelList); //Gives physics a pointer to all models which allows access to underlying geometry
+    _physics->addEntities(_entityList); //Gives physics a pointer to all models which allows access to underlying geometry
     
     _physics->run(); //Dispatch physics to start kinematics
 
-    //Add a directional light pointing down in the negative y axis
-
+    Vector4 sunLocation(0.0f, 0.0f, 300.0f);
     MVP lightMVP;
-    lightMVP.setView(Matrix::cameraTranslation(0.0f, 0.0f, 300.0f) * Matrix::cameraRotationAroundX(-90.0f));
-    lightMVP.setProjection(Matrix::cameraOrtho(200.0f, 200.0f, 1.0f, 600.0f));
+    lightMVP.setView(Matrix::cameraTranslation(sunLocation.getx(), sunLocation.gety(), sunLocation.getz()));
+    lightMVP.setProjection(Matrix::cameraOrtho(200.0f, 200.0f, 0.1f, 600.0f));
     _lightList.push_back(Factory::make<Light>(lightMVP, LightType::CAMERA_DIRECTIONAL));
 
     MVP lightMapMVP;
-    lightMapMVP.setView(Matrix::cameraTranslation(0.0f, 0.0f, 300.0f) * Matrix::cameraRotationAroundX(-90.0f));
-    lightMapMVP.setProjection(Matrix::cameraOrtho(600.0f, 600.0f, 1.0f, 600.0f));
+    lightMVP.setView(Matrix::cameraTranslation(sunLocation.getx(), sunLocation.gety(), sunLocation.getz()));
+    lightMapMVP.setProjection(Matrix::cameraOrtho(600.0f, 600.0f, 0.1f, 600.0f));
     _lightList.push_back(Factory::make<Light>(lightMapMVP, LightType::MAP_DIRECTIONAL));
+
+    _shadowRenderer = new ShadowRenderer(_lightList[0], _lightList[1]);
+    glCheck();
 
     //Model view projection matrix for point light additions
     MVP pointLightMVP;
@@ -141,7 +145,7 @@ SceneManager::SceneManager(int* argc, char** argv,
 
     MasterClock::instance()->run(); //Scene manager kicks off the clock event manager
 
-    _audioManager->StartAll();
+    //_audioManager->StartAll();
 
     // Do this after adding all of our objects.
     _viewManager->setProjection(viewportWidth, viewportHeight, nearPlaneDistance, farPlaneDistance); //Initializes projection matrix and broadcasts upate to all listeners
@@ -149,9 +153,9 @@ SceneManager::SceneManager(int* argc, char** argv,
     _viewManager->setView(Matrix::cameraTranslation(0.f, -0.68f, 7.f),
         Matrix::cameraRotationAroundY(-45.f),
         Matrix());
-    _viewManager->setModelList(_modelList);
+    _viewManager->setEntityList(_entityList);
 
-    _frustumOccluder = new FrustumOcclusion(_modelList);
+    //_frustumOccluder = new FrustumOcclusion(_entityList);
 
     glCheck();
 
@@ -159,8 +163,8 @@ SceneManager::SceneManager(int* argc, char** argv,
 }
 
 SceneManager::~SceneManager() {
-    for (auto model : _modelList) {
-        delete model;
+    for (auto entity : _entityList) {
+        delete entity;
     }
     delete _shadowRenderer;
     delete _deferredRenderer;
@@ -177,11 +181,11 @@ void SceneManager::_preDraw() {
         _viewManager->getViewState() == ViewManager::ViewState::CAMERA_SHADOW ||
         _viewManager->getViewState() == ViewManager::ViewState::MAP_SHADOW) {
         //send all vbo data to shadow shader pre pass
-        _shadowRenderer->generateShadowBuffer(_modelList, _lightList);
+        _shadowRenderer->generateShadowBuffer(_entityList, _lightList);
 
         //send all vbo data to point light shadow pre pass
         for (Light* light : _lightList) {
-            _pointShadowMap->render(_modelList, light);
+            _pointShadowMap->render(_entityList, light);
         }
     }
 
@@ -218,7 +222,7 @@ void SceneManager::_postDraw() {
         _deferredRenderer->deferredLighting(_shadowRenderer, _lightList, _viewManager, _pointShadowMap, _ssaoPass, _environmentMap);
 
         //Draw transparent objects onto of the deferred renderer
-        _forwardRenderer->forwardLighting(_modelList, _viewManager, _shadowRenderer, _lightList, _pointShadowMap);
+        _forwardRenderer->forwardLighting(_entityList, _viewManager, _shadowRenderer, _lightList, _pointShadowMap);
 
         // Lights - including the fire point lights
         for (auto light : _lightList) {
@@ -245,6 +249,10 @@ void SceneManager::_postDraw() {
         _physics->visualize();
     }
     else {
+
+        //Only compute ssao for opaque objects
+        _ssaoPass->computeSSAO(_deferredRenderer->getGBuffers(), _viewManager);
+
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         //Pass lights to deferred shading pass
         _deferredRenderer->deferredLighting(_shadowRenderer, _lightList, _viewManager, _pointShadowMap, _ssaoPass, _environmentMap);

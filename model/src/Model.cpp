@@ -2,26 +2,15 @@
 #include "SimpleContext.h"
 #include "FbxLoader.h"
 #include "ShaderBroker.h"
+#include "ModelBroker.h"
 
 TextureBroker* Model::_textureManager = TextureBroker::instance();
 
-Model::Model(ViewManagerEvents* eventWrapper, RenderBuffers& renderBuffers, StaticShader* pStaticShader)
-    : UpdateInterface(eventWrapper),
-    _classId(ModelClass::ModelType),
-    _fbxLoader(nullptr),
-    _clock(MasterClock::instance()),
-    _geometryType(GeometryType::Triangle),
-    _renderBuffers(std::move(renderBuffers)),
-    _isInstanced(false) {
-    _vao.createVAO(&_renderBuffers, _classId);
-}
-
-Model::Model(std::string name, ViewManagerEvents* eventWrapper, ModelClass classId) :
-    UpdateInterface(eventWrapper),
-    _clock(MasterClock::instance()),
+Model::Model(std::string name, ModelClass classId) :
     _isInstanced(false),
     _classId(classId),
-    _fbxLoader(new FbxLoader(MESH_LOCATION + name)) {
+    _fbxLoader(new FbxLoader((classId == ModelClass::ModelType ? 
+        STATIC_MESH_LOCATION : ANIMATED_MESH_LOCATION) + name)) {
 
     
     //Populate model with fbx file data and recursivelty search with the root node of the scene
@@ -46,7 +35,7 @@ Model::Model(std::string name, ViewManagerEvents* eventWrapper, ModelClass class
         delete _fbxLoader;
 
         std::string modelName = _getModelName(name);
-        std::string colliderName = MESH_LOCATION;
+        std::string colliderName = STATIC_MESH_LOCATION;
         colliderName.append(modelName).append("/collider.fbx");
         //Load in geometry fbx object
         FbxLoader geometryLoader(colliderName);
@@ -58,47 +47,21 @@ Model::Model(std::string name, ViewManagerEvents* eventWrapper, ModelClass class
         //If the object is a standard model then it is modeled with triangles
         _geometryType = GeometryType::Sphere;
     }
-
-    //Hook up to kinematic update for proper physics handling
-    _clock->subscribeKinematicsRate(std::bind(&Model::_updateKinematics, this, std::placeholders::_1));
-
 }
 
 Model::~Model() {
 }
 
-void Model::_updateDraw() {
-
-    //Run model shader by allowing the shader to operate on the model
-    _shaderProgram->runShader(this);
+void Model::runShader(Entity* entity) {
+    std::lock_guard<std::mutex> lockGuard(_updateLock);
+    _shaderProgram->runShader(entity);
 }
 
-void Model::_updateView(Matrix view) {
-
-    _prevMVP.setView(_mvp.getViewMatrix());
-
-    _mvp.setView(view); //Receive updates when the view matrix has changed
-
-    //If view changes then change our normal matrix
-    _mvp.setNormal(view.inverse().transpose());
-}
-
-void Model::_updateProjection(Matrix projection) {
-    _mvp.setProjection(projection); //Receive updates when the projection matrix has changed
-}
-
-void Model::_updateKinematics(int milliSeconds) {
-    //Do kinematic calculations
-    _state.update(milliSeconds);
-
-    _prevMVP.setModel(_mvp.getModelMatrix());
-
-    //Pass position information to model matrix
-    Vector4 position = _state.getLinearPosition();
-    _geometry.updatePosition(position);
-    _mvp.getModelBuffer()[3] = position.getx();
-    _mvp.getModelBuffer()[7] = position.gety();
-    _mvp.getModelBuffer()[11] = position.getz();
+void Model::updateModel(Model* model) {
+    std::lock_guard<std::mutex> lockGuard(_updateLock);
+    this->_textureStrides = model->_textureStrides;
+    this->_geometry       = model->_geometry;
+    this->_vao            = model->_vao;
 }
 
 VAO* Model::getVAO() {
@@ -173,33 +136,8 @@ Geometry* Model::getGeometry() {
     return &_geometry;
 }
 
-MVP* Model::getMVP() {
-    return &_mvp;
-}
-MVP* Model::getPrevMVP() {
-    return &_prevMVP;
-}
-
 RenderBuffers* Model::getRenderBuffers() {
     return &_renderBuffers;
-}
-
-StateVector* Model::getStateVector() {
-    return &_state;
-}
-
-void Model::setPosition(Vector4 position) {
-    _state.setLinearPosition(position);
-    //Pass position information to model matrix
-    _geometry.updatePosition(position);
-
-    _prevMVP.setModel(_mvp.getModelMatrix());
-
-    _mvp.setModel(Matrix::translation(position.getx(), position.gety(), position.getz()));
-}
-
-void Model::setVelocity(Vector4 velocity) {
-    _state.setLinearVelocity(velocity);
 }
 
 void Model::setInstances(std::vector<Vector4> offsets) {

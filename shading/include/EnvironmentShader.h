@@ -29,5 +29,5 @@ class EnvironmentShader : public Shader {
 public:
     EnvironmentShader(std::string shaderName);
     virtual ~EnvironmentShader();
-    virtual void runShader(Model* model, std::vector<Matrix> viewTransforms);
+    virtual void runShader(Entity* entity, std::vector<Matrix> viewTransforms);
 };

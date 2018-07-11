@@ -1,7 +1,8 @@
 #include "FrustumOcclusion.h"
+#include "Entity.h"
 
-FrustumOcclusion::FrustumOcclusion(std::vector<Model*> models) :
+FrustumOcclusion::FrustumOcclusion(std::vector<Entity*> entities) :
     _octalSpacePartitioner(2000, 500) {
 
-    _octalSpacePartitioner.generateRenderOSP(models); //Generate 
+    _octalSpacePartitioner.generateRenderOSP(entities); //Generate 
 }

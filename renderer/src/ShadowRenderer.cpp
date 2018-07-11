@@ -1,11 +1,18 @@
 #include "ShadowRenderer.h"
 #include "ViewManager.h"
+#include "Entity.h"
 
-ShadowRenderer::ShadowRenderer(GLuint width, GLuint height) :
+static const float SHADOW_RESOLUTION = 20.0; //10 pixels per unit distance of 1
+
+ShadowRenderer::ShadowRenderer(Light* sunLightCam, Light* sunLightMap) :
     _staticRendered(false),
-    _staticShadowFBO(width, height),
-    _animatedShadowFBO(width, height),
-    _mapShadowFBO(width, height),
+    _staticShadowFBO(sunLightCam->getWidth() * SHADOW_RESOLUTION, sunLightCam->getHeight() * SHADOW_RESOLUTION),
+
+    _animatedShadowFBO(sunLightCam->getWidth() * SHADOW_RESOLUTION, sunLightCam->getHeight() * SHADOW_RESOLUTION),
+
+    _mapShadowFBO(sunLightMap->getWidth() * SHADOW_RESOLUTION * (sunLightCam->getWidth() / sunLightMap->getWidth()), 
+        sunLightMap->getHeight() * SHADOW_RESOLUTION * (sunLightCam->getHeight() / sunLightMap->getHeight())),
+
     _staticShadowShader(static_cast<ShadowStaticShader*>(ShaderBroker::instance()->getShader("staticShadowShader"))),
     _animatedShadowShader(static_cast<ShadowAnimatedShader*>(ShaderBroker::instance()->getShader("animatedShadowShader"))) {
 }
@@ -26,7 +33,7 @@ GLuint ShadowRenderer::getMapDepthTexture() {
     return _mapShadowFBO.getTextureContext();
 }
 
-void ShadowRenderer::generateShadowBuffer(std::vector<Model*> modelList, std::vector<Light*>& lights) {
+void ShadowRenderer::generateShadowBuffer(std::vector<Entity*> entityList, std::vector<Light*>& lights) {
 
     // Specify what to render an start acquiring
     GLenum buffers[] = { GL_NONE };
@@ -44,10 +51,10 @@ void ShadowRenderer::generateShadowBuffer(std::vector<Model*> modelList, std::ve
     glDrawBuffers(1, buffers);
 
     light = lights[1];
-    for (Model* model : modelList) {
+    for (Entity* entity : entityList) {
 
-        if (model->getClassType() == ModelClass::ModelType) {
-            _staticShadowShader->runShader(model, light);
+        if (entity->getModel()->getClassType() == ModelClass::ModelType) {
+            _staticShadowShader->runShader(entity, light);
         }
     }
 
@@ -67,48 +74,13 @@ void ShadowRenderer::generateShadowBuffer(std::vector<Model*> modelList, std::ve
     glDrawBuffers(1, buffers);
 
     light = lights[0];
-    for (Model* model : modelList) {
+    for (Entity* entity : entityList) {
 
-        if (model->getClassType() == ModelClass::ModelType) {
-            _staticShadowShader->runShader(model, light);
+        if (entity->getModel()->getClassType() == ModelClass::ModelType) {
+            _staticShadowShader->runShader(entity, light);
         }
-    }
-
-    //remove framebuffer context
-    //glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-    //REMOVE BLIT CAUSE ITS SLOW!!!
-    ////Bind frame buffer
-    //glBindFramebuffer(GL_FRAMEBUFFER, _animatedShadowFBO.getFrameBufferContext());
-
-    ////Clear depth buffer
-    //glClear(GL_DEPTH_BUFFER_BIT);
-
-    ////Blit static depth info into animation depth render pass
-    //glBindFramebuffer(GL_READ_FRAMEBUFFER, _staticShadowFBO.getFrameBufferContext());
-    //glBindFramebuffer(GL_DRAW_FRAMEBUFFER, _animatedShadowFBO.getFrameBufferContext());
-
-    //glBlitFramebuffer(0, 0, _staticShadowFBO.getWidth(), _staticShadowFBO.getHeight(),
-    //                  0, 0, _animatedShadowFBO.getWidth(), _animatedShadowFBO.getHeight(),
-    //                  GL_DEPTH_BUFFER_BIT, GL_NEAREST);
-
-    //glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
-    //glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-
-    //Bind frame buffer
-    //glBindFramebuffer(GL_FRAMEBUFFER, _animatedShadowFBO.getFrameBufferContext());
-
-    //Need to change viewport to the resolution of the shadow texture
-    //glViewport(0, 0, _animatedShadowFBO.getWidth(), _animatedShadowFBO.getHeight());
-
-    // Specify what to render an start acquiring
-    //glDrawBuffers(1, buffers);
-
-    light = lights[0];
-    for (Model* model : modelList) {
-
-        if (model->getClassType() == ModelClass::AnimatedModelType) {
-            _animatedShadowShader->runShader(model, light);
+        else if (entity->getModel()->getClassType() == ModelClass::AnimatedModelType) {
+            _animatedShadowShader->runShader(entity, light);
         }
     }
 

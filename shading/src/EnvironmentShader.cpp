@@ -1,5 +1,6 @@
 #include "EnvironmentShader.h"
 #include "Model.h"
+#include "Entity.h"
 
 EnvironmentShader::EnvironmentShader(std::string shaderName) : Shader(shaderName) {
 
@@ -9,15 +10,16 @@ EnvironmentShader::~EnvironmentShader() {
 
 }
 
-void EnvironmentShader::runShader(Model* model, std::vector<Matrix> viewTransforms) {
+void EnvironmentShader::runShader(Entity* entity, std::vector<Matrix> viewTransforms) {
 
     //LOAD IN SHADER
     glUseProgram(_shaderContext); //use context for loaded shader
 
+    auto model = entity->getModel();
     VAO* vao = model->getVAO();
     glBindVertexArray(vao->getVAOContext());
 
-    MVP* mvp = model->getMVP();
+    MVP* mvp = entity->getMVP();
 
     //glUniform mat4 combined model and world matrix, GL_TRUE is telling GL we are passing in the matrix as row major
     updateUniform("model", mvp->getModelBuffer());

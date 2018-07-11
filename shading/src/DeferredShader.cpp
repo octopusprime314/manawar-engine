@@ -36,7 +36,8 @@ void DeferredShader::runShader(ShadowRenderer* shadowRenderer,
     //of the inner rotation matrix at index 2,6,10
     auto viewMatrix = (viewManager->getView() * lights[0]->getLightMVP().getViewMatrix()).getFlatBuffer();
 
-    Vector4 lightPosition(viewMatrix[2], viewMatrix[6], -viewMatrix[10]);
+    Vector4 lightPosition(viewMatrix[2], viewMatrix[6], viewMatrix[10]);
+    //lightPosition.display();
     updateUniform("light", lightPosition.getFlatBuffer());
 
     //Get point light positions
@@ -47,9 +48,10 @@ void DeferredShader::runShader(ShadowRenderer* shadowRenderer,
             pointLights++;
         }
     }
-    float* lightPosArray = new float[3 * pointLights];
-    float* lightColorsArray = new float[3 * pointLights];
-    float* lightRangesArray = new float[pointLights];
+    //Constant max of 20 lights in shader
+    float* lightPosArray = new float[3 * 20];
+    float* lightColorsArray = new float[3 * 20];
+    float* lightRangesArray = new float[20];
     int lightArrayIndex = 0;
     int lightRangeIndex = 0;
     for (auto& light : lights) {

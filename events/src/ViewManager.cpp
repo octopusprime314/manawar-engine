@@ -7,6 +7,7 @@
 #include "FunctionState.h"
 #include <cmath>
 #include "StateVector.h"
+#include "Entity.h"
 
 ViewManager::ViewManager() {
 
@@ -23,7 +24,7 @@ ViewManager::ViewManager(int* argc, char** argv, unsigned int viewportWidth, uns
     _viewEvents = new ViewManagerEvents();
 
     _godState = true; //Start in god view mode
-    _modelIndex = 0; //Start at index 0
+    _entityIndex = 0; //Start at index 0
 
     _thirdPersonTranslation = Matrix::cameraTranslation(0, 5, 10);
 
@@ -86,8 +87,8 @@ ViewManager::ViewState ViewManager::getViewState() {
     return _viewState;
 }
 
-void ViewManager::setModelList(std::vector<Model*> modelList) {
-    _modelList = modelList;
+void ViewManager::setEntityList(std::vector<Entity*> entityList) {
+    _entityList = entityList;
 }
 
 void ViewManager::applyTransform(Matrix transform) {
@@ -188,9 +189,9 @@ void ViewManager::_updateKeyboard(int key, int x, int y) { //Do stuff based on k
         }
 
         //If not in god camera view mode then push view changes to the model for full control of a model's movements
-        if (!_godState && _modelIndex < _modelList.size()) {
+        if (!_godState && _entityIndex < _entityList.size()) {
 
-            StateVector* state = _modelList[_modelIndex]->getStateVector();
+            StateVector* state = _entityList[_entityIndex]->getStateVector();
             //Define lambda equation
             auto lamdaEq = [=](float t) -> Vector4 {
                 if (t > 1.0f) {
@@ -242,13 +243,13 @@ void ViewManager::_updateKeyboard(int key, int x, int y) { //Do stuff based on k
     }
     else if (key == GLFW_KEY_Q) { //Cycle through model's view point q
 
-        _modelIndex++; //increment to the next model when q is pressed again
-        if (_modelIndex >= _modelList.size()) {
-            _modelIndex = 0;
+        _entityIndex++; //increment to the next model when q is pressed again
+        if (_entityIndex >= _entityList.size()) {
+            _entityIndex = 0;
         }
 
         _godState = false;
-        StateVector* state = _modelList[_modelIndex]->getStateVector();
+        StateVector* state = _entityList[_entityIndex]->getStateVector();
         float* position = state->getLinearPosition().getFlatBuffer();
         float* rotation = state->getAngularPosition().getFlatBuffer();
         _translation = Matrix::cameraTranslation(position[0], position[1], position[2]); //Set camera to model's world space translation
@@ -331,9 +332,9 @@ void ViewManager::_updateMouse(double x, double y) { //Do stuff based on mouse u
 void ViewManager::_updateDraw() { //Do draw stuff
 
     //If not in god camera view mode then push view changes to the model for full control of a model's movements
-    if (!_godState && _modelIndex < _modelList.size()) {
+    if (!_godState && _entityIndex < _entityList.size()) {
 
-        StateVector* state = _modelList[_modelIndex]->getStateVector();
+        StateVector* state = _entityList[_entityIndex]->getStateVector();
         float* pos = state->getLinearPosition().getFlatBuffer();
         float* rot = _state.getAngularPosition().getFlatBuffer();
         _translation = Matrix::cameraTranslation(pos[0], pos[1], pos[2]); //Update the translation state matrix

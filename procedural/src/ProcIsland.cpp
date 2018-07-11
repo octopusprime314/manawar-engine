@@ -109,65 +109,65 @@ static Model* GenerateTerrain()
     // This is a relatively expensive copy, and I don't think we need it. (???)
     // *renderBuffers.getDebugNormals() = *renderBuffers.getNormals();
 
-    Model* pModel = new Model(Factory::_viewEventWrapper,
-        std::move(renderBuffers),
-        new StaticShader("staticTerrainShader"));
-    // We use this texture for its strides - the actualy texture loaded doesn't matter.
-    // ***THIS MUST NOT HAVE AN ALPHA CHANNEL!***.
-    // The existance of an alpha channel triggers extra functionality that we do not want.
-    pModel->addTexture("../assets/textures/landscape/Rock_6_d.png", textureStride);
-    return pModel;
+    //Model* pModel = new Model(Factory::_viewEventWrapper,
+    //    std::move(renderBuffers),
+    //    new StaticShader("staticTerrainShader"));
+    //// We use this texture for its strides - the actualy texture loaded doesn't matter.
+    //// ***THIS MUST NOT HAVE AN ALPHA CHANNEL!***.
+    //// The existance of an alpha channel triggers extra functionality that we do not want.
+    //pModel->addTexture("../assets/textures/landscape/Rock_6_d.png", textureStride);
+    return nullptr;
 }
 
-static Model* GenerateTrees()
-{
-    //Load tree model and instance it
-    Model* treeModel = new Model("tree/tree.fbx", Factory::_viewEventWrapper, ModelClass::ModelType);
+//static Model* GenerateTrees()
+//{
+//    //Load tree model and instance it
+//    Model* treeModel = new Model("tree/tree.fbx", Factory::_viewEventWrapper, ModelClass::ModelType);
+//
+//    treeModel->getMVP()->setModel(Matrix::scale(0.01f));
+//
+//    //Generate instancing offsets
+//    constexpr int minX = 80;
+//    constexpr int maxX = 95;
+//    constexpr int minZ = 80;
+//    constexpr int maxZ = 110;
+//
+//    constexpr float trunkSize = 0.012f;
+//    constexpr float treeHeight = trunkSize * 20.f;
+//
+//    constexpr float delta = trunkSize * 100.f;
+//    constexpr int deltaX = maxX - minX + 1;
+//    constexpr int deltaZ = maxZ - minZ + 1;
+//
+//    std::vector<Vector4> offsets;
+//    for (float x = minX; x <= maxX; x += delta) {
+//        for (float z = minZ; z <= maxZ; z += delta) {
+//            float y = ScaleNoiseToTerrainHeight(kNoise.turbulence(2500.f*x / 150.f, 3250.f*z / 150 + 400, 9));
+//            // Roughly the green area in staticTerrainShader.frag, less some at the top.
+//            if (!(0.25 < y && y < 1.6)) {
+//                continue;
+//            }
+//            float offsetX = x - ((110 - 50) / 2.f + 50 + (maxX - minX) / 2);
+//            float offsetZ = z - ((110 - 50) / 2.f + 50 + (maxZ - minZ) / 2);
+//            offsets.push_back(Vector4(offsetX, y, offsetZ, 0.0));
+//        }
+//    }
+//
+//    treeModel->setInstances(offsets);
+//    return treeModel;
+//}
 
-    treeModel->getMVP()->setModel(Matrix::scale(0.01f));
-
-    //Generate instancing offsets
-    constexpr int minX = 80;
-    constexpr int maxX = 95;
-    constexpr int minZ = 80;
-    constexpr int maxZ = 110;
-
-    constexpr float trunkSize = 0.012f;
-    constexpr float treeHeight = trunkSize * 20.f;
-
-    constexpr float delta = trunkSize * 100.f;
-    constexpr int deltaX = maxX - minX + 1;
-    constexpr int deltaZ = maxZ - minZ + 1;
-
-    std::vector<Vector4> offsets;
-    for (float x = minX; x <= maxX; x += delta) {
-        for (float z = minZ; z <= maxZ; z += delta) {
-            float y = ScaleNoiseToTerrainHeight(kNoise.turbulence(2500.f*x / 150.f, 3250.f*z / 150 + 400, 9));
-            // Roughly the green area in staticTerrainShader.frag, less some at the top.
-            if (!(0.25 < y && y < 1.6)) {
-                continue;
-            }
-            float offsetX = x - ((110 - 50) / 2.f + 50 + (maxX - minX) / 2);
-            float offsetZ = z - ((110 - 50) / 2.f + 50 + (maxZ - minZ) / 2);
-            offsets.push_back(Vector4(offsetX, y, offsetZ, 0.0));
-        }
-    }
-
-    treeModel->setInstances(offsets);
-    return treeModel;
-}
-
-void GenerateProceduralIsland(std::vector<Model*>& models, ProcState params)
-{
-    Model* pTerrain = GenerateTerrain();
-    models.push_back(pTerrain);
-    Model* pTrees = GenerateTrees();
-    models.push_back(pTrees);
-
-    //Add textures for procedural island
-    TextureBroker* texBroker = TextureBroker::instance();
-    texBroker->addTexture("../assets/textures/landscape/grass.jpg");
-    texBroker->addTexture("../assets/textures/landscape/snow.jpg");
-    texBroker->addTexture("../assets/textures/landscape/dirt.jpg");
-    texBroker->addTexture("../assets/textures/landscape/rocks.jpg");
-}
+//void GenerateProceduralIsland(std::vector<Model*>& models, ProcState params)
+//{
+//    Model* pTerrain = GenerateTerrain();
+//    models.push_back(pTerrain);
+//    Model* pTrees = GenerateTrees();
+//    models.push_back(pTrees);
+//
+//    //Add textures for procedural island
+//    TextureBroker* texBroker = TextureBroker::instance();
+//    texBroker->addTexture("../assets/textures/landscape/grass.jpg");
+//    texBroker->addTexture("../assets/textures/landscape/snow.jpg");
+//    texBroker->addTexture("../assets/textures/landscape/dirt.jpg");
+//    texBroker->addTexture("../assets/textures/landscape/rocks.jpg");
+//}

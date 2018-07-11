@@ -1,5 +1,5 @@
 #include "Shader.h"
-#include "Model.h"
+#include "Entity.h"
 #include "Light.h"
 #include <iostream>
 #include <fstream>

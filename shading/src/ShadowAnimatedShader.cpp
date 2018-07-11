@@ -1,4 +1,5 @@
 #include "ShadowAnimatedShader.h"
+#include "Entity.h"
 
 ShadowAnimatedShader::ShadowAnimatedShader(std::string shaderName) : ShadowStaticShader(shaderName) {
 
@@ -8,13 +9,13 @@ ShadowAnimatedShader::~ShadowAnimatedShader() {
 
 }
 
-void ShadowAnimatedShader::runShader(Model* model, Light* light) {
+void ShadowAnimatedShader::runShader(Entity* entity, Light* light) {
 
-    AnimatedModel* animationModel = static_cast<AnimatedModel*>(model);
+    AnimatedModel* animationModel = static_cast<AnimatedModel*>(entity->getModel());
 
     //Load in vbo buffers
-    VAO* vao = model->getVAO();
-    MVP* modelMVP = animationModel->getMVP();
+    VAO* vao = animationModel->getVAO();
+    MVP* modelMVP = entity->getMVP();
     MVP lightMVP = light->getLightMVP();
 
     //Use one single shadow shader and replace the vbo buffer from each model
@@ -33,7 +34,7 @@ void ShadowAnimatedShader::runShader(Model* model, Light* light) {
 
     //Bone uniforms
     auto bones = animationModel->getBones();
-    float* bonesArray = new float[16 * bones->size()]; //4x4 times number of bones
+    float* bonesArray = new float[16 * 150]; //4x4 times number of bones
     int bonesArrayIndex = 0;
     for (auto bone : *bones) {
         for (int i = 0; i < 16; i++) {
@@ -44,7 +45,7 @@ void ShadowAnimatedShader::runShader(Model* model, Light* light) {
     updateUniform("bones[0]", bonesArray);
     delete[] bonesArray;
 
-    auto textureStrides = model->getTextureStrides();
+    auto textureStrides = animationModel->getTextureStrides();
     unsigned int verticesSize = 0;
     for (auto textureStride : textureStrides) {
         verticesSize += textureStride.second;

@@ -13,7 +13,7 @@ GLuint CubeMapRenderer::getCubeMapTexture() {
     return _cubeTextureMap.getCubeMapContext();
 }
 
-void CubeMapRenderer::preCubeFaceRender(std::vector<Model*> modelList, MVP* mvp) {
+void CubeMapRenderer::preCubeFaceRender(std::vector<Entity*> entityList, MVP* mvp) {
 
     //Need to change viewport to the resolution of the shadow texture
     glViewport(0, 0, _cubeTextureMap.getWidth(), _cubeTextureMap.getHeight());

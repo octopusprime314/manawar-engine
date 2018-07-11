@@ -33,6 +33,6 @@ class ForwardShader : public Shader {
 public:
     ForwardShader(std::string vertexShaderName, std::string fragmentShaderName = "");
     ~ForwardShader();
-    void runShader(Model* model, ViewManager* viewManager, ShadowRenderer* shadowRenderer,
+    void runShader(Entity* entity, ViewManager* viewManager, ShadowRenderer* shadowRenderer,
         std::vector<Light*>& lights, PointShadowMap* pointShadowMap);
 };

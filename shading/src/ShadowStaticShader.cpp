@@ -1,4 +1,5 @@
 #include "ShadowStaticShader.h"
+#include "Entity.h"
 
 ShadowStaticShader::ShadowStaticShader(std::string shaderName) : Shader(shaderName) {
 
@@ -8,11 +9,12 @@ ShadowStaticShader::~ShadowStaticShader() {
 
 }
 
-void ShadowStaticShader::runShader(Model* model, Light* light) {
+void ShadowStaticShader::runShader(Entity* entity, Light* light) {
 
     //Load in vbo buffers
+    auto model = entity->getModel();
     VAO* vao = model->getVAO();
-    MVP* modelMVP = model->getMVP();
+    MVP* modelMVP = entity->getMVP();
     MVP lightMVP = light->getLightMVP();
 
     //Use one single shadow shader and replace the vbo buffer from each model
@@ -20,7 +22,7 @@ void ShadowStaticShader::runShader(Model* model, Light* light) {
 
     glBindVertexArray(vao->getVAOShadowContext());
 
-    MVP* mvp = model->getMVP();
+    MVP* mvp = entity->getMVP();
     //glUniform mat4 combined model and world matrix, GL_TRUE is telling GL we are passing in the matrix as row major
     updateUniform("model", mvp->getModelBuffer());
 

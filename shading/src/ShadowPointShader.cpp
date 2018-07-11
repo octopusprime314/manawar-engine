@@ -1,4 +1,5 @@
 #include "ShadowPointShader.h"
+#include "Entity.h"
 
 ShadowPointShader::ShadowPointShader(std::string shaderName) : Shader(shaderName) {
 
@@ -8,11 +9,12 @@ ShadowPointShader::~ShadowPointShader() {
 
 }
 
-void ShadowPointShader::runShader(Model* model, Light* light, std::vector<Matrix> lightTransforms) {
+void ShadowPointShader::runShader(Entity* entity, Light* light, std::vector<Matrix> lightTransforms) {
 
     //Load in vbo buffers
+    auto model = entity->getModel();
     VAO* vao = model->getVAO();
-    MVP* modelMVP = model->getMVP();
+    MVP* modelMVP = entity->getMVP();
     MVP lightMVP = light->getLightMVP();
 
     //Use one single shadow shader and replace the vbo buffer from each model

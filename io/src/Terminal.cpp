@@ -2,6 +2,7 @@
 #include "SimpleContextEvents.h"
 
 ShaderBroker* Terminal::_shaderManager = ShaderBroker::instance();
+ModelBroker*  Terminal::_modelManager  = ModelBroker::instance();
 
 using namespace std::placeholders;
 
@@ -25,10 +26,19 @@ void Terminal::display() {
     }
 
     if (_commandToProcess.size() > 0) {
-        if (_commandToProcess.substr(0, 9) == "RECOMPILE") {
-            std::string shaderName = _commandToProcess.substr(10);
-            shaderName = shaderName.substr(0, shaderName.size() - 1);
+
+        auto location = _commandToProcess.find(' ');
+        std::string command = _commandToProcess.substr(0, location);
+
+        if (command == "RECOMPILE") {
+            std::string shaderName = _commandToProcess.substr(location + 1);
+            shaderName.pop_back();
             _shaderManager->recompileShader(shaderName);
+        }
+        else if (command == "UPDATE") {
+            std::string modelName = _commandToProcess.substr(location + 1);
+            modelName.pop_back();
+            _modelManager->updateModel(modelName);
         }
         _commandToProcess = "";
     }

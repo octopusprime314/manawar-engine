@@ -26,7 +26,7 @@
 #include "GLIncludes.h"
 #include "Uniforms.h"
 
-class Model;
+class Entity;
 class Light;
 class ShaderBroker;
 

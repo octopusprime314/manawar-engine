@@ -1,5 +1,6 @@
 #include "GeometryMath.h"
 #include "Sphere.h"
+#include "Entity.h"
 
 //Returns true if the sphere is not completely enclosed within a cube
 bool GeometryMath::sphereProtrudesCube(Sphere* sphere, Cube* cube) {
@@ -474,7 +475,7 @@ bool GeometryMath::sphereCubeDetection(Sphere *sphere, Cube *cube) {
     return false;
 }
 
-void GeometryMath::sphereTriangleResolution(Model* modelA, Sphere& sphere, Model* modelB, Triangle& triangle) {
+void GeometryMath::sphereTriangleResolution(Entity* modelA, Sphere& sphere, Entity* modelB, Triangle& triangle) {
 
     StateVector* modelStateA = modelA->getStateVector();
     Vector4* triPoints = triangle.getTrianglePoints();
@@ -506,7 +507,7 @@ void GeometryMath::sphereTriangleResolution(Model* modelA, Sphere& sphere, Model
 
     modelStateA->setContact(true);
 }
-void GeometryMath::sphereSphereResolution(Model* modelA, Sphere& sphereA, Model* modelB, Sphere& sphereB) {
+void GeometryMath::sphereSphereResolution(Entity* modelA, Sphere& sphereA, Entity* modelB, Sphere& sphereB) {
     //TODO but for now just halt kinematics
     StateVector* modelStateA = modelA->getStateVector();
     modelStateA->setActive(false);

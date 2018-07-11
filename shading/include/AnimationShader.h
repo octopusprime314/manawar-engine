@@ -23,12 +23,11 @@
 
 #pragma once
 #include "StaticShader.h"
-class Model;
 
 class AnimationShader : public StaticShader {
 
 public:
     AnimationShader(std::string shaderName);
     ~AnimationShader();
-    void  runShader(Model* modelIn);
+    void  runShader(Entity* entity);
 };

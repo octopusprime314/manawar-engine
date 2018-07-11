@@ -30,7 +30,8 @@ static int screenPixelWidth = 1920;
 static int screenPixelHeight = 1080;
 
 const std::string ASSET_LOCATION = "../assets/";
-const std::string MESH_LOCATION = ASSET_LOCATION + "meshes/";
+const std::string ANIMATED_MESH_LOCATION = ASSET_LOCATION + "meshes/animated/";
+const std::string STATIC_MESH_LOCATION = ASSET_LOCATION + "meshes/static/";
 const std::string TEXTURE_LOCATION = ASSET_LOCATION + "textures/";
 
 // Set to true to make glCheck() assert when glGetError() returns an error code.

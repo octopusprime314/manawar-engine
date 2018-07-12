@@ -1,21 +1,26 @@
 #include "Light.h"
 #include "MasterClock.h"
 #include <random>
+#include "ShaderBroker.h"
 
 Light::Light(ViewManagerEvents* eventWrapper,
-    MVP mvp, LightType type, EffectType effect, Vector4 color, bool shadowCaster) :
+    MVP mvp, LightType type, EffectType effect, Vector4 color) :
     Effect(eventWrapper, "fireShader", effect),
     _type(type),
     _lightMVP(mvp),
     _color(color),
-    _shadowCaster(shadowCaster),
     _milliSecondTime(0) {
 
+    _debugShader = static_cast<DebugShader*>(ShaderBroker::instance()->getShader("debugShader"));
+    
     MasterClock::instance()->subscribeKinematicsRate(std::bind(&Light::_updateTime, this, std::placeholders::_1));
 
     //Extract light position from view matrix
     float* inverseView = _lightMVP.getViewMatrix().inverse().getFlatBuffer();
     _position = Vector4(inverseView[3], inverseView[7], inverseView[11], 1.0);
+
+    std::vector<Cube>* cubes = new std::vector<Cube>{Cube(2.0, 2.0, 2.0, Vector4(0.0, 0.0, 0.0))};
+    _vao.createVAO(cubes);
 }
 
 MVP Light::getLightMVP() {
@@ -23,7 +28,7 @@ MVP Light::getLightMVP() {
     //Move the positions of the lights based on the camera view except
     //the large map directional light that is used for low resolution
     //shadow map generation
-    if (_type == LightType::MAP_DIRECTIONAL || _type == LightType::CAMERA_DIRECTIONAL) {
+    if (_type == LightType::SHADOWED_DIRECTIONAL || _type == LightType::DIRECTIONAL) {
         return _lightMVP;
     }
     else {
@@ -55,7 +60,13 @@ Vector4& Light::getColor() {
 }
 
 bool Light::isShadowCaster() {
-    return _shadowCaster;
+    
+    if (_type == LightType::SHADOWED_DIRECTIONAL || 
+        _type == LightType::SHADOWED_POINT || 
+        _type == LightType::SHADOWED_SPOTLIGHT) {
+        return true;
+    }
+    return false;
 }
 
 float Light::getRange() {
@@ -64,22 +75,6 @@ float Light::getRange() {
     float nearVal = (2.0f*projMatrix[11]) / (2.0f*projMatrix[10] - 2.0f);
     float farVal = ((projMatrix[10] - 1.0f)*nearVal) / (projMatrix[10] + 1.0f);
     return farVal;
-    ////Bring the time back to real time for the effects shader
-    ////The amount of milliseconds in 24 hours
-    //const uint64_t dayLengthMilliseconds = 24 * 60 * 60 * 1000;
-    //uint64_t updateTimeAmplified = dayLengthMilliseconds / (60 * 1000);
-    //float realTimeMilliSeconds = static_cast<float>(_milliSecondTime) / static_cast<float>(updateTimeAmplified);
-
-    //std::random_device rd;  //Will be used to obtain a seed for the random number engine
-    //std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
-    //std::uniform_real_distribution<> dis(0.95, 1.0);
-
-    ////Modulate based on light type but for now assume fire
-    //float amplitude = 0.98f;
-    //float modulation = ((static_cast<float>(fabs(asin(sin(static_cast<double>(realTimeMilliSeconds * static_cast<float>(dis(gen))) / 1000.0))))) / 1.57f);
-
-    ////float modulatedIntensityPlusOffset = (farVal * (1.0f - amplitude)) + (farVal * modulation * amplitude);
-    //return modulation * farVal;
 }
 
 void Light::setMVP(MVP mvp) {
@@ -112,7 +107,7 @@ void Light::_updateTime(int time) {
     _milliSecondTime += (updateTimeAmplified*time);
     _milliSecondTime %= dayLengthMilliseconds;
 
-    if (_type == LightType::MAP_DIRECTIONAL || _type == LightType::CAMERA_DIRECTIONAL) {
+    if (_type == LightType::SHADOWED_DIRECTIONAL || _type == LightType::DIRECTIONAL) {
 
         //fraction of the rotation
         float posInRotation = static_cast<float>(_milliSecondTime) / static_cast<float>(dayLengthMilliseconds);
@@ -127,10 +122,15 @@ void Light::_updateTime(int time) {
 }
 
 void Light::render() {
-    //Bring the time back to real time for the effects shader
-    //The amount of milliseconds in 24 hours
-    const uint64_t dayLengthMilliseconds = 24 * 60 * 60 * 1000;
-    uint64_t updateTimeAmplified = dayLengthMilliseconds / (60 * 1000);
-    float realTimeMilliSeconds = static_cast<float>(_milliSecondTime) / static_cast<float>(updateTimeAmplified);
-    _effectShader->runShader(this, realTimeMilliSeconds / 1000.f);
+
+    if (_effectType != EffectType::None) {
+        //Bring the time back to real time for the effects shader
+        //The amount of milliseconds in 24 hours
+        const uint64_t dayLengthMilliseconds = 24 * 60 * 60 * 1000;
+        uint64_t updateTimeAmplified = dayLengthMilliseconds / (60 * 1000);
+        float realTimeMilliSeconds = static_cast<float>(_milliSecondTime) / static_cast<float>(updateTimeAmplified);
+        _effectShader->runShader(this, realTimeMilliSeconds / 1000.f);
+    }
 }
+
+void Light::renderShadow(std::vector<Entity*> entityList) {};

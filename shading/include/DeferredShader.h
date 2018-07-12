@@ -25,11 +25,10 @@
 #pragma once
 #include "Shader.h"
 #include "AnimatedModel.h"
-#include "ShadowRenderer.h"
 #include "MRTFrameBuffer.h"
 #include "Light.h"
 #include "ViewManager.h"
-#include "PointShadowMap.h"
+#include "PointShadow.h"
 #include "SSAO.h"
 #include "EnvironmentMap.h"
 
@@ -42,11 +41,9 @@ class DeferredShader : public Shader {
 public:
     DeferredShader(std::string shaderName);
     virtual ~DeferredShader();
-    void runShader(ShadowRenderer* shadowRenderer, 
-                   std::vector<Light*>& lights,
+    void runShader(std::vector<Light*>& lights,
                    ViewManager* viewManager, 
                    MRTFrameBuffer& mrtFBO,
-                   PointShadowMap* pointShadowMap,
                    SSAO* ssao,
                    EnvironmentMap* environmentMap);
 };

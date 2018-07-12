@@ -4,7 +4,6 @@
 #include "ViewManager.h"
 #include "Factory.h"
 #include "DeferredRenderer.h"
-#include "ShadowRenderer.h"
 #include "AudioManager.h"
 #include "ForwardRenderer.h"
 #include "SSAO.h"
@@ -22,6 +21,8 @@
 #include "FrustumOcclusion.h"
 #include "Entity.h"
 #include "ModelBroker.h"
+#include "ShadowedDirectionalLight.h"
+#include "ShadowedPointLight.h"
 #include <chrono>
 
 using namespace std::chrono;
@@ -51,9 +52,6 @@ SceneManager::SceneManager(int* argc, char** argv,
     glCheck();
 
     _forwardRenderer = new ForwardRenderer();
-    glCheck();
-
-    _pointShadowMap = new PointShadowMap(2000, 2000);
     glCheck();
 
     _ssaoPass = new SSAO();
@@ -104,15 +102,18 @@ SceneManager::SceneManager(int* argc, char** argv,
     MVP lightMVP;
     lightMVP.setView(Matrix::cameraTranslation(sunLocation.getx(), sunLocation.gety(), sunLocation.getz()));
     lightMVP.setProjection(Matrix::cameraOrtho(200.0f, 200.0f, 0.1f, 600.0f));
-    _lightList.push_back(Factory::make<Light>(lightMVP, LightType::CAMERA_DIRECTIONAL));
+    _lightList.push_back(new ShadowedDirectionalLight(_viewManager->getEventWrapper(),
+                                                      lightMVP,
+                                                      EffectType::None,
+                                                      Vector4(1.0, 0.0, 0.0)));
 
     MVP lightMapMVP;
     lightMVP.setView(Matrix::cameraTranslation(sunLocation.getx(), sunLocation.gety(), sunLocation.getz()));
     lightMapMVP.setProjection(Matrix::cameraOrtho(600.0f, 600.0f, 0.1f, 600.0f));
-    _lightList.push_back(Factory::make<Light>(lightMapMVP, LightType::MAP_DIRECTIONAL));
-
-    _shadowRenderer = new ShadowRenderer(_lightList[0], _lightList[1]);
-    glCheck();
+    _lightList.push_back(new ShadowedDirectionalLight(_viewManager->getEventWrapper(),
+                                                      lightMapMVP,
+                                                      EffectType::None,
+                                                      Vector4(1.0, 0.0, 0.0)));
 
     //Model view projection matrix for point light additions
     MVP pointLightMVP;
@@ -123,25 +124,24 @@ SceneManager::SceneManager(int* argc, char** argv,
 
     //Placing the lights in equidistant locations for testing
     pointLightMVP.setModel(Matrix::translation(212.14f, 24.68f, 186.46f));
-    _lightList.push_back(Factory::make<Light>(pointLightMVP,
-        LightType::POINT,
-        EffectType::Fire,
-        Vector4(1.0f, 0.8f, 0.3f, 1.0f),
-        true));
+    _lightList.push_back(new ShadowedPointLight(_viewManager->getEventWrapper(), 
+                                                pointLightMVP,
+                                                EffectType::Fire,
+                                                Vector4(1.0f, 0.8f, 0.3f, 1.0f)));
 
     pointLightMVP.setModel(Matrix::translation(198.45f, 24.68f, 186.71f));
-    _lightList.push_back(Factory::make<Light>(pointLightMVP,
-        LightType::POINT,
-        EffectType::Fire,
-        Vector4(1.0f, 0.8f, 0.3f, 1.0f),
-        false));
+    _lightList.push_back(new Light(_viewManager->getEventWrapper(),
+                                    pointLightMVP,
+                                    LightType::POINT,
+                                    EffectType::Fire,
+                                    Vector4(1.0f, 0.8f, 0.3f, 1.0f)));
 
     pointLightMVP.setModel(Matrix::translation(178.45f, 143.59f, 240.71f));
-    _lightList.push_back(Factory::make<Light>(pointLightMVP,
-        LightType::POINT,
-        EffectType::Smoke,
-        Vector4(0.4f, 0.4f, 0.4f, 1.0f),
-        false));
+    _lightList.push_back(new Light(_viewManager->getEventWrapper(),
+                                    pointLightMVP,
+                                    LightType::POINT,
+                                    EffectType::Smoke,
+                                    Vector4(0.4f, 0.4f, 0.4f, 1.0f)));
 
     MasterClock::instance()->run(); //Scene manager kicks off the clock event manager
 
@@ -166,7 +166,6 @@ SceneManager::~SceneManager() {
     for (auto entity : _entityList) {
         delete entity;
     }
-    delete _shadowRenderer;
     delete _deferredRenderer;
     delete _viewManager;
     delete _audioManager;
@@ -180,12 +179,10 @@ void SceneManager::_preDraw() {
         _viewManager->getViewState() == ViewManager::ViewState::DEFERRED_LIGHTING ||
         _viewManager->getViewState() == ViewManager::ViewState::CAMERA_SHADOW ||
         _viewManager->getViewState() == ViewManager::ViewState::MAP_SHADOW) {
-        //send all vbo data to shadow shader pre pass
-        _shadowRenderer->generateShadowBuffer(_entityList, _lightList);
-
+       
         //send all vbo data to point light shadow pre pass
         for (Light* light : _lightList) {
-            _pointShadowMap->render(_entityList, light);
+            light->renderShadow(_entityList);
         }
     }
 
@@ -219,16 +216,14 @@ void SceneManager::_postDraw() {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         //Pass lights to deferred shading pass
-        _deferredRenderer->deferredLighting(_shadowRenderer, _lightList, _viewManager, _pointShadowMap, _ssaoPass, _environmentMap);
+        _deferredRenderer->deferredLighting(_lightList, _viewManager, _ssaoPass, _environmentMap);
 
         //Draw transparent objects onto of the deferred renderer
-        _forwardRenderer->forwardLighting(_entityList, _viewManager, _shadowRenderer, _lightList, _pointShadowMap);
+        _forwardRenderer->forwardLighting(_entityList, _viewManager, _lightList);
 
         // Lights - including the fire point lights
         for (auto light : _lightList) {
-            if (light->getType() == LightType::POINT) {
-                light->render();
-            }
+            light->render();
         }
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -255,7 +250,7 @@ void SceneManager::_postDraw() {
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         //Pass lights to deferred shading pass
-        _deferredRenderer->deferredLighting(_shadowRenderer, _lightList, _viewManager, _pointShadowMap, _ssaoPass, _environmentMap);
+        _deferredRenderer->deferredLighting(_lightList, _viewManager, _ssaoPass, _environmentMap);
     }
 
     _terminal->display();

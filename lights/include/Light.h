@@ -25,30 +25,36 @@
 #include "Shader.h"
 #include "EffectShader.h"
 #include "Effect.h"
+#include "VAO.h"
+#include "DebugShader.h"
+#include <vector>
 
 enum class LightType {
-    CAMERA_DIRECTIONAL = 0,
-    MAP_DIRECTIONAL,
+    DIRECTIONAL = 0,
+    SHADOWED_DIRECTIONAL,
     POINT,
-    SPOTLIGHT
+    SHADOWED_POINT,
+    SPOTLIGHT,
+    SHADOWED_SPOTLIGHT
 };
 
 class Light : public Effect {
+
+protected:
     MVP                     _lightMVP; //Light's Model view matrix for light
     Vector4                 _position; //Position of light
     LightType               _type; //Light type enum
     Vector4                 _color; //Light color
     void                    _updateTime(int time);
     uint64_t                _milliSecondTime;
-    bool                    _shadowCaster;
-
+    VAO                     _vao;
+    DebugShader*            _debugShader;
 public:
     Light(ViewManagerEvents* eventWrapper,
         MVP mvp,
         LightType type,
         EffectType effect,
-        Vector4 color,
-        bool shadowCaster);
+        Vector4 color);
     MVP                     getLightMVP();
     MVP                     getCameraMVP();
     Vector4                 getPosition();
@@ -59,5 +65,6 @@ public:
     float                   getHeight();
     bool                    isShadowCaster();
     void                    setMVP(MVP mvp);
-    void                    render();
+    virtual void            render();
+    virtual void            renderShadow(std::vector<Entity*> entityList);
 };

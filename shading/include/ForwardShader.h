@@ -26,13 +26,12 @@
 #include <vector>
 class ViewManager;
 class ShadowRenderer;
-class PointShadowMap;
+class PointShadow;
 
 class ForwardShader : public Shader {
 
 public:
     ForwardShader(std::string vertexShaderName, std::string fragmentShaderName = "");
     ~ForwardShader();
-    void runShader(Entity* entity, ViewManager* viewManager, ShadowRenderer* shadowRenderer,
-        std::vector<Light*>& lights, PointShadowMap* pointShadowMap);
+    void runShader(Entity* entity, ViewManager* viewManager, std::vector<Light*>& lights);
 };

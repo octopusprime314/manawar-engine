@@ -3,9 +3,10 @@
 #include "VAO.h"
 #include "Model.h"
 #include "ViewManager.h"
-#include "ShadowRenderer.h"
-#include "PointShadowMap.h"
+#include "PointShadow.h"
 #include "Entity.h"
+#include "ShadowedPointLight.h"
+#include "ShadowedDirectionalLight.h"
 
 ForwardShader::ForwardShader(std::string vertexShaderName, std::string fragmentShaderName)
     : Shader(vertexShaderName, fragmentShaderName) {
@@ -15,8 +16,8 @@ ForwardShader::~ForwardShader() {
 
 }
 
-void ForwardShader::runShader(Entity* entity, ViewManager* viewManager, ShadowRenderer* shadowRenderer,
-    std::vector<Light*>& lights, PointShadowMap* pointShadowMap) {
+void ForwardShader::runShader(Entity* entity, ViewManager* viewManager,
+    std::vector<Light*>& lights) {
 
     //LOAD IN SHADER
     glUseProgram(_shaderContext); //use context for loaded shader
@@ -49,7 +50,8 @@ void ForwardShader::runShader(Entity* entity, ViewManager* viewManager, ShadowRe
     //TODO add max point light constant
     unsigned int pointLights = 0;
     for (auto& light : lights) {
-        if (light->getType() == LightType::POINT) {
+        if (light->getType() == LightType::POINT ||
+            light->getType() == LightType::SHADOWED_POINT) {
             pointLights++;
         }
     }
@@ -61,7 +63,8 @@ void ForwardShader::runShader(Entity* entity, ViewManager* viewManager, ShadowRe
     int lightRangeIndex = 0;
     for (auto& light : lights) {
         //If point light then add to uniforms
-        if (light->getType() == LightType::POINT) {
+        if (light->getType() == LightType::POINT ||
+            light->getType() == LightType::SHADOWED_POINT) {
             //Point lights need to remain stationary so move lights with camera space changes
             auto pos = viewManager->getView() * light->getPosition();
             float* posBuff = pos.getFlatBuffer();
@@ -107,6 +110,18 @@ void ForwardShader::runShader(Entity* entity, ViewManager* viewManager, ShadowRe
     float farVal = ((projMatrix[10] - 1.0f)*nearVal) / (projMatrix[10] + 1.0f);
     updateUniform("farPlane", &farVal);
 
+    ShadowedPointLight* pointShadowTexture = nullptr;
+    std::vector<ShadowedDirectionalLight*> directionalShadowTextures;
+    for (auto light : lights) {
+        if (light->getType() == LightType::SHADOWED_POINT) {
+            pointShadowTexture = static_cast<ShadowedPointLight*>(light);
+            break;
+        }
+        else if (light->getType() == LightType::SHADOWED_DIRECTIONAL) {
+            directionalShadowTextures.push_back(static_cast<ShadowedDirectionalLight*>(light));
+        }
+    }
+
     auto textureStrides = model->getTextureStrides();
     unsigned int strideLocation = 0;
     for (auto textureStride : textureStrides) {
@@ -119,9 +134,9 @@ void ForwardShader::runShader(Entity* entity, ViewManager* viewManager, ShadowRe
             model->getTexture(textureStride.first)->getTransparency()) {
 
             updateUniform("textureMap",         GL_TEXTURE0, model->getTexture(textureStride.first)->getContext());
-            updateUniform("cameraDepthTexture", GL_TEXTURE1, shadowRenderer->getAnimatedDepthTexture());
-            updateUniform("mapDepthTexture",    GL_TEXTURE2, shadowRenderer->getMapDepthTexture());
-            updateUniform("depthMap",           GL_TEXTURE3, pointShadowMap->getCubeMapTexture());
+            updateUniform("cameraDepthTexture", GL_TEXTURE1, directionalShadowTextures[0]->getDepthTexture());
+            updateUniform("mapDepthTexture",    GL_TEXTURE2, directionalShadowTextures[1]->getDepthTexture());
+            updateUniform("depthMap",           GL_TEXTURE3, pointShadowTexture->getDepthTexture());
 
             //Draw triangles using the bound buffer vertices at starting index 0 and number of triangles
             glDrawArrays(GL_TRIANGLES, strideLocation, (GLsizei)textureStride.second);

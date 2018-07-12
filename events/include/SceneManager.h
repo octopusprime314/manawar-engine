@@ -27,7 +27,7 @@ class ViewManager;
 class DeferredRenderer;
 class ShadowRenderer;
 class AudioManager;
-class PointShadowMap;
+class PointShadow;
 class ForwardRenderer;
 class SSAO;
 class EnvironmentMap;
@@ -49,8 +49,6 @@ class SceneManager {
     Physics*             _physics; //Manages physical interactions between models
     DeferredRenderer*    _deferredRenderer; //Manages deferred shading g buffers
     ForwardRenderer*     _forwardRenderer; //Manages forward shading transparent objects
-    ShadowRenderer*      _shadowRenderer;   //Manages shadow rendering
-    PointShadowMap*      _pointShadowMap; //Manages point shadow lights
     AudioManager*        _audioManager;  // Manages audio playback
     SSAO*                _ssaoPass;
     EnvironmentMap*      _environmentMap;

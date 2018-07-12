@@ -28,7 +28,6 @@
 #include "DeferredShader.h"
 #include "DepthFrameBuffer.h"
 #include "MRTFrameBuffer.h"
-#include "ShadowRenderer.h"
 #include "ViewManager.h"
 #include "Light.h"
 class Model;
@@ -41,9 +40,8 @@ class DeferredRenderer {
 public:
     DeferredRenderer();
     ~DeferredRenderer();
-    void deferredLighting(ShadowRenderer* shadowRenderer,
-        std::vector<Light*>& lights, ViewManager* viewManager,
-        PointShadowMap* pointShadowRenderer,
+    void deferredLighting(std::vector<Light*>& lights, 
+        ViewManager* viewManager,
         SSAO* ssao,
         EnvironmentMap* environmentMap);
     void bind();

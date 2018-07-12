@@ -1,23 +1,22 @@
-#include "PointShadowMap.h"
+#include "PointShadow.h"
 #include "ShaderBroker.h"
 #include "Entity.h"
 
-PointShadowMap::PointShadowMap(GLuint width, GLuint height) :
+PointShadow::PointShadow(GLuint width, GLuint height) :
     CubeMapRenderer(width, height, true),
     _pointShadowShader(static_cast<ShadowPointShader*>(ShaderBroker::instance()->getShader("pointShadowShader"))),
     _pointAnimatedShadowShader(static_cast<ShadowAnimatedPointShader*>(ShaderBroker::instance()->getShader("pointAnimatedShadowShader"))) {
 
 }
 
-PointShadowMap::~PointShadowMap() {
+PointShadow::~PointShadow() {
 
 }
 
-
-void PointShadowMap::render(std::vector<Entity*> entityList, Light* light) {
+void PointShadow::render(std::vector<Entity*> entityList, Light* light) {
 
     //Does this light support cube map depth rendering
-    if (light->getType() == LightType::POINT && light->isShadowCaster()) {
+    if (light->getType() == LightType::SHADOWED_POINT) {
 
         //Prepare cube face transforms
         preCubeFaceRender(entityList, &light->getLightMVP());

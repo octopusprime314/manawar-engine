@@ -1,4 +1,6 @@
 #include "DeferredShader.h"
+#include "ShadowedPointLight.h"
+#include "ShadowedDirectionalLight.h"
 
 DeferredShader::DeferredShader(std::string shaderName) : Shader(shaderName) {
     glCheck();
@@ -19,13 +21,12 @@ DeferredShader::~DeferredShader() {
 
 }
 
-void DeferredShader::runShader(ShadowRenderer* shadowRenderer,
-    std::vector<Light*>& lights,
+void DeferredShader::runShader(std::vector<Light*>& lights,
     ViewManager* viewManager,
     MRTFrameBuffer& mrtFBO,
-    PointShadowMap* pointShadowMap,
     SSAO* ssao,
     EnvironmentMap* environmentMap) {
+
     //Take the generated texture data and do deferred shading
     //LOAD IN SHADER
     glUseProgram(_shaderContext); //use context for loaded shader
@@ -44,7 +45,8 @@ void DeferredShader::runShader(ShadowRenderer* shadowRenderer,
     //TODO add max point light constant
     unsigned int pointLights = 0;
     for (auto& light : lights) {
-        if (light->getType() == LightType::POINT) {
+        if (light->getType() == LightType::POINT || 
+            light->getType() == LightType::SHADOWED_POINT) {
             pointLights++;
         }
     }
@@ -56,7 +58,8 @@ void DeferredShader::runShader(ShadowRenderer* shadowRenderer,
     int lightRangeIndex = 0;
     for (auto& light : lights) {
         //If point light then add to uniforms
-        if (light->getType() == LightType::POINT) {
+        if (light->getType() == LightType::POINT ||
+            light->getType() == LightType::SHADOWED_POINT) {
             //Point lights need to remain stationary so move lights with camera space changes
             auto pos = viewManager->getView() * light->getPosition();
             float* posBuff = pos.getFlatBuffer();
@@ -111,15 +114,27 @@ void DeferredShader::runShader(ShadowRenderer* shadowRenderer,
     float farVal = ((projMatrix[10] - 1.0f)*nearVal) / (projMatrix[10] + 1.0f);
     updateUniform("farPlane", &farVal);
 
+    ShadowedPointLight* pointShadowTexture = nullptr;
+    std::vector<ShadowedDirectionalLight*> directionalShadowTextures;
+    for (auto light : lights) {
+        if (light->getType() == LightType::SHADOWED_POINT) {
+            pointShadowTexture = static_cast<ShadowedPointLight*>(light);
+            break;
+        }
+        else if (light->getType() == LightType::SHADOWED_DIRECTIONAL) {
+            directionalShadowTextures.push_back(static_cast<ShadowedDirectionalLight*>(light));
+        }
+    }
+
     auto textures = mrtFBO.getTextureContexts();
 
     updateUniform("diffuseTexture",     GL_TEXTURE0, textures[0]);
     updateUniform("normalTexture",      GL_TEXTURE1, textures[1]);
     updateUniform("velocityTexture",    GL_TEXTURE2, textures[2]);
     updateUniform("depthTexture",       GL_TEXTURE3, textures[3]);
-    updateUniform("cameraDepthTexture", GL_TEXTURE4, shadowRenderer->getStaticDepthTexture());
-    updateUniform("mapDepthTexture",    GL_TEXTURE5, shadowRenderer->getMapDepthTexture());
-    updateUniform("depthMap",           GL_TEXTURE6, pointShadowMap->getCubeMapTexture());
+    updateUniform("cameraDepthTexture", GL_TEXTURE4, directionalShadowTextures[0]->getDepthTexture());
+    updateUniform("mapDepthTexture",    GL_TEXTURE5, directionalShadowTextures[1]->getDepthTexture());
+    updateUniform("depthMap",           GL_TEXTURE6, pointShadowTexture->getDepthTexture());
     updateUniform("skyboxDayTexture",   GL_TEXTURE7, _skyBoxDayTexture->getContext());
     updateUniform("skyboxNightTexture", GL_TEXTURE8, _skyBoxNightTexture->getContext());
     updateUniform("ssaoTexture",        GL_TEXTURE9, ssao->getBlur()->getTextureContext());

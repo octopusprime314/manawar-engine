@@ -6,6 +6,7 @@
 #include "ShadowStaticShader.h"
 #include "SSAOShader.h"
 #include "ShadowAnimatedPointShader.h"
+#include "ShadowAnimatedShader.h"
 #include "ShadowPointShader.h"
 #include "MergeShader.h"
 #include "ForwardShader.h"

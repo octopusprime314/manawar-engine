@@ -49,6 +49,9 @@ endif()
 if (NOT IS_DIRECTORY "${CMAKE_SOURCE_DIR}/io")
     message(WARNING "Missing directory ${CMAKE_SOURCE_DIR}/io")
 endif()
+if (NOT IS_DIRECTORY "${CMAKE_SOURCE_DIR}/lights")
+    message(WARNING "Missing directory ${CMAKE_SOURCE_DIR}/lights")
+endif()
 
 set(CMAKE_INSTALL_PREFIX "${CMAKE_SOURCE_DIR}/ReBoot-dist")
 
@@ -68,6 +71,7 @@ include_directories("${CMAKE_SOURCE_DIR}/renderer/include")
 include_directories("${CMAKE_SOURCE_DIR}/screenspace/include")
 include_directories("${CMAKE_SOURCE_DIR}/texture/include")
 include_directories("${CMAKE_SOURCE_DIR}/io/include")
+include_directories("${CMAKE_SOURCE_DIR}/lights/include")
 
 FILE(GLOB MODEL_HEADER_FILES       ${CMAKE_SOURCE_DIR}/model/include/*.h)
 FILE(GLOB PHYSICS_HEADER_FILES     ${CMAKE_SOURCE_DIR}/physics/include/*.h)
@@ -81,6 +85,7 @@ FILE(GLOB RENDERER_HEADER_FILES    ${CMAKE_SOURCE_DIR}/renderer/include/*.h)
 FILE(GLOB SCREENSPACE_HEADER_FILES ${CMAKE_SOURCE_DIR}/screenspace/include/*.h)
 FILE(GLOB TEXTURE_HEADER_FILES     ${CMAKE_SOURCE_DIR}/texture/include/*.h)
 FILE(GLOB IO_HEADER_FILES 		   ${CMAKE_SOURCE_DIR}/io/include/*.h)
+FILE(GLOB LIGHTS_HEADER_FILES 	   ${CMAKE_SOURCE_DIR}/lights/include/*.h)
 
 FILE(GLOB MODEL_SRC_FILES       ${CMAKE_SOURCE_DIR}/model/src/*.cpp)
 FILE(GLOB PHYSICS_SRC_FILES     ${CMAKE_SOURCE_DIR}/physics/src/*.cpp)
@@ -95,6 +100,7 @@ FILE(GLOB RENDERER_SRC_FILES    ${CMAKE_SOURCE_DIR}/renderer/src/*.cpp)
 FILE(GLOB SCREENSPACE_SRC_FILES ${CMAKE_SOURCE_DIR}/screenspace/src/*.cpp)
 FILE(GLOB TEXTURE_SRC_FILES     ${CMAKE_SOURCE_DIR}/texture/src/*.cpp)
 FILE(GLOB IO_SRC_FILES          ${CMAKE_SOURCE_DIR}/io/src/*.cpp)
+FILE(GLOB LIGHTS_SRC_FILES      ${CMAKE_SOURCE_DIR}/lights/src/*.cpp)
 
 source_group("model"       FILES ${MODEL_HEADER_FILES} ${MODEL_SRC_FILES})
 source_group("physics"     FILES ${PHYSICS_HEADER_FILES} ${PHYSICS_SRC_FILES})
@@ -109,6 +115,7 @@ source_group("renderer"    FILES ${RENDERER_HEADER_FILES} ${RENDERER_SRC_FILES})
 source_group("screenspace" FILES ${SCREENSPACE_HEADER_FILES} ${SCREENSPACE_SRC_FILES})
 source_group("texture"     FILES ${TEXTURE_HEADER_FILES} ${TEXTURE_SRC_FILES})
 source_group("io"          FILES ${IO_HEADER_FILES} ${IO_SRC_FILES})
+source_group("lights"      FILES ${LIGHTS_HEADER_FILES} ${LIGHTS_SRC_FILES})
 
 add_executable(ReBoot
     # WIN32
@@ -136,7 +143,9 @@ add_executable(ReBoot
 				${TEXTURE_HEADER_FILES}
 				${TEXTURE_SRC_FILES}
 				${IO_HEADER_FILES}
-				${IO_SRC_FILES})
+				${IO_SRC_FILES}
+				${LIGHTS_HEADER_FILES}
+				${LIGHTS_SRC_FILES})
 
 target_compile_features(ReBoot PRIVATE cxx_range_for)
 

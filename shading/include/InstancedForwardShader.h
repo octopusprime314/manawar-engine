@@ -25,13 +25,12 @@
 #include <vector>
 class ViewManager;
 class ShadowRenderer;
-class PointShadowMap;
+class PointShadow;
 
 class InstancedForwardShader : public ForwardShader {
 
 public:
     InstancedForwardShader(std::string shaderName);
     virtual ~InstancedForwardShader();
-    virtual void runShader(Entity* entity, ViewManager* viewManager, ShadowRenderer* shadowRenderer,
-        std::vector<Light*>& lights, PointShadowMap* pointShadowMap);
+    virtual void runShader(Entity* entity, ViewManager* viewManager, std::vector<Light*>& lights);
 };

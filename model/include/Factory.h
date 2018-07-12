@@ -30,21 +30,21 @@ namespace Factory {
     // View event wrapper that allows subscription to game events
     extern ViewManagerEvents* _viewEventWrapper;
 
-    //Templated class function to generate classes that subscribe to game events
-    template<class T>
-    T* make(std::string name) {
-        return new T(name, _viewEventWrapper);
-    }
+    ////Templated class function to generate classes that subscribe to game events
+    //template<class T>
+    //T* make(std::string name) {
+    //    return new T(name, _viewEventWrapper);
+    //}
 
-    //Templated class function to generate classes that subscribe to game events
-    template<class T>
-    T* make(MVP mvp,
-        LightType type,
-        EffectType effect = EffectType::None,
-        Vector4 color = { 1.0f, 1.0f, 1.0f, 1.0f },
-        bool shadowCaster = false) {
-        return new T(_viewEventWrapper, mvp, type, effect, color, shadowCaster);
-    }
+    ////Templated class function to generate classes that subscribe to game events
+    //template<class T>
+    //T* make(MVP mvp,
+    //    LightType type,
+    //    EffectType effect = EffectType::None,
+    //    Vector4 color = { 1.0f, 1.0f, 1.0f, 1.0f },
+    //    bool shadowCaster = false) {
+    //    return new T(_viewEventWrapper, mvp, type, effect, color, shadowCaster);
+    //}
 
     //Sets the reference to the view model's event object
     static void setViewWrapper(ViewManager* viewManager) {

@@ -26,7 +26,6 @@ in VsData
 }  vsData;
 
 out vec4 fragColor;
-uniform float farPlane;
 uniform vec3 light;
 
 void main(){
@@ -121,7 +120,5 @@ void main(){
 										  (pointLighting * diffuse.rgb);
 		
 		fragColor = vec4((lightComponentIllumination * totalShadow) + (ambient * diffuse.rgb), 1.0);
-	
-		gl_FragDepth = (length(vsData.positionOut.xyz)/farPlane) / 2.0f;
 	}
 }

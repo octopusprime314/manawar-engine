@@ -25,7 +25,6 @@ uniform int  numPointLights;
 
 uniform int views;   //views set to 0 is diffuse mapping, set to 1 is shadow mapping and set to 2 is normal mapping
 uniform vec3 light;  
-uniform float farPlane;
 
 in VsData
 {
@@ -55,10 +54,11 @@ vec3 decodeLocation() {
 
 void main(){
 
-	//extract position from position texture
-	vec4 position = vec4(decodeLocation(), 1.0); //texture(positionTexture, vsData.texCoordOut.xy);
+	//extract position from depth texture
+	vec4 position = vec4(decodeLocation(), 1.0);
 	//extract normal from normal texture
-	vec3 normalizedNormal = normalize(texture(normalTexture, vsData.texCoordOut.xy).xyz); 
+	vec4 normal = texture(normalTexture, vsData.texCoordOut.xy); 
+	vec3 normalizedNormal = normalize(normal.xyz); 
 	//extract color from diffuse texture
 	vec4 diffuse = texture(diffuseTexture, vsData.texCoordOut.xy);
 	//extract 2d velocity buffer
@@ -66,17 +66,13 @@ void main(){
 	
 	float occlusion = texture(ssaoTexture, vsData.texCoordOut.xy).r;
 	
-	if(position.x != 0.0 && position.y != 0.0 && position.z != 0.0){
-		gl_FragDepth = (length(position.xyz)/farPlane) / 2.0f;
-	}
-	else{
-		gl_FragDepth = 0.5f;
-	}
+	//blit depth
+	gl_FragDepth = texture(depthTexture, vsData.texCoordOut.xy).r;
 	
 	//Directional light calculation
 	//NEED to invert light vector other a normal surface pointing up with a light pointing
 	//down would result in a negative dot product of the two vecs, inverting gives us positive numbers!
-	vec3 normalizedLight = normalize(-light);
+	vec3 normalizedLight = normalize(vec3(light.x, -light.y, light.z));
 	float illumination = dot(normalizedLight, normalizedNormal);
 	
 	//Convert from camera space vertex to light clip space vertex
@@ -89,10 +85,15 @@ void main(){
 	vec2 shadowTextureCoordinatesMap = shadowMappingMap.xy * vec2(0.5,0.5) + vec2(0.5,0.5);
 
 	if(views == 0){
-		if(position.x == 0.0 && position.y == 0.0 && position.z == 0.0){
+		//Detects if there is no screen space information and then displays skybox!
+		if(normal.x == 0.0 && normal.y == 0.0 && normal.z == 0.0){
 			vec4 dayColor = texture(skyboxDayTexture, vec3(vsData.vsViewDirection.x, -vsData.vsViewDirection.y, vsData.vsViewDirection.z));
 			vec4 nightColor = texture(skyboxNightTexture, vec3(vsData.vsViewDirection.x, -vsData.vsViewDirection.y, vsData.vsViewDirection.z));
 			fragColor = (((1.0 - light.y)/2.0) * dayColor) + (((1.0 + light.y)/2.0) * nightColor);
+			//skybox depth trick to have it displayed at the depth boundary
+			//precision matters here and must be as close as possible to 1.0
+			//the number of 9s can only go to 7 but no less than 4
+			gl_FragDepth = 0.9999999;
 		}
 		else {
 			vec3 pointLighting = vec3(0.0, 0.0, 0.0);
@@ -189,17 +190,20 @@ void main(){
 	
 		float depth = texture(cameraDepthTexture, vsData.texCoordOut).x;
 		fragColor = vec4(depth, depth, depth, 1.0);
+		gl_FragDepth = 0.1;
 	}
 	else if(views == 7){
 	
 		float depth = texture(mapDepthTexture, vsData.texCoordOut).x;
 		fragColor = vec4(depth, depth, depth, 1.0);
+		gl_FragDepth = 0.1;
 	}
 	else if(views == 8){
 	
 		vec3 cubeMapTexCoords = (viewToModelMatrix * vec4(position.xyz,1.0)).xyz - (viewToModelMatrix * vec4(pointLightPositions[0].xyz, 1.0)).xyz;
 		float cubeDepth = texture(depthMap, normalize(cubeMapTexCoords.xyz)).x;
 		fragColor = vec4(vec3(cubeDepth), 1.0);
+		gl_FragDepth = 0.1;
 	}
 	else if(views == 9){
 		//Draw geometry visualizer

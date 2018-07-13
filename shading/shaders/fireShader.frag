@@ -46,7 +46,6 @@ in VsData
 	vec3 positionOut;
 } vsData;
 uniform float time;
-uniform float farPlane;
 uniform vec3 fireColor;
 
 uniform float weight[5] = float[] (0.227027, 0.1945946, 0.1216216, 0.054054, 0.016216);
@@ -73,10 +72,7 @@ void main(){
 	float a = c * (1.-pow((uv.y),3.));
 	fragColor = vec4( mix(vec3(0.),col.xxx*fireColor,a), 1.0);
 	
-	if(fragColor.r > 0.25 || fragColor.g > 0.25 || fragColor.b > 0.25){
-		gl_FragDepth = (length(vsData.positionOut)/farPlane) / 2.0f;
-	}
-	else{
-		gl_FragDepth = 1.0;
+	if(!(fragColor.r > 0.25 || fragColor.g > 0.25 || fragColor.b > 0.25)){
+		discard;
 	}
 }

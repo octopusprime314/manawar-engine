@@ -6,6 +6,9 @@ ShadowedDirectionalLight::ShadowedDirectionalLight(ViewManagerEvents* eventWrapp
     _shadow(static_cast<unsigned int>(getWidth()),
             static_cast<unsigned int>(getHeight())) {
 
+
+    std::vector<Cube>* cubes = new std::vector<Cube>{ Cube(2.0, 2.0, 2.0, Vector4(0.0, 0.0, 0.0)) };
+    _vao.createVAO(cubes);
 }
 
 
@@ -21,7 +24,16 @@ void ShadowedDirectionalLight::render() {
 
     if (_type == LightType::DIRECTIONAL || _type == LightType::SHADOWED_DIRECTIONAL) {
         Vector4 color(1.0, 0.0, 0.0);
-        _debugShader->runShader(&getLightMVP(), &_vao, {}, color.getFlatBuffer());
+
+        //Build inverse projection matrix which will properly transform unit cube
+        //to the frustum vertices to visualize it in the engine
+        MVP lightMVP = getLightMVP();
+        MVP mvp;
+        //Model transform to create frustum cube
+        mvp.setModel(lightMVP.getViewMatrix().inverse() * lightMVP.getProjectionMatrix().inverse());
+        mvp.setView(_cameraMVP.getViewMatrix());
+        mvp.setProjection(_cameraMVP.getProjectionMatrix());
+        _debugShader->runShader(&mvp, &_vao, {}, color.getFlatBuffer());
     }
 
     Light::render();

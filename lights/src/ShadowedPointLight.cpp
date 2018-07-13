@@ -5,6 +5,8 @@ ShadowedPointLight::ShadowedPointLight(ViewManagerEvents* eventWrapper,
     Light(eventWrapper, mvp, LightType::SHADOWED_POINT, effect, color),
     _shadow(2000, 2000){
 
+    std::vector<Sphere>* spheres = new std::vector<Sphere>{ Sphere(getRange(), getPosition()) };
+    _vao.createVAO(spheres);
 }
 
 void ShadowedPointLight::renderShadow(std::vector<Entity*> entityList) {
@@ -16,10 +18,13 @@ GLuint ShadowedPointLight::getDepthTexture() {
 }
 
 void ShadowedPointLight::render() {
-    //Bring the time back to real time for the effects shader
-    //The amount of milliseconds in 24 hours
-    const uint64_t dayLengthMilliseconds = 24 * 60 * 60 * 1000;
-    uint64_t updateTimeAmplified = dayLengthMilliseconds / (60 * 1000);
-    float realTimeMilliSeconds = static_cast<float>(_milliSecondTime) / static_cast<float>(updateTimeAmplified);
-    _effectShader->runShader(this, realTimeMilliSeconds / 1000.f);
+    
+    Vector4 color(1.0, 0.0, 0.0);
+    MVP mvp;
+    //Model transform to create frustum cube
+    mvp.setView(_cameraMVP.getViewMatrix());
+    mvp.setProjection(_cameraMVP.getProjectionMatrix());
+    _debugShader->runShader(&mvp, &_vao, {}, color.getFlatBuffer());
+
+    Light::render();
 }

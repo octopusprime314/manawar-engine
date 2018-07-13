@@ -98,18 +98,18 @@ SceneManager::SceneManager(int* argc, char** argv,
     
     _physics->run(); //Dispatch physics to start kinematics
 
-    Vector4 sunLocation(0.0f, 0.0f, 300.0f);
+    Vector4 sunLocation(0.0f, 0.0f, -300.0f);
     MVP lightMVP;
-    lightMVP.setView(Matrix::cameraTranslation(sunLocation.getx(), sunLocation.gety(), sunLocation.getz()));
-    lightMVP.setProjection(Matrix::cameraOrtho(200.0f, 200.0f, 0.1f, 600.0f));
+    lightMVP.setView(Matrix::translation(sunLocation.getx(), sunLocation.gety(), sunLocation.getz()));
+    lightMVP.setProjection(Matrix::cameraOrtho(200.0f, 200.0f, 0.0f, 600.0f));
     _lightList.push_back(new ShadowedDirectionalLight(_viewManager->getEventWrapper(),
                                                       lightMVP,
                                                       EffectType::None,
                                                       Vector4(1.0, 0.0, 0.0)));
 
     MVP lightMapMVP;
-    lightMVP.setView(Matrix::cameraTranslation(sunLocation.getx(), sunLocation.gety(), sunLocation.getz()));
-    lightMapMVP.setProjection(Matrix::cameraOrtho(600.0f, 600.0f, 0.1f, 600.0f));
+    lightMapMVP.setView(Matrix::translation(sunLocation.getx(), sunLocation.gety(), sunLocation.getz()));
+    lightMapMVP.setProjection(Matrix::cameraOrtho(600.0f, 600.0f, 0.0f, 600.0f));
     _lightList.push_back(new ShadowedDirectionalLight(_viewManager->getEventWrapper(),
                                                       lightMapMVP,
                                                       EffectType::None,
@@ -225,6 +225,7 @@ void SceneManager::_postDraw() {
         for (auto light : _lightList) {
             light->render();
         }
+        _viewManager->displayViewFrustum();
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 

@@ -32,6 +32,7 @@
 #include <map>
 #include "MVP.h"
 #include "StateVector.h"
+#include "DebugShader.h"
 
 class SimpleContext;
 class Model;
@@ -71,7 +72,8 @@ private:
     StateVector         _state;
     double              _prevMouseX, _prevMouseY;
     void                _updateKinematics(int milliSeconds);
-
+    VAO                 _frustumVAO;
+    DebugShader*        _debugShader;
 
 public:
     ViewManager();
@@ -89,6 +91,7 @@ public:
     ViewState          getViewState();
     ViewManagerEvents* getEventWrapper();
     void               run(); //Make this call to start glfw mainloop
+    void               displayViewFrustum();
 protected:
     void               _updateKeyboard(int key, int x, int y); //Do stuff based on keyboard upate
     void               _updateReleaseKeyboard(int key, int x, int y); //Do stuff based on keyboard release upate

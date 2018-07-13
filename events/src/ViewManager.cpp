@@ -8,6 +8,7 @@
 #include <cmath>
 #include "StateVector.h"
 #include "Entity.h"
+#include "ShaderBroker.h"
 
 ViewManager::ViewManager() {
 
@@ -48,6 +49,18 @@ void ViewManager::run() {
     _glfwContext->run();
 }
 
+void ViewManager::displayViewFrustum() {
+    
+    Vector4 color(1.0, 0.0, 0.0);
+
+    //Model transform to create frustum cube
+    MVP mvp;
+    mvp.setModel(_projection.inverse());
+    mvp.setView(_view);
+    mvp.setProjection(_projection);
+    _debugShader->runShader(&mvp, &_frustumVAO, {}, color.getFlatBuffer());
+}
+
 void ViewManager::setProjection(unsigned int viewportWidth, unsigned int viewportHeight, float nearPlaneDistance, float farPlaneDistance) {
     //45 degree angle up/down/left/right,
     //width by height aspect ratio
@@ -60,6 +73,10 @@ void ViewManager::setProjection(unsigned int viewportWidth, unsigned int viewpor
 
     //Broadcast perspective matrix once to all subscribers
     _viewEvents->updateProjection(_projection);
+
+    _debugShader = static_cast<DebugShader*>(ShaderBroker::instance()->getShader("debugShader"));
+    std::vector<Cube>* cubes = new std::vector<Cube>{ Cube(2.0, 2.0, 2.0, Vector4(0.0, 0.0, 0.0)) };
+    _frustumVAO.createVAO(cubes);
 
 }
 
@@ -149,7 +166,9 @@ void ViewManager::_updateKeyboard(int key, int x, int y) { //Do stuff based on k
         _viewState = ViewState::PHYSICS;
     }
 
-    if (key == GLFW_KEY_W || key == GLFW_KEY_S || key == GLFW_KEY_A || key == GLFW_KEY_D || key == GLFW_KEY_E) {
+    if (key == GLFW_KEY_W || key == GLFW_KEY_S || 
+        key == GLFW_KEY_A || key == GLFW_KEY_D || 
+        key == GLFW_KEY_E || key == GLFW_KEY_C) {
 
         float * temp = nullptr;
         Vector4 trans;
@@ -182,7 +201,7 @@ void ViewManager::_updateKeyboard(int key, int x, int y) { //Do stuff based on k
             trans = Vector4(_inverseRotation * force); //Apply transformation based off inverse rotation
             temp = trans.getFlatBuffer();
         }
-        else if (key == GLFW_KEY_E) { //down c
+        else if (key == GLFW_KEY_C) { //down c
             force = Vector4(0.0, -velMagnitude, 0.0, 1.0);
             trans = Vector4(_inverseRotation * force); //Apply transformation based off inverse rotation
             temp = trans.getFlatBuffer();

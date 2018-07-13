@@ -144,49 +144,41 @@ void main()
     
     float waveheight = clamp(WATER_LEVEL*3.-1.5, 0., 1.);
     float level = WATER_LEVEL + .2*water_map(uv*15. + vec2(time*.1), waveheight);
-    //if (height > level)
-    //{
-    //    col = CalcTerrain(uv, height);
-    //}
-    //if (height <= level)
-    //{
-        vec2 dif = vec2(.0, .01);
-        vec2 pos = uv*15. + vec2(time*.01);
-        float h1 = water_map(pos-dif,waveheight);
-        float h2 = water_map(pos+dif,waveheight);
-        float h3 = water_map(pos-dif.yx,waveheight);
-        float h4 = water_map(pos+dif.yx,waveheight);
-        vec3 normwater = normalize(vec3(h3-h4, h1-h2, .125)); // norm-vector of the 'bumpy' water-plane
-		
-		
-		uv += normwater.xy*.002*(level-height);
+	vec2 dif = vec2(.0, .01);
+	vec2 pos = uv*15. + vec2(time*.01);
+	float h1 = water_map(pos-dif,waveheight);
+	float h2 = water_map(pos+dif,waveheight);
+	float h3 = water_map(pos-dif.yx,waveheight);
+	float h4 = water_map(pos+dif.yx,waveheight);
+	vec3 normwater = normalize(vec3(h3-h4, h1-h2, .125)); // norm-vector of the 'bumpy' water-plane
+	
+	
+	uv += normwater.xy*.002*(level-height);
 
-        float coastfade = 1.0;//clamp((level-height)/coast2water_fadedepth, 0., 1.);
-        float coastfade2= 1.0;//clamp((level-height)/deepwater_fadedepth, 0., 1.);
-        float intensity = col.r*.2126+col.g*.7152+col.b*.0722;
-        watercolor = mix(watercolor*intensity, watercolor2, smoothstep(0., 1., coastfade2));
+	float coastfade = 1.0;//clamp((level-height)/coast2water_fadedepth, 0., 1.);
+	float coastfade2= 1.0;//clamp((level-height)/deepwater_fadedepth, 0., 1.);
+	float intensity = col.r*.2126+col.g*.7152+col.b*.0722;
+	watercolor = mix(watercolor*intensity, watercolor2, smoothstep(0., 1., coastfade2));
 
-        vec3 r0 = vec3(uv, WATER_LEVEL);
-        vec3 rd = normalize( light - r0 ); // ray-direction to the light from water-position
-        float grad     = dot(normwater, rd); // dot-product of norm-vector and light-direction
-        float specular = pow(grad, water_softlight_fact);  // used for soft highlights                          
-        float specular2= pow(grad, water_glossylight_fact); // used for glossy highlights
-        float gradpos  = dot(vec3(0., 0., 1.), rd);
-        float specular1= smoothstep(0., 1., pow(gradpos, 5.));  // used for diffusity (some darker corona around light's specular reflections...)                          
-        float watershade  = 1.0; //test against shadow here
-        watercolor *= 2.2+watershade;
-   		watercolor += (.2+.8*watershade) * ((grad-1.0)*.5+specular) * .25;
-   		watercolor /= (1.+specular1*1.25);
-   		watercolor += watershade*specular2*water_specularcolor;
-        watercolor += watershade*coastfade*(1.-coastfade2)*(vec3(.5, .6, .7)*nautic(uv)+vec3(1., 1., 1.)*particles(uv));
-        
-        col = mix(col, watercolor, coastfade);
-    //}
+	vec3 r0 = vec3(uv, WATER_LEVEL);
+	vec3 rd = normalize( light - r0 ); // ray-direction to the light from water-position
+	float grad     = dot(normwater, rd); // dot-product of norm-vector and light-direction
+	float specular = pow(grad, water_softlight_fact);  // used for soft highlights                          
+	float specular2= pow(grad, water_glossylight_fact); // used for glossy highlights
+	float gradpos  = dot(vec3(0., 0., 1.), rd);
+	float specular1= smoothstep(0., 1., pow(gradpos, 5.));  // used for diffusity (some darker corona around light's specular reflections...)                          
+	float watershade  = 1.0; //test against shadow here
+	watercolor *= 2.2+watershade;
+	watercolor += (.2+.8*watershade) * ((grad-1.0)*.5+specular) * .25;
+	watercolor /= (1.+specular1*1.25);
+	watercolor += watershade*specular2*water_specularcolor;
+	watercolor += watershade*coastfade*(1.-coastfade2)*(vec3(.5, .6, .7)*nautic(uv)+vec3(1., 1., 1.)*particles(uv));
+	
+	col = mix(col, watercolor, coastfade);
     
 	//switch z and y normal
 	normwater = vec3((normal * vec4(normwater, 0.0)).xyz); //Transform normal coordinate in with the normal matrix
         
 	out_1 = vec4(col , 1.0);
 	out_2 = vec4(normalize(normwater), 1.0);
-	//out_3 = vec4(vec3(0.0), 1.0);
 }

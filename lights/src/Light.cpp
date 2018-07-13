@@ -19,8 +19,6 @@ Light::Light(ViewManagerEvents* eventWrapper,
     float* inverseView = _lightMVP.getViewMatrix().inverse().getFlatBuffer();
     _position = Vector4(inverseView[3], inverseView[7], inverseView[11], 1.0);
 
-    std::vector<Cube>* cubes = new std::vector<Cube>{Cube(2.0, 2.0, 2.0, Vector4(0.0, 0.0, 0.0))};
-    _vao.createVAO(cubes);
 }
 
 MVP Light::getLightMVP() {
@@ -112,12 +110,10 @@ void Light::_updateTime(int time) {
         //fraction of the rotation
         float posInRotation = static_cast<float>(_milliSecondTime) / static_cast<float>(dayLengthMilliseconds);
 
-        float* inverseModel = _lightMVP.getViewMatrix().getFlatBuffer();
-        float radiusOfLight = Vector4(inverseModel[3], inverseModel[7], inverseModel[11], 1.0f).getMagnitude();
-        /*_lightMVP.setView(Matrix::cameraTranslation(0.0, 0.0, radiusOfLight) *
-            Matrix::cameraRotationAroundX(-90.0f + (posInRotation*360.0f)));*/
-        _lightMVP.setView( Matrix::cameraRotationAroundX((posInRotation*360.0f)) * 
-            Matrix::cameraTranslation(0.0, 0.0, radiusOfLight));
+        float* view = _lightMVP.getViewMatrix().getFlatBuffer();
+        float radiusOfLight = Vector4(view[3], view[7], view[11], 1.0f).getMagnitude();
+        _lightMVP.setView(
+            Matrix::cameraTranslation(0.0, 0.0, radiusOfLight) * Matrix::cameraRotationAroundX((posInRotation*360.0f)));
     }
 }
 

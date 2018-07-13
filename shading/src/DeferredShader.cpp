@@ -109,11 +109,6 @@ void DeferredShader::runShader(std::vector<Light*>& lights,
     auto viewState = viewManager->getViewState();
     updateUniform("views", &viewState);
 
-    auto projMatrix = viewManager->getProjection().getFlatBuffer();
-    float nearVal = (2.0f*projMatrix[11]) / (2.0f*projMatrix[10] - 2.0f);
-    float farVal = ((projMatrix[10] - 1.0f)*nearVal) / (projMatrix[10] + 1.0f);
-    updateUniform("farPlane", &farVal);
-
     ShadowedPointLight* pointShadowTexture = nullptr;
     std::vector<ShadowedDirectionalLight*> directionalShadowTextures;
     for (auto light : lights) {

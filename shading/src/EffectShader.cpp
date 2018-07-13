@@ -54,12 +54,6 @@ void EffectShader::runShader(Effect* effectObject, float seconds) {
 
         auto inverseViewNoTrans = viewNoTrans.inverse();
         updateUniform("inverseViewNoTrans", inverseViewNoTrans.getFlatBuffer());
-
-        //Pass far plane to shader
-        auto projMatrix = cameraMVP.getProjectionMatrix().getFlatBuffer();
-        float nearVal = (2.0f*projMatrix[11]) / (2.0f*projMatrix[10] - 2.0f);
-        float farVal = ((projMatrix[10] - 1.0f)*nearVal) / (projMatrix[10] + 1.0f);
-        updateUniform("farPlane", &farVal);
     }
     else if (effectObject->getType() == EffectType::Water) {
 

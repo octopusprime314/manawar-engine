@@ -25,6 +25,8 @@
 #include "MVP.h"
 #include <set>
 
+enum class GeometryConstruction;
+
 class DebugShader : public Shader {
 
 public:
@@ -32,5 +34,6 @@ public:
     void runShader(MVP* mvp, 
                    VAO *vao, 
                    std::set<Triangle*> triangleIntersectionList,
-                   float* color);
+                   float* color,
+                   GeometryConstruction geometryType);
 };

@@ -30,6 +30,7 @@
 #include "Triangle.h"
 #include "Cube.h"
 
+enum class GeometryConstruction;
 enum class ModelClass; //Forward declaration of enumerated type while not including Model class
 
 class VAO {
@@ -59,7 +60,7 @@ public:
     void    setTextureContext(GLuint context);
     void    setNormalDebugContext(GLuint context);
     void    createVAO(RenderBuffers* renderBuffers, ModelClass classId, Animation* = nullptr);
-    void    createVAO(std::vector<Sphere>* spheres);
+    void    createVAO(std::vector<Sphere>* spheres, GeometryConstruction geometryType);
     void    createVAO(std::vector<Triangle>* triangles);
-    void    createVAO(std::vector<Cube>* cubes);
+    void    createVAO(std::vector<Cube>* cubes, GeometryConstruction geometryType);
 };

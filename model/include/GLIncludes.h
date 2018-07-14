@@ -29,6 +29,13 @@
 static int screenPixelWidth = 1920;
 static int screenPixelHeight = 1080;
 
+enum class GeometryConstruction {
+    LINE_WIREFRAME,
+    TRIANGLE_WIREFRAME,
+    TRIANGLE_MESH
+};
+
+
 const std::string ASSET_LOCATION = "../assets/";
 const std::string ANIMATED_MESH_LOCATION = ASSET_LOCATION + "meshes/animated/";
 const std::string STATIC_MESH_LOCATION = ASSET_LOCATION + "meshes/static/";

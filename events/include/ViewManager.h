@@ -25,14 +25,9 @@
 */
 
 #pragma once
-#include "UpdateInterface.h"
-#include "Matrix.h"
-#include "Vector4.h"
+#include "Camera.h"
 #include "ViewManagerEvents.h"
-#include <map>
-#include "MVP.h"
-#include "StateVector.h"
-#include "DebugShader.h"
+#include "UpdateInterface.h"
 
 class SimpleContext;
 class Model;
@@ -55,43 +50,38 @@ public:
     };
 
 private:
-    ViewState           _viewState;
-    Matrix              _view;
-    Matrix              _projection;
     Matrix              _translation; //Keep track of translation state
     Matrix              _rotation; //Keep track of rotation state
     Matrix              _scale; //Keep track of scale state
     Matrix              _thirdPersonTranslation;
     Matrix              _inverseRotation; //Manages how to translate based on the inverse of the actual rotation matrix
     ViewManagerEvents*  _viewEvents;
-    SimpleContext*      _glfwContext;
     std::vector<Entity*> _entityList; //used to translate view to a model's transformation
     int                 _entityIndex; //used to keep track of which model the view is set to
     bool                _godState; //indicates whether the view is in god or model view point mode
     FuncMap             _keyboardState;
-    StateVector         _state;
     double              _prevMouseX, _prevMouseY;
     void                _updateKinematics(int milliSeconds);
-    VAO                 _frustumVAO;
-    DebugShader*        _debugShader;
+    Camera              _viewCamera;
+    Camera              _godCamera;
+    Camera*             _currCamera;
 
 public:
     ViewManager();
     ViewManager(int* argc, char** argv, unsigned int viewportWidth, unsigned int viewportHeight);
     ~ViewManager();
-    void               applyTransform(Matrix transform);
     void               setProjection(unsigned int viewportWidth, 
                                      unsigned int viewportHeight, 
                                      float nearPlaneDistance, 
                                      float farPlaneDistance);
     void               setView(Matrix translation, Matrix rotation, Matrix scale);
     void               setEntityList(std::vector<Entity*> entityList);
-    Matrix&            getProjection();
-    Matrix&            getView();
-    ViewState          getViewState();
+    Matrix             getProjection();
+    Matrix             getView();
     ViewManagerEvents* getEventWrapper();
-    void               run(); //Make this call to start glfw mainloop
+    Camera::ViewState  getViewState();
     void               displayViewFrustum();
+
 protected:
     void               _updateKeyboard(int key, int x, int y); //Do stuff based on keyboard upate
     void               _updateReleaseKeyboard(int key, int x, int y); //Do stuff based on keyboard release upate

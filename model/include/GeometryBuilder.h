@@ -28,138 +28,17 @@
 
 namespace GeometryBuilder {
 
-    void buildCube(Model* model) {
 
-        RenderBuffers* renderBuffers = model->getRenderBuffers();
-        //Cube vertices modeled around origin (0,0,0) with length,width,height of 2
-
-        //xy plane triangle top + z
-        renderBuffers->addVertex(Vector4(1.0, 1.0, 1.0, 1.0));
-        renderBuffers->addVertex(Vector4(-1.0, -1.0, 1.0, 1.0));
-        renderBuffers->addVertex(Vector4(-1.0, 1.0, 1.0, 1.0));
-
-        //xy plane triangle bottom + z
-        renderBuffers->addVertex(Vector4(1.0, 1.0, 1.0, 1.0));
-        renderBuffers->addVertex(Vector4(-1.0, -1.0, 1.0, 1.0));
-        renderBuffers->addVertex(Vector4(1.0, -1.0, 1.0, 1.0));
-
-        //xy plane triangle top - z
-        renderBuffers->addVertex(Vector4(1.0, 1.0, -1.0, 1.0));
-        renderBuffers->addVertex(Vector4(-1.0, -1.0, -1.0, 1.0));
-        renderBuffers->addVertex(Vector4(-1.0, 1.0, -1.0, 1.0));
-
-        //xy plane triangle bottom - z
-        renderBuffers->addVertex(Vector4(1.0, 1.0, -1.0, 1.0));
-        renderBuffers->addVertex(Vector4(-1.0, -1.0, -1.0, 1.0));
-        renderBuffers->addVertex(Vector4(1.0, -1.0, -1.0, 1.0));
-
-        //zy plane triangle top + x
-        renderBuffers->addVertex(Vector4(1.0, 1.0, 1.0, 1.0));
-        renderBuffers->addVertex(Vector4(1.0, -1.0, 1.0, 1.0));
-        renderBuffers->addVertex(Vector4(1.0, -1.0, -1.0, 1.0));
-
-        //zy plane triangle bottom + x
-        renderBuffers->addVertex(Vector4(1.0, 1.0, 1.0, 1.0));
-        renderBuffers->addVertex(Vector4(1.0, 1.0, -1.0, 1.0));
-        renderBuffers->addVertex(Vector4(1.0, -1.0, -1.0, 1.0));
-
-        //zy plane triangle top - x
-        renderBuffers->addVertex(Vector4(-1.0, 1.0, 1.0, 1.0));
-        renderBuffers->addVertex(Vector4(-1.0, 1.0, -1.0, 1.0));
-        renderBuffers->addVertex(Vector4(-1.0, -1.0, -1.0, 1.0));
-
-        //zy plane triangle bottom - x
-        renderBuffers->addVertex(Vector4(-1.0, 1.0, 1.0, 1.0));
-        renderBuffers->addVertex(Vector4(-1.0, -1.0, 1.0, 1.0));
-        renderBuffers->addVertex(Vector4(-1.0, -1.0, -1.0, 1.0));
-
-        //zx plane triangle top + y
-        renderBuffers->addVertex(Vector4(1.0, 1.0, 1.0, 1.0));
-        renderBuffers->addVertex(Vector4(-1.0, 1.0, 1.0, 1.0));
-        renderBuffers->addVertex(Vector4(1.0, 1.0, -1.0, 1.0));
-
-        //zx plane triangle top + y
-        renderBuffers->addVertex(Vector4(1.0, 1.0, -1.0, 1.0));
-        renderBuffers->addVertex(Vector4(-1.0, 1.0, -1.0, 1.0));
-        renderBuffers->addVertex(Vector4(-1.0, 1.0, 1.0, 1.0));
-
-        //zx plane triangle bottom - y
-        renderBuffers->addVertex(Vector4(1.0, -1.0, 1.0, 1.0));
-        renderBuffers->addVertex(Vector4(-1.0, -1.0, 1.0, 1.0));
-        renderBuffers->addVertex(Vector4(1.0, -1.0, -1.0, 1.0));
-
-        //zx plane triangle bottom - y
-        renderBuffers->addVertex(Vector4(1.0, -1.0, -1.0, 1.0));
-        renderBuffers->addVertex(Vector4(-1.0, -1.0, -1.0, 1.0));
-        renderBuffers->addVertex(Vector4(-1.0, -1.0, 1.0, 1.0));
-
-        //Normal per vertex ratio
-
-        //xy plane triangle top + z
-        renderBuffers->addNormal(Vector4(0.0, 0.0, 1.0, 1.0));
-        renderBuffers->addNormal(Vector4(0.0, 0.0, 1.0, 1.0));
-        renderBuffers->addNormal(Vector4(0.0, 0.0, 1.0, 1.0));
-
-        //xy plane triangle bottom + z
-        renderBuffers->addNormal(Vector4(0.0, 0.0, 1.0, 1.0));
-        renderBuffers->addNormal(Vector4(0.0, 0.0, 1.0, 1.0));
-        renderBuffers->addNormal(Vector4(0.0, 0.0, 1.0, 1.0));
-
-        //xy plane triangle top - z
-        renderBuffers->addNormal(Vector4(0.0, 0.0, -1.0, 1.0));
-        renderBuffers->addNormal(Vector4(0.0, 0.0, -1.0, 1.0));
-        renderBuffers->addNormal(Vector4(0.0, 0.0, -1.0, 1.0));
-
-        //xy plane triangle bottom - z
-        renderBuffers->addNormal(Vector4(0.0, 0.0, -1.0, 1.0));
-        renderBuffers->addNormal(Vector4(0.0, 0.0, -1.0, 1.0));
-        renderBuffers->addNormal(Vector4(0.0, 0.0, -1.0, 1.0));
-
-        //zy plane triangle top + x
-        renderBuffers->addNormal(Vector4(1.0, 0.0, 0.0, 1.0));
-        renderBuffers->addNormal(Vector4(1.0, 0.0, 0.0, 1.0));
-        renderBuffers->addNormal(Vector4(1.0, 0.0, 0.0, 1.0));
-
-        //zy plane triangle bottom + x
-        renderBuffers->addNormal(Vector4(1.0, 0.0, 0.0, 1.0));
-        renderBuffers->addNormal(Vector4(1.0, 0.0, 0.0, 1.0));
-        renderBuffers->addNormal(Vector4(1.0, 0.0, 0.0, 1.0));
-
-        //zy plane triangle top - x
-        renderBuffers->addNormal(Vector4(-1.0, 0.0, 0.0, 1.0));
-        renderBuffers->addNormal(Vector4(-1.0, 0.0, 0.0, 1.0));
-        renderBuffers->addNormal(Vector4(-1.0, 0.0, 0.0, 1.0));
-
-        //zy plane triangle bottom - x
-        renderBuffers->addNormal(Vector4(-1.0, 0.0, 0.0, 1.0));
-        renderBuffers->addNormal(Vector4(-1.0, 0.0, 0.0, 1.0));
-        renderBuffers->addNormal(Vector4(-1.0, 0.0, 0.0, 1.0));
-
-        //zx plane triangle top + y
-        renderBuffers->addNormal(Vector4(0.0, 1.0, 0.0, 1.0));
-        renderBuffers->addNormal(Vector4(0.0, 1.0, 0.0, 1.0));
-        renderBuffers->addNormal(Vector4(0.0, 1.0, 0.0, 1.0));
-
-        //zx plane triangle top + y
-        renderBuffers->addNormal(Vector4(0.0, 1.0, 0.0, 1.0));
-        renderBuffers->addNormal(Vector4(0.0, 1.0, 0.0, 1.0));
-        renderBuffers->addNormal(Vector4(0.0, 1.0, 0.0, 1.0));
-
-        //zx plane triangle bottom - y
-        renderBuffers->addNormal(Vector4(0.0, -1.0, 0.0, 1.0));
-        renderBuffers->addNormal(Vector4(0.0, -1.0, 0.0, 1.0));
-        renderBuffers->addNormal(Vector4(0.0, -1.0, 0.0, 1.0));
-
-        //zx plane triangle bottom - y
-        renderBuffers->addNormal(Vector4(0.0, -1.0, 0.0, 1.0));
-        renderBuffers->addNormal(Vector4(0.0, -1.0, 0.0, 1.0));
-        renderBuffers->addNormal(Vector4(0.0, -1.0, 0.0, 1.0));
-    }
-
-    float* buildCubes(std::vector<Cube>* cubes, GLuint& vertexCount) {
+    float* buildCubes(std::vector<Cube>* cubes, GLuint& vertexCount, GeometryConstruction geometryType) {
 
         //Making lines for cubes!!!!!
-        auto vertices = cubes->size() * 24;
+        unsigned long long vertices = 0;
+        if (geometryType == GeometryConstruction::LINE_WIREFRAME) {
+            vertices = cubes->size() * 24;
+        }
+        else if (geometryType == GeometryConstruction::TRIANGLE_MESH) {
+            vertices = cubes->size() * 36;
+        }
         vertexCount = static_cast<GLuint>(vertices);
         //Now flatten vertices and normals out for opengl
         size_t triBuffSize = vertices * 3;
@@ -179,91 +58,222 @@ namespace GeometryBuilder {
             auto g = center + Vector4( cube.getLength() / 2.0f,  cube.getHeight() / 2.0f,  cube.getWidth() / 2.0f);
             auto h = center + Vector4(-cube.getLength() / 2.0f,  cube.getHeight() / 2.0f,  cube.getWidth() / 2.0f);
 
-            flattenVerts[i++] = a.getx();
-            flattenVerts[i++] = a.gety();
-            flattenVerts[i++] = a.getz();
-            flattenVerts[i++] = b.getx();
-            flattenVerts[i++] = b.gety();
-            flattenVerts[i++] = b.getz();
 
-            flattenVerts[i++] = b.getx();
-            flattenVerts[i++] = b.gety();
-            flattenVerts[i++] = b.getz();
-            flattenVerts[i++] = c.getx();
-            flattenVerts[i++] = c.gety();
-            flattenVerts[i++] = c.getz();
+            if (geometryType == GeometryConstruction::LINE_WIREFRAME) {
+                
+                flattenVerts[i++] = a.getx();
+                flattenVerts[i++] = a.gety();
+                flattenVerts[i++] = a.getz();
+                flattenVerts[i++] = b.getx();
+                flattenVerts[i++] = b.gety();
+                flattenVerts[i++] = b.getz();
 
-            flattenVerts[i++] = c.getx();
-            flattenVerts[i++] = c.gety();
-            flattenVerts[i++] = c.getz();
-            flattenVerts[i++] = d.getx();
-            flattenVerts[i++] = d.gety();
-            flattenVerts[i++] = d.getz();
+                flattenVerts[i++] = b.getx();
+                flattenVerts[i++] = b.gety();
+                flattenVerts[i++] = b.getz();
+                flattenVerts[i++] = c.getx();
+                flattenVerts[i++] = c.gety();
+                flattenVerts[i++] = c.getz();
 
-            flattenVerts[i++] = d.getx();
-            flattenVerts[i++] = d.gety();
-            flattenVerts[i++] = d.getz();
-            flattenVerts[i++] = a.getx();
-            flattenVerts[i++] = a.gety();
-            flattenVerts[i++] = a.getz();
+                flattenVerts[i++] = c.getx();
+                flattenVerts[i++] = c.gety();
+                flattenVerts[i++] = c.getz();
+                flattenVerts[i++] = d.getx();
+                flattenVerts[i++] = d.gety();
+                flattenVerts[i++] = d.getz();
 
-
-            flattenVerts[i++] = e.getx();
-            flattenVerts[i++] = e.gety();
-            flattenVerts[i++] = e.getz();
-            flattenVerts[i++] = f.getx();
-            flattenVerts[i++] = f.gety();
-            flattenVerts[i++] = f.getz();
-
-            flattenVerts[i++] = f.getx();
-            flattenVerts[i++] = f.gety();
-            flattenVerts[i++] = f.getz();
-            flattenVerts[i++] = g.getx();
-            flattenVerts[i++] = g.gety();
-            flattenVerts[i++] = g.getz();
-
-            flattenVerts[i++] = g.getx();
-            flattenVerts[i++] = g.gety();
-            flattenVerts[i++] = g.getz();
-            flattenVerts[i++] = h.getx();
-            flattenVerts[i++] = h.gety();
-            flattenVerts[i++] = h.getz();
-
-            flattenVerts[i++] = h.getx();
-            flattenVerts[i++] = h.gety();
-            flattenVerts[i++] = h.getz();
-            flattenVerts[i++] = e.getx();
-            flattenVerts[i++] = e.gety();
-            flattenVerts[i++] = e.getz();
+                flattenVerts[i++] = d.getx();
+                flattenVerts[i++] = d.gety();
+                flattenVerts[i++] = d.getz();
+                flattenVerts[i++] = a.getx();
+                flattenVerts[i++] = a.gety();
+                flattenVerts[i++] = a.getz();
 
 
-            flattenVerts[i++] = a.getx();
-            flattenVerts[i++] = a.gety();
-            flattenVerts[i++] = a.getz();
-            flattenVerts[i++] = e.getx();
-            flattenVerts[i++] = e.gety();
-            flattenVerts[i++] = e.getz();
+                flattenVerts[i++] = e.getx();
+                flattenVerts[i++] = e.gety();
+                flattenVerts[i++] = e.getz();
+                flattenVerts[i++] = f.getx();
+                flattenVerts[i++] = f.gety();
+                flattenVerts[i++] = f.getz();
 
-            flattenVerts[i++] = b.getx();
-            flattenVerts[i++] = b.gety();
-            flattenVerts[i++] = b.getz();
-            flattenVerts[i++] = f.getx();
-            flattenVerts[i++] = f.gety();
-            flattenVerts[i++] = f.getz();
+                flattenVerts[i++] = f.getx();
+                flattenVerts[i++] = f.gety();
+                flattenVerts[i++] = f.getz();
+                flattenVerts[i++] = g.getx();
+                flattenVerts[i++] = g.gety();
+                flattenVerts[i++] = g.getz();
 
-            flattenVerts[i++] = c.getx();
-            flattenVerts[i++] = c.gety();
-            flattenVerts[i++] = c.getz();
-            flattenVerts[i++] = g.getx();
-            flattenVerts[i++] = g.gety();
-            flattenVerts[i++] = g.getz();
+                flattenVerts[i++] = g.getx();
+                flattenVerts[i++] = g.gety();
+                flattenVerts[i++] = g.getz();
+                flattenVerts[i++] = h.getx();
+                flattenVerts[i++] = h.gety();
+                flattenVerts[i++] = h.getz();
 
-            flattenVerts[i++] = d.getx();
-            flattenVerts[i++] = d.gety();
-            flattenVerts[i++] = d.getz();
-            flattenVerts[i++] = h.getx();
-            flattenVerts[i++] = h.gety();
-            flattenVerts[i++] = h.getz();
+                flattenVerts[i++] = h.getx();
+                flattenVerts[i++] = h.gety();
+                flattenVerts[i++] = h.getz();
+                flattenVerts[i++] = e.getx();
+                flattenVerts[i++] = e.gety();
+                flattenVerts[i++] = e.getz();
+
+
+                flattenVerts[i++] = a.getx();
+                flattenVerts[i++] = a.gety();
+                flattenVerts[i++] = a.getz();
+                flattenVerts[i++] = e.getx();
+                flattenVerts[i++] = e.gety();
+                flattenVerts[i++] = e.getz();
+
+                flattenVerts[i++] = b.getx();
+                flattenVerts[i++] = b.gety();
+                flattenVerts[i++] = b.getz();
+                flattenVerts[i++] = f.getx();
+                flattenVerts[i++] = f.gety();
+                flattenVerts[i++] = f.getz();
+
+                flattenVerts[i++] = c.getx();
+                flattenVerts[i++] = c.gety();
+                flattenVerts[i++] = c.getz();
+                flattenVerts[i++] = g.getx();
+                flattenVerts[i++] = g.gety();
+                flattenVerts[i++] = g.getz();
+
+                flattenVerts[i++] = d.getx();
+                flattenVerts[i++] = d.gety();
+                flattenVerts[i++] = d.getz();
+                flattenVerts[i++] = h.getx();
+                flattenVerts[i++] = h.gety();
+                flattenVerts[i++] = h.getz();
+            }
+            else if (geometryType == GeometryConstruction::TRIANGLE_MESH){
+                
+                flattenVerts[i++] = a.getx();
+                flattenVerts[i++] = a.gety();
+                flattenVerts[i++] = a.getz();
+                flattenVerts[i++] = b.getx();
+                flattenVerts[i++] = b.gety();
+                flattenVerts[i++] = b.getz();
+                flattenVerts[i++] = c.getx();
+                flattenVerts[i++] = c.gety();
+                flattenVerts[i++] = c.getz();
+
+                flattenVerts[i++] = a.getx();
+                flattenVerts[i++] = a.gety();
+                flattenVerts[i++] = a.getz();
+                flattenVerts[i++] = c.getx();
+                flattenVerts[i++] = c.gety();
+                flattenVerts[i++] = c.getz();
+                flattenVerts[i++] = d.getx();
+                flattenVerts[i++] = d.gety();
+                flattenVerts[i++] = d.getz();
+
+
+                flattenVerts[i++] = e.getx();
+                flattenVerts[i++] = e.gety();
+                flattenVerts[i++] = e.getz();
+                flattenVerts[i++] = f.getx();
+                flattenVerts[i++] = f.gety();
+                flattenVerts[i++] = f.getz();
+                flattenVerts[i++] = g.getx();
+                flattenVerts[i++] = g.gety();
+                flattenVerts[i++] = g.getz();
+
+                flattenVerts[i++] = e.getx();
+                flattenVerts[i++] = e.gety();
+                flattenVerts[i++] = e.getz();
+                flattenVerts[i++] = g.getx();
+                flattenVerts[i++] = g.gety();
+                flattenVerts[i++] = g.getz();
+                flattenVerts[i++] = h.getx();
+                flattenVerts[i++] = h.gety();
+                flattenVerts[i++] = h.getz();
+
+                flattenVerts[i++] = b.getx();
+                flattenVerts[i++] = b.gety();
+                flattenVerts[i++] = b.getz();
+                flattenVerts[i++] = c.getx();
+                flattenVerts[i++] = c.gety();
+                flattenVerts[i++] = c.getz();
+                flattenVerts[i++] = f.getx();
+                flattenVerts[i++] = f.gety();
+                flattenVerts[i++] = f.getz();
+
+                flattenVerts[i++] = f.getx();
+                flattenVerts[i++] = f.gety();
+                flattenVerts[i++] = f.getz();
+                flattenVerts[i++] = g.getx();
+                flattenVerts[i++] = g.gety();
+                flattenVerts[i++] = g.getz();
+                flattenVerts[i++] = c.getx();
+                flattenVerts[i++] = c.gety();
+                flattenVerts[i++] = c.getz();
+
+                flattenVerts[i++] = a.getx();
+                flattenVerts[i++] = a.gety();
+                flattenVerts[i++] = a.getz();
+                flattenVerts[i++] = d.getx();
+                flattenVerts[i++] = d.gety();
+                flattenVerts[i++] = d.getz();
+                flattenVerts[i++] = e.getx();
+                flattenVerts[i++] = e.gety();
+                flattenVerts[i++] = e.getz();
+
+                flattenVerts[i++] = e.getx();
+                flattenVerts[i++] = e.gety();
+                flattenVerts[i++] = e.getz();
+                flattenVerts[i++] = h.getx();
+                flattenVerts[i++] = h.gety();
+                flattenVerts[i++] = h.getz();
+                flattenVerts[i++] = d.getx();
+                flattenVerts[i++] = d.gety();
+                flattenVerts[i++] = d.getz();
+
+                flattenVerts[i++] = a.getx();
+                flattenVerts[i++] = a.gety();
+                flattenVerts[i++] = a.getz();
+                flattenVerts[i++] = b.getx();
+                flattenVerts[i++] = b.gety();
+                flattenVerts[i++] = b.getz();
+                flattenVerts[i++] = e.getx();
+                flattenVerts[i++] = e.gety();
+                flattenVerts[i++] = e.getz();
+
+                flattenVerts[i++] = e.getx();
+                flattenVerts[i++] = e.gety();
+                flattenVerts[i++] = e.getz();
+                flattenVerts[i++] = f.getx();
+                flattenVerts[i++] = f.gety();
+                flattenVerts[i++] = f.getz();
+                flattenVerts[i++] = b.getx();
+                flattenVerts[i++] = b.gety();
+                flattenVerts[i++] = b.getz();
+
+                flattenVerts[i++] = c.getx();
+                flattenVerts[i++] = c.gety();
+                flattenVerts[i++] = c.getz();
+                flattenVerts[i++] = d.getx();
+                flattenVerts[i++] = d.gety();
+                flattenVerts[i++] = d.getz();
+                flattenVerts[i++] = g.getx();
+                flattenVerts[i++] = g.gety();
+                flattenVerts[i++] = g.getz();
+
+                flattenVerts[i++] = g.getx();
+                flattenVerts[i++] = g.gety();
+                flattenVerts[i++] = g.getz();
+                flattenVerts[i++] = h.getx();
+                flattenVerts[i++] = h.gety();
+                flattenVerts[i++] = h.getz();
+                flattenVerts[i++] = d.getx();
+                flattenVerts[i++] = d.gety();
+                flattenVerts[i++] = d.getz();
+
+            }
+            else if (geometryType == GeometryConstruction::TRIANGLE_WIREFRAME) {
+                std::cout << "Triangle wireframe not supported!" << std::endl;
+            }
 
         }
         return flattenVerts;       
@@ -304,12 +314,18 @@ namespace GeometryBuilder {
         return flattenVerts;
     }
 
-    float* buildSpheres(std::vector<Sphere>* spheres, GLuint& vertexCount) {
+    float* buildSpheres(std::vector<Sphere>* spheres, GLuint& vertexCount, GeometryConstruction geometryType) {
 
         //Making lines for spheres!!!!!
         int stacks = 20;
         int slices = 20;
-        auto vertices = spheres->size() * (((stacks - 2) * (slices) * 36) + (2 * slices * 18));
+        unsigned long long vertices = 0;
+        if (geometryType == GeometryConstruction::LINE_WIREFRAME) {
+            vertices = spheres->size() * (((stacks - 2) * (slices) * 36) + (2 * slices * 18));
+        }
+        else if (geometryType == GeometryConstruction::TRIANGLE_MESH) {
+            vertices = (spheres->size() * (((stacks - 2) * (slices) * 36) + (2 * slices * 18))) / 2;
+        }
         vertexCount = static_cast<GLuint>(vertices / 3);
         size_t triBuffSize = vertices;
         float* flattenVerts = new float[triBuffSize]; //Only include the x y and z values not w
@@ -350,97 +366,152 @@ namespace GeometryBuilder {
                     //vertex3 = vertex on a sphere of radius r at spherical coords theta2, phi2
                     //vertex4 = vertex on a sphere of radius r at spherical coords theta2, phi1
 
-                    // facing out
-                    if (t == 0) {// top cap
+                    if (geometryType == GeometryConstruction::LINE_WIREFRAME) {
+                        // facing out
+                        if (t == 0) {// top cap
 
-                        flattenVerts[i++] = vertex1.getx();
-                        flattenVerts[i++] = vertex1.gety();
-                        flattenVerts[i++] = vertex1.getz();
-                        flattenVerts[i++] = vertex3.getx();
-                        flattenVerts[i++] = vertex3.gety();
-                        flattenVerts[i++] = vertex3.getz();
+                            flattenVerts[i++] = vertex1.getx();
+                            flattenVerts[i++] = vertex1.gety();
+                            flattenVerts[i++] = vertex1.getz();
+                            flattenVerts[i++] = vertex3.getx();
+                            flattenVerts[i++] = vertex3.gety();
+                            flattenVerts[i++] = vertex3.getz();
 
-                        flattenVerts[i++] = vertex3.getx();
-                        flattenVerts[i++] = vertex3.gety();
-                        flattenVerts[i++] = vertex3.getz();
-                        flattenVerts[i++] = vertex4.getx();
-                        flattenVerts[i++] = vertex4.gety();
-                        flattenVerts[i++] = vertex4.getz();
+                            flattenVerts[i++] = vertex3.getx();
+                            flattenVerts[i++] = vertex3.gety();
+                            flattenVerts[i++] = vertex3.getz();
+                            flattenVerts[i++] = vertex4.getx();
+                            flattenVerts[i++] = vertex4.gety();
+                            flattenVerts[i++] = vertex4.getz();
 
-                        flattenVerts[i++] = vertex4.getx();
-                        flattenVerts[i++] = vertex4.gety();
-                        flattenVerts[i++] = vertex4.getz();
-                        flattenVerts[i++] = vertex1.getx();
-                        flattenVerts[i++] = vertex1.gety();
-                        flattenVerts[i++] = vertex1.getz();
+                            flattenVerts[i++] = vertex4.getx();
+                            flattenVerts[i++] = vertex4.gety();
+                            flattenVerts[i++] = vertex4.getz();
+                            flattenVerts[i++] = vertex1.getx();
+                            flattenVerts[i++] = vertex1.gety();
+                            flattenVerts[i++] = vertex1.getz();
+                        }
+                        else if (t + 1 == stacks) {//end cap
+
+                            flattenVerts[i++] = vertex3.getx();
+                            flattenVerts[i++] = vertex3.gety();
+                            flattenVerts[i++] = vertex3.getz();
+                            flattenVerts[i++] = vertex1.getx();
+                            flattenVerts[i++] = vertex1.gety();
+                            flattenVerts[i++] = vertex1.getz();
+
+                            flattenVerts[i++] = vertex1.getx();
+                            flattenVerts[i++] = vertex1.gety();
+                            flattenVerts[i++] = vertex1.getz();
+                            flattenVerts[i++] = vertex2.getx();
+                            flattenVerts[i++] = vertex2.gety();
+                            flattenVerts[i++] = vertex2.getz();
+
+                            flattenVerts[i++] = vertex2.getx();
+                            flattenVerts[i++] = vertex2.gety();
+                            flattenVerts[i++] = vertex2.getz();
+                            flattenVerts[i++] = vertex3.getx();
+                            flattenVerts[i++] = vertex3.gety();
+                            flattenVerts[i++] = vertex3.getz();
+                        }
+                        else {
+                            // body, facing OUT:
+
+                            flattenVerts[i++] = vertex1.getx();
+                            flattenVerts[i++] = vertex1.gety();
+                            flattenVerts[i++] = vertex1.getz();
+                            flattenVerts[i++] = vertex2.getx();
+                            flattenVerts[i++] = vertex2.gety();
+                            flattenVerts[i++] = vertex2.getz();
+
+                            flattenVerts[i++] = vertex2.getx();
+                            flattenVerts[i++] = vertex2.gety();
+                            flattenVerts[i++] = vertex2.getz();
+                            flattenVerts[i++] = vertex4.getx();
+                            flattenVerts[i++] = vertex4.gety();
+                            flattenVerts[i++] = vertex4.getz();
+
+                            flattenVerts[i++] = vertex4.getx();
+                            flattenVerts[i++] = vertex4.gety();
+                            flattenVerts[i++] = vertex4.getz();
+                            flattenVerts[i++] = vertex1.getx();
+                            flattenVerts[i++] = vertex1.gety();
+                            flattenVerts[i++] = vertex1.getz();
+
+                            flattenVerts[i++] = vertex2.getx();
+                            flattenVerts[i++] = vertex2.gety();
+                            flattenVerts[i++] = vertex2.getz();
+                            flattenVerts[i++] = vertex3.getx();
+                            flattenVerts[i++] = vertex3.gety();
+                            flattenVerts[i++] = vertex3.getz();
+
+                            flattenVerts[i++] = vertex3.getx();
+                            flattenVerts[i++] = vertex3.gety();
+                            flattenVerts[i++] = vertex3.getz();
+                            flattenVerts[i++] = vertex4.getx();
+                            flattenVerts[i++] = vertex4.gety();
+                            flattenVerts[i++] = vertex4.getz();
+
+                            flattenVerts[i++] = vertex4.getx();
+                            flattenVerts[i++] = vertex4.gety();
+                            flattenVerts[i++] = vertex4.getz();
+                            flattenVerts[i++] = vertex2.getx();
+                            flattenVerts[i++] = vertex2.gety();
+                            flattenVerts[i++] = vertex2.getz();
+                        }
                     }
-                    else if (t + 1 == stacks) {//end cap
+                    else if (geometryType == GeometryConstruction::TRIANGLE_MESH) {
+                        // facing out
+                        if (t == 0) {// top cap
 
-                        flattenVerts[i++] = vertex3.getx();
-                        flattenVerts[i++] = vertex3.gety();
-                        flattenVerts[i++] = vertex3.getz();
-                        flattenVerts[i++] = vertex1.getx();
-                        flattenVerts[i++] = vertex1.gety();
-                        flattenVerts[i++] = vertex1.getz();
+                            flattenVerts[i++] = vertex1.getx();
+                            flattenVerts[i++] = vertex1.gety();
+                            flattenVerts[i++] = vertex1.getz();
+                            flattenVerts[i++] = vertex3.getx();
+                            flattenVerts[i++] = vertex3.gety();
+                            flattenVerts[i++] = vertex3.getz();
+                            flattenVerts[i++] = vertex4.getx();
+                            flattenVerts[i++] = vertex4.gety();
+                            flattenVerts[i++] = vertex4.getz();
+                        }
+                        else if (t + 1 == stacks) {//end cap
 
-                        flattenVerts[i++] = vertex1.getx();
-                        flattenVerts[i++] = vertex1.gety();
-                        flattenVerts[i++] = vertex1.getz();
-                        flattenVerts[i++] = vertex2.getx();
-                        flattenVerts[i++] = vertex2.gety();
-                        flattenVerts[i++] = vertex2.getz();
+                            flattenVerts[i++] = vertex3.getx();
+                            flattenVerts[i++] = vertex3.gety();
+                            flattenVerts[i++] = vertex3.getz();
+                            flattenVerts[i++] = vertex1.getx();
+                            flattenVerts[i++] = vertex1.gety();
+                            flattenVerts[i++] = vertex1.getz();
+                            flattenVerts[i++] = vertex2.getx();
+                            flattenVerts[i++] = vertex2.gety();
+                            flattenVerts[i++] = vertex2.getz();
+                        }
+                        else {
+                            // body, facing OUT:
 
-                        flattenVerts[i++] = vertex2.getx();
-                        flattenVerts[i++] = vertex2.gety();
-                        flattenVerts[i++] = vertex2.getz();
-                        flattenVerts[i++] = vertex3.getx();
-                        flattenVerts[i++] = vertex3.gety();
-                        flattenVerts[i++] = vertex3.getz();
+                            flattenVerts[i++] = vertex1.getx();
+                            flattenVerts[i++] = vertex1.gety();
+                            flattenVerts[i++] = vertex1.getz();
+                            flattenVerts[i++] = vertex2.getx();
+                            flattenVerts[i++] = vertex2.gety();
+                            flattenVerts[i++] = vertex2.getz();
+                            flattenVerts[i++] = vertex4.getx();
+                            flattenVerts[i++] = vertex4.gety();
+                            flattenVerts[i++] = vertex4.getz();
+
+                            flattenVerts[i++] = vertex2.getx();
+                            flattenVerts[i++] = vertex2.gety();
+                            flattenVerts[i++] = vertex2.getz();
+                            flattenVerts[i++] = vertex3.getx();
+                            flattenVerts[i++] = vertex3.gety();
+                            flattenVerts[i++] = vertex3.getz();
+                            flattenVerts[i++] = vertex4.getx();
+                            flattenVerts[i++] = vertex4.gety();
+                            flattenVerts[i++] = vertex4.getz();
+                        }
                     }
-                    else {
-                        // body, facing OUT:
-
-                        flattenVerts[i++] = vertex1.getx();
-                        flattenVerts[i++] = vertex1.gety();
-                        flattenVerts[i++] = vertex1.getz();
-                        flattenVerts[i++] = vertex2.getx();
-                        flattenVerts[i++] = vertex2.gety();
-                        flattenVerts[i++] = vertex2.getz();
-
-                        flattenVerts[i++] = vertex2.getx();
-                        flattenVerts[i++] = vertex2.gety();
-                        flattenVerts[i++] = vertex2.getz();
-                        flattenVerts[i++] = vertex4.getx();
-                        flattenVerts[i++] = vertex4.gety();
-                        flattenVerts[i++] = vertex4.getz();
-
-                        flattenVerts[i++] = vertex4.getx();
-                        flattenVerts[i++] = vertex4.gety();
-                        flattenVerts[i++] = vertex4.getz();
-                        flattenVerts[i++] = vertex1.getx();
-                        flattenVerts[i++] = vertex1.gety();
-                        flattenVerts[i++] = vertex1.getz();
-
-                        flattenVerts[i++] = vertex2.getx();
-                        flattenVerts[i++] = vertex2.gety();
-                        flattenVerts[i++] = vertex2.getz();
-                        flattenVerts[i++] = vertex3.getx();
-                        flattenVerts[i++] = vertex3.gety();
-                        flattenVerts[i++] = vertex3.getz();
-
-                        flattenVerts[i++] = vertex3.getx();
-                        flattenVerts[i++] = vertex3.gety();
-                        flattenVerts[i++] = vertex3.getz();
-                        flattenVerts[i++] = vertex4.getx();
-                        flattenVerts[i++] = vertex4.gety();
-                        flattenVerts[i++] = vertex4.getz();
-
-                        flattenVerts[i++] = vertex4.getx();
-                        flattenVerts[i++] = vertex4.gety();
-                        flattenVerts[i++] = vertex4.getz();
-                        flattenVerts[i++] = vertex2.getx();
-                        flattenVerts[i++] = vertex2.gety();
-                        flattenVerts[i++] = vertex2.getz();
+                    else if (geometryType == GeometryConstruction::TRIANGLE_WIREFRAME) {
+                        std::cout << "Triangle wireframe not supported" << std::endl;
                     }
                 }
             }

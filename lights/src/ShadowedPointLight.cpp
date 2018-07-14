@@ -6,7 +6,7 @@ ShadowedPointLight::ShadowedPointLight(ViewManagerEvents* eventWrapper,
     _shadow(2000, 2000){
 
     std::vector<Sphere>* spheres = new std::vector<Sphere>{ Sphere(getRange(), getPosition()) };
-    _vao.createVAO(spheres);
+    _vao.createVAO(spheres, GeometryConstruction::LINE_WIREFRAME);
 }
 
 void ShadowedPointLight::renderShadow(std::vector<Entity*> entityList) {
@@ -24,7 +24,7 @@ void ShadowedPointLight::render() {
     //Model transform to create frustum cube
     mvp.setView(_cameraMVP.getViewMatrix());
     mvp.setProjection(_cameraMVP.getProjectionMatrix());
-    _debugShader->runShader(&mvp, &_vao, {}, color.getFlatBuffer());
+    _debugShader->runShader(&mvp, &_vao, {}, color.getFlatBuffer(), GeometryConstruction::LINE_WIREFRAME);
 
     Light::render();
 }

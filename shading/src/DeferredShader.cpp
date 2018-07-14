@@ -127,8 +127,12 @@ void DeferredShader::runShader(std::vector<Light*>& lights,
     updateUniform("normalTexture",      GL_TEXTURE1, textures[1]);
     updateUniform("velocityTexture",    GL_TEXTURE2, textures[2]);
     updateUniform("depthTexture",       GL_TEXTURE3, textures[3]);
-    updateUniform("cameraDepthTexture", GL_TEXTURE4, directionalShadowTextures[0]->getDepthTexture());
-    updateUniform("mapDepthTexture",    GL_TEXTURE5, directionalShadowTextures[1]->getDepthTexture());
+    if (directionalShadowTextures.size() > 0) {
+        updateUniform("cameraDepthTexture", GL_TEXTURE4, directionalShadowTextures[0]->getDepthTexture());
+    }
+    if (directionalShadowTextures.size() > 1) {
+        updateUniform("mapDepthTexture", GL_TEXTURE5, directionalShadowTextures[1]->getDepthTexture());
+    }
     updateUniform("depthMap",           GL_TEXTURE6, pointShadowTexture->getDepthTexture());
     updateUniform("skyboxDayTexture",   GL_TEXTURE7, _skyBoxDayTexture->getContext());
     updateUniform("skyboxNightTexture", GL_TEXTURE8, _skyBoxNightTexture->getContext());

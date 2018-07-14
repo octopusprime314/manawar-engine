@@ -55,7 +55,8 @@ void Physics::visualize() {
         _debugShader->runShader(_entities[i]->getMVP(),
             geometryGraphic->getVAO(), 
             _triangleIntersectionList[_entities[i]],
-            color);
+            color,
+            GeometryConstruction::LINE_WIREFRAME);
         i++;
     }
 
@@ -64,7 +65,8 @@ void Physics::visualize() {
     _debugShader->runShader(_entities[0]->getMVP(),
         _octTreeGraphic->getVAO(), 
         _triangleIntersectionList[_entities[0]],
-        color);
+        color,
+        GeometryConstruction::LINE_WIREFRAME);
 
     std::lock_guard<std::mutex> lockGuard(_lock);
 

@@ -8,7 +8,7 @@ ShadowedDirectionalLight::ShadowedDirectionalLight(ViewManagerEvents* eventWrapp
 
 
     std::vector<Cube>* cubes = new std::vector<Cube>{ Cube(2.0, 2.0, 2.0, Vector4(0.0, 0.0, 0.0)) };
-    _vao.createVAO(cubes);
+    _vao.createVAO(cubes, GeometryConstruction::TRIANGLE_MESH);
 }
 
 
@@ -33,7 +33,7 @@ void ShadowedDirectionalLight::render() {
         mvp.setModel(lightMVP.getViewMatrix().inverse() * lightMVP.getProjectionMatrix().inverse());
         mvp.setView(_cameraMVP.getViewMatrix());
         mvp.setProjection(_cameraMVP.getProjectionMatrix());
-        _debugShader->runShader(&mvp, &_vao, {}, color.getFlatBuffer());
+        _debugShader->runShader(&mvp, &_vao, {}, color.getFlatBuffer(), GeometryConstruction::TRIANGLE_MESH);
     }
 
     Light::render();

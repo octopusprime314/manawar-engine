@@ -45,9 +45,9 @@ GLuint VAO::getVertexLength() {
     return _vertexLength;
 }
 
-void VAO::createVAO(std::vector<Cube>* cubes) {
+void VAO::createVAO(std::vector<Cube>* cubes, GeometryConstruction geometryType) {
     
-    float* flattenVerts = GeometryBuilder::buildCubes(cubes, _vertexLength);
+    float* flattenVerts = GeometryBuilder::buildCubes(cubes, _vertexLength, geometryType);
 
     //Create a double buffer that will be filled with the vertex data
     glGenBuffers(1, &_vertexBufferContext);
@@ -108,9 +108,9 @@ void VAO::createVAO(std::vector<Triangle>* triangles) {
     delete[] flattenVerts;
 }
 
-void VAO::createVAO(std::vector<Sphere>* spheres) {
+void VAO::createVAO(std::vector<Sphere>* spheres, GeometryConstruction geometryType) {
 
-    float* flattenVerts = GeometryBuilder::buildSpheres(spheres, _vertexLength);
+    float* flattenVerts = GeometryBuilder::buildSpheres(spheres, _vertexLength, geometryType);
 
     //Create a double buffer that will be filled with the vertex data
     glGenBuffers(1, &_vertexBufferContext);

@@ -41,6 +41,7 @@ class ShaderBroker;
 class Terminal;
 class FrustumOcclusion;
 class Entity;
+class SimpleContext;
 
 class SceneManager {
     ViewManager*         _viewManager; //manages the view/camera matrix from the user's perspective
@@ -59,6 +60,7 @@ class SceneManager {
     SSCompute*           _add;
     Terminal*            _terminal;
     FrustumOcclusion*    _frustumOccluder;
+    SimpleContext*      _glfwContext;
 
     void _preDraw(); //Prior to drawing objects call this function
     void _postDraw(); //Post of drawing objects call this function

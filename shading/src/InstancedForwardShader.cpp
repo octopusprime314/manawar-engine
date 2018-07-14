@@ -132,8 +132,12 @@ void InstancedForwardShader::runShader(Entity* entity, ViewManager* viewManager,
             model->getTexture(textureStride.first)->getTransparency()) {
 
             updateUniform("textureMap",         GL_TEXTURE0, model->getTexture(textureStride.first)->getContext());
-            updateUniform("cameraDepthTexture", GL_TEXTURE1, directionalShadowTextures[0]->getDepthTexture());
-            updateUniform("mapDepthTexture",    GL_TEXTURE2, directionalShadowTextures[1]->getDepthTexture());
+            if (directionalShadowTextures.size() > 0) {
+                updateUniform("cameraDepthTexture", GL_TEXTURE1, directionalShadowTextures[0]->getDepthTexture());
+            }
+            if (directionalShadowTextures.size() > 1) {
+                updateUniform("mapDepthTexture", GL_TEXTURE2, directionalShadowTextures[1]->getDepthTexture());
+            }
             updateUniform("depthMap",           GL_TEXTURE3, pointShadowTexture->getDepthTexture());
 
             //Draw triangles using the bound buffer vertices at starting index 0 and number of triangles

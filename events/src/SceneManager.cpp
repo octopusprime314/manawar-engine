@@ -23,6 +23,7 @@
 #include "ModelBroker.h"
 #include "ShadowedDirectionalLight.h"
 #include "ShadowedPointLight.h"
+#include "SimpleContext.h"
 #include <chrono>
 
 using namespace std::chrono;
@@ -35,10 +36,11 @@ volatile bool g_AssertOnBadOpenGlCall = false;
 SceneManager::SceneManager(int* argc, char** argv,
     unsigned int viewportWidth, unsigned int viewportHeight,
     float nearPlaneDistance, float farPlaneDistance) {
-    _viewManager = new ViewManager(argc, argv, viewportWidth, viewportHeight);
-    glCheck();
 
-    Factory::setViewWrapper(_viewManager); //Set the reference to the view model event interface
+    //Create instance of glfw wrapper class context
+    //GLFW context can only run on main thread!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    //DO NOT THREAD GLFW CALLS
+    _glfwContext = new SimpleContext(argc, argv, viewportWidth, viewportHeight);
 
     //Load and compile all shaders for the shader broker
     ShaderBroker::instance()->compileShaders();
@@ -47,6 +49,11 @@ SceneManager::SceneManager(int* argc, char** argv,
     //Load and compile all shaders for the shader broker
     ModelBroker::instance()->buildModels();
     glCheck();
+
+    _viewManager = new ViewManager(argc, argv, viewportWidth, viewportHeight);
+    glCheck();
+
+    Factory::setViewWrapper(_viewManager); //Set the reference to the view model event interface
 
     _deferredRenderer = new DeferredRenderer();
     glCheck();
@@ -156,10 +163,9 @@ SceneManager::SceneManager(int* argc, char** argv,
     _viewManager->setEntityList(_entityList);
 
     //_frustumOccluder = new FrustumOcclusion(_entityList);
+    //glCheck();
 
-    glCheck();
-
-    _viewManager->run(); //Enables the glfw main loop
+    _glfwContext->run();
 }
 
 SceneManager::~SceneManager() {
@@ -175,10 +181,10 @@ SceneManager::~SceneManager() {
 void SceneManager::_preDraw() {
     glCheck();
 
-    if (_viewManager->getViewState() == ViewManager::ViewState::POINT_SHADOW ||
-        _viewManager->getViewState() == ViewManager::ViewState::DEFERRED_LIGHTING ||
-        _viewManager->getViewState() == ViewManager::ViewState::CAMERA_SHADOW ||
-        _viewManager->getViewState() == ViewManager::ViewState::MAP_SHADOW) {
+    if (_viewManager->getViewState() == Camera::ViewState::POINT_SHADOW ||
+        _viewManager->getViewState() == Camera::ViewState::DEFERRED_LIGHTING ||
+        _viewManager->getViewState() == Camera::ViewState::CAMERA_SHADOW ||
+        _viewManager->getViewState() == Camera::ViewState::MAP_SHADOW) {
        
         //send all vbo data to point light shadow pre pass
         for (Light* light : _lightList) {
@@ -205,7 +211,7 @@ void SceneManager::_postDraw() {
     _deferredRenderer->unbind();
 
 
-    if (_viewManager->getViewState() == ViewManager::ViewState::DEFERRED_LIGHTING) {
+    if (_viewManager->getViewState() == Camera::ViewState::DEFERRED_LIGHTING) {
 
         //Only compute ssao for opaque objects
         _ssaoPass->computeSSAO(_deferredRenderer->getGBuffers(), _viewManager);
@@ -225,6 +231,7 @@ void SceneManager::_postDraw() {
         for (auto light : _lightList) {
             light->render();
         }
+
         _viewManager->displayViewFrustum();
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -240,7 +247,7 @@ void SceneManager::_postDraw() {
         GLuint velocityBufferContext = _deferredRenderer->getGBuffers()->getTextureContexts()[2];
         _mergeShader->runShader(_bloom->getTextureContext(), velocityBufferContext);
     }
-    else if (_viewManager->getViewState() == ViewManager::ViewState::PHYSICS) {
+    else if (_viewManager->getViewState() == Camera::ViewState::PHYSICS) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         _physics->visualize();
     }

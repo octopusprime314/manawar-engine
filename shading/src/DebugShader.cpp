@@ -6,7 +6,8 @@ DebugShader::DebugShader(std::string shaderName) : Shader(shaderName) {
 void DebugShader::runShader(MVP* mvp, 
                             VAO *vao, 
                             std::set<Triangle*> triangleIntersectionList,
-                            float* color) {
+                            float* color,
+                            GeometryConstruction geometryType) {
     
     glUseProgram(_shaderContext);
     glBindVertexArray(vao->getVAOContext());
@@ -23,17 +24,29 @@ void DebugShader::runShader(MVP* mvp,
     //glUniform mat4 projection matrix, GL_TRUE is telling GL we are passing in the matrix as row major
     updateUniform("color", color);
 
-    //Draw lines using the bound buffer vertices at starting index 0 and number of triangles
-    glDrawArrays(GL_LINES, 0, (GLsizei)vao->getVertexLength());
+
+    if (geometryType == GeometryConstruction::LINE_WIREFRAME) {
+        //Draw lines using the bound buffer vertices at starting index 0 and number of triangles
+        glDrawArrays(GL_LINES, 0, (GLsizei)vao->getVertexLength());
+    }
+    else if (geometryType == GeometryConstruction::TRIANGLE_MESH) {
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+        //Draw lines using the bound buffer vertices at starting index 0 and number of triangles
+        glDrawArrays(GL_TRIANGLES, 0, (GLsizei)vao->getVertexLength());
+
+        glDisable(GL_BLEND);
+    }
+    else if (geometryType == GeometryConstruction::TRIANGLE_WIREFRAME) {
+        std::cout << "Triangle wireframe not here yet!" << std::endl;
+    }
 
     glBindVertexArray(0);
     glUseProgram(0);//end using this shader
 
 
     if (triangleIntersectionList.size() > 0) {
-
-        /*glEnable(GL_BLEND); 
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);*/
 
         int i = 0;
         auto floatCount = triangleIntersectionList.size() * 3 * 3;
@@ -102,8 +115,6 @@ void DebugShader::runShader(MVP* mvp,
         glBindVertexArray(0);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         glUseProgram(0);//end using this shader
-
-        //glDisable(GL_BLEND);
     }
 
 }

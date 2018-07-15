@@ -30,11 +30,7 @@ MVP Light::getLightMVP() {
         return _lightMVP;
     }
     else {
-        MVP temp = _lightMVP;
-        float* inverseView = _cameraMVP.getViewMatrix().inverse().getFlatBuffer();
-        temp.setView(_lightMVP.getViewMatrix() *
-            Matrix::cameraTranslation(inverseView[3], inverseView[7], inverseView[11]));
-        return temp;
+        return _lightMVP;
     }
 }
 

@@ -150,6 +150,13 @@ SceneManager::SceneManager(int* argc, char** argv,
                                     EffectType::Smoke,
                                     Vector4(0.4f, 0.4f, 0.4f, 1.0f)));
 
+    pointLightMVP.setModel(Matrix::translation(0.0f, 0.0f, 0.0f));
+    _lightList.push_back(new Light(_viewManager->getEventWrapper(),
+        pointLightMVP,
+        LightType::POINT,
+        EffectType::Fire,
+        Vector4(1.0f, 0.8f, 0.3f, 1.0f)));
+
     MasterClock::instance()->run(); //Scene manager kicks off the clock event manager
 
     //_audioManager->StartAll();

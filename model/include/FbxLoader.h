@@ -35,6 +35,7 @@ class FbxLoader {
     FbxManager*    _fbxManager;
     FbxIOSettings* _ioSettings;
     FbxScene*      _scene;
+    std::string    _fileName;
     void           _loadTextures(Model* model, FbxMesh* meshNode, FbxNode* childNode);
     void           _buildTriangles(Model* model, std::vector<Vector4>& vertices, std::vector<Vector4>& normals,
         std::vector<Tex2>& textures, std::vector<int>& indices, FbxNode* node);
@@ -60,5 +61,5 @@ public:
     void buildAnimationFrames(AnimatedModel* model, std::vector<SkinningData>& skins);
     void loadGeometry(Model* model, FbxNode* node);
     void loadGeometryData(Model* model, FbxMesh* meshNode, FbxNode* childNode);
-
+    void addToScene(FbxLoader* modelToLoad, Vector4 location);
 };

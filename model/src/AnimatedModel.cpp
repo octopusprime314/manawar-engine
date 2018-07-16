@@ -15,7 +15,7 @@ AnimatedModel::AnimatedModel(std::string name) :
     _fbxLoader->buildAnimationFrames(this, animation->getSkins()); //Build up each animation frame's vertices and normals
 
     //Done with fbx loader so close all handles to fbx scene instance
-    delete _fbxLoader;
+    //delete _fbxLoader;
 
     std::string modelName = _getModelName(name);
     std::string colliderName = ANIMATED_MESH_LOCATION;

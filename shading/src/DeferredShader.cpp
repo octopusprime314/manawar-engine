@@ -133,7 +133,9 @@ void DeferredShader::runShader(std::vector<Light*>& lights,
     if (directionalShadowTextures.size() > 1) {
         updateUniform("mapDepthTexture", GL_TEXTURE5, directionalShadowTextures[1]->getDepthTexture());
     }
-    updateUniform("depthMap",           GL_TEXTURE6, pointShadowTexture->getDepthTexture());
+    if (pointShadowTexture != nullptr) {
+        updateUniform("depthMap", GL_TEXTURE6, pointShadowTexture->getDepthTexture());
+    }
     updateUniform("skyboxDayTexture",   GL_TEXTURE7, _skyBoxDayTexture->getContext());
     updateUniform("skyboxNightTexture", GL_TEXTURE8, _skyBoxNightTexture->getContext());
     updateUniform("ssaoTexture",        GL_TEXTURE9, ssao->getBlur()->getTextureContext());

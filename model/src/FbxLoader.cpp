@@ -7,9 +7,11 @@
 #include <algorithm>
 #include <limits>
 #include "RenderBuffers.h"
+#include "ModelBroker.h"
 
 FbxLoader::FbxLoader(std::string name) {
     _fbxManager = FbxManager::Create();
+    _fileName = name;
     if (_fbxManager == nullptr) {
         printf("ERROR %s : %d failed creating FBX Manager!\n", __FILE__, __LINE__);
     }
@@ -75,6 +77,124 @@ void FbxLoader::loadModel(Model* model, FbxNode* node) {
         }
         loadModel(model, childNode);
     }
+}
+
+
+void addAllChildren(FbxNode* reader, FbxNode* writer) {
+
+    // Determine the number of children there are
+    int numChildren = reader->GetChildCount();
+    FbxNode* childNode = nullptr;
+    for (int i = 0; i < numChildren; i++) {
+        childNode = reader->GetChild(i);
+        if (childNode != nullptr) {
+            FbxMesh* mesh = childNode->GetMesh();
+            if (mesh != nullptr) {
+                writer->AddChild(childNode);
+                writer->GetChild(writer->GetChildCount() - 1)->AddNodeAttribute(mesh);
+            }
+            if (writer->GetChildCount() > 0) {
+                addAllChildren(childNode, writer->GetChild(writer->GetChildCount() - 1));
+            }
+        }
+    }
+
+}
+
+int getASCIIFormatIndex(FbxManager* pManager) {
+    
+    int numFormats = pManager->GetIOPluginRegistry()->GetWriterFormatCount();
+
+    //Set the default format to the native binary format.
+    int formatIndex = pManager->GetIOPluginRegistry()->GetNativeWriterFormat();
+
+    //Get the FBX format index whose corresponding description contains "ascii".
+    for (int i = 0; i < numFormats; i++) {
+
+        //First check if the writer is an FBX writer.
+        if( pManager->GetIOPluginRegistry()->WriterIsFBX(i)) {
+
+            //Obtain the description of the FBX writer.
+            std::string description = pManager->GetIOPluginRegistry()->GetWriterFormatDescription(i);
+
+            // Check if the description contains 'ascii'.
+            if (description.find("ascii") != std::string::npos) {
+                formatIndex = i;
+                break;
+            }
+        }
+    }
+    return formatIndex;
+}
+
+void FbxLoader::addToScene(FbxLoader* modelToLoad, Vector4 location) {
+
+    // create a SdkManager
+    FbxManager* lSdkManager = FbxManager::Create();
+    
+    // create an IOSettings object
+    FbxIOSettings* ios = FbxIOSettings::Create(lSdkManager, IOSROOT);
+
+    
+    // set some IOSettings options 
+    ios->SetBoolProp(EXP_FBX_MATERIAL, true);
+    ios->SetBoolProp(EXP_FBX_TEXTURE, true);
+
+    // create an empty scene
+    FbxScene* lScene = FbxScene::Create(lSdkManager, "");
+   
+    // create an exporter.
+    FbxExporter* lExporter = FbxExporter::Create(lSdkManager, "");
+    
+    int asciiFormatIndex = getASCIIFormatIndex(lSdkManager);
+
+    // initialize the exporter by providing a filename and the IOSettings to use
+    lExporter->Initialize(_fileName.c_str(), asciiFormatIndex, ios);
+
+    // Obtain the root node of a scene.
+    FbxNode* lParentNode = lScene->GetRootNode();
+
+    {
+        FbxCloneManager                  cloneManager;
+        FbxCloneManager::CloneSet        cloneSet;
+        FbxCloneManager::CloneSetElement defaultCloneOptions(FbxCloneManager::sConnectToClone,
+            FbxCloneManager::sConnectToOriginal,
+            FbxObject::eDeepClone);
+
+        cloneSet.Insert(_scene->GetRootNode(), defaultCloneOptions);
+        cloneManager.AddDependents(cloneSet, _scene->GetRootNode(), defaultCloneOptions);
+        cloneManager.Clone(cloneSet, lParentNode);
+    }
+
+    {
+
+        // Add in the extra tree to the scene
+        std::string childName = "child" + std::to_string(modelToLoad->getScene()->GetRootNode()->GetChildCount());
+        FbxNode* lChildNode = FbxNode::Create(lScene, childName.c_str());
+
+        FbxCloneManager                  cloneManager;
+        FbxCloneManager::CloneSet        cloneSet;
+        FbxCloneManager::CloneSetElement defaultCloneOptions(FbxCloneManager::sConnectToClone,
+            FbxCloneManager::sConnectToOriginal,
+            FbxObject::eDeepClone);
+
+        cloneSet.Insert(modelToLoad->getScene()->GetRootNode(), defaultCloneOptions);
+        cloneManager.AddDependents(cloneSet, modelToLoad->getScene()->GetRootNode(), defaultCloneOptions);
+        cloneManager.Clone(cloneSet, lChildNode);
+
+        //lChildNode->LclScaling.Set(FbxDouble3(3.0, 3.0, 3.0));
+        lChildNode->LclTranslation.Set(FbxDouble3(location.getx(), location.gety(), location.getz()));
+
+        // Add the original to the root node
+        lParentNode->AddChild(lChildNode);
+    }
+
+    // export the scene.
+    lExporter->Export(lScene);
+    
+    // destroy the exporter
+    lExporter->Destroy();
+
 }
 
 void FbxLoader::loadAnimatedModel(AnimatedModel* model, FbxNode* node) {

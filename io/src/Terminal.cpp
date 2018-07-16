@@ -40,6 +40,14 @@ void Terminal::display() {
             modelName.pop_back();
             _modelManager->updateModel(modelName);
         }
+        else if (command == "ADD") {
+            _commandToProcess = _commandToProcess.substr(_commandToProcess.find(' ') + 1);
+            std::string modelName = _commandToProcess.substr(0, _commandToProcess.find(' '));
+            _commandToProcess = _commandToProcess.substr(_commandToProcess.find(' ') + 1);
+            std::string modelToAdd = _commandToProcess.substr(0, _commandToProcess.find(' '));
+            modelToAdd.pop_back();
+            _modelManager->addModel(modelName, modelToAdd, Vector4(10.0, 0.0, 0.0));
+        }
         _commandToProcess = "";
     }
 }

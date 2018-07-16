@@ -138,7 +138,9 @@ void InstancedForwardShader::runShader(Entity* entity, ViewManager* viewManager,
             if (directionalShadowTextures.size() > 1) {
                 updateUniform("mapDepthTexture", GL_TEXTURE2, directionalShadowTextures[1]->getDepthTexture());
             }
-            updateUniform("depthMap",           GL_TEXTURE3, pointShadowTexture->getDepthTexture());
+            if (pointShadowTexture != nullptr) {
+                updateUniform("depthMap", GL_TEXTURE3, pointShadowTexture->getDepthTexture());
+            }
 
             //Draw triangles using the bound buffer vertices at starting index 0 and number of triangles
             glDrawArraysInstanced(GL_TRIANGLES, strideLocation, (GLsizei)textureStride.second, 110);

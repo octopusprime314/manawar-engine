@@ -16,7 +16,7 @@
 */
 
 /**
-*  DebugShader class. Visualizes a model's normal vectors for lighting tests
+*  DebugShader class. Visualizes a model's mesh, frustum, AABB, etc
 */
 
 #pragma once

@@ -32,7 +32,7 @@ Model::Model(std::string name, ModelClass classId) :
         //If the object is a standard model then it is modeled with triangles
         _geometryType = GeometryType::Triangle;
 
-        delete _fbxLoader;
+        //delete _fbxLoader;
 
         std::string modelName = _getModelName(name);
         std::string colliderName = STATIC_MESH_LOCATION;
@@ -157,4 +157,8 @@ bool Model::getIsInstancedModel() {
 
 float* Model::getInstanceOffsets() {
     return _offsets;
+}
+
+FbxLoader* Model::getFbxLoader() {
+    return _fbxLoader;
 }

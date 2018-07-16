@@ -38,6 +38,32 @@ Model* ModelBroker::getModel(std::string modelName) {
     return _models[upperCaseMapName];
 }
 
+void ModelBroker::addModel(std::string modelName, std::string modelToAdd, Vector4 location) {
+    
+    std::string upperCaseMapName = _strToUpper(modelName + "/" + modelName + ".fbx");
+    std::string upperCaseMapNameToAdd = _strToUpper(modelToAdd + "/" + modelToAdd + ".fbx");
+
+    if (_models.find(upperCaseMapName) != _models.end() &&
+        _models.find(upperCaseMapNameToAdd) != _models.end()) {
+
+        if (_models[upperCaseMapName]->getClassType() == ModelClass::ModelType) {
+
+            FbxLoader* modelToAdd = _models[upperCaseMapNameToAdd]->getFbxLoader();
+            FbxLoader* modelAddedTo = _models[upperCaseMapName]->getFbxLoader();
+
+            modelAddedTo->addToScene(modelToAdd, location);
+
+            auto model = new Model(upperCaseMapName);
+            _models[upperCaseMapName]->updateModel(model);
+            delete model;
+        }
+
+    }
+    else {
+        std::cout << "Model doesn't exist so add it!" << std::endl;
+    }
+}
+
 void ModelBroker::updateModel(std::string modelName) {
 
     std::string upperCaseMapName = _strToUpper(modelName + "/" + modelName + ".fbx");
@@ -52,9 +78,8 @@ void ModelBroker::updateModel(std::string modelName) {
         }
         else if (_models[upperCaseMapName]->getClassType() == ModelClass::AnimatedModelType) {
             auto model = new AnimatedModel(upperCaseMapName);
-            //TODO: Release previous model data
             _models[upperCaseMapName]->updateModel(model);
-            //delete model;
+            delete model;
         }
 
     }

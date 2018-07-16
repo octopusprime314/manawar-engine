@@ -72,6 +72,7 @@ public:
     bool                        getIsInstancedModel();
     float*                      getInstanceOffsets();
     void                        runShader(Entity* entity);
+    FbxLoader*                  getFbxLoader();
     virtual void                updateModel(Model* model);
 
 protected:

@@ -51,16 +51,29 @@ void ModelBroker::addModel(std::string modelName, std::string modelToAdd, Vector
             FbxLoader* modelToAdd = _models[upperCaseMapNameToAdd]->getFbxLoader();
             FbxLoader* modelAddedTo = _models[upperCaseMapName]->getFbxLoader();
 
-            modelAddedTo->addToScene(modelToAdd, location);
-
-            auto model = new Model(upperCaseMapName);
-            _models[upperCaseMapName]->updateModel(model);
-            delete model;
+            modelAddedTo->addToScene(_models[upperCaseMapName], modelToAdd, location);
         }
 
     }
     else {
         std::cout << "Model doesn't exist so add it!" << std::endl;
+    }
+}
+
+void ModelBroker::saveModel(std::string modelName) {
+
+    std::string upperCaseMapName = _strToUpper(modelName + "/" + modelName + ".fbx");
+
+    if (_models.find(upperCaseMapName) != _models.end()) {
+
+        if (_models[upperCaseMapName]->getClassType() == ModelClass::ModelType) {
+            
+            FbxLoader* modelToSave = _models[upperCaseMapName]->getFbxLoader();
+            modelToSave->saveScene();
+        }
+    }
+    else {
+        std::cout << "Model doesn't exist so don't save it!" << std::endl;
     }
 }
 

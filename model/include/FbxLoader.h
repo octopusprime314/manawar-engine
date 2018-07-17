@@ -31,11 +31,20 @@ class SkinningData;
 class Vector4;
 class Matrix;
 
+struct FbxExporterType {
+    FbxManager*    manager;
+    FbxIOSettings* ioSettings;
+    FbxScene*      scene;
+    FbxExporter*   exporter;
+};
+
 class FbxLoader {
     FbxManager*    _fbxManager;
     FbxIOSettings* _ioSettings;
     FbxScene*      _scene;
+    FbxExporterType _export;
     std::string    _fileName;
+    std::vector<FbxNode*> _nodesToAdd;
     void           _loadTextures(Model* model, FbxMesh* meshNode, FbxNode* childNode);
     void           _buildTriangles(Model* model, std::vector<Vector4>& vertices, std::vector<Vector4>& normals,
         std::vector<Tex2>& textures, std::vector<int>& indices, FbxNode* node);
@@ -49,6 +58,7 @@ class FbxLoader {
     void           _loadNormals(FbxMesh* meshNode, int* indices, std::vector<Vector4>& normals);
     void           _loadVertices(FbxMesh* meshNode, std::vector<Vector4>& vertices);
     void           _loadIndices(Model* model, FbxMesh* meshNode, int*& indices);
+    int            _getASCIIFormatIndex(FbxManager* fbxManager);
 
 public:
     FbxLoader(std::string name);
@@ -61,5 +71,6 @@ public:
     void buildAnimationFrames(AnimatedModel* model, std::vector<SkinningData>& skins);
     void loadGeometry(Model* model, FbxNode* node);
     void loadGeometryData(Model* model, FbxMesh* meshNode, FbxNode* childNode);
-    void addToScene(FbxLoader* modelToLoad, Vector4 location);
+    void addToScene(Model* modelAddedTo, FbxLoader* modelToLoad, Vector4 location);
+    void saveScene();
 };

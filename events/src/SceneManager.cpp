@@ -97,11 +97,9 @@ SceneManager::SceneManager(int* argc, char** argv,
 
     _entityList.push_back(new Entity(modelBroker->getModel("landscape/landscape.fbx"), _viewManager->getEventWrapper())); //Add a static model to the scene
     _entityList.push_back(new Entity(modelBroker->getModel("werewolf/werewolf.fbx"), _viewManager->getEventWrapper())); //Add a static model to the scene
-    _entityList.push_back(new Entity(modelBroker->getModel("lantern/lantern.fbx"), _viewManager->getEventWrapper())); //Add a static model to the scene
     
     _entityList[1]->setPosition(Vector4(-0.f, 0.68f, -15.f));
-    _entityList[1]->setPosition(Vector4(0.f, 0.f, -10.f));
-
+    
     _physics = new Physics();
     _physics->addEntities(_entityList); //Gives physics a pointer to all models which allows access to underlying geometry
     

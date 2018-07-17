@@ -39,5 +39,6 @@ public:
     Model*               getModel(std::string modelName);
     void                 buildModels();
     void                 updateModel(std::string modelName);
+    void                 saveModel(std::string modelName);
     void                 addModel(std::string modelName, std::string modelToAdd, Vector4 location);
 };

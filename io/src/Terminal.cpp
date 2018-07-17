@@ -45,8 +45,22 @@ void Terminal::display() {
             std::string modelName = _commandToProcess.substr(0, _commandToProcess.find(' '));
             _commandToProcess = _commandToProcess.substr(_commandToProcess.find(' ') + 1);
             std::string modelToAdd = _commandToProcess.substr(0, _commandToProcess.find(' '));
-            modelToAdd.pop_back();
-            _modelManager->addModel(modelName, modelToAdd, Vector4(10.0, 0.0, 0.0));
+            _commandToProcess = _commandToProcess.substr(_commandToProcess.find(' ') + 1);
+            std::string xStr = _commandToProcess.substr(0, _commandToProcess.find(' '));
+            _commandToProcess = _commandToProcess.substr(_commandToProcess.find(' ') + 1);
+            std::string yStr = _commandToProcess.substr(0, _commandToProcess.find(' '));
+            _commandToProcess = _commandToProcess.substr(_commandToProcess.find(' ') + 1);
+            std::string zStr = _commandToProcess.substr(0, _commandToProcess.find(' '));
+            _commandToProcess = _commandToProcess.substr(_commandToProcess.find(' ') + 1);
+            std::string scale = _commandToProcess.substr(0, _commandToProcess.find(' '));
+            scale.pop_back();
+            _modelManager->addModel(modelName, modelToAdd, Vector4(atof(xStr.c_str()), atof(yStr.c_str()), atof(zStr.c_str()), atof(scale.c_str())));
+        }
+        else if (command == "SAVE") {
+            _commandToProcess = _commandToProcess.substr(_commandToProcess.find(' ') + 1);
+            std::string modelName = _commandToProcess.substr(0, _commandToProcess.find(' '));
+            modelName.pop_back();
+            _modelManager->saveModel(modelName);
         }
         _commandToProcess = "";
     }

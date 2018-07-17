@@ -18,7 +18,8 @@ Model::Model(std::string name, ModelClass classId) :
 
     //Create vao contexts
     if (classId == ModelClass::ModelType) {
-        _vao.createVAO(&_renderBuffers, _classId);
+        _vao.push_back(new VAO());
+        _vao[0]->createVAO(&_renderBuffers, _classId);
     }
 
     //If class is generic model then deallocate fbx object,
@@ -57,6 +58,11 @@ void Model::runShader(Entity* entity) {
     _shaderProgram->runShader(entity);
 }
 
+void Model::addVAO(ModelClass classType) {
+    _vao.push_back(new VAO());
+    _vao[_vao.size() - 1]->createVAO(&_renderBuffers, classType);
+}
+
 void Model::updateModel(Model* model) {
     std::lock_guard<std::mutex> lockGuard(_updateLock);
     this->_textureStrides = model->_textureStrides;
@@ -64,7 +70,7 @@ void Model::updateModel(Model* model) {
     this->_vao            = model->_vao;
 }
 
-VAO* Model::getVAO() {
+std::vector<VAO*>* Model::getVAO() {
     return &_vao;
 }
 

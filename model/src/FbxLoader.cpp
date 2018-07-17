@@ -51,6 +51,18 @@ FbxLoader::FbxLoader(std::string name) {
     }
 
     importer->Destroy();
+
+    _export.manager = FbxManager::Create();
+    _export.ioSettings = FbxIOSettings::Create(_export.manager, IOSROOT);
+    _export.ioSettings->SetBoolProp(EXP_FBX_MATERIAL, true);
+    _export.ioSettings->SetBoolProp(EXP_FBX_TEXTURE, true);
+    // create an empty scene to be exported
+    _export.scene = FbxScene::Create(_export.manager, "");
+    // create an exporter.
+    _export.exporter = FbxExporter::Create(_export.manager, "");
+    int asciiFormatIndex = _getASCIIFormatIndex(_export.manager);
+    // initialize the exporter by providing a filename and the IOSettings to use
+    _export.exporter->Initialize((_fileName + "test").c_str(), asciiFormatIndex, _export.ioSettings);
 }
 
 FbxLoader::~FbxLoader() {
@@ -79,29 +91,7 @@ void FbxLoader::loadModel(Model* model, FbxNode* node) {
     }
 }
 
-
-void addAllChildren(FbxNode* reader, FbxNode* writer) {
-
-    // Determine the number of children there are
-    int numChildren = reader->GetChildCount();
-    FbxNode* childNode = nullptr;
-    for (int i = 0; i < numChildren; i++) {
-        childNode = reader->GetChild(i);
-        if (childNode != nullptr) {
-            FbxMesh* mesh = childNode->GetMesh();
-            if (mesh != nullptr) {
-                writer->AddChild(childNode);
-                writer->GetChild(writer->GetChildCount() - 1)->AddNodeAttribute(mesh);
-            }
-            if (writer->GetChildCount() > 0) {
-                addAllChildren(childNode, writer->GetChild(writer->GetChildCount() - 1));
-            }
-        }
-    }
-
-}
-
-int getASCIIFormatIndex(FbxManager* pManager) {
+int FbxLoader::_getASCIIFormatIndex(FbxManager* pManager) {
     
     int numFormats = pManager->GetIOPluginRegistry()->GetWriterFormatCount();
 
@@ -127,74 +117,60 @@ int getASCIIFormatIndex(FbxManager* pManager) {
     return formatIndex;
 }
 
-void FbxLoader::addToScene(FbxLoader* modelToLoad, Vector4 location) {
-
-    // create a SdkManager
-    FbxManager* lSdkManager = FbxManager::Create();
+void FbxLoader::saveScene() {
     
-    // create an IOSettings object
-    FbxIOSettings* ios = FbxIOSettings::Create(lSdkManager, IOSROOT);
-
-    
-    // set some IOSettings options 
-    ios->SetBoolProp(EXP_FBX_MATERIAL, true);
-    ios->SetBoolProp(EXP_FBX_TEXTURE, true);
-
-    // create an empty scene
-    FbxScene* lScene = FbxScene::Create(lSdkManager, "");
-   
-    // create an exporter.
-    FbxExporter* lExporter = FbxExporter::Create(lSdkManager, "");
-    
-    int asciiFormatIndex = getASCIIFormatIndex(lSdkManager);
-
-    // initialize the exporter by providing a filename and the IOSettings to use
-    lExporter->Initialize(_fileName.c_str(), asciiFormatIndex, ios);
-
     // Obtain the root node of a scene.
-    FbxNode* lParentNode = lScene->GetRootNode();
+    FbxNode* lParentNode = _export.scene->GetRootNode();
 
-    {
-        FbxCloneManager                  cloneManager;
-        FbxCloneManager::CloneSet        cloneSet;
-        FbxCloneManager::CloneSetElement defaultCloneOptions(FbxCloneManager::sConnectToClone,
-            FbxCloneManager::sConnectToOriginal,
-            FbxObject::eDeepClone);
+    FbxCloneManager                  cloneManager;
+    FbxCloneManager::CloneSet        cloneSet;
+    FbxCloneManager::CloneSetElement defaultCloneOptions(FbxCloneManager::sConnectToClone,
+        FbxCloneManager::sConnectToOriginal,
+        FbxObject::eDeepClone);
 
-        cloneSet.Insert(_scene->GetRootNode(), defaultCloneOptions);
-        cloneManager.AddDependents(cloneSet, _scene->GetRootNode(), defaultCloneOptions);
-        cloneManager.Clone(cloneSet, lParentNode);
-    }
+    cloneSet.Insert(_scene->GetRootNode(), defaultCloneOptions);
+    cloneManager.AddDependents(cloneSet, _scene->GetRootNode(), defaultCloneOptions);
+    cloneManager.Clone(cloneSet, lParentNode);
 
-    {
-
-        // Add in the extra tree to the scene
-        std::string childName = "child" + std::to_string(modelToLoad->getScene()->GetRootNode()->GetChildCount());
-        FbxNode* lChildNode = FbxNode::Create(lScene, childName.c_str());
-
-        FbxCloneManager                  cloneManager;
-        FbxCloneManager::CloneSet        cloneSet;
-        FbxCloneManager::CloneSetElement defaultCloneOptions(FbxCloneManager::sConnectToClone,
-            FbxCloneManager::sConnectToOriginal,
-            FbxObject::eDeepClone);
-
-        cloneSet.Insert(modelToLoad->getScene()->GetRootNode(), defaultCloneOptions);
-        cloneManager.AddDependents(cloneSet, modelToLoad->getScene()->GetRootNode(), defaultCloneOptions);
-        cloneManager.Clone(cloneSet, lChildNode);
-
-        //lChildNode->LclScaling.Set(FbxDouble3(3.0, 3.0, 3.0));
-        lChildNode->LclTranslation.Set(FbxDouble3(location.getx(), location.gety(), location.getz()));
-
-        // Add the original to the root node
-        lParentNode->AddChild(lChildNode);
+    for (auto node : _nodesToAdd) {
+        lParentNode->AddChild(node);
     }
 
     // export the scene.
-    lExporter->Export(lScene);
-    
-    // destroy the exporter
-    lExporter->Destroy();
+    _export.exporter->Export(_export.scene);
 
+    // destroy the exporter
+    _export.exporter->Destroy();
+
+    _export.scene->Destroy();
+    _export.ioSettings->Destroy();
+    _export.manager->Destroy();
+}
+
+void FbxLoader::addToScene(Model* modelAddedTo, FbxLoader* modelToLoad, Vector4 location) {
+
+    // Add in the extra object to the scene
+    std::string childName = "child" + std::to_string(_scene->GetRootNode()->GetChildCount() + _nodesToAdd.size());
+    FbxNode* lChildNode = FbxNode::Create(_export.scene, childName.c_str());
+
+    FbxCloneManager                  cloneManager;
+    FbxCloneManager::CloneSet        cloneSet;
+    FbxCloneManager::CloneSetElement defaultCloneOptions(FbxCloneManager::sConnectToClone,
+        FbxCloneManager::sConnectToOriginal,
+        FbxObject::eDeepClone);
+
+    cloneSet.Insert(modelToLoad->getScene()->GetRootNode(), defaultCloneOptions);
+    cloneManager.AddDependents(cloneSet, modelToLoad->getScene()->GetRootNode(), defaultCloneOptions);
+    cloneManager.Clone(cloneSet, lChildNode);
+
+    lChildNode->LclScaling.Set(FbxDouble3(location.getw(), location.getw(), location.getw()));
+    lChildNode->LclTranslation.Set(FbxDouble3(location.getx(), location.gety(), location.getz()));
+    lChildNode->SetName(childName.c_str());
+
+    _nodesToAdd.push_back(lChildNode);
+
+    loadModel(modelAddedTo, lChildNode);
+    modelAddedTo->addVAO(ModelClass::ModelType);
 }
 
 void FbxLoader::loadAnimatedModel(AnimatedModel* model, FbxNode* node) {
@@ -717,21 +693,10 @@ void FbxLoader::_loadTextures(Model* model, FbxMesh* meshNode, FbxNode* childNod
                 if (layered_texture != nullptr) {
 
                     if (_loadLayeredTexture(model, strides[textureStrideIndex], layered_texture)) {
-                        textureStrideIndex++;
+                        if (textureStrideIndex < strides.size() - 1) {
+                            textureStrideIndex++;
+                        }
                     }
-
-                    //int textureCount = layered_texture->GetSrcObjectCount<FbxTexture>();
-                    //for (int textureIndex = 0; textureIndex < textureCount; textureIndex++) {
-
-                    //    //Fetch the diffuse texture
-                    //    FbxFileTexture* textureFbx = FbxCast<FbxFileTexture >(layered_texture->GetSrcObject<FbxFileTexture >(textureIndex));
-                    //    if(_loadLayeredTexture(model, strides[textureStrideIndex], textureFbx, textureIndex)){
-                    //        textureStrideIndex++;
-                    //    }
-
-                    //    // TODO Implement layered textures but for now just grab the first texture and break out
-                    //    break;
-                    //}
                 }
             }
         }
@@ -744,7 +709,9 @@ void FbxLoader::_loadTextures(Model* model, FbxMesh* meshNode, FbxNode* childNod
                 //Fetch the diffuse texture
                 FbxFileTexture* textureFbx = FbxCast<FbxFileTexture>(propDiffuse.GetSrcObject<FbxFileTexture>(textureIndex));
                 if (_loadTexture(model, strides[textureStrideIndex], textureFbx)) {
-                    textureStrideIndex++;
+                    if (textureStrideIndex < strides.size() - 1) {
+                        textureStrideIndex++;
+                    }
                 }
             }
         }

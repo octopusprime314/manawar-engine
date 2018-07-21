@@ -12,14 +12,46 @@ Model::Model(std::string name, ModelClass classId) :
     _fbxLoader(new FbxLoader((classId == ModelClass::ModelType ? 
         STATIC_MESH_LOCATION : ANIMATED_MESH_LOCATION) + name)) {
 
+    /*if (classId == ModelClass::ModelType) {
+        if (name.find("landscape") != std::string::npos) {
+            std::vector<Entity*> list = { new Entity(this, ModelBroker::getViewManager()->getEventWrapper()) };
+            ModelBroker::_frustumCuller = new FrustumCuller(list);
+        }
+    }
+    else {*/
+        _vao.push_back(new VAO());
+    //}
     
     //Populate model with fbx file data and recursivelty search with the root node of the scene
     _fbxLoader->loadModel(this, _fbxLoader->getScene()->GetRootNode());
 
     //Create vao contexts
-    if (classId == ModelClass::ModelType) {
-        _vao.push_back(new VAO());
-        _vao[0]->createVAO(&_renderBuffers, _classId);
+    if (classId == ModelClass::ModelType)  {
+        /*if (name.find("landscape") != std::string::npos) {
+            std::vector<Entity*> list = { new Entity(this, ModelBroker::getViewManager()->getEventWrapper()) };
+            ModelBroker::_frustumCuller = new FrustumCuller(list);
+
+            auto* leaves = ModelBroker::_frustumCuller->getOSP()->getFrustumLeaves();
+            auto vertices = _renderBuffers.getVertices();
+            auto normals = _renderBuffers.getNormals();
+            auto textures = _renderBuffers.getTextures();
+            auto indices = _renderBuffers.getIndices();
+            for (auto leaf : *leaves) {
+                _vao.push_back(new VAO());
+                RenderBuffers renderBuff;
+                for (auto triIndex : leaf->getTriangleIndices()) {
+                    renderBuff.addVertex((*vertices)[triIndex]);
+                    renderBuff.addNormal((*normals)[triIndex]);
+                    renderBuff.addTexture((*textures)[triIndex]);
+                }
+                if (renderBuff.getVertices() > 0) {
+                    _vao[_vao.size() - 1]->createVAO(&renderBuff, _classId);
+                }
+            }
+        }
+        else {*/
+            _vao[0]->createVAO(&_renderBuffers, _classId);
+        //}
     }
 
     //If class is generic model then deallocate fbx object,
@@ -59,13 +91,11 @@ void Model::runShader(Entity* entity) {
 }
 
 void Model::addVAO(ModelClass classType) {
-    _vao.push_back(new VAO());
     _vao[_vao.size() - 1]->createVAO(&_renderBuffers, classType);
 }
 
 void Model::updateModel(Model* model) {
     std::lock_guard<std::mutex> lockGuard(_updateLock);
-    this->_textureStrides = model->_textureStrides;
     this->_geometry       = model->_geometry;
     this->_vao            = model->_vao;
 }
@@ -92,7 +122,7 @@ size_t Model::getArrayCount() {
 }
 
 void Model::addTexture(std::string textureName, int stride) {
-    _textureStrides.push_back(std::pair<std::string, int>(textureName, stride));
+    _vao[_vao.size() - 1]->addTextureStride(std::pair<std::string, int>(textureName, stride));
     _textureManager->addTexture(textureName);
 }
 
@@ -104,7 +134,7 @@ void Model::addLayeredTexture(std::vector<std::string> textureNames, int stride)
         sumString += str;
     }
     //Create sum string for later identification
-    _textureStrides.push_back(std::pair<std::string, int>(sumString, stride));
+    _vao[_vao.size() - 1]->addTextureStride(std::pair<std::string, int>(sumString, stride));
     _textureManager->addLayeredTexture(textureNames);
 }
 
@@ -114,10 +144,6 @@ AssetTexture* Model::getTexture(std::string textureName) {
 
 LayeredTexture* Model::getLayeredTexture(std::string textureName) {
     return _textureManager->getLayeredTexture(textureName);
-}
-
-TextureMetaData& Model::getTextureStrides() {
-    return _textureStrides;
 }
 
 GeometryType Model::getGeometryType() {

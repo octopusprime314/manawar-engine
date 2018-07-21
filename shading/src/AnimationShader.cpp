@@ -54,7 +54,7 @@ void AnimationShader::runShader(Entity* entity) {
         delete[] bonesArray;
 
         //Grab strides of vertex sets that have a single texture associated with them
-        auto textureStrides = model->getTextureStrides();
+        auto textureStrides = vaoInstance->getTextureStrides();
         unsigned int strideLocation = 0;
         for (auto textureStride : textureStrides) {
 

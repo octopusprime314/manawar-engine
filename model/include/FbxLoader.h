@@ -44,20 +44,21 @@ class FbxLoader {
     FbxScene*      _scene;
     FbxExporterType _export;
     std::string    _fileName;
-    std::vector<FbxNode*> _nodesToAdd;
+    bool           _copiedOverFlag; //indicates the scene has been cloned over to export fbx to prevent doing it again!
     void           _loadTextures(Model* model, FbxMesh* meshNode, FbxNode* childNode);
     void           _buildTriangles(Model* model, std::vector<Vector4>& vertices, std::vector<Vector4>& normals,
         std::vector<Tex2>& textures, std::vector<int>& indices, FbxNode* node);
     void           _buildModelData(Model* model, FbxMesh* meshNode, FbxNode* childNode, std::vector<Vector4>& vertices,
         std::vector<Vector4>& normals, std::vector<Tex2>& textures);
     void           _buildGeometryData(Model* model, std::vector<Vector4>& vertices, std::vector<int>& indices, FbxNode* node);
-    void           _generateTextureStrides(FbxMesh* meshNode, std::vector<int>& textureStrides);
+    void           _generateTextureStrides(FbxMesh* meshNode, std::vector<std::pair<int, int>>& textureStrides);
     bool           _loadTexture(Model* model, int textureStride, FbxFileTexture* textureFbx);
     bool           _loadLayeredTexture(Model* model, int textureStride, FbxLayeredTexture* layered_texture);
     void           _loadTextureUVs(FbxMesh* meshNode, std::vector<Tex2>& textures);
     void           _loadNormals(FbxMesh* meshNode, int* indices, std::vector<Vector4>& normals);
     void           _loadVertices(FbxMesh* meshNode, std::vector<Vector4>& vertices);
     void           _loadIndices(Model* model, FbxMesh* meshNode, int*& indices);
+    void           _cloneFbxNode(Model* modelAddedTo, FbxNode* node, Vector4 location);
     int            _getASCIIFormatIndex(FbxManager* fbxManager);
 
 public:

@@ -62,13 +62,22 @@ FbxLoader::FbxLoader(std::string name) {
     _export.exporter = FbxExporter::Create(_export.manager, "");
     int asciiFormatIndex = _getASCIIFormatIndex(_export.manager);
     // initialize the exporter by providing a filename and the IOSettings to use
+    //exports ascii fbx
     _export.exporter->Initialize((_fileName + "test").c_str(), asciiFormatIndex, _export.ioSettings);
+    //exports binary fbx i.e. much smaller
+    //_export.exporter->Initialize((_fileName + "test").c_str(), -1, _export.ioSettings);
 }
 
 FbxLoader::~FbxLoader() {
     _scene->Destroy();
     _ioSettings->Destroy();
     _fbxManager->Destroy();
+
+    // destroy the exporter
+    _export.exporter->Destroy();
+    _export.scene->Destroy();
+    _export.ioSettings->Destroy();
+    _export.manager->Destroy();
 }
 
 FbxScene* FbxLoader::getScene() {
@@ -119,57 +128,53 @@ int FbxLoader::_getASCIIFormatIndex(FbxManager* pManager) {
 
 void FbxLoader::saveScene() {
     
-    // Obtain the root node of a scene.
-    FbxNode* lParentNode = _export.scene->GetRootNode();
+    //If current fbx scene has not been copied over yet
+    if (!_copiedOverFlag) {
+        // Obtain the root node of a scene.
+        FbxNode* sceneNode = _scene->GetRootNode();
 
-    FbxCloneManager                  cloneManager;
-    FbxCloneManager::CloneSet        cloneSet;
-    FbxCloneManager::CloneSetElement defaultCloneOptions(FbxCloneManager::sConnectToClone,
-        FbxCloneManager::sConnectToOriginal,
-        FbxObject::eDeepClone);
+        // Determine the number of children there are
+        int numChildren = sceneNode->GetChildCount();
 
-    cloneSet.Insert(_scene->GetRootNode(), defaultCloneOptions);
-    cloneManager.AddDependents(cloneSet, _scene->GetRootNode(), defaultCloneOptions);
-    cloneManager.Clone(cloneSet, lParentNode);
-
-    for (auto node : _nodesToAdd) {
-        lParentNode->AddChild(node);
+        FbxNode* childNode = nullptr;
+        for (int i = 0; i < numChildren; i++) {
+            childNode = sceneNode->GetChild(i);
+            FbxCloneManager::Clone(childNode, _export.scene->GetRootNode());
+        }
+        _copiedOverFlag = true; //no more copying of original scene
     }
 
     // export the scene.
     _export.exporter->Export(_export.scene);
+}
 
-    // destroy the exporter
-    _export.exporter->Destroy();
+void FbxLoader::_cloneFbxNode(Model* modelAddedTo, FbxNode* node, Vector4 location) {
+   
+    // Determine the number of children there are
+    int numChildren = node->GetChildCount();
 
-    _export.scene->Destroy();
-    _export.ioSettings->Destroy();
-    _export.manager->Destroy();
+    FbxNode* childNode = nullptr;
+    for (int i = 0; i < numChildren; i++) {
+        childNode = node->GetChild(i);
+
+        childNode->LclScaling.Set(FbxDouble3(location.getw(), location.getw(), location.getw()));
+        childNode->LclTranslation.Set(FbxDouble3(location.getx(), location.gety(), location.getz()));
+        
+        FbxCloneManager::Clone(childNode, _export.scene->GetRootNode());
+    }
 }
 
 void FbxLoader::addToScene(Model* modelAddedTo, FbxLoader* modelToLoad, Vector4 location) {
 
-    // Add in the extra object to the scene
-    std::string childName = "child" + std::to_string(_scene->GetRootNode()->GetChildCount() + _nodesToAdd.size());
-    FbxNode* lChildNode = FbxNode::Create(_export.scene, childName.c_str());
+    modelAddedTo->getRenderBuffers()->getVertices()->resize(0);
+    modelAddedTo->getRenderBuffers()->getNormals()->resize(0);
+    modelAddedTo->getRenderBuffers()->getTextures()->resize(0);
+    modelAddedTo->getRenderBuffers()->getIndices()->resize(0);
 
-    FbxCloneManager                  cloneManager;
-    FbxCloneManager::CloneSet        cloneSet;
-    FbxCloneManager::CloneSetElement defaultCloneOptions(FbxCloneManager::sConnectToClone,
-        FbxCloneManager::sConnectToOriginal,
-        FbxObject::eDeepClone);
+    _cloneFbxNode(modelAddedTo, modelToLoad->getScene()->GetRootNode(), location);
 
-    cloneSet.Insert(modelToLoad->getScene()->GetRootNode(), defaultCloneOptions);
-    cloneManager.AddDependents(cloneSet, modelToLoad->getScene()->GetRootNode(), defaultCloneOptions);
-    cloneManager.Clone(cloneSet, lChildNode);
-
-    lChildNode->LclScaling.Set(FbxDouble3(location.getw(), location.getw(), location.getw()));
-    lChildNode->LclTranslation.Set(FbxDouble3(location.getx(), location.gety(), location.getz()));
-    lChildNode->SetName(childName.c_str());
-
-    _nodesToAdd.push_back(lChildNode);
-
-    loadModel(modelAddedTo, lChildNode);
+    modelAddedTo->getVAO()->push_back(new VAO());
+    loadModel(modelAddedTo, _export.scene->GetRootNode());
     modelAddedTo->addVAO(ModelClass::ModelType);
 }
 
@@ -574,7 +579,7 @@ void FbxLoader::_loadTextureUVs(FbxMesh* meshNode, std::vector<Tex2>& textures) 
     }
 }
 
-void FbxLoader::_generateTextureStrides(FbxMesh* meshNode, std::vector<int>& textureStrides) {
+void FbxLoader::_generateTextureStrides(FbxMesh* meshNode, std::vector<std::pair<int, int>>& textureStrides) {
     //Get material element info
     FbxLayerElementMaterial* pLayerMaterial = meshNode->GetLayer(0)->GetMaterials();
     //Get material mapping info
@@ -585,7 +590,7 @@ void FbxLoader::_generateTextureStrides(FbxMesh* meshNode, std::vector<int>& tex
     int textureCountage = tmpArray->GetCount();
 
     if (mapMode == FbxLayerElement::EMappingMode::eAllSame) {
-        textureStrides.push_back(meshNode->GetPolygonVertexCount());
+        textureStrides.push_back(std::pair<int, int>(0, meshNode->GetPolygonVertexCount())); //All the same assign 0
     }
     else {
         int currMaterial;
@@ -596,23 +601,23 @@ void FbxLoader::_generateTextureStrides(FbxMesh* meshNode, std::vector<int>& tex
             }
             else {
                 if (currMaterial != tmpArray->GetAt(i)) {
-                    currMaterial = tmpArray->GetAt(i);
                     if (mapMode == FbxLayerElement::EMappingMode::eByPolygon) {
-                        textureStrides.push_back(vertexStride * 3); //Multiply by 3 because materials are done per triangle not per vertex
+                        textureStrides.push_back(std::pair<int, int>(currMaterial, vertexStride * 3)); //Multiply by 3 because materials are done per triangle not per vertex
                     }
                     else if (mapMode == FbxLayerElement::EMappingMode::eByPolygonVertex) {
-                        textureStrides.push_back(vertexStride);
+                        textureStrides.push_back(std::pair<int, int>(currMaterial, vertexStride));
                     }
                     vertexStride = 0;
+                    currMaterial = tmpArray->GetAt(i);
                 }
             }
             vertexStride++;
         }
         if (mapMode == FbxLayerElement::EMappingMode::eByPolygon) {
-            textureStrides.push_back(vertexStride * 3); //Multiply by 3 because materials are done per triangle not per vertex
+            textureStrides.push_back(std::pair<int, int>(currMaterial, vertexStride * 3)); //Multiply by 3 because materials are done per triangle not per vertex
         }
         else if (mapMode == FbxLayerElement::EMappingMode::eByPolygonVertex) {
-            textureStrides.push_back(vertexStride);
+            textureStrides.push_back(std::pair<int, int>(currMaterial, vertexStride));
         }
     }
 }
@@ -667,13 +672,16 @@ void FbxLoader::_loadTextures(Model* model, FbxMesh* meshNode, FbxNode* childNod
     if (meshNode->GetLayerCount() == 0) {
         return;
     }
-    std::vector<int> strides;
+    std::vector<std::pair<int, int>> strides;
     _generateTextureStrides(meshNode, strides);
 
     //Return the number of materials found in mesh
     int materialCount = childNode->GetSrcObjectCount<FbxSurfaceMaterial>();
     int textureStrideIndex = 0;
-    for (int materialIndex = 0; materialIndex < materialCount; ++materialIndex) {
+    /*for (int materialIndex = 0; materialIndex < materialCount; ++materialIndex) {*/
+    for(auto stride : strides) {
+
+        int materialIndex = stride.first;
 
         FbxSurfaceMaterial* material = (FbxSurfaceMaterial*)childNode->GetSrcObject<FbxSurfaceMaterial>(materialIndex);
         if (material == nullptr) {
@@ -692,7 +700,7 @@ void FbxLoader::_loadTextures(Model* model, FbxMesh* meshNode, FbxNode* childNod
                 FbxLayeredTexture* layered_texture = FbxCast<FbxLayeredTexture>(propDiffuse.GetSrcObject<FbxLayeredTexture>(j));
                 if (layered_texture != nullptr) {
 
-                    if (_loadLayeredTexture(model, strides[textureStrideIndex], layered_texture)) {
+                    if (_loadLayeredTexture(model, stride.second, layered_texture)) {
                         if (textureStrideIndex < strides.size() - 1) {
                             textureStrideIndex++;
                         }
@@ -708,7 +716,7 @@ void FbxLoader::_loadTextures(Model* model, FbxMesh* meshNode, FbxNode* childNod
 
                 //Fetch the diffuse texture
                 FbxFileTexture* textureFbx = FbxCast<FbxFileTexture>(propDiffuse.GetSrcObject<FbxFileTexture>(textureIndex));
-                if (_loadTexture(model, strides[textureStrideIndex], textureFbx)) {
+                if (_loadTexture(model, stride.second, textureFbx)) {
                     if (textureStrideIndex < strides.size() - 1) {
                         textureStrideIndex++;
                     }
@@ -722,10 +730,14 @@ void FbxLoader::_buildTriangles(Model* model, std::vector<Vector4>& vertices, st
     std::vector<Tex2>& textures, std::vector<int>& indices, FbxNode* node) {
 
     RenderBuffers* renderBuffers = model->getRenderBuffers();
-    //Global transform
-    FbxDouble* TBuff = node->EvaluateGlobalTransform().GetT().Buffer();
+    //Global transform doesn't work always so keep it here just in case
+    /*FbxDouble* TBuff = node->EvaluateGlobalTransform().GetT().Buffer();
     FbxDouble* RBuff = node->EvaluateGlobalTransform().GetR().Buffer();
-    FbxDouble* SBuff = node->EvaluateGlobalTransform().GetS().Buffer();
+    FbxDouble* SBuff = node->EvaluateGlobalTransform().GetS().Buffer();*/
+
+    FbxDouble* TBuff = node->LclTranslation.Get().Buffer();
+    FbxDouble* RBuff = node->LclRotation.Get().Buffer();
+    FbxDouble* SBuff = node->LclScaling.Get().Buffer();
 
     //Compute x, y and z rotation vectors by multiplying through
     Matrix rotation = Matrix::rotationAroundX(static_cast<float>(RBuff[0])) *

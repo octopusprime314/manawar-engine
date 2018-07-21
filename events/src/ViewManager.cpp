@@ -61,8 +61,7 @@ void ViewManager::setProjection(unsigned int viewportWidth, unsigned int viewpor
     _godCamera.setProjection(_currCamera->getProjection());
     _viewCamera.setProjection(_currCamera->getProjection());
 
-    //Broadcast perspective matrix once to all subscribers
-    _viewEvents->updateProjection(_currCamera->getProjection());
+    
 }
 
 void ViewManager::setView(Matrix translation, Matrix rotation, Matrix scale) {
@@ -76,7 +75,11 @@ void ViewManager::setView(Matrix translation, Matrix rotation, Matrix scale) {
 
     _godCamera.setViewMatrix(_currCamera->getView());
     _viewCamera.setViewMatrix(_currCamera->getView());
-   
+}
+
+void ViewManager::triggerEvents() {
+
+    _viewEvents->updateProjection(_currCamera->getProjection());
     _viewEvents->updateView(_currCamera->getView());
 }
 
@@ -124,7 +127,7 @@ void ViewManager::_updateKeyboard(int key, int x, int y) { //Do stuff based on k
     
     //Toggles View frustum and physics geometry viewing
     if (key == GLFW_KEY_F || key == GLFW_KEY_0) {
-        DebugShader::toggleDebug();
+        //DebugShader::toggleDebug();
     }
 
     if (key == GLFW_KEY_W || key == GLFW_KEY_S || 

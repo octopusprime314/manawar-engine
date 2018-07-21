@@ -138,12 +138,22 @@ void VAO::createVAO(std::vector<Sphere>* spheres, GeometryConstruction geometryT
     delete[] flattenVerts;
 }
 
+void VAO::addTextureStride(std::pair<std::string, int> stride) {
+    _textureStride.push_back(stride);
+}
+
+TextureMetaData VAO::getTextureStrides() {
+    return _textureStride;
+}
+
 void VAO::createVAO(RenderBuffers* renderBuffers, ModelClass classId, Animation* animation) {
     auto vertices = renderBuffers->getVertices();
     auto normals = renderBuffers->getNormals();
     auto textures = renderBuffers->getTextures();
     auto indices = renderBuffers->getIndices();
     auto debugNormals = renderBuffers->getDebugNormals();
+
+    _vertexLength = static_cast<GLuint>(vertices->size());
 
     //Now flatten vertices and normals out for opengl
     size_t triBuffSize = 0;

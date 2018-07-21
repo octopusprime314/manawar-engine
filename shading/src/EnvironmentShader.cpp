@@ -41,7 +41,7 @@ void EnvironmentShader::runShader(Entity* entity, std::vector<Matrix> viewTransf
         updateUniform("viewMatrices[0]", lightCubeTransforms);
         delete[] lightCubeTransforms;
 
-        auto textureStrides = model->getTextureStrides();
+        auto textureStrides = vaoInstance->getTextureStrides();
         unsigned int strideLocation = 0;
         for (auto textureStride : textureStrides) {
 

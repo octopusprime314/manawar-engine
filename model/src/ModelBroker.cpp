@@ -6,6 +6,8 @@
 #include "Model.h"
 //#include "Logger.h"
 ModelBroker* ModelBroker::_broker = nullptr;
+FrustumCuller* ModelBroker::_frustumCuller = nullptr;
+ViewManager* ModelBroker::_viewManager = nullptr;
 
 ModelBroker* ModelBroker::instance() { //Only initializes the static pointer once
     if (_broker == nullptr) {
@@ -28,6 +30,14 @@ std::string ModelBroker::_strToUpper(std::string s) {
     return s;
 }
 
+void ModelBroker::setViewManager(ViewManager* viewManager) {
+    _viewManager = viewManager;
+}
+
+ViewManager* ModelBroker::getViewManager() {
+    return _viewManager;
+}
+
 void ModelBroker::buildModels() {
 
     _gatherModelNames();
@@ -46,14 +56,9 @@ void ModelBroker::addModel(std::string modelName, std::string modelToAdd, Vector
     if (_models.find(upperCaseMapName) != _models.end() &&
         _models.find(upperCaseMapNameToAdd) != _models.end()) {
 
-        if (_models[upperCaseMapName]->getClassType() == ModelClass::ModelType) {
-
-            FbxLoader* modelToAdd = _models[upperCaseMapNameToAdd]->getFbxLoader();
-            FbxLoader* modelAddedTo = _models[upperCaseMapName]->getFbxLoader();
-
-            modelAddedTo->addToScene(_models[upperCaseMapName], modelToAdd, location);
-        }
-
+        FbxLoader* modelToAdd = _models[upperCaseMapNameToAdd]->getFbxLoader();
+        FbxLoader* modelAddedTo = _models[upperCaseMapName]->getFbxLoader();
+        modelAddedTo->addToScene(_models[upperCaseMapName], modelToAdd, location);
     }
     else {
         std::cout << "Model doesn't exist so add it!" << std::endl;
@@ -66,11 +71,8 @@ void ModelBroker::saveModel(std::string modelName) {
 
     if (_models.find(upperCaseMapName) != _models.end()) {
 
-        if (_models[upperCaseMapName]->getClassType() == ModelClass::ModelType) {
-            
-            FbxLoader* modelToSave = _models[upperCaseMapName]->getFbxLoader();
-            modelToSave->saveScene();
-        }
+        FbxLoader* modelToSave = _models[upperCaseMapName]->getFbxLoader();
+        modelToSave->saveScene();
     }
     else {
         std::cout << "Model doesn't exist so don't save it!" << std::endl;
@@ -85,7 +87,6 @@ void ModelBroker::updateModel(std::string modelName) {
 
         if (_models[upperCaseMapName]->getClassType() == ModelClass::ModelType) {
             auto model = new Model(upperCaseMapName);
-            //TODO: Release previous model data
             _models[upperCaseMapName]->updateModel(model);
             delete model;
         }

@@ -37,6 +37,8 @@ class OctNode {
     //Maps models to a list of spheres in the oct node
     //if a model's spheres are involved in a collision then changes can be propogated back to the model
     std::unordered_map<Entity*, std::set<Sphere*>> _spheres;
+    //Triangle indexes into a renderbuffer for tiled rendering techniques
+    std::vector<unsigned int> _triangleIndices;
 
 public:
     OctNode(T data) : _data(data) {
@@ -48,6 +50,10 @@ public:
     }
     void addGeometry(Entity* entity, Triangle* triangle) {
         _triangles[entity].insert(triangle);
+    }
+    void addGeometry(Entity* entity, Triangle* triangle, unsigned int triangleIndex) {
+        _triangles[entity].insert(triangle);
+        _triangleIndices.push_back(triangleIndex);
     }
     void addGeometry(Entity* entity, Sphere* sphere) {
         _spheres[entity].insert(sphere);
@@ -68,5 +74,5 @@ public:
     T getData() { return _data; }
 
     std::vector<OctNode<T>*>& getChildren() { return _children; }
-
+    std::vector<unsigned int>& getTriangleIndices() { return _triangleIndices; }
 };

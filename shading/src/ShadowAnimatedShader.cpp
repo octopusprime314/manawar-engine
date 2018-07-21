@@ -46,7 +46,7 @@ void ShadowAnimatedShader::runShader(Entity* entity, Light* light) {
         updateUniform("bones[0]", bonesArray);
         delete[] bonesArray;
 
-        auto textureStrides = animationModel->getTextureStrides();
+        auto textureStrides = vaoInstance->getTextureStrides();
         unsigned int verticesSize = 0;
         for (auto textureStride : textureStrides) {
             verticesSize += textureStride.second;

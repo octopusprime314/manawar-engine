@@ -1,5 +1,5 @@
 /*
-* Frustum Occlusion is part of the ReBoot distribution (https://github.com/octopusprime314/ReBoot.git).
+* FrustumCuller is part of the ReBoot distribution (https://github.com/octopusprime314/ReBoot.git).
 * Copyright (c) 2017 Peter Morley.
 *
 * ReBoot is free software: you can redistribute it and/or modify
@@ -16,7 +16,7 @@
 */
 
 /**
-*  Frustum Occlusion class. Trims down the number of vertices needed to be passed through the
+*  FrustumCuller class. Trims down the number of vertices needed to be passed through the
 * graphics VS/PS pipeline by using AABBs from an Octal Space Partioning structure.  The AABBs 
 * that are within the view/eye frustum will provide all of the vertexes that need to be rendered.
 */
@@ -28,8 +28,9 @@
 
 class Entity;
 
-class FrustumOcclusion {
+class FrustumCuller {
     OSP _octalSpacePartitioner;
 public:
-    FrustumOcclusion(std::vector<Entity*> models);
+    FrustumCuller(std::vector<Entity*> models);
+    OSP* getOSP();
 };

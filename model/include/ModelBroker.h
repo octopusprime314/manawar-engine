@@ -24,6 +24,8 @@
 #include "AnimatedModel.h"
 #include <map>
 #include <vector>
+#include "FrustumCuller.h"
+#include "ViewManagerEvents.h"
 
 using ModelMap = std::map<std::string, Model*>;
 
@@ -33,6 +35,7 @@ class ModelBroker {
     static ModelBroker*  _broker;
     void                 _gatherModelNames();
     std::string          _strToUpper(std::string s);
+    static ViewManager*  _viewManager;
 public:
     static ModelBroker*  instance();
     ~ModelBroker();
@@ -41,4 +44,8 @@ public:
     void                 updateModel(std::string modelName);
     void                 saveModel(std::string modelName);
     void                 addModel(std::string modelName, std::string modelToAdd, Vector4 location);
+    static void          setViewManager(ViewManager* viewManager);
+    static ViewManager*  getViewManager();
+
+    static FrustumCuller* _frustumCuller;
 };

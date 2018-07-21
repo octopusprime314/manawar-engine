@@ -46,8 +46,6 @@ enum class ModelClass {
     AnimatedModelType
 };
 
-using TextureMetaData = std::vector<std::pair<std::string, int>>;
-
 class Model {
 
 public:
@@ -63,7 +61,6 @@ public:
     void                        addLayeredTexture(std::vector<std::string> textureNames, int stride);
     AssetTexture*               getTexture(std::string textureName);
     LayeredTexture*             getLayeredTexture(std::string textureName);
-    TextureMetaData&            getTextureStrides();
     GeometryType                getGeometryType();
     Geometry*                   getGeometry();
     void                        addGeometryTriangle(Triangle triangle);
@@ -83,7 +80,6 @@ protected:
     FbxLoader*                  _fbxLoader; //Used to load fbx data and parse it into engine format
     ModelClass                  _classId; //Used to identify which class is being used
     static TextureBroker*       _textureManager; //Static texture manager for texture reuse purposes, all models have access
-    TextureMetaData             _textureStrides; //Keeps track of which set of vertices use a certain texture within the large vertex set
     GeometryType                _geometryType; //Indicates whether the collision geometry is sphere or triangle based
     Geometry                    _geometry; //Geometry object that contains all collision information for a model
     bool                        _isInstanced;

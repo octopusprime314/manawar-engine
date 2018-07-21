@@ -50,7 +50,7 @@ void ShadowPointShader::runShader(Entity* entity, Light* light, std::vector<Matr
         float farVal = ((projMatrix[10] - 1.0f)*nearVal) / (projMatrix[10] + 1.0f);
         updateUniform("farPlane", &farVal);
 
-        auto textureStrides = model->getTextureStrides();
+        auto textureStrides = vaoInstance->getTextureStrides();
         unsigned int verticesSize = 0;
         for (auto textureStride : textureStrides) {
             verticesSize += textureStride.second;

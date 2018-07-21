@@ -39,7 +39,6 @@ class Bloom;
 class SSCompute;
 class ShaderBroker;
 class Terminal;
-class FrustumOcclusion;
 class Entity;
 class SimpleContext;
 
@@ -59,7 +58,6 @@ class SceneManager {
     MergeShader*         _mergeShader;
     SSCompute*           _add;
     Terminal*            _terminal;
-    FrustumOcclusion*    _frustumOccluder;
     SimpleContext*      _glfwContext;
 
     void _preDraw(); //Prior to drawing objects call this function

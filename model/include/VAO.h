@@ -32,7 +32,7 @@
 
 enum class GeometryConstruction;
 enum class ModelClass; //Forward declaration of enumerated type while not including Model class
-
+using TextureMetaData = std::vector<std::pair<std::string, int>>;
 class VAO {
 
     GLuint  _indexBufferContext; // Used as the index buffer
@@ -45,6 +45,8 @@ class VAO {
     GLuint  _indexContext;
     GLuint  _weightContext;
     GLuint  _vertexLength;
+    GLuint  _vertexCount;
+    TextureMetaData _textureStride;
 public:
     VAO();
     ~VAO();
@@ -55,10 +57,12 @@ public:
     GLuint  getTextureContext();
     GLuint  getVertexLength();
     GLuint  getNormalDebugContext();
+    TextureMetaData  getTextureStrides();
     void    setVertexContext(GLuint context);
     void    setNormalContext(GLuint context);
     void    setTextureContext(GLuint context);
     void    setNormalDebugContext(GLuint context);
+    void    addTextureStride(std::pair<std::string, int> stride);
     void    createVAO(RenderBuffers* renderBuffers, ModelClass classId, Animation* = nullptr);
     void    createVAO(std::vector<Sphere>* spheres, GeometryConstruction geometryType);
     void    createVAO(std::vector<Triangle>* triangles);

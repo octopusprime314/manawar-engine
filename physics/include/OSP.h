@@ -29,6 +29,7 @@
 #include <map>
 
 class OSP {
+    std::vector<OctNode<Cube*>*>       _frustumLeaves; //AABBs that are visible in the frustum
     std::vector<OctNode<Cube*>*>       _ospLeaves; //End nodes that are used for collision testing
     OctTree<Cube*>                     _octTree; //Make a Cube Octary tree
     float                              _cubicDimension; //Describes the cubic 3D space dimensions of the OSP volume
@@ -46,4 +47,5 @@ public:
     void                               generateRenderOSP(std::vector<Entity*>& entities);
     void                               updateOSP(std::vector<Entity*>& entities);
     std::vector<OctNode<Cube*>*>*      getOSPLeaves();
+    std::vector<OctNode<Cube*>*>*      getFrustumLeaves();
 };

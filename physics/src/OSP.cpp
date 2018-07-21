@@ -1,5 +1,7 @@
 #include "OSP.h"
 #include "GeometryMath.h"
+#include "ModelBroker.h"
+#include "ViewManager.h"
 
 OSP::OSP(float cubicDimension, int maxGeometries) :
     _cubicDimension(cubicDimension),
@@ -13,6 +15,10 @@ OSP::~OSP() {
 
 std::vector<OctNode<Cube*>*>* OSP::getOSPLeaves() {
     return &_ospLeaves;
+}
+
+std::vector<OctNode<Cube*>*>* OSP::getFrustumLeaves() {
+    return &_frustumLeaves;
 }
 
 void OSP::generateGeometryOSP(std::vector<Entity*>& entities) {
@@ -68,7 +74,7 @@ void OSP::generateRenderOSP(std::vector<Entity*>& entities) {
             //if geometry data is contained within the first octet then build it out
             if (GeometryMath::triangleCubeDetection(tri, rootCube)) {
 
-                node->addGeometry(entity, tri);
+                node->addGeometry(entity, tri, i);
             }
         }
     }
@@ -77,10 +83,13 @@ void OSP::generateRenderOSP(std::vector<Entity*>& entities) {
     _buildOctetTree(_octTree.getRoot()->getData(), node);
 
     //TODO : Take one models mvp which is easy but needs to be changed soon 
-    MVP* mvpBuffers = entities[0]->getMVP();
-    float* mvp = (mvpBuffers->getProjectionMatrix() *
-        mvpBuffers->getViewMatrix() *
-        mvpBuffers->getModelMatrix()).getFlatBuffer();
+    /*MVP* mvpBuffers = entities[0]->getMVP();
+    float* mvp = (mvpBuffers->getProjectionMatrix()).inverse().getFlatBuffer();*/
+
+    float* mvp = ModelBroker::getViewManager()->getProjection().inverse().getFlatBuffer();
+
+    //float* mvp = (mvpBuffers->getViewMatrix() * 
+    //             (mvpBuffers->getProjectionMatrix()).inverse()).getFlatBuffer();
 
     std::vector<Cube*> visibleCubes;
 
@@ -127,7 +136,7 @@ void OSP::generateRenderOSP(std::vector<Entity*>& entities) {
         }*/
         
         if (GeometryMath::frustumAABBDetection(planes, mins, maxs)) {
-            visibleCubes.push_back(cube);
+            _frustumLeaves.push_back(octNode);
         }
     }
 }
@@ -236,7 +245,8 @@ void OSP::_buildOctetTree(Cube* cube, OctNode<Cube*>* node) {
     std::vector<int> cubesEntered(8, 0);
 
     std::unordered_map<Entity*, std::set<Triangle*>>* triangleMaps = node->getTriangles();
-
+    auto triangleIndices = node->getTriangleIndices();
+    int i = 0;
     for (std::pair<Entity* const, std::set<Triangle*>>& triangleMap : *triangleMaps) {
         for (Triangle* triangle : triangleMap.second) {
 
@@ -246,12 +256,19 @@ void OSP::_buildOctetTree(Cube* cube, OctNode<Cube*>* node) {
                 //if geometry data is contained within the first octet then build it out
                 if (GeometryMath::triangleCubeDetection(triangle, cube)) {
 
-                    nodes[cubeIndex]->addGeometry(triangleMap.first, triangle);
-                    cubesEntered[cubeIndex]++;
+                    if (_frustumLeaves.size() > 0) {
+                        nodes[cubeIndex]->addGeometry(triangleMap.first, triangle, triangleIndices[i]);
+                        cubesEntered[cubeIndex]++;
+                    }
+                    else {
+                        nodes[cubeIndex]->addGeometry(triangleMap.first, triangle);
+                        cubesEntered[cubeIndex]++;
+                    }
                 }
                 cubeIndex++;
             }
         }
+        i++;
     }
 
     std::unordered_map<Entity*, std::set<Sphere*>>* sphereMaps = node->getSpheres();

@@ -16,6 +16,7 @@ void DebugShader::runShader(MVP* mvp,
     
     if (_debugFlag) {
 
+
         glUseProgram(_shaderContext);
         glBindVertexArray(vao->getVAOContext());
 

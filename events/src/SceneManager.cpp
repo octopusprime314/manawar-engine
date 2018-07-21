@@ -18,7 +18,7 @@
 #include "SSCompute.h"
 #include "ShaderBroker.h"
 #include "Terminal.h"
-#include "FrustumOcclusion.h"
+#include "FrustumCuller.h"
 #include "Entity.h"
 #include "ModelBroker.h"
 #include "ShadowedDirectionalLight.h"
@@ -42,6 +42,18 @@ SceneManager::SceneManager(int* argc, char** argv,
     //DO NOT THREAD GLFW CALLS
     _glfwContext = new SimpleContext(argc, argv, viewportWidth, viewportHeight);
 
+    _viewManager = new ViewManager(argc, argv, viewportWidth, viewportHeight);
+    
+    ModelBroker::setViewManager(_viewManager); //Set the reference to the view model event interface
+
+    _viewManager->setProjection(viewportWidth, viewportHeight, nearPlaneDistance, farPlaneDistance); //Initializes projection matrix and broadcasts upate to all listeners
+     // This view is carefully chosen to look at a mountain without showing the (lack of) water in the scene.
+    _viewManager->setView(Matrix::cameraTranslation(0.f, -0.68f, 7.f),
+        Matrix::cameraRotationAroundY(-45.f),
+        Matrix());
+
+    glCheck();
+
     //Load and compile all shaders for the shader broker
     ShaderBroker::instance()->compileShaders();
     glCheck();
@@ -49,11 +61,6 @@ SceneManager::SceneManager(int* argc, char** argv,
     //Load and compile all shaders for the shader broker
     ModelBroker::instance()->buildModels();
     glCheck();
-
-    _viewManager = new ViewManager(argc, argv, viewportWidth, viewportHeight);
-    glCheck();
-
-    Factory::setViewWrapper(_viewManager); //Set the reference to the view model event interface
 
     _deferredRenderer = new DeferredRenderer();
     glCheck();
@@ -161,16 +168,8 @@ SceneManager::SceneManager(int* argc, char** argv,
 
     //_audioManager->StartAll();
 
-    // Do this after adding all of our objects.
-    _viewManager->setProjection(viewportWidth, viewportHeight, nearPlaneDistance, farPlaneDistance); //Initializes projection matrix and broadcasts upate to all listeners
-    // This view is carefully chosen to look at a mountain without showing the (lack of) water in the scene.
-    _viewManager->setView(Matrix::cameraTranslation(0.f, -0.68f, 7.f),
-        Matrix::cameraRotationAroundY(-45.f),
-        Matrix());
+    _viewManager->triggerEvents(); 
     _viewManager->setEntityList(_entityList);
-
-    //_frustumOccluder = new FrustumOcclusion(_entityList);
-    //glCheck();
 
     _glfwContext->run();
 }

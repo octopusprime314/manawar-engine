@@ -81,6 +81,7 @@ public:
     ViewManagerEvents* getEventWrapper();
     Camera::ViewState  getViewState();
     void               displayViewFrustum();
+    void               triggerEvents();
 
 protected:
     void               _updateKeyboard(int key, int x, int y); //Do stuff based on keyboard upate

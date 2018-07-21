@@ -46,4 +46,5 @@ public:
     void                        addDebugNormal(Vector4 normal);
     void                        setVertexIndices(std::vector<int> indices);
     void                        addVertexIndices(std::vector<int> indices);
+    void                        clearBuffers();
 };

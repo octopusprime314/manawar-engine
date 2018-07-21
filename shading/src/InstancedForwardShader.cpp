@@ -122,7 +122,7 @@ void InstancedForwardShader::runShader(Entity* entity, ViewManager* viewManager,
             }
         }
 
-        auto textureStrides = model->getTextureStrides();
+        auto textureStrides = vaoInstance->getTextureStrides();
         unsigned int strideLocation = 0;
         for (auto textureStride : textureStrides) {
 

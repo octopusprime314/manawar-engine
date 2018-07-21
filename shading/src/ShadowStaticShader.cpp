@@ -33,7 +33,7 @@ void ShadowStaticShader::runShader(Entity* entity, Light* light) {
         //glUniform mat4 projection matrix, GL_TRUE is telling GL we are passing in the matrix as row major
         updateUniform("projection", lightMVP.getProjectionBuffer());
 
-        auto textureStrides = model->getTextureStrides();
+        auto textureStrides = vaoInstance->getTextureStrides();
         unsigned int verticesSize = 0;
         for (auto textureStride : textureStrides) {
             verticesSize += textureStride.second;

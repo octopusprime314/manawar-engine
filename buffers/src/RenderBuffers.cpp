@@ -39,6 +39,7 @@ void RenderBuffers::addDebugNormal(Vector4 normal) {
     _debugNormals.push_back(normal);
 }
 
+
 void RenderBuffers::setVertexIndices(std::vector<int> indices) {
     _indices = indices;
 }
@@ -49,4 +50,11 @@ void RenderBuffers::addVertexIndices(std::vector<int> indices) {
 
 std::vector<int>* RenderBuffers::getIndices() {
     return &_indices;
+}
+void RenderBuffers::clearBuffers() {
+    _vertices.resize(0);
+    _normals.resize(0);
+    _textures.resize(0);
+    _debugNormals.resize(0);
+    _indices.resize(0);
 }

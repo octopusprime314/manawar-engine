@@ -148,6 +148,12 @@ void FbxLoader::saveScene() {
     _export.exporter->Export(_export.scene);
 }
 
+void FbxLoader::clearScene() {
+
+    //If current fbx scene has not been copied over yet
+    _export.scene->Clear();
+}
+
 void FbxLoader::_cloneFbxNode(Model* modelAddedTo, FbxNode* node, Vector4 location) {
    
     // Determine the number of children there are
@@ -678,7 +684,6 @@ void FbxLoader::_loadTextures(Model* model, FbxMesh* meshNode, FbxNode* childNod
     //Return the number of materials found in mesh
     int materialCount = childNode->GetSrcObjectCount<FbxSurfaceMaterial>();
     int textureStrideIndex = 0;
-    /*for (int materialIndex = 0; materialIndex < materialCount; ++materialIndex) {*/
     for(auto stride : strides) {
 
         int materialIndex = stride.first;

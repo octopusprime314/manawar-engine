@@ -6,6 +6,7 @@ int         SimpleContext::_renderNow = 0;
 std::mutex  SimpleContext::_renderLock;
 GLFWwindow* SimpleContext::_window;
 bool        SimpleContext::_quit = false;
+bool        SimpleContext::_gameState = 0;
 
 std::priority_queue<TimeEvent> SimpleContext::_timeEvents; // Events that trigger at a specific time
 
@@ -108,6 +109,12 @@ void SimpleContext::subscribeToMouse(std::function<void(double, double)> func) {
 void SimpleContext::subscribeToDraw(std::function<void()> func) { //Use this call to connect functions to draw updates
     _events.subscribeToDraw(func);
 }
+void SimpleContext::subscribeToGameState(std::function<void(int)> func) {
+    _events.subscribeToGameState(func);
+}
+void SimpleContext::updateGameState(int state) {
+    SimpleContextEvents::updateGameState(state);
+}
 
 //All keyboard input from glfw will be notified here
 void SimpleContext::_keyboardUpdate(GLFWwindow* window, int key, int scancode, int action, int mods) {
@@ -119,6 +126,11 @@ void SimpleContext::_keyboardUpdate(GLFWwindow* window, int key, int scancode, i
             glfwTerminate();
             _quit = true;
             exit(0);
+        }
+
+        if (key == GLFW_KEY_GRAVE_ACCENT) { //Escape key pressed, hard exit no cleanup, TODO FIX THIS!!!!
+            _gameState = !_gameState;
+            SimpleContextEvents::updateGameState(_gameState);
         }
 
         SimpleContextEvents::updateKeyboard(key, 0, 0);

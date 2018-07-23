@@ -25,12 +25,18 @@
 #include "Vector4.h"
 #include "OSP.h"
 #include <vector>
+#include "GeometryGraphic.h"
 
 class Entity;
 
 class FrustumCuller {
-    OSP _octalSpacePartitioner;
+    OSP             _octalSpacePartitioner;
+    DebugShader*    _debugShader;
+    GeometryGraphic* _octTreeGraphic;
+    std::vector<Entity*> _entityList; //Entities containing collision Geometry
 public:
     FrustumCuller(std::vector<Entity*> models);
     OSP* getOSP();
+    void visualize();
+    void setEntityList(std::vector<Entity*>& entityList);
 };

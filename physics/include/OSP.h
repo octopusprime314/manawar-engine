@@ -19,7 +19,7 @@
 *  OSP class. Octary Space Partition class that subdivides primitive geometries for
 *  collision handling, etc.  Recursively creates subspaces based upon the maximum
 *  number of collision primitices specified by _maxGeometries.  The other tunable
-*  parameter is the size of the 3D space being captured by the OSP.
+*  parameter is the size of the 3D space being capturwwwwwwwwwwwwwwwwwed by the OSP.
 */
 #pragma once
 #include <vector>
@@ -43,6 +43,7 @@ public:
     OSP(float cubicDimension, int maxGeometries);
     ~OSP();
     std::vector<Cube>*                 getCubes();
+    std::vector<Cube>*                 getFrustumCubes();
     void                               generateGeometryOSP(std::vector<Entity*>& entities);
     void                               generateRenderOSP(std::vector<Entity*>& entities);
     void                               updateOSP(std::vector<Entity*>& entities);

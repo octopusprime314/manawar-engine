@@ -12,22 +12,13 @@ Model::Model(std::string name, ModelClass classId) :
     _fbxLoader(new FbxLoader((classId == ModelClass::ModelType ? 
         STATIC_MESH_LOCATION : ANIMATED_MESH_LOCATION) + name)) {
 
-    /*if (classId == ModelClass::ModelType) {
-        if (name.find("landscape") != std::string::npos) {
-            std::vector<Entity*> list = { new Entity(this, ModelBroker::getViewManager()->getEventWrapper()) };
-            ModelBroker::_frustumCuller = new FrustumCuller(list);
-        }
-    }
-    else {*/
-        _vao.push_back(new VAO());
-    //}
-    
+    _vao.push_back(new VAO());
     //Populate model with fbx file data and recursivelty search with the root node of the scene
     _fbxLoader->loadModel(this, _fbxLoader->getScene()->GetRootNode());
 
     //Create vao contexts
     if (classId == ModelClass::ModelType)  {
-        /*if (name.find("landscape") != std::string::npos) {
+       /* if (name.find("landscape") != std::string::npos) {
             std::vector<Entity*> list = { new Entity(this, ModelBroker::getViewManager()->getEventWrapper()) };
             ModelBroker::_frustumCuller = new FrustumCuller(list);
 
@@ -37,15 +28,29 @@ Model::Model(std::string name, ModelClass classId) :
             auto textures = _renderBuffers.getTextures();
             auto indices = _renderBuffers.getIndices();
             for (auto leaf : *leaves) {
-                _vao.push_back(new VAO());
                 RenderBuffers renderBuff;
-                for (auto triIndex : leaf->getTriangleIndices()) {
-                    renderBuff.addVertex((*vertices)[triIndex]);
-                    renderBuff.addNormal((*normals)[triIndex]);
-                    renderBuff.addTexture((*textures)[triIndex]);
+                for (std::pair<Entity* const, std::set<std::pair<int, Triangle*>>>& triangleMap : *leaf->getTriangles()) {
+
+                    for (auto triangleIndex : triangleMap.second) {
+                        renderBuff.addVertex((*vertices)[triangleIndex.first]);
+                        renderBuff.addVertex((*vertices)[triangleIndex.first + 1]);
+                        renderBuff.addVertex((*vertices)[triangleIndex.first + 2]);
+                        renderBuff.addNormal((*normals)[triangleIndex.first]);
+                        renderBuff.addNormal((*normals)[triangleIndex.first + 1]);
+                        renderBuff.addNormal((*normals)[triangleIndex.first + 2]);
+                        renderBuff.addTexture((*textures)[triangleIndex.first]);
+                        renderBuff.addTexture((*textures)[triangleIndex.first + 1]);
+                        renderBuff.addTexture((*textures)[triangleIndex.first + 2]);
+                    }
                 }
-                if (renderBuff.getVertices() > 0) {
+                if (renderBuff.getVertices()->size() > 0) {
+                    _vao.push_back(new VAO());
                     _vao[_vao.size() - 1]->createVAO(&renderBuff, _classId);
+                    auto strides = std::pair<std::string, int>(
+                        _vao[0]->getTextureStrides()[0].first, 
+                        _vao[_vao.size() - 1]->getVertexLength());
+
+                    _vao[_vao.size() - 1]->addTextureStride(strides);
                 }
             }
         }

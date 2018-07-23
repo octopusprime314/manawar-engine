@@ -82,14 +82,7 @@ void OSP::generateRenderOSP(std::vector<Entity*>& entities) {
     //Recursively build Octary Space Partition Tree
     _buildOctetTree(_octTree.getRoot()->getData(), node);
 
-    //TODO : Take one models mvp which is easy but needs to be changed soon 
-    /*MVP* mvpBuffers = entities[0]->getMVP();
-    float* mvp = (mvpBuffers->getProjectionMatrix()).inverse().getFlatBuffer();*/
-
     float* mvp = ModelBroker::getViewManager()->getProjection().inverse().getFlatBuffer();
-
-    //float* mvp = (mvpBuffers->getViewMatrix() * 
-    //             (mvpBuffers->getProjectionMatrix()).inverse()).getFlatBuffer();
 
     std::vector<Cube*> visibleCubes;
 
@@ -105,40 +98,31 @@ void OSP::generateRenderOSP(std::vector<Entity*>& entities) {
 
         std::vector<Vector4> planes;
         // Right clipping plane.
-        planes.push_back(Vector4(mvp[3] - mvp[0], mvp[7] - mvp[4], mvp[11] - mvp[8],  mvp[15] - mvp[12]));
+        planes.push_back(Vector4(mvp[3] - mvp[0], mvp[7] - mvp[4], -(mvp[11] - mvp[8]),  mvp[15] - mvp[12]));
         // Left clipping plane.
-        planes.push_back(Vector4(mvp[3] + mvp[0], mvp[7] + mvp[4], mvp[11] + mvp[8],  mvp[15] + mvp[12]));
+        planes.push_back(Vector4(mvp[3] + mvp[0], mvp[7] + mvp[4], -(mvp[11] + mvp[8]),  mvp[15] + mvp[12]));
         // Bottom clipping plane.
-        planes.push_back(Vector4(mvp[3] + mvp[1], mvp[7] + mvp[5], mvp[11] + mvp[9],  mvp[15] + mvp[13]));
+        planes.push_back(Vector4(mvp[3] + mvp[1], mvp[7] + mvp[5], -(mvp[11] + mvp[9]),  mvp[15] + mvp[13]));
         // Top clipping plane.
-        planes.push_back(Vector4(mvp[3] - mvp[1], mvp[7] - mvp[5], mvp[11] - mvp[9],  mvp[15] - mvp[13]));
+        planes.push_back(Vector4(mvp[3] - mvp[1], mvp[7] - mvp[5], -(mvp[11] - mvp[9]),  mvp[15] - mvp[13]));
         // Far clipping plane.
-        planes.push_back(Vector4(mvp[3] - mvp[2], mvp[7] - mvp[6], mvp[11] - mvp[10], mvp[15] - mvp[14]));
+        planes.push_back(Vector4(mvp[3] - mvp[2], mvp[7] - mvp[6], -(mvp[11] - mvp[10]), mvp[15] - mvp[14]));
         // Near clipping plane.
-        planes.push_back(Vector4(mvp[3] + mvp[2], mvp[7] + mvp[6], mvp[11] + mvp[10], mvp[15] + mvp[14]));
-
-        //// Right clipping plane.
-        //planes.push_back(Vector4(mvp[12] - mvp[0], mvp[13] - mvp[1], mvp[14] - mvp[2], mvp[15] - mvp[3]));
-        //// Left clipping plane.
-        //planes.push_back(Vector4(mvp[12] + mvp[0], mvp[13] + mvp[1], mvp[14] + mvp[2], mvp[15] + mvp[3]));
-        //// Bottom clipping plane.
-        //planes.push_back(Vector4(mvp[12] + mvp[4], mvp[13] + mvp[5], mvp[14] + mvp[6], mvp[15] + mvp[7]));
-        //// Top clipping plane.
-        //planes.push_back(Vector4(mvp[12] - mvp[4], mvp[13] - mvp[5], mvp[14] - mvp[6], mvp[15] - mvp[7]));
-        //// Far clipping plane.
-        //planes.push_back(Vector4(mvp[12] - mvp[8], mvp[13] - mvp[9], mvp[14] - mvp[10], mvp[15] - mvp[11]));
-        //// Near clipping plane.
-        //planes.push_back(Vector4(mvp[12] + mvp[8], mvp[13] + mvp[9], mvp[14] + mvp[10], mvp[15] + mvp[11]));
-
-        // Normalize, this is not always necessary...
-        /*for (unsigned int i = 0; i < 6; i++) {
-            planes[i].normalize();
-        }*/
-        
+        planes.push_back(Vector4(mvp[3] + mvp[2], mvp[7] + mvp[6], -(mvp[11] + mvp[10]), mvp[15] + mvp[14]));
+       
         if (GeometryMath::frustumAABBDetection(planes, mins, maxs)) {
             _frustumLeaves.push_back(octNode);
         }
     }
+}
+
+std::vector<Cube>* OSP::getFrustumCubes() {
+    std::vector<Cube>* cubes = new std::vector<Cube>();
+    //Look through all 8 subspaces in the octree
+    for (auto leaf : _frustumLeaves) {
+        cubes->push_back(*leaf->getData());
+    }
+    return cubes;
 }
 
 std::vector<Cube>* OSP::getCubes() {
@@ -244,31 +228,23 @@ void OSP::_buildOctetTree(Cube* cube, OctNode<Cube*>* node) {
     }
     std::vector<int> cubesEntered(8, 0);
 
-    std::unordered_map<Entity*, std::set<Triangle*>>* triangleMaps = node->getTriangles();
-    auto triangleIndices = node->getTriangleIndices();
-    int i = 0;
-    for (std::pair<Entity* const, std::set<Triangle*>>& triangleMap : *triangleMaps) {
-        for (Triangle* triangle : triangleMap.second) {
+    auto triangleMaps = node->getTriangles();
+
+    
+    for (std::pair<Entity* const, std::set<std::pair<int, Triangle*>>>& triangleMap : *node->getTriangles()) {
+        for (auto triangleIndex : triangleMap.second) {
 
             int cubeIndex = 0;
             for (auto cube : cubes) {
 
                 //if geometry data is contained within the first octet then build it out
-                if (GeometryMath::triangleCubeDetection(triangle, cube)) {
-
-                    if (_frustumLeaves.size() > 0) {
-                        nodes[cubeIndex]->addGeometry(triangleMap.first, triangle, triangleIndices[i]);
-                        cubesEntered[cubeIndex]++;
-                    }
-                    else {
-                        nodes[cubeIndex]->addGeometry(triangleMap.first, triangle);
-                        cubesEntered[cubeIndex]++;
-                    }
+                if (GeometryMath::triangleCubeDetection(triangleIndex.second, cube)) {
+                    nodes[cubeIndex]->addGeometry(triangleMap.first, triangleIndex.second, triangleIndex.first);
+                    cubesEntered[cubeIndex]++;
                 }
                 cubeIndex++;
             }
         }
-        i++;
     }
 
     std::unordered_map<Entity*, std::set<Sphere*>>* sphereMaps = node->getSpheres();

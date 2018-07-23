@@ -42,6 +42,9 @@ SceneManager::SceneManager(int* argc, char** argv,
     //DO NOT THREAD GLFW CALLS
     _glfwContext = new SimpleContext(argc, argv, viewportWidth, viewportHeight);
 
+    //Load and compile all shaders for the shader broker
+    ShaderBroker::instance()->compileShaders();
+
     _viewManager = new ViewManager(argc, argv, viewportWidth, viewportHeight);
     
     ModelBroker::setViewManager(_viewManager); //Set the reference to the view model event interface
@@ -53,9 +56,6 @@ SceneManager::SceneManager(int* argc, char** argv,
         Matrix());
 
     glCheck();
-
-    //Load and compile all shaders for the shader broker
-    ShaderBroker::instance()->compileShaders();
     glCheck();
 
     //Load and compile all shaders for the shader broker
@@ -112,7 +112,7 @@ SceneManager::SceneManager(int* argc, char** argv,
     
     _physics->run(); //Dispatch physics to start kinematics
 
-    Vector4 sunLocation(0.0f, 0.0f, -300.0f);
+    /*Vector4 sunLocation(0.0f, 0.0f, -300.0f);
     MVP lightMVP;
     lightMVP.setView(Matrix::translation(sunLocation.getx(), sunLocation.gety(), sunLocation.getz()));
     lightMVP.setProjection(Matrix::cameraOrtho(200.0f, 200.0f, 0.0f, 600.0f));
@@ -127,7 +127,7 @@ SceneManager::SceneManager(int* argc, char** argv,
     _lightList.push_back(new ShadowedDirectionalLight(_viewManager->getEventWrapper(),
                                                       lightMapMVP,
                                                       EffectType::None,
-                                                      Vector4(1.0, 0.0, 0.0)));
+                                                      Vector4(1.0, 0.0, 0.0)));*/
 
     //Model view projection matrix for point light additions
     MVP pointLightMVP;
@@ -170,6 +170,7 @@ SceneManager::SceneManager(int* argc, char** argv,
 
     _viewManager->triggerEvents(); 
     _viewManager->setEntityList(_entityList);
+    //ModelBroker::_frustumCuller->setEntityList(_entityList);
 
     _glfwContext->run();
 }
@@ -256,6 +257,7 @@ void SceneManager::_postDraw() {
     else if (_viewManager->getViewState() == Camera::ViewState::PHYSICS) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         _physics->visualize();
+        //ModelBroker::_frustumCuller->visualize();
     }
     else {
 

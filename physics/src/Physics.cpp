@@ -129,12 +129,12 @@ void Physics::_physicsProcess(int milliseconds) {
 
             StateVector* modelSphereState = sphereMap.first->getStateVector();
 
-            for (std::pair<Entity* const, std::set<Triangle*>>& triangleMap : *triangleMaps) {
-
+            for (std::pair<Entity* const, std::set<std::pair<int, Triangle*>>>& triangleMap : *triangleMaps) {
+               
                 StateVector* modelTriangleState = triangleMap.first->getStateVector();
                 if (modelSphereState->getActive() || modelTriangleState->getActive()) { //Only test for collisions if one of the models is active
 
-                    std::set<Triangle*>& triangles = triangleMap.second;
+                    std::set<std::pair<int, Triangle*>>& triangles = triangleMap.second;
                     std::set<Sphere*>& spheres = sphereMap.second;
 
 
@@ -148,13 +148,13 @@ void Physics::_physicsProcess(int milliseconds) {
                             std::lock_guard<std::mutex> lockGuard(_lock);
 
                             int i = 0;
-                            for (Triangle* triangle : triangles) {
+                            for (auto triangle : triangles) {
                                 //If an overlap between a sphere and a triangle is detected then process the overlap resolution
-                                if (GeometryMath::sphereTriangleDetection(*sphere, *triangle)) {
+                                if (GeometryMath::sphereTriangleDetection(*sphere, *triangle.second)) {
 
-                                    GeometryMath::sphereTriangleResolution(sphereMap.first, *sphere, triangleMap.first, *triangle);
+                                    GeometryMath::sphereTriangleResolution(sphereMap.first, *sphere, triangleMap.first, *triangle.second);
                                     newContactState = true;
-                                    _triangleIntersectionList[sphereMap.first].insert(triangle);
+                                    _triangleIntersectionList[sphereMap.first].insert(triangle.second);
                                 }
                                 i++;
                             }

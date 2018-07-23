@@ -1,7 +1,6 @@
 #define _USE_MATH_DEFINES
 #include "ViewManager.h"
 #include <iostream>
-#include "SimpleContext.h"
 #include "ViewManagerEvents.h"
 #include "Model.h"
 #include "FunctionState.h"
@@ -27,6 +26,7 @@ ViewManager::ViewManager(int* argc, char** argv, unsigned int viewportWidth, uns
 
     _prevMouseX = screenPixelWidth / 2;
     _prevMouseY = screenPixelHeight / 2;
+    _gameState = 0;
 
     //Used for god mode
     _currCamera = &_godCamera;
@@ -122,121 +122,127 @@ void ViewManager::_updateKinematics(int milliSeconds) {
 
 void ViewManager::_updateKeyboard(int key, int x, int y) { //Do stuff based on keyboard update
 
+    if (_gameState == 0) {
 
-    _currCamera->setViewState(key);
-    
-    //Toggles View frustum and physics geometry viewing
-    if (key == GLFW_KEY_F || key == GLFW_KEY_0) {
-        //DebugShader::toggleDebug();
-    }
+        _currCamera->setViewState(key);
 
-    if (key == GLFW_KEY_W || key == GLFW_KEY_S || 
-        key == GLFW_KEY_A || key == GLFW_KEY_D || 
-        key == GLFW_KEY_E || key == GLFW_KEY_C) {
-
-        Vector4 trans;
-        Vector4 force;
-        const float velMagnitude = 500.0f;
-
-        if (key == GLFW_KEY_W) { //forward w
-            trans = Vector4(_inverseRotation * Vector4(0.0, 0.0, -velMagnitude));
-        }
-        else if (key == GLFW_KEY_S) { //backward s
-            trans = Vector4(_inverseRotation * Vector4(0.0, 0.0, velMagnitude));
-        }
-        else if (key == GLFW_KEY_A) { //left a
-            trans = Vector4(_inverseRotation * Vector4(-velMagnitude, 0.0, 0.0));
-        }
-        else if (key == GLFW_KEY_D) { //right d
-            trans = Vector4(_inverseRotation * Vector4(velMagnitude, 0.0, 0.0)); 
-        }
-        else if (key == GLFW_KEY_E) { //up e
-            trans = Vector4(_inverseRotation * Vector4(0.0, velMagnitude, 0.0)); 
-        }
-        else if (key == GLFW_KEY_C) { //down c
-            trans = Vector4(_inverseRotation * Vector4(0.0, -velMagnitude, 0.0)); 
+        //Toggles View frustum and physics geometry viewing
+        if (key == GLFW_KEY_F || key == GLFW_KEY_0) {
+            DebugShader::toggleDebug();
         }
 
-        //If not in god camera view mode then push view changes to the model for full control of a model's movements
-        if (!_godState && _entityIndex < _entityList.size()) {
+        if (key == GLFW_KEY_W || key == GLFW_KEY_S ||
+            key == GLFW_KEY_A || key == GLFW_KEY_D ||
+            key == GLFW_KEY_E || key == GLFW_KEY_C) {
+
+            Vector4 trans;
+            Vector4 force;
+            const float velMagnitude = 500.0f;
+
+            if (key == GLFW_KEY_W) { //forward w
+                trans = Vector4(_inverseRotation * Vector4(0.0, 0.0, -velMagnitude));
+            }
+            else if (key == GLFW_KEY_S) { //backward s
+                trans = Vector4(_inverseRotation * Vector4(0.0, 0.0, velMagnitude));
+            }
+            else if (key == GLFW_KEY_A) { //left a
+                trans = Vector4(_inverseRotation * Vector4(-velMagnitude, 0.0, 0.0));
+            }
+            else if (key == GLFW_KEY_D) { //right d
+                trans = Vector4(_inverseRotation * Vector4(velMagnitude, 0.0, 0.0));
+            }
+            else if (key == GLFW_KEY_E) { //up e
+                trans = Vector4(_inverseRotation * Vector4(0.0, velMagnitude, 0.0));
+            }
+            else if (key == GLFW_KEY_C) { //down c
+                trans = Vector4(_inverseRotation * Vector4(0.0, -velMagnitude, 0.0));
+            }
+
+            //If not in god camera view mode then push view changes to the model for full control of a model's movements
+            if (!_godState && _entityIndex < _entityList.size()) {
+
+                StateVector* state = _entityList[_entityIndex]->getStateVector();
+                //Define lambda equation
+                auto lamdaEq = [=](float t) -> Vector4 {
+                    if (t > 1.0f) {
+                        return trans;
+                    }
+                    else {
+                        return static_cast<Vector4>(trans) * t;
+                    }
+                };
+                //lambda function container that manages force model
+                //Last forever in intervals of 5 milliseconds
+                FunctionState* func = new FunctionState(std::bind(&StateVector::setForce, state, std::placeholders::_1),
+                    lamdaEq,
+                    5);
+
+                //Keep track to kill function when key is released
+                _keyboardState[key] = func;
+            }
+            else if (_godState) {
+
+                _currCamera->getState()->setActive(true);
+
+                //Define lambda equation
+                auto lamdaEq = [trans](float t) -> Vector4 {
+                    if (t > 1.0f) {
+                        return trans;
+                    }
+                    else {
+                        return static_cast<Vector4>(trans) * t;
+                    }
+                };
+                //lambda function container that manages force model
+                //Last forever in intervals of 5 milliseconds
+                FunctionState* func = new FunctionState(std::bind(&StateVector::setForce, _currCamera->getState(), std::placeholders::_1),
+                    lamdaEq,
+                    5);
+
+                //Keep track to kill function when key is released
+                _keyboardState[key] = func;
+            }
+        }
+        else if (key == GLFW_KEY_G) { //God's eye view change g
+            _godState = true;
+            _currCamera = &_godCamera;
+
+            _translation = Matrix::cameraTranslation(0, 5, 0); //Reset to 0,5,0 view position
+            _rotation = Matrix(); //Set rotation matrix to identity
+            _inverseRotation = Matrix();
+            _currCamera->setViewMatrix(_rotation * _translation);
+            _viewEvents->updateView(_currCamera->getView()); //Send out event to all listeners to offset locations essentially
+        }
+        else if (key == GLFW_KEY_Q) { //Cycle through model's view point q
+
+            _entityIndex++; //increment to the next model when q is pressed again
+            if (_entityIndex >= _entityList.size()) {
+                _entityIndex = 0;
+            }
+
+            _godState = false;
+            _currCamera = &_viewCamera;
 
             StateVector* state = _entityList[_entityIndex]->getStateVector();
-            //Define lambda equation
-            auto lamdaEq = [=](float t) -> Vector4 {
-                if (t > 1.0f) {
-                    return trans;
-                }
-                else {
-                    return static_cast<Vector4>(trans) * t;
-                }
-            };
-            //lambda function container that manages force model
-            //Last forever in intervals of 5 milliseconds
-            FunctionState* func = new FunctionState(std::bind(&StateVector::setForce, state, std::placeholders::_1),
-                lamdaEq,
-                5);
+            float* position = state->getLinearPosition().getFlatBuffer();
+            float* rotation = state->getAngularPosition().getFlatBuffer();
+            _translation = Matrix::cameraTranslation(position[0], position[1], position[2]); //Set camera to model's world space translation
+            Matrix rotY = Matrix::cameraRotationAroundY(rotation[1]); //Set rotation around Y
+            Matrix rotX = Matrix::cameraRotationAroundX(rotation[0]); //Set rotation around X
+            Matrix rotZ = Matrix::cameraRotationAroundZ(rotation[2]); //Set rotation around Z
+            _rotation = rotZ * rotX * rotY;
+            _inverseRotation = Matrix();
 
-            //Keep track to kill function when key is released
-            _keyboardState[key] = func;
-        }
-        else if (_godState) {
+            //Last transform to be applied to achieve third person view
+            _currCamera->setViewMatrix(_thirdPersonTranslation * _rotation * _translation); //translate then rotate around point
+            _viewEvents->updateView(_currCamera->getView()); //Send out event to all listeners to offset locations essentially
 
-            _currCamera->getState()->setActive(true);
-
-            //Define lambda equation
-            auto lamdaEq = [trans](float t) -> Vector4 {
-                if (t > 1.0f) {
-                    return trans;
-                }
-                else {
-                    return static_cast<Vector4>(trans) * t;
-                }
-            };
-            //lambda function container that manages force model
-            //Last forever in intervals of 5 milliseconds
-            FunctionState* func = new FunctionState(std::bind(&StateVector::setForce, _currCamera->getState(), std::placeholders::_1),
-                lamdaEq,
-                5);
-
-            //Keep track to kill function when key is released
-            _keyboardState[key] = func;
         }
     }
-    else if (key == GLFW_KEY_G) { //God's eye view change g
-        _godState = true;
-        _currCamera = &_godCamera;
-        
-        _translation = Matrix::cameraTranslation(0, 5, 0); //Reset to 0,5,0 view position
-        _rotation = Matrix(); //Set rotation matrix to identity
-        _inverseRotation = Matrix();
-        _currCamera->setViewMatrix(_rotation * _translation);
-        _viewEvents->updateView(_currCamera->getView()); //Send out event to all listeners to offset locations essentially
-    }
-    else if (key == GLFW_KEY_Q) { //Cycle through model's view point q
+}
 
-        _entityIndex++; //increment to the next model when q is pressed again
-        if (_entityIndex >= _entityList.size()) {
-            _entityIndex = 0;
-        }
-
-        _godState = false;
-        _currCamera = &_viewCamera;
-
-        StateVector* state = _entityList[_entityIndex]->getStateVector();
-        float* position = state->getLinearPosition().getFlatBuffer();
-        float* rotation = state->getAngularPosition().getFlatBuffer();
-        _translation = Matrix::cameraTranslation(position[0], position[1], position[2]); //Set camera to model's world space translation
-        Matrix rotY = Matrix::cameraRotationAroundY(rotation[1]); //Set rotation around Y
-        Matrix rotX = Matrix::cameraRotationAroundX(rotation[0]); //Set rotation around X
-        Matrix rotZ = Matrix::cameraRotationAroundZ(rotation[2]); //Set rotation around Z
-        _rotation = rotZ * rotX * rotY;
-        _inverseRotation = Matrix();
-
-        //Last transform to be applied to achieve third person view
-        _currCamera->setViewMatrix(_thirdPersonTranslation * _rotation * _translation); //translate then rotate around point
-        _viewEvents->updateView(_currCamera->getView()); //Send out event to all listeners to offset locations essentially
-
-    }
+void ViewManager::_updateGameState(int state) {
+    _gameState = state;
 }
 
 void ViewManager::_updateMouse(double x, double y) { //Do stuff based on mouse update

@@ -57,6 +57,7 @@ protected:
     void                        _updateReleaseKeyboard(int key, int x, int y) {};
     void                        _updateMouse(double x, double y) {}; //Do stuff based on mouse update
     void                        _updateDraw(); //Do draw stuff
+    void                        _updateGameState(int state);
     void                        _updateView(Matrix view); //Get view matrix updates
     void                        _updateProjection(Matrix projection); //Get projection matrix updates
     void                        _updateKinematics(int milliSeconds);

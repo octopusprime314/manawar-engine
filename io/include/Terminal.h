@@ -23,6 +23,7 @@
 #include "Font.h"
 #include "ShaderBroker.h"
 #include "ModelBroker.h"
+#include "UpdateInterface.h"
 
 class Terminal {
 public:
@@ -31,17 +32,19 @@ public:
     ~Terminal();
 
     void                 display();
-    bool                 inTerminalMode();
 
 private:
     FontRenderer         _fontRenderer;
-    bool                 _terminalVisible;
     std::string          _commandString;
     std::string          _commandToProcess;
-
+    std::vector<std::string> _commandHistory;
+    int                      _commandHistoryIndex;
     void                 _updateKeyboard(int key, int x, int y);
+    void                 _updateGameState(int state);
+
     int                  _getCursorIndex();
     static ShaderBroker* _shaderManager; 
     static ModelBroker*  _modelManager;
+    int                  _gameState;
 
 };

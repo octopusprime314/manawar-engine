@@ -47,6 +47,7 @@ protected:
     void          _updateDraw(); //Do draw stuff
     void          _updateView(Matrix view); //Get view matrix updates
     void          _updateProjection(Matrix projection); //Get projection matrix updates
+    void          _updateGameState(int state);
     MVP           _cameraMVP; //Camera's model view matrix container
     void          _updateTime(int time);
     uint64_t      _milliSecondTime;

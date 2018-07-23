@@ -46,6 +46,7 @@ static bool operator<(TimeEvent left, TimeEvent right) {
 
 class SimpleContext {
 
+
 public:
     SimpleContext(int* argc, char** argv, unsigned int viewportWidth, unsigned int viewportHeight);
 
@@ -55,6 +56,13 @@ public:
     void                subscribeToReleaseKeyboard(std::function<void(int, int, int)> func); //Use this call to connect functions up to key release updates
     void                subscribeToMouse(std::function<void(double, double)> func); //Use this call to connect functions up to mouse updates
     void                subscribeToDraw(std::function<void()> func); //Use this call to connect functions up to draw updates
+    void                subscribeToGameState(std::function<void(int)> func); //Use this call to connect functions up to game state updates
+    void                updateGameState(int state); 
+  
+    enum class GameState {
+        TERMINAL,
+        GRAPHICS
+    };
 
 private:
 
@@ -66,6 +74,7 @@ private:
     static std::mutex   _renderLock;     //Prevents write/write collisions with renderNow on a frame tick trigger
     static GLFWwindow*  _window;         //Glfw window
     static bool         _quit;           //Notifies render loop that game is over
+    static bool         _gameState;
 
     //All keyboard input from glfw will be notified here
     static void         _keyboardUpdate(GLFWwindow* window, int key, int scancode, int action, int mods);

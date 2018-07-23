@@ -74,4 +74,5 @@ public:
     void loadGeometryData(Model* model, FbxMesh* meshNode, FbxNode* childNode);
     void addToScene(Model* modelAddedTo, FbxLoader* modelToLoad, Vector4 location);
     void saveScene();
+    void clearScene();
 };

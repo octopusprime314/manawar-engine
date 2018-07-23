@@ -48,6 +48,20 @@ Model* ModelBroker::getModel(std::string modelName) {
     return _models[upperCaseMapName];
 }
 
+void ModelBroker::clearChanges(std::string modelName) {
+
+    std::string upperCaseMapName = _strToUpper(modelName + "/" + modelName + ".fbx");
+
+    if (_models.find(upperCaseMapName) != _models.end()) {
+
+        FbxLoader* fbxScene = _models[upperCaseMapName]->getFbxLoader();
+        fbxScene->clearScene();
+    }
+    else {
+        std::cout << "Model doesn't exist so add it!" << std::endl;
+    }
+}
+
 void ModelBroker::addModel(std::string modelName, std::string modelToAdd, Vector4 location) {
     
     std::string upperCaseMapName = _strToUpper(modelName + "/" + modelName + ".fbx");

@@ -57,7 +57,7 @@ public:
     GLuint  getTextureContext();
     GLuint  getVertexLength();
     GLuint  getNormalDebugContext();
-    TextureMetaData  getTextureStrides();
+    TextureMetaData getTextureStrides();
     void    setVertexContext(GLuint context);
     void    setNormalContext(GLuint context);
     void    setTextureContext(GLuint context);

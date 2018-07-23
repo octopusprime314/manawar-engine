@@ -5,6 +5,7 @@ std::vector<std::function<void(int, int, int)>> SimpleContextEvents::_keyboardFu
 std::vector<std::function<void(int, int, int)>> SimpleContextEvents::_keyboardReleaseFuncs;
 std::vector<std::function<void(double, double)>> SimpleContextEvents::_mouseFuncs;
 std::vector<std::function<void()>> SimpleContextEvents::_drawFuncs;
+std::vector<std::function<void(int)>> SimpleContextEvents::_gameStateFuncs;
 std::function<void()> SimpleContextEvents::_preDrawCallback;
 std::function<void()> SimpleContextEvents::_postDrawCallback;
 
@@ -19,6 +20,9 @@ void SimpleContextEvents::subscribeToMouse(std::function<void(double, double)> f
 }
 void SimpleContextEvents::subscribeToDraw(std::function<void()> func) { //Use this call to connect functions to draw updates
     _drawFuncs.push_back(func);
+}
+void SimpleContextEvents::subscribeToGameState(std::function<void(int)> func) { //Use this call to connect functions to key updates
+    _gameStateFuncs.push_back(func);
 }
 
 void SimpleContextEvents::setPreDrawCallback(std::function<void()> func) {
@@ -67,5 +71,11 @@ void SimpleContextEvents::updateDraw(GLFWwindow* _window) {
 void SimpleContextEvents::updateMouse(double x, double y) {
     for (auto func : _mouseFuncs) {
         func(x, y); //Call mouse movement update
+    }
+}
+
+void SimpleContextEvents::updateGameState(int state) {
+    for (auto func : _gameStateFuncs) {
+        func(state); //Call game state update
     }
 }

@@ -597,6 +597,7 @@ bool GeometryMath::frustumAABBDetection(std::vector<Vector4> planes, Vector4 &mi
     Vector4 vmax;
 
     for (int i = 0; i < 6; ++i) {
+
         // X axis 
         if (planes[i].getx() > 0) {
             vmin += Vector4(mins.getx(), 0.0, 0.0);
@@ -633,7 +634,7 @@ bool GeometryMath::frustumAABBDetection(std::vector<Vector4> planes, Vector4 &mi
     }
 
     //May need to include intersect as another hit
-    if (ret == 1) {
+    if (ret == 1/* || ret == 0*/) {
         return true;
     }
     else {

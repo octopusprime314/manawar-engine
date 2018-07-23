@@ -74,6 +74,8 @@ void Entity::_updateKinematics(int milliSeconds) {
     _mvp.getModelBuffer()[11] = position.getz();
 }
 
+void Entity::_updateGameState(int state) {
+}
 
 MVP* Entity::getMVP() {
     return &_mvp;

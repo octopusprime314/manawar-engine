@@ -1,6 +1,7 @@
 #include "StaticShader.h"
 #include "Model.h"
 #include "Entity.h"
+#include "ModelBroker.h"
 
 StaticShader::StaticShader(std::string shaderName) : Shader(shaderName) {
 

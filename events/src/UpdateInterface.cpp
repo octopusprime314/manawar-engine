@@ -8,6 +8,7 @@ UpdateInterface::UpdateInterface() {
     SimpleContextEvents::subscribeToReleaseKeyboard(std::bind(&UpdateInterface::_updateReleaseKeyboard, this, _1, _2, _3));
     SimpleContextEvents::subscribeToMouse(std::bind(&UpdateInterface::_updateMouse, this, _1, _2));
     SimpleContextEvents::subscribeToDraw(std::bind(&UpdateInterface::_updateDraw, this));
+    SimpleContextEvents::subscribeToGameState(std::bind(&UpdateInterface::_updateGameState, this, _1));
 }
 
 UpdateInterface::UpdateInterface(ViewManagerEvents* eventWrapper) {
@@ -16,6 +17,7 @@ UpdateInterface::UpdateInterface(ViewManagerEvents* eventWrapper) {
     SimpleContextEvents::subscribeToReleaseKeyboard(std::bind(&UpdateInterface::_updateReleaseKeyboard, this, _1, _2, _3));
     SimpleContextEvents::subscribeToMouse(std::bind(&UpdateInterface::_updateMouse, this, _1, _2));
     SimpleContextEvents::subscribeToDraw(std::bind(&UpdateInterface::_updateDraw, this));
+    SimpleContextEvents::subscribeToGameState(std::bind(&UpdateInterface::_updateGameState, this, _1));
 
     //View/Camera events
     eventWrapper->subscribeToView(std::bind(&UpdateInterface::_updateView, this, _1));

@@ -41,6 +41,7 @@ public:
     ~ModelBroker();
     Model*               getModel(std::string modelName);
     void                 buildModels();
+    void                 clearChanges(std::string modelName);
     void                 updateModel(std::string modelName);
     void                 saveModel(std::string modelName);
     void                 addModel(std::string modelName, std::string modelToAdd, Vector4 location);

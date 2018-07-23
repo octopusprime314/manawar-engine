@@ -28,8 +28,8 @@
 #include "Camera.h"
 #include "ViewManagerEvents.h"
 #include "UpdateInterface.h"
+#include "SimpleContext.h"
 
-class SimpleContext;
 class Model;
 class Entity;
 class FunctionState;
@@ -65,6 +65,7 @@ private:
     Camera              _viewCamera;
     Camera              _godCamera;
     Camera*             _currCamera;
+    int                 _gameState;
 
 public:
     ViewManager();
@@ -87,5 +88,6 @@ protected:
     void               _updateKeyboard(int key, int x, int y); //Do stuff based on keyboard upate
     void               _updateReleaseKeyboard(int key, int x, int y); //Do stuff based on keyboard release upate
     void               _updateMouse(double x, double y); //Do stuff based on mouse update
+    void               _updateGameState(int state);
     void               _updateDraw(); //Do draw stuff
 };

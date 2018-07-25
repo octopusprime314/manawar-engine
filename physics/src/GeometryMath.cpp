@@ -634,7 +634,7 @@ bool GeometryMath::frustumAABBDetection(std::vector<Vector4> planes, Vector4 &mi
     }
 
     //May need to include intersect as another hit
-    if (ret == 1/* || ret == 0*/) {
+    if (ret == 1) {
         return true;
     }
     else {

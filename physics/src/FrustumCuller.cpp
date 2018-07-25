@@ -31,3 +31,8 @@ void FrustumCuller::visualize() {
 void FrustumCuller::setEntityList(std::vector<Entity*>& entityList) {
     _entityList = entityList;
 }
+
+std::vector<int> FrustumCuller::getVisibleVBOs() {
+    _octTreeGraphic = new GeometryGraphic(_octalSpacePartitioner.getFrustumCubes());
+    return _octalSpacePartitioner.getVisibleFrustumCulling();
+}

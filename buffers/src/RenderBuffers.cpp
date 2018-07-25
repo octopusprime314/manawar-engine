@@ -39,6 +39,37 @@ void RenderBuffers::addDebugNormal(Vector4 normal) {
     _debugNormals.push_back(normal);
 }
 
+void RenderBuffers::addTextureMapIndex(int textureMapIndex) {
+    _textureMapIndices.push_back(textureMapIndex);
+}
+void RenderBuffers::addTextureMapName(std::string textureMapName) {
+    //Discard if it already exists
+    for (auto textureName : _textureMapNames) {
+        if (textureMapName.compare(textureName) == 0) {
+            return;
+        }
+    }
+    _textureMapNames.push_back(textureMapName);
+}
+
+int RenderBuffers::getTextureMapIndex(std::string textureMapName) {
+    int index = 0;
+    for (auto textureName : _textureMapNames) {
+        if (textureMapName.compare(textureName) == 0) {
+            return index;
+        }
+        index++;
+    }
+    return -1;
+}
+
+std::vector<int>* RenderBuffers::getTextureMapIndices() {
+    return &_textureMapIndices;
+}
+
+std::vector<std::string>* RenderBuffers::getTextureMapNames() {
+    return &_textureMapNames;
+}
 
 void RenderBuffers::setVertexIndices(std::vector<int> indices) {
     _indices = indices;

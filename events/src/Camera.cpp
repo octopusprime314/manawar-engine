@@ -22,12 +22,9 @@ void Camera::displayViewFrustum(Matrix view) {
     
     Vector4 color(1.0, 0.0, 0.0);
 
-    float* buff = _mvp.getViewBuffer();
-    Matrix cam =  Matrix::cameraTranslation(buff[3], buff[7], buff[11]);
-
     //Model transform to create frustum cube
     MVP mvp;
-    mvp.setModel(cam * _mvp.getProjectionMatrix().inverse());
+    mvp.setModel(_mvp.getViewMatrix().inverse() * _mvp.getProjectionMatrix().inverse());
     mvp.setView(view); //set current view matrix to place frustum in correct location
     mvp.setProjection(_mvp.getProjectionMatrix());
     _debugShader->runShader(&mvp, &_frustumVAO, {}, color.getFlatBuffer(), GeometryConstruction::TRIANGLE_MESH);

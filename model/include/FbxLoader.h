@@ -44,6 +44,7 @@ class FbxLoader {
     FbxScene*      _scene;
     FbxExporterType _export;
     std::string    _fileName;
+    int            _strideIndex; //keeps track of which texture stride we are in
     bool           _copiedOverFlag; //indicates the scene has been cloned over to export fbx to prevent doing it again!
     void           _loadTextures(Model* model, FbxMesh* meshNode, FbxNode* childNode);
     void           _buildTriangles(Model* model, std::vector<Vector4>& vertices, std::vector<Vector4>& normals,

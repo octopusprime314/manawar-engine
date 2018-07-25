@@ -16,7 +16,7 @@ void StaticShader::runShader(Entity* entity) {
     //LOAD IN SHADER
     glUseProgram(_shaderContext); //use context for loaded shader
     auto model = entity->getModel();
-    std::vector<VAO*>* vao = model->getVAO();
+    std::vector<VAO*>* vao = model->getFrustumVAO(); //Special vao call that factors in frustum culling for the scene
 
     for (auto vaoInstance : *vao) {
         glBindVertexArray(vaoInstance->getVAOContext());

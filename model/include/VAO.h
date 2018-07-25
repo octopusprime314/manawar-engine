@@ -64,6 +64,7 @@ public:
     void    setNormalDebugContext(GLuint context);
     void    addTextureStride(std::pair<std::string, int> stride);
     void    createVAO(RenderBuffers* renderBuffers, ModelClass classId, Animation* = nullptr);
+    void    createVAO(RenderBuffers* renderBuffers, int begin, int range); //special for frustum viewing
     void    createVAO(std::vector<Sphere>* spheres, GeometryConstruction geometryType);
     void    createVAO(std::vector<Triangle>* triangles);
     void    createVAO(std::vector<Cube>* cubes, GeometryConstruction geometryType);

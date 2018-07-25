@@ -469,6 +469,134 @@ void VAO::createVAO(RenderBuffers* renderBuffers, ModelClass classId, Animation*
 
 }
 
+void VAO::createVAO(RenderBuffers* renderBuffers, int begin, int range) {
+    
+    auto vertices = renderBuffers->getVertices();
+    auto normals = renderBuffers->getNormals();
+    auto textures = renderBuffers->getTextures();
+    auto indices = renderBuffers->getIndices();
+    auto debugNormals = renderBuffers->getDebugNormals();
+
+    _vertexLength = static_cast<GLuint>(vertices->size());
+
+    //Now flatten vertices and normals out for opengl
+    size_t triBuffSize = 0;
+    float* flattenVerts = nullptr; //Only include the x y and z values not w
+    float* flattenNorms = nullptr; //Only include the x y and z values not w, same size as vertices
+    size_t textureBuffSize = 0;
+    float* flattenTextures = nullptr; //Only include the s and t
+    size_t lineBuffSize = 0;
+    float* flattenNormLines = nullptr; //Only include the x y and z values not w, flat line data
+
+   
+    //Now flatten vertices and normals out for opengl
+    triBuffSize = range * 3;
+    flattenVerts = new float[triBuffSize]; //Only include the x y and z values not w
+    flattenNorms = new float[triBuffSize]; //Only include the x y and z values not w, same size as vertices
+    textureBuffSize = range * 2;
+    flattenTextures = new float[textureBuffSize]; //Only include the s and t
+    int i = 0; //iterates through vertices indexes
+    for (int j = begin; j < begin + range; j++) {
+
+        float *flat = (*vertices)[j].getFlatBuffer();
+        flattenVerts[i++] = flat[0];
+        flattenVerts[i++] = flat[1];
+        flattenVerts[i++] = flat[2];
+    }
+    i = 0; //Reset for normal indexes
+    for (int j = begin; j < begin + range; j++) {
+
+        float *flat = (*normals)[j].getFlatBuffer();
+        flattenNorms[i++] = flat[0];
+        flattenNorms[i++] = flat[1];
+        flattenNorms[i++] = flat[2];
+    }
+    i = 0; //Reset for texture indexes
+    for (int j = begin; j < begin + range; j++) {
+
+        float *flat = (*textures)[j].getFlatBuffer();
+        flattenTextures[i++] = flat[0];
+        flattenTextures[i++] = flat[1];
+    }
+
+    //Create a double buffer that will be filled with the vertex data
+    glGenBuffers(1, &_vertexBufferContext);
+    glBindBuffer(GL_ARRAY_BUFFER, _vertexBufferContext);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float)*triBuffSize, flattenVerts, GL_STATIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    //Create a double buffer that will be filled with the normal data
+    glGenBuffers(1, &_normalBufferContext);
+    glBindBuffer(GL_ARRAY_BUFFER, _normalBufferContext);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float)*triBuffSize, flattenNorms, GL_STATIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    //Create a single buffer that will be filled with the texture coordinate data
+    glGenBuffers(1, &_textureBufferContext); //Do not need to double buffer
+    glBindBuffer(GL_ARRAY_BUFFER, _textureBufferContext);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float)*textureBuffSize, flattenTextures, GL_STATIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    //Bind regular vertex, normal and texture coordinate vao
+    glGenVertexArrays(1, &_vaoContext);
+    glBindVertexArray(_vaoContext);
+
+    //Bind vertex buff context to current buffer
+    glBindBuffer(GL_ARRAY_BUFFER, _vertexBufferContext);
+
+    //Say that the vertex data is associated with attribute 0 in the context of a shader program
+    //Each vertex contains 3 floats per vertex
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+
+    //Now enable vertex buffer at location 0
+    glEnableVertexAttribArray(0);
+
+    //Bind normal buff context to current buffer
+    glBindBuffer(GL_ARRAY_BUFFER, _normalBufferContext);
+
+    //Say that the normal data is associated with attribute 1 in the context of a shader program
+    //Each normal contains 3 floats per normal
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
+
+    //Now enable normal buffer at location 1
+    glEnableVertexAttribArray(1);
+
+    //Bind texture coordinate buff context to current buffer
+    glBindBuffer(GL_ARRAY_BUFFER, _textureBufferContext);
+
+    //Say that the texture coordinate data is associated with attribute 2 in the context of a shader program
+    //Each texture coordinate contains 2 floats per texture
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, 0);
+
+    //Now enable texture buffer at location 2
+    glEnableVertexAttribArray(2);
+
+    //Close vao
+    glBindVertexArray(0);
+
+    //Bind vertex vao only for shadow pass
+    glGenVertexArrays(1, &_vaoShadowContext);
+    glBindVertexArray(_vaoShadowContext);
+
+    //Bind vertex buff context to current buffer
+    glBindBuffer(GL_ARRAY_BUFFER, _vertexBufferContext);
+
+    //Say that the vertex data is associated with attribute 0 in the context of a shader program
+    //Each vertex contains 3 floats per vertex
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+
+    //Now enable vertex buffer at location 0
+    glEnableVertexAttribArray(0);
+
+    //Close vao
+    glBindVertexArray(0);
+
+    delete[] flattenVerts;
+    delete[] flattenNorms;
+    delete[] flattenTextures;
+
+}
+
 GLuint VAO::getVAOContext() {
     return _vaoContext;
 }

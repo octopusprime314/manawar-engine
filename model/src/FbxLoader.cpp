@@ -12,6 +12,7 @@
 FbxLoader::FbxLoader(std::string name) {
     _fbxManager = FbxManager::Create();
     _fileName = name;
+    _strideIndex = 0;
     if (_fbxManager == nullptr) {
         printf("ERROR %s : %d failed creating FBX Manager!\n", __FILE__, __LINE__);
     }
@@ -754,6 +755,23 @@ void FbxLoader::_buildTriangles(Model* model, std::vector<Vector4>& vertices, st
     int triCount = 0;
     Matrix transformation = translation * rotation * scale;
 
+
+    std::vector<int> flattenStrides;
+    auto vao = model->getVAO();
+    auto strides = (*vao)[vao->size() - 1]->getTextureStrides();
+    int i = 0;
+    for (auto stride : strides) {
+        if (i >= _strideIndex) {
+            renderBuffers->addTextureMapName(stride.first);
+            int textureIndex = renderBuffers->getTextureMapIndex(stride.first);
+            for (int j = 0; j < stride.second; j++) {
+                flattenStrides.push_back(textureIndex);
+            }
+        }
+        i++;
+    }
+    _strideIndex = static_cast<int>(strides.size());
+
     size_t totalTriangles = indices.size() / 3; //Each index represents one vertex and a triangle is 3 vertices
     //Read each triangle vertex indices and store them in triangle array
     for (int i = 0; i < totalTriangles; i++) {
@@ -771,6 +789,7 @@ void FbxLoader::_buildTriangles(Model* model, std::vector<Vector4>& vertices, st
         renderBuffers->addTexture(textures[triCount]);
         renderBuffers->addDebugNormal(transformation * A);
         renderBuffers->addDebugNormal((transformation * A) + (rotation * AN));
+        renderBuffers->addTextureMapIndex(flattenStrides[triCount]);
         triCount++;
 
         Vector4 B(vertices[indices[triCount]].getx(),
@@ -787,6 +806,7 @@ void FbxLoader::_buildTriangles(Model* model, std::vector<Vector4>& vertices, st
         renderBuffers->addTexture(textures[triCount]);
         renderBuffers->addDebugNormal(transformation * B);
         renderBuffers->addDebugNormal((transformation * B) + (rotation * BN));
+        renderBuffers->addTextureMapIndex(flattenStrides[triCount]);
         triCount++;
 
         Vector4 C(vertices[indices[triCount]].getx(),
@@ -803,6 +823,7 @@ void FbxLoader::_buildTriangles(Model* model, std::vector<Vector4>& vertices, st
         renderBuffers->addTexture(textures[triCount]);
         renderBuffers->addDebugNormal(transformation * C);
         renderBuffers->addDebugNormal((transformation * C) + (rotation * CN));
+        renderBuffers->addTextureMapIndex(flattenStrides[triCount]);
         triCount++;
     }
 }

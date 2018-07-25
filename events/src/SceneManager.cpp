@@ -170,7 +170,7 @@ SceneManager::SceneManager(int* argc, char** argv,
 
     _viewManager->triggerEvents(); 
     _viewManager->setEntityList(_entityList);
-    //ModelBroker::_frustumCuller->setEntityList(_entityList);
+    ModelBroker::_frustumCuller->setEntityList(_entityList);
 
     _glfwContext->run();
 }
@@ -217,7 +217,6 @@ void SceneManager::_postDraw() {
     //unbind fbo
     _deferredRenderer->unbind();
 
-
     if (_viewManager->getViewState() == Camera::ViewState::DEFERRED_LIGHTING) {
 
         //Only compute ssao for opaque objects
@@ -256,8 +255,8 @@ void SceneManager::_postDraw() {
     }
     else if (_viewManager->getViewState() == Camera::ViewState::PHYSICS) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        _physics->visualize();
-        //ModelBroker::_frustumCuller->visualize();
+        //_physics->visualize();
+        ModelBroker::_frustumCuller->visualize();
     }
     else {
 

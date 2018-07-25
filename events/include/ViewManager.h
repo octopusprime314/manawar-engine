@@ -79,6 +79,8 @@ public:
     void               setEntityList(std::vector<Entity*> entityList);
     Matrix             getProjection();
     Matrix             getView();
+    Matrix             getFrustumProjection();
+    Matrix             getFrustumView();
     ViewManagerEvents* getEventWrapper();
     Camera::ViewState  getViewState();
     void               displayViewFrustum();

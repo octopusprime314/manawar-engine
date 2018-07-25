@@ -84,32 +84,31 @@ void OSP::generateRenderOSP(std::vector<Entity*>& entities) {
 
     float* mvp = ModelBroker::getViewManager()->getProjection().inverse().getFlatBuffer();
 
-    std::vector<Cube*> visibleCubes;
+    std::vector<Vector4> planes;
+    // Right clipping plane.
+    planes.push_back(Vector4(mvp[3] - mvp[0], mvp[7] - mvp[4], -(mvp[11] - mvp[8]), mvp[15] - mvp[12]));
+    // Left clipping plane.
+    planes.push_back(Vector4(mvp[3] + mvp[0], mvp[7] + mvp[4], -(mvp[11] + mvp[8]), mvp[15] + mvp[12]));
+    // Bottom clipping plane.
+    planes.push_back(Vector4(mvp[3] + mvp[1], mvp[7] + mvp[5], -(mvp[11] + mvp[9]), mvp[15] + mvp[13]));
+    // Top clipping plane.
+    planes.push_back(Vector4(mvp[3] - mvp[1], mvp[7] - mvp[5], -(mvp[11] - mvp[9]), mvp[15] - mvp[13]));
+    // Far clipping plane.
+    planes.push_back(Vector4(mvp[3] - mvp[2], mvp[7] - mvp[6], -(mvp[11] - mvp[10]), mvp[15] - mvp[14]));
+    // Near clipping plane.
+    planes.push_back(Vector4(mvp[3] + mvp[2], mvp[7] + mvp[6], -(mvp[11] + mvp[10]), mvp[15] + mvp[14]));
+
 
     for (OctNode<Cube*>* octNode : _ospLeaves) {
-        
-        auto cube   = octNode->getData();
+
+        auto cube = octNode->getData();
         auto center = cube->getCenter();
         auto length = cube->getLength();
         auto height = cube->getHeight();
-        auto width  = cube->getWidth();
+        auto width = cube->getWidth();
         Vector4 mins(center.getx() - length / 2.0f, center.gety() - height / 2.0f, center.getz() - width / 2.0f);
         Vector4 maxs(center.getx() + length / 2.0f, center.gety() + height / 2.0f, center.getz() + width / 2.0f);
 
-        std::vector<Vector4> planes;
-        // Right clipping plane.
-        planes.push_back(Vector4(mvp[3] - mvp[0], mvp[7] - mvp[4], -(mvp[11] - mvp[8]),  mvp[15] - mvp[12]));
-        // Left clipping plane.
-        planes.push_back(Vector4(mvp[3] + mvp[0], mvp[7] + mvp[4], -(mvp[11] + mvp[8]),  mvp[15] + mvp[12]));
-        // Bottom clipping plane.
-        planes.push_back(Vector4(mvp[3] + mvp[1], mvp[7] + mvp[5], -(mvp[11] + mvp[9]),  mvp[15] + mvp[13]));
-        // Top clipping plane.
-        planes.push_back(Vector4(mvp[3] - mvp[1], mvp[7] - mvp[5], -(mvp[11] - mvp[9]),  mvp[15] - mvp[13]));
-        // Far clipping plane.
-        planes.push_back(Vector4(mvp[3] - mvp[2], mvp[7] - mvp[6], -(mvp[11] - mvp[10]), mvp[15] - mvp[14]));
-        // Near clipping plane.
-        planes.push_back(Vector4(mvp[3] + mvp[2], mvp[7] + mvp[6], -(mvp[11] + mvp[10]), mvp[15] + mvp[14]));
-       
         if (GeometryMath::frustumAABBDetection(planes, mins, maxs)) {
             _frustumLeaves.push_back(octNode);
         }
@@ -148,6 +147,54 @@ void OSP::_getChildren(std::vector<Cube>* cubes, OctNode<Cube*>* node) {
     }
 }
 
+std::vector<int> OSP::getVisibleFrustumCulling() {
+
+    _frustumLeaves.clear();
+
+    float* mvp = (ModelBroker::getViewManager()->getFrustumView() *
+        ModelBroker::getViewManager()->getFrustumProjection().inverse()).getFlatBuffer();
+
+    std::vector<Vector4> planes;
+    // Right clipping plane.
+    planes.push_back(Vector4(mvp[3] - mvp[0], mvp[7] - mvp[4], -(mvp[11] - mvp[8]), mvp[15] - mvp[12]));
+    // Left clipping plane.
+    planes.push_back(Vector4(mvp[3] + mvp[0], mvp[7] + mvp[4], -(mvp[11] + mvp[8]), mvp[15] + mvp[12]));
+    // Bottom clipping plane.
+    planes.push_back(Vector4(mvp[3] + mvp[1], mvp[7] + mvp[5], -(mvp[11] + mvp[9]), mvp[15] + mvp[13]));
+    // Top clipping plane.
+    planes.push_back(Vector4(mvp[3] - mvp[1], mvp[7] - mvp[5], -(mvp[11] - mvp[9]), mvp[15] - mvp[13]));
+    // Far clipping plane.
+    planes.push_back(Vector4(mvp[3] - mvp[2], mvp[7] - mvp[6], -(mvp[11] - mvp[10]), mvp[15] - mvp[14]));
+    // Near clipping plane.
+    planes.push_back(Vector4(mvp[3] + mvp[2], mvp[7] + mvp[6], -(mvp[11] + mvp[10]), mvp[15] + mvp[14]));
+
+    for (int j = 0; j < planes.size(); j++) {
+        planes[j].normalize();
+    }
+
+    int i = 1; //offset from master vbo
+    std::vector<int> vbosToDraw;
+    for (OctNode<Cube*>* octNode : _ospLeaves) {
+
+        if (octNode->getTriangles()->size() != 0) {
+
+            auto cube = octNode->getData();
+            auto center = cube->getCenter();
+            auto length = cube->getLength();
+            auto height = cube->getHeight();
+            auto width = cube->getWidth();
+            Vector4 mins(center.getx() - length / 2.0f, center.gety() - height / 2.0f, center.getz() - width / 2.0f);
+            Vector4 maxs(center.getx() + length / 2.0f, center.gety() + height / 2.0f, center.getz() + width / 2.0f);
+
+            if (GeometryMath::frustumAABBDetection(planes, mins, maxs)) {
+                _frustumLeaves.push_back(octNode);
+                vbosToDraw.push_back(i);
+            }
+        }
+        i++;
+    }
+    return vbosToDraw;
+}
 
 void OSP::updateOSP(std::vector<Entity*>& entities) {
 

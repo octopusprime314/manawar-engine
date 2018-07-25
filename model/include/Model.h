@@ -54,6 +54,7 @@ public:
     Model(std::string name, ModelClass classId = ModelClass::ModelType);
     virtual ~Model();
     std::vector<VAO*>*          getVAO(); //Used for dynamic additions
+    std::vector<VAO*>*          getFrustumVAO();
     RenderBuffers*              getRenderBuffers();
     ModelClass                  getClassType();
     size_t                      getArrayCount();
@@ -76,6 +77,7 @@ public:
 protected:
     RenderBuffers               _renderBuffers; //Manages vertex, normal and texture data
     std::vector<VAO*>           _vao; //Vao container
+    std::vector<VAO*>           _frustumVAOs; //vaos that are in view
     StaticShader*               _shaderProgram; //Container object of the Model's shader
     FbxLoader*                  _fbxLoader; //Used to load fbx data and parse it into engine format
     ModelClass                  _classId; //Used to identify which class is being used
@@ -87,4 +89,6 @@ protected:
     int                         _instances;
     std::string                 _getModelName(std::string name);
     std::mutex                  _updateLock;
+    std::string                 _name;
+    std::map<int, std::vector<VAO*>> _frustumVBOMapping;
 };

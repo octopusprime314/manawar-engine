@@ -49,4 +49,5 @@ public:
     void                               updateOSP(std::vector<Entity*>& entities);
     std::vector<OctNode<Cube*>*>*      getOSPLeaves();
     std::vector<OctNode<Cube*>*>*      getFrustumLeaves();
+    std::vector<int>                   getVisibleFrustumCulling();
 };

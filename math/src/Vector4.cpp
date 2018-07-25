@@ -120,6 +120,7 @@ void Vector4::normalize() {
     _vec[0] /= mag;
     _vec[1] /= mag;
     _vec[2] /= mag;
+    _vec[3] /= mag;
 }
 
 //Prints out the result in row major

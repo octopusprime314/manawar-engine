@@ -91,6 +91,14 @@ Matrix ViewManager::getView() {
     return _currCamera->getView();
 }
 
+Matrix ViewManager::getFrustumProjection() {
+    return _viewCamera.getProjection();
+}
+
+Matrix ViewManager::getFrustumView() {
+    return _viewCamera.getView();
+}
+
 Camera::ViewState ViewManager::getViewState() {
     return _currCamera->getViewState();
 }

@@ -82,22 +82,27 @@ void OSP::generateRenderOSP(std::vector<Entity*>& entities) {
     //Recursively build Octary Space Partition Tree
     _buildOctetTree(_octTree.getRoot()->getData(), node);
 
-    float* mvp = ModelBroker::getViewManager()->getProjection().inverse().getFlatBuffer();
-
     std::vector<Vector4> planes;
-    // Right clipping plane.
-    planes.push_back(Vector4(mvp[3] - mvp[0], mvp[7] - mvp[4], -(mvp[11] - mvp[8]), mvp[15] - mvp[12]));
-    // Left clipping plane.
-    planes.push_back(Vector4(mvp[3] + mvp[0], mvp[7] + mvp[4], -(mvp[11] + mvp[8]), mvp[15] + mvp[12]));
-    // Bottom clipping plane.
-    planes.push_back(Vector4(mvp[3] + mvp[1], mvp[7] + mvp[5], -(mvp[11] + mvp[9]), mvp[15] + mvp[13]));
-    // Top clipping plane.
-    planes.push_back(Vector4(mvp[3] - mvp[1], mvp[7] - mvp[5], -(mvp[11] - mvp[9]), mvp[15] - mvp[13]));
-    // Far clipping plane.
-    planes.push_back(Vector4(mvp[3] - mvp[2], mvp[7] - mvp[6], -(mvp[11] - mvp[10]), mvp[15] - mvp[14]));
-    // Near clipping plane.
-    planes.push_back(Vector4(mvp[3] + mvp[2], mvp[7] + mvp[6], -(mvp[11] + mvp[10]), mvp[15] + mvp[14]));
 
+    float* mvp = ModelBroker::getViewManager()->getFrustumProjection().transpose().getFlatBuffer();
+    // Right clipping plane.
+    planes.push_back(Vector4((mvp[3] - mvp[0]), (mvp[7] - mvp[4]), -(mvp[11] - mvp[8]), -(mvp[15] - mvp[12])));
+    // Left clipping plane. 
+    planes.push_back(Vector4((mvp[3] + mvp[0]), (mvp[7] + mvp[4]), -(mvp[11] + mvp[8]), -(mvp[15] + mvp[12])));
+    // Bottom clipping plane.
+    planes.push_back(Vector4((mvp[3] + mvp[1]), (mvp[7] + mvp[5]), -(mvp[11] + mvp[9]), -(mvp[15] + mvp[13])));
+    // Top clipping plane.   
+    planes.push_back(Vector4((mvp[3] - mvp[1]), (mvp[7] - mvp[5]), -(mvp[11] - mvp[9]), -(mvp[15] - mvp[13])));
+    // Far clipping plane.   
+    planes.push_back(Vector4((mvp[3] - mvp[2]), (mvp[7] - mvp[6]), -(mvp[11] - mvp[10]), -(mvp[15] - mvp[14])));
+    // Near clipping plane.  
+    planes.push_back(Vector4((mvp[3] + mvp[2]), (mvp[7] + mvp[6]), -(mvp[11] + mvp[10]), -(mvp[15] + mvp[14])));
+
+    for (auto& plane : planes) {
+
+        plane = ModelBroker::getViewManager()->getFrustumView().transpose() * plane;
+        plane.normalize();
+    }
 
     for (OctNode<Cube*>* octNode : _ospLeaves) {
 
@@ -151,25 +156,26 @@ std::vector<int> OSP::getVisibleFrustumCulling() {
 
     _frustumLeaves.clear();
 
-    float* mvp = (ModelBroker::getViewManager()->getFrustumView() *
-        ModelBroker::getViewManager()->getFrustumProjection().inverse()).getFlatBuffer();
+    float* mvp = ModelBroker::getViewManager()->getFrustumProjection().transpose().getFlatBuffer();
 
     std::vector<Vector4> planes;
     // Right clipping plane.
-    planes.push_back(Vector4(mvp[3] - mvp[0], mvp[7] - mvp[4], -(mvp[11] - mvp[8]), mvp[15] - mvp[12]));
-    // Left clipping plane.
-    planes.push_back(Vector4(mvp[3] + mvp[0], mvp[7] + mvp[4], -(mvp[11] + mvp[8]), mvp[15] + mvp[12]));
+    planes.push_back(Vector4((mvp[3] - mvp[0]), (mvp[7] - mvp[4]), -(mvp[11] - mvp[8]), -(mvp[15] - mvp[12])));
+    // Left clipping plane. 
+    planes.push_back(Vector4((mvp[3] + mvp[0]), (mvp[7] + mvp[4]), -(mvp[11] + mvp[8]), -(mvp[15] + mvp[12])));
     // Bottom clipping plane.
-    planes.push_back(Vector4(mvp[3] + mvp[1], mvp[7] + mvp[5], -(mvp[11] + mvp[9]), mvp[15] + mvp[13]));
-    // Top clipping plane.
-    planes.push_back(Vector4(mvp[3] - mvp[1], mvp[7] - mvp[5], -(mvp[11] - mvp[9]), mvp[15] - mvp[13]));
-    // Far clipping plane.
-    planes.push_back(Vector4(mvp[3] - mvp[2], mvp[7] - mvp[6], -(mvp[11] - mvp[10]), mvp[15] - mvp[14]));
-    // Near clipping plane.
-    planes.push_back(Vector4(mvp[3] + mvp[2], mvp[7] + mvp[6], -(mvp[11] + mvp[10]), mvp[15] + mvp[14]));
+    planes.push_back(Vector4((mvp[3] + mvp[1]), (mvp[7] + mvp[5]), -(mvp[11] + mvp[9]), -(mvp[15] + mvp[13])));
+    // Top clipping plane.   
+    planes.push_back(Vector4((mvp[3] - mvp[1]), (mvp[7] - mvp[5]), -(mvp[11] - mvp[9]), -(mvp[15] - mvp[13])));
+    // Far clipping plane.   
+    planes.push_back(Vector4((mvp[3] - mvp[2]), (mvp[7] - mvp[6]), -(mvp[11] - mvp[10]), -(mvp[15] - mvp[14])));
+    // Near clipping plane.  
+    planes.push_back(Vector4((mvp[3] + mvp[2]), (mvp[7] + mvp[6]), -(mvp[11] + mvp[10]), -(mvp[15] + mvp[14])));
 
-    for (int j = 0; j < planes.size(); j++) {
-        planes[j].normalize();
+    for (auto& plane : planes) {
+
+        plane = ModelBroker::getViewManager()->getFrustumView().transpose() * plane;
+        plane.normalize();
     }
 
     int i = 1; //offset from master vbo

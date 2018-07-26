@@ -595,6 +595,7 @@ bool GeometryMath::frustumAABBDetection(std::vector<Vector4> planes, Vector4 &mi
     int ret = 1;
     Vector4 vmin;
     Vector4 vmax;
+    bool intersected = false;
 
     for (int i = 0; i < 6; ++i) {
 
@@ -629,12 +630,12 @@ bool GeometryMath::frustumAABBDetection(std::vector<Vector4> planes, Vector4 &mi
             ret = 2;
         }
         if (planes[i].dotProduct(vmax) + planes[i].getw() >= 0) {
-            ret = 0;
+            intersected = true;
         }
     }
 
     //May need to include intersect as another hit
-    if (ret == 1) {
+    if (ret == 1/* || intersected*/) {
         return true;
     }
     else {

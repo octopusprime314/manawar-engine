@@ -174,7 +174,7 @@ std::vector<int> OSP::getVisibleFrustumCulling() {
 
     for (auto& plane : planes) {
 
-        plane = ModelBroker::getViewManager()->getFrustumView().transpose() * plane;
+        //plane = ModelBroker::getViewManager()->getFrustumView().transpose() * plane;
         plane.normalize();
     }
 
@@ -185,7 +185,7 @@ std::vector<int> OSP::getVisibleFrustumCulling() {
         if (octNode->getTriangles()->size() != 0) {
 
             auto cube = octNode->getData();
-            auto center = cube->getCenter();
+            auto center = ModelBroker::getViewManager()->getFrustumView() * cube->getCenter();
             auto length = cube->getLength();
             auto height = cube->getHeight();
             auto width = cube->getWidth();

@@ -82,19 +82,6 @@ void StaticShader::runShader(Entity* entity) {
 
                     updateUniform("textureMap", GL_TEXTURE0, model->getTexture(textureStride.first)->getContext());
 
-                    if (model->getTexture("../assets/textures/landscape/dirt.jpg") != nullptr) {
-                        updateUniform("tex0", GL_TEXTURE0, model->getTexture("../assets/textures/landscape/dirt.jpg")->getContext());
-                    }
-                    if (model->getTexture("../assets/textures/landscape/grass.jpg") != nullptr) {
-                        updateUniform("tex1", GL_TEXTURE1, model->getTexture("../assets/textures/landscape/grass.jpg")->getContext());
-                    }
-                    if (model->getTexture("../assets/textures/landscape/rocks.jpg") != nullptr) {
-                        updateUniform("tex2", GL_TEXTURE2, model->getTexture("../assets/textures/landscape/rocks.jpg")->getContext());
-                    }
-                    if (model->getTexture("../assets/textures/landscape/snow.jpg") != nullptr) {
-                        updateUniform("tex3", GL_TEXTURE3, model->getTexture("../assets/textures/landscape/snow.jpg")->getContext());
-                    }
-
                     //Draw triangles using the bound buffer vertices at starting index 0 and number of triangles
                     glDrawArrays(GL_TRIANGLES, strideLocation, (GLsizei)textureStride.second);
                 }

@@ -51,11 +51,10 @@ SceneManager::SceneManager(int* argc, char** argv,
 
     _viewManager->setProjection(viewportWidth, viewportHeight, nearPlaneDistance, farPlaneDistance); //Initializes projection matrix and broadcasts upate to all listeners
      // This view is carefully chosen to look at a mountain without showing the (lack of) water in the scene.
-    _viewManager->setView(Matrix::cameraTranslation(0.f, -0.68f, 7.f),
-        Matrix::cameraRotationAroundY(-45.f),
+    _viewManager->setView(Matrix::cameraTranslation(0.0f, 0.0f, 0.0f),
+        Matrix::cameraRotationAroundY(0.0f),
         Matrix());
 
-    glCheck();
     glCheck();
 
     //Load and compile all shaders for the shader broker
@@ -105,7 +104,7 @@ SceneManager::SceneManager(int* argc, char** argv,
     _entityList.push_back(new Entity(modelBroker->getModel("landscape/landscape.fbx"), _viewManager->getEventWrapper())); //Add a static model to the scene
     _entityList.push_back(new Entity(modelBroker->getModel("werewolf/werewolf.fbx"), _viewManager->getEventWrapper())); //Add a static model to the scene
     
-    _entityList[1]->setPosition(Vector4(-0.f, 0.68f, -15.f));
+    //_entityList[1]->setPosition(Vector4(-0.f, 0.68f, -15.f));
     
     _physics = new Physics();
     _physics->addEntities(_entityList); //Gives physics a pointer to all models which allows access to underlying geometry
@@ -257,6 +256,7 @@ void SceneManager::_postDraw() {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         //_physics->visualize();
         ModelBroker::_frustumCuller->visualize();
+        _viewManager->displayViewFrustum();
     }
     else {
 

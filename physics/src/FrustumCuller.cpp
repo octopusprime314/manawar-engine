@@ -1,6 +1,8 @@
 #include "FrustumCuller.h"
 #include "Entity.h"
 #include "ShaderBroker.h"
+#include "ModelBroker.h"
+#include "ViewManager.h"
 
 FrustumCuller::FrustumCuller(std::vector<Entity*> entities) :
     _octalSpacePartitioner(2000, 2000),
@@ -21,7 +23,10 @@ void FrustumCuller::visualize() {
 
     float color[] = { 0.0, 1.0, 0.0 };
     //Grab any model's mvp
-    _debugShader->runShader((_entityList)[0]->getMVP(),
+    MVP mvp;
+    mvp.setView(ModelBroker::getViewManager()->getView());
+    mvp.setProjection(ModelBroker::getViewManager()->getProjection());
+    _debugShader->runShader(&mvp,
         _octTreeGraphic->getVAO(),
         {},
         color,

@@ -630,12 +630,12 @@ bool GeometryMath::frustumAABBDetection(std::vector<Vector4> planes, Vector4 &mi
             ret = 2;
         }
         if (planes[i].dotProduct(vmax) + planes[i].getw() >= 0) {
-            intersected = true;
+            ret = 0;
         }
     }
 
     //May need to include intersect as another hit
-    if (ret == 1/* || intersected*/) {
+    if (ret == 1) {
         return true;
     }
     else {

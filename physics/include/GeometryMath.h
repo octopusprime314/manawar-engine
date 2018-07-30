@@ -39,7 +39,7 @@ public:
     static bool sphereTriangleDetection(Sphere& sphere, Triangle& triangle); //Returns true if a sphere and triangle overlap
     static bool sphereSphereDetection(Sphere& sphereA, Sphere& sphereB); //Returns true if a sphere and a sphere overlap
     static bool frustumAABBDetection(std::vector<Vector4> planes, Vector4 &mins, Vector4 &maxs);
-
+    static void getFrustumPlanes(Matrix inverseViewProjection, std::vector<Vector4>& planes);
 
     //Collision resolution functions
     static void sphereTriangleResolution(Entity* modelA, Sphere& sphere, Entity* modelB, Triangle& triangle); //Resolve collision math

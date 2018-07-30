@@ -82,98 +82,11 @@ void OSP::generateRenderOSP(std::vector<Entity*>& entities) {
     //Recursively build Octary Space Partition Tree
     _buildOctetTree(_octTree.getRoot()->getData(), node);
 
-    std::vector<Vector4> frustumPoints;
-    frustumPoints.push_back(Vector4(-1.0, -1.0, -1.0)); //left  bottom far
-    frustumPoints.push_back(Vector4(-1.0, 1.0, -1.0)); //left  top    far
-    frustumPoints.push_back(Vector4(-1.0, -1.0, 1.0)); //left  bottom near 
-    frustumPoints.push_back(Vector4(-1.0, 1.0, 1.0)); //left  top    near
-    frustumPoints.push_back(Vector4(1.0, -1.0, -1.0)); //right bottom far
-    frustumPoints.push_back(Vector4(1.0, 1.0, -1.0)); //right top    far
-    frustumPoints.push_back(Vector4(1.0, -1.0, 1.0)); //right bottom near
-    frustumPoints.push_back(Vector4(1.0, 1.0, 1.0)); //right top    near
-
-    for (auto& point : frustumPoints) {
-        point = ModelBroker::getViewManager()->getFrustumProjection().inverse() * point;
-    }
+    Matrix inverseViewProjection = ModelBroker::getViewManager()->getFrustumView().inverse() *
+        ModelBroker::getViewManager()->getFrustumProjection().inverse();
 
     std::vector<Vector4> frustumPlanes;
-    //left plane
-    {
-        Vector4 A(frustumPoints[2] - frustumPoints[0]);
-        Vector4 B(frustumPoints[1] - frustumPoints[0]);
-        Vector4 C(B.crossProduct(A));
-        float d = -(C.getx() * -frustumPoints[0].getx() +
-            C.gety() * -frustumPoints[0].gety() +
-            C.getz() * -frustumPoints[0].getz());
-        Vector4 D(C.getx(), C.gety(), C.getz(), d);
-        D.normalize();
-        frustumPlanes.push_back(D);
-    }
-
-    //right plane
-    {
-        Vector4 A(frustumPoints[6] - frustumPoints[4]);
-        Vector4 B(frustumPoints[5] - frustumPoints[4]);
-        Vector4 C(B.crossProduct(A));
-        float d = -(C.getx() * -frustumPoints[4].getx() +
-            C.gety() * -frustumPoints[4].gety() +
-            C.getz() * -frustumPoints[4].getz());
-        Vector4 D(C.getx(), C.gety(), C.getz(), d);
-        D.normalize();
-        frustumPlanes.push_back(D);
-    }
-
-    //near plane
-    {
-        Vector4 A(frustumPoints[3] - frustumPoints[6]);
-        Vector4 B(frustumPoints[2] - frustumPoints[6]);
-        Vector4 C(B.crossProduct(A));
-        float d = -(C.getx() * -frustumPoints[6].getx() +
-            C.gety() * -frustumPoints[6].gety() +
-            C.getz() * -frustumPoints[6].getz());
-        Vector4 D(C.getx(), C.gety(), C.getz(), d);
-        D.normalize();
-        frustumPlanes.push_back(D);
-    }
-
-    //far plane
-    {
-        Vector4 A(frustumPoints[4] - frustumPoints[0]);
-        Vector4 B(frustumPoints[1] - frustumPoints[0]);
-        Vector4 C(B.crossProduct(A));
-        float d = -(C.getx() * -frustumPoints[0].getx() +
-            C.gety() * -frustumPoints[0].gety() +
-            C.getz() * -frustumPoints[0].getz());
-        Vector4 D(C.getx(), C.gety(), C.getz(), d);
-        D.normalize();
-        frustumPlanes.push_back(D);
-    }
-
-    //bottom plane
-    {
-        Vector4 A(frustumPoints[4] - frustumPoints[0]);
-        Vector4 B(frustumPoints[2] - frustumPoints[0]);
-        Vector4 C(B.crossProduct(A));
-        float d = -(C.getx() * -frustumPoints[0].getx() +
-            C.gety() * -frustumPoints[0].gety() +
-            C.getz() * -frustumPoints[0].getz());
-        Vector4 D(C.getx(), C.gety(), C.getz(), d);
-        D.normalize();
-        frustumPlanes.push_back(D);
-    }
-
-    //top plane
-    {
-        Vector4 A(frustumPoints[5] - frustumPoints[1]);
-        Vector4 B(frustumPoints[3] - frustumPoints[1]);
-        Vector4 C(B.crossProduct(A));
-        float d = -(C.getx() * -frustumPoints[1].getx() +
-            C.gety() * -frustumPoints[1].gety() +
-            C.getz() * -frustumPoints[1].getz());
-        Vector4 D(C.getx(), C.gety(), C.getz(), d);
-        D.normalize();
-        frustumPlanes.push_back(D);
-    }
+    GeometryMath::getFrustumPlanes(inverseViewProjection, frustumPlanes);
 
     for (OctNode<Cube*>* octNode : _ospLeaves) {
 
@@ -227,100 +140,11 @@ std::vector<int> OSP::getVisibleFrustumCulling() {
 
     _frustumLeaves.clear();
 
-    std::vector<Vector4> frustumPoints;
-    frustumPoints.push_back(Vector4(-1.0, -1.0, -1.0)); //left  bottom far
-    frustumPoints.push_back(Vector4(-1.0, 1.0, -1.0)); //left  top    far
-    frustumPoints.push_back(Vector4(-1.0, -1.0, 1.0)); //left  bottom near 
-    frustumPoints.push_back(Vector4(-1.0, 1.0, 1.0)); //left  top    near
-    frustumPoints.push_back(Vector4(1.0, -1.0, -1.0)); //right bottom far
-    frustumPoints.push_back(Vector4(1.0, 1.0, -1.0)); //right top    far
-    frustumPoints.push_back(Vector4(1.0, -1.0, 1.0)); //right bottom near
-    frustumPoints.push_back(Vector4(1.0, 1.0, 1.0)); //right top    near
-
-    for (auto& point : frustumPoints) {
-        point = ModelBroker::getViewManager()->getFrustumView().inverse() * 
-            ModelBroker::getViewManager()->getFrustumProjection().inverse() * point;
-        point = point / point.getw();
-    }
+    Matrix inverseViewProjection = ModelBroker::getViewManager()->getFrustumView().inverse() * 
+        ModelBroker::getViewManager()->getFrustumProjection().inverse();
 
     std::vector<Vector4> frustumPlanes;
-    //left plane
-    {
-        Vector4 A(frustumPoints[2] - frustumPoints[0]);
-        Vector4 B(frustumPoints[1] - frustumPoints[0]);
-        Vector4 C(B.crossProduct(A));
-        float d = -(C.getx() * -frustumPoints[0].getx() +
-            C.gety() * -frustumPoints[0].gety() +
-            C.getz() * -frustumPoints[0].getz());
-        Vector4 D(C.getx(), C.gety(), C.getz(), d);
-        D.normalize();
-        frustumPlanes.push_back(D);
-    }
-
-    //right plane
-    {
-        Vector4 A(frustumPoints[4] - frustumPoints[6]);
-        Vector4 B(frustumPoints[5] - frustumPoints[6]);
-        Vector4 C(B.crossProduct(A));
-        float d = -(C.getx() * -frustumPoints[6].getx() +
-            C.gety() * -frustumPoints[6].gety() +
-            C.getz() * -frustumPoints[6].getz());
-        Vector4 D(C.getx(), C.gety(), C.getz(), d);
-        D.normalize();
-        frustumPlanes.push_back(D);
-    }
-
-    //far plane
-    {
-        Vector4 A(frustumPoints[3] - frustumPoints[6]);
-        Vector4 B(frustumPoints[2] - frustumPoints[6]);
-        Vector4 C(B.crossProduct(A));
-        float d = -(C.getx() * -frustumPoints[6].getx() +
-            C.gety() * -frustumPoints[6].gety() +
-            C.getz() * -frustumPoints[6].getz());
-        Vector4 D(C.getx(), C.gety(), C.getz(), -d);
-        D.normalize();
-        frustumPlanes.push_back(D);
-    }
-
-    //near plane
-    {
-        Vector4 A(frustumPoints[0] - frustumPoints[4]);
-        Vector4 B(frustumPoints[1] - frustumPoints[4]);
-        Vector4 C(B.crossProduct(A));
-        float d = -(C.getx() * -frustumPoints[4].getx() +
-            C.gety() * -frustumPoints[4].gety() +
-            C.getz() * -frustumPoints[4].getz());
-        Vector4 D(C.getx(), C.gety(), C.getz(), -d);
-        D.normalize();
-        frustumPlanes.push_back(D);
-    }
-
-    //bottom plane
-    {
-        Vector4 A(frustumPoints[4] - frustumPoints[0]);
-        Vector4 B(frustumPoints[2] - frustumPoints[0]);
-        Vector4 C(B.crossProduct(A));
-        float d = -(C.getx() * -frustumPoints[0].getx() +
-            C.gety() * -frustumPoints[0].gety() +
-            C.getz() * -frustumPoints[0].getz());
-        Vector4 D(C.getx(), C.gety(), C.getz(), d);
-        D.normalize();
-        frustumPlanes.push_back(D);
-    }
-
-    //top plane
-    {
-        Vector4 A(frustumPoints[1] - frustumPoints[5]);
-        Vector4 B(frustumPoints[3] - frustumPoints[5]);
-        Vector4 C(B.crossProduct(A));
-        float d = -(C.getx() * -frustumPoints[5].getx() +
-            C.gety() * -frustumPoints[5].gety() +
-            C.getz() * -frustumPoints[5].getz());
-        Vector4 D(C.getx(), C.gety(), C.getz(), d);
-        D.normalize();
-        frustumPlanes.push_back(D);
-    }
+    GeometryMath::getFrustumPlanes(inverseViewProjection, frustumPlanes);
 
     int i = 1; //offset from master vbo
     std::vector<int> vbosToDraw;
@@ -343,6 +167,7 @@ std::vector<int> OSP::getVisibleFrustumCulling() {
         }
         i++;
     }
+
     return vbosToDraw;
 }
 

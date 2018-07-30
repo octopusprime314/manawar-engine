@@ -587,58 +587,130 @@ Vector4 GeometryMath::_closestPoint(Sphere* sphere, Triangle* triangle)
     return A + ab * v + ac * w;
 }
 
-// Returns: INTERSECT : 0 
-//          INSIDE    : 1 
-//          OUTSIDE   : 2 
+void GeometryMath::getFrustumPlanes(Matrix inverseViewProjection, std::vector<Vector4>& frustumPlanes) {
+    
+    std::vector<Vector4> frustumPoints;
+    frustumPoints.push_back(Vector4(-1.0, -1.0, -1.0)); //left  bottom far
+    frustumPoints.push_back(Vector4(-1.0, 1.0, -1.0)); //left  top    far
+    frustumPoints.push_back(Vector4(-1.0, -1.0, 1.0)); //left  bottom near 
+    frustumPoints.push_back(Vector4(-1.0, 1.0, 1.0)); //left  top    near
+    frustumPoints.push_back(Vector4(1.0, -1.0, -1.0)); //right bottom far
+    frustumPoints.push_back(Vector4(1.0, 1.0, -1.0)); //right top    far
+    frustumPoints.push_back(Vector4(1.0, -1.0, 1.0)); //right bottom near
+    frustumPoints.push_back(Vector4(1.0, 1.0, 1.0)); //right top    near
+
+    for (auto& point : frustumPoints) {
+        point = inverseViewProjection * point;
+        point = point / point.getw();
+    }
+
+    //left plane
+    {
+        Vector4 A(frustumPoints[2] - frustumPoints[0]);
+        Vector4 B(frustumPoints[1] - frustumPoints[0]);
+        Vector4 C(B.crossProduct(A));
+        float d = -(C.getx() * -frustumPoints[0].getx() +
+            C.gety() * -frustumPoints[0].gety() +
+            C.getz() * -frustumPoints[0].getz());
+        Vector4 D(C.getx(), C.gety(), C.getz(), d);
+        D.normalize();
+        frustumPlanes.push_back(D);
+    }
+
+    //right plane
+    {
+        Vector4 A(frustumPoints[4] - frustumPoints[6]);
+        Vector4 B(frustumPoints[5] - frustumPoints[6]);
+        Vector4 C(B.crossProduct(A));
+        float d = -(C.getx() * -frustumPoints[6].getx() +
+            C.gety() * -frustumPoints[6].gety() +
+            C.getz() * -frustumPoints[6].getz());
+        Vector4 D(C.getx(), C.gety(), C.getz(), d);
+        D.normalize();
+        frustumPlanes.push_back(D);
+    }
+
+    //far plane
+    {
+        Vector4 A(frustumPoints[3] - frustumPoints[6]);
+        Vector4 B(frustumPoints[2] - frustumPoints[6]);
+        Vector4 C(B.crossProduct(A));
+        float d = -(C.getx() * -frustumPoints[6].getx() +
+            C.gety() * -frustumPoints[6].gety() +
+            C.getz() * -frustumPoints[6].getz());
+        Vector4 D(C.getx(), C.gety(), C.getz(), d);
+        D.normalize();
+        frustumPlanes.push_back(D);
+    }
+
+    //near plane
+    {
+        Vector4 A(frustumPoints[0] - frustumPoints[4]);
+        Vector4 B(frustumPoints[1] - frustumPoints[4]);
+        Vector4 C(B.crossProduct(A));
+        float d = -(C.getx() * -frustumPoints[4].getx() +
+            C.gety() * -frustumPoints[4].gety() +
+            C.getz() * -frustumPoints[4].getz());
+        Vector4 D(C.getx(), C.gety(), C.getz(), d);
+        D.normalize();
+        frustumPlanes.push_back(D);
+    }
+
+    //bottom plane
+    {
+        Vector4 A(frustumPoints[4] - frustumPoints[0]);
+        Vector4 B(frustumPoints[2] - frustumPoints[0]);
+        Vector4 C(B.crossProduct(A));
+        float d = -(C.getx() * -frustumPoints[0].getx() +
+            C.gety() * -frustumPoints[0].gety() +
+            C.getz() * -frustumPoints[0].getz());
+        Vector4 D(C.getx(), C.gety(), C.getz(), d);
+        D.normalize();
+        frustumPlanes.push_back(D);
+    }
+
+    //top plane
+    {
+        Vector4 A(frustumPoints[1] - frustumPoints[5]);
+        Vector4 B(frustumPoints[3] - frustumPoints[5]);
+        Vector4 C(B.crossProduct(A));
+        float d = -(C.getx() * -frustumPoints[5].getx() +
+            C.gety() * -frustumPoints[5].gety() +
+            C.getz() * -frustumPoints[5].getz());
+        Vector4 D(C.getx(), C.gety(), C.getz(), d);
+        D.normalize();
+        frustumPlanes.push_back(D);
+    }
+    
+}
+
 bool GeometryMath::frustumAABBDetection(std::vector<Vector4> planes, Vector4 &mins, Vector4 &maxs) {
     
-    int ret = 1;
-    Vector4 vmin;
-    Vector4 vmax;
-    bool intersected = false;
+    std::vector<Vector4> aabbPoints;
+    aabbPoints.push_back(Vector4(mins.getx(), mins.gety(), mins.getz()));
+    aabbPoints.push_back(Vector4(mins.getx(), mins.gety(), maxs.getz()));
+    aabbPoints.push_back(Vector4(mins.getx(), maxs.gety(), maxs.getz()));
+    aabbPoints.push_back(Vector4(maxs.getx(), maxs.gety(), maxs.getz()));
+    aabbPoints.push_back(Vector4(maxs.getx(), maxs.gety(), mins.getz()));
+    aabbPoints.push_back(Vector4(maxs.getx(), mins.gety(), mins.getz()));
+    aabbPoints.push_back(Vector4(maxs.getx(), mins.gety(), maxs.getz()));
+    aabbPoints.push_back(Vector4(mins.getx(), maxs.gety(), mins.getz()));
 
-    for (int i = 0; i < 6; ++i) {
-
-        // X axis 
-        if (planes[i].getx() > 0) {
-            vmin += Vector4(mins.getx(), 0.0, 0.0);
-            vmax += Vector4(maxs.getx(), 0.0, 0.0);
+    bool aabbOutside = false;
+    for (auto plane : planes) {
+        int pointsOutside = 0;
+        for (auto point : aabbPoints) {
+            float distance = plane.getw();
+            auto pointOnPlane = plane * distance;
+            auto pointVector = point - pointOnPlane;
+            if (plane.dotProduct(pointVector) > 0) {
+                pointsOutside++;
+            }
         }
-        else {
-            vmin += Vector4(maxs.getx(), 0.0, 0.0);
-            vmax += Vector4(mins.getx(), 0.0, 0.0);
-        }
-        // Y axis 
-        if (planes[i].gety() > 0) {
-            vmin += Vector4(0.0, mins.gety(), 0.0);
-            vmax += Vector4(0.0, maxs.gety(), 0.0);
-        }
-        else {
-            vmin += Vector4(0.0, maxs.gety(), 0.0);
-            vmax += Vector4(0.0, mins.gety(), 0.0);
-        }
-        // Z axis 
-        if (planes[i].getz() > 0) {
-            vmin += Vector4(0.0, 0.0, mins.getz());
-            vmax += Vector4(0.0, 0.0, maxs.getz());
-        }
-        else {
-            vmin += Vector4(0.0, 0.0, maxs.getz());
-            vmax += Vector4(0.0, 0.0, mins.getz());
-        }
-        if (planes[i].dotProduct(vmin) + planes[i].getw() > 0) {
-            ret = 2;
-        }
-        if (planes[i].dotProduct(vmax) + planes[i].getw() >= 0) {
-            ret = 0;
+        if (pointsOutside == 8) {
+            aabbOutside = true;
         }
     }
 
-    //May need to include intersect as another hit
-    if (ret == 1) {
-        return true;
-    }
-    else {
-        return false;
-    }
+    return !aabbOutside;
 }

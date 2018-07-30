@@ -17,7 +17,7 @@
 
 /**
 *  FrustumCuller class. Trims down the number of vertices needed to be passed through the
-* graphics VS/PS pipeline by using AABBs from an Octal Space Partioning structure.  The AABBs 
+* graphics VS pipeline by using AABBs from an Octal Space Partioning structure.  The AABBs 
 * that are within the view/eye frustum will provide all of the vertexes that need to be rendered.
 */
 

@@ -148,6 +148,7 @@ std::vector<int> OSP::getVisibleFrustumCulling() {
 
     int i = 1; //offset from master vbo
     std::vector<int> vbosToDraw;
+    std::vector<std::pair<int, float>> vaoDepths;
     for (OctNode<Cube*>* octNode : _ospLeaves) {
 
         if (octNode->getTriangles()->size() != 0) {
@@ -162,10 +163,25 @@ std::vector<int> OSP::getVisibleFrustumCulling() {
 
             if (GeometryMath::frustumAABBDetection(frustumPlanes, mins, maxs)) {
                 _frustumLeaves.push_back(octNode);
-                vbosToDraw.push_back(i);
+                vaoDepths.push_back(std::pair<int, float>(i, center.getMagnitude()));
             }
         }
         i++;
+    }
+
+    // sort using a custom function object
+    struct {
+        bool operator()(std::pair<int, float> a, std::pair<int, float> b) const
+        {
+            return a.second < b.second;
+        }
+    } customLess;
+
+    std::sort(vaoDepths.begin(), vaoDepths.end(), customLess);
+
+    //Depth order vbos front to back for early vertex discard
+    for (auto vaoDepth : vaoDepths) {
+        vbosToDraw.push_back(vaoDepth.first);
     }
 
     return vbosToDraw;

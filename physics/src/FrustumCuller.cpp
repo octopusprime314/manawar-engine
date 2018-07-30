@@ -5,7 +5,7 @@
 #include "ViewManager.h"
 
 FrustumCuller::FrustumCuller(std::vector<Entity*> entities) :
-    _octalSpacePartitioner(2000, 2000),
+    _octalSpacePartitioner(2000, 4000),
     _debugShader(static_cast<DebugShader*>(ShaderBroker::instance()->getShader("debugShader"))) {
       
     _octalSpacePartitioner.generateRenderOSP(entities); //Generate 

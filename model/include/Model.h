@@ -40,6 +40,7 @@
 #include <mutex>
 class Entity;
 class SimpleContext;
+class FrustumCuller;
 
 enum class ModelClass {
     ModelType = 0,
@@ -48,6 +49,7 @@ enum class ModelClass {
 
 class Model {
 
+    using VAOMap = std::map<int, std::vector<VAO*>>;
 public:
 
     //Default model to type to base class
@@ -72,6 +74,7 @@ public:
     void                        runShader(Entity* entity);
     void                        addVAO(ModelClass classType);
     FbxLoader*                  getFbxLoader();
+    void                        generateVAOTiles(FrustumCuller* frustumCuller);
     virtual void                updateModel(Model* model);
 
 protected:
@@ -90,5 +93,5 @@ protected:
     std::string                 _getModelName(std::string name);
     std::mutex                  _updateLock;
     std::string                 _name;
-    std::map<int, std::vector<VAO*>> _frustumVBOMapping;
+    VAOMap                      _frustumVAOMapping;
 };

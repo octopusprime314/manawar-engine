@@ -1,5 +1,5 @@
 #include "FrustumCuller.h"
-#include "Entity.h"
+#include "Model.h"
 #include "ShaderBroker.h"
 #include "ModelBroker.h"
 #include "ViewManager.h"
@@ -11,6 +11,8 @@ FrustumCuller::FrustumCuller(std::vector<Entity*> entities) :
     _octalSpacePartitioner.generateRenderOSP(entities); //Generate 
 
     auto frustumAABBs = _octalSpacePartitioner.getFrustumLeaves();
+
+    entities[0]->getModel()->generateVAOTiles(this);
 
     _octTreeGraphic = new GeometryGraphic(_octalSpacePartitioner.getFrustumCubes());
 }
@@ -31,10 +33,6 @@ void FrustumCuller::visualize() {
         {},
         color,
         GeometryConstruction::LINE_WIREFRAME);
-}
-
-void FrustumCuller::setEntityList(std::vector<Entity*>& entityList) {
-    _entityList = entityList;
 }
 
 std::vector<int> FrustumCuller::getVisibleVBOs() {

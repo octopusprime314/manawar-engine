@@ -3,6 +3,7 @@
 #include "FbxLoader.h"
 #include "ShaderBroker.h"
 #include "ModelBroker.h"
+#include "FrustumCuller.h"
 
 TextureBroker* Model::_textureManager = TextureBroker::instance();
 
@@ -18,105 +19,7 @@ Model::Model(std::string name, ModelClass classId) :
     _fbxLoader->loadModel(this, _fbxLoader->getScene()->GetRootNode());
     //Create vao contexts
     if (classId == ModelClass::ModelType)  {
-        if (name.find("landscape") != std::string::npos) {
-            std::vector<Entity*> list = { new Entity(this, ModelBroker::getViewManager()->getEventWrapper()) };
-            ModelBroker::_frustumCuller = new FrustumCuller(list);
-
-            auto* leaves = ModelBroker::_frustumCuller->getOSP()->getOSPLeaves();
-            auto vertices = _renderBuffers.getVertices();
-            auto normals = _renderBuffers.getNormals();
-            auto textures = _renderBuffers.getTextures();
-            auto indices = _renderBuffers.getIndices();
-            auto textureMapIndices = _renderBuffers.getTextureMapIndices();
-            auto textureMapNames = _renderBuffers.getTextureMapNames();
-            int leafIndex = 1;
-            for (auto leaf : *leaves) {
-
-
-                RenderBuffers renderBuff;
-                //texture name to triangle mapping
-                std::unordered_map<std::string, std::vector<std::pair<int, Triangle*>>> textureTriangleMapper;
-                for (std::pair<Entity* const, std::set<std::pair<int, Triangle*>>>& triangleMap : *leaf->getTriangles()) {
-
-                    for (auto triangleIndex : triangleMap.second) {
-                        textureTriangleMapper[(*textureMapNames)[(*textureMapIndices)[triangleIndex.first]]].push_back(triangleIndex);
-                    }
-                }
-
-                for (auto triangleMap : textureTriangleMapper) {
-
-                    for (auto triangle : triangleMap.second) {
-                        renderBuff.addVertex((*vertices)[triangle.first]);
-                        renderBuff.addVertex((*vertices)[triangle.first + 1]);
-                        renderBuff.addVertex((*vertices)[triangle.first + 2]);
-                        renderBuff.addNormal((*normals)[triangle.first]);
-                        renderBuff.addNormal((*normals)[triangle.first + 1]);
-                        renderBuff.addNormal((*normals)[triangle.first + 2]);
-                        renderBuff.addTexture((*textures)[triangle.first]);
-                        renderBuff.addTexture((*textures)[triangle.first + 1]);
-                        renderBuff.addTexture((*textures)[triangle.first + 2]);
-
-                        renderBuff.addTextureMapName((*textureMapNames)[(*textureMapIndices)[triangle.first]]);
-                        renderBuff.addTextureMapName((*textureMapNames)[(*textureMapIndices)[triangle.first + 1]]);
-                        renderBuff.addTextureMapName((*textureMapNames)[(*textureMapIndices)[triangle.first + 2]]);
-
-                        int index1 = renderBuff.getTextureMapIndex((*textureMapNames)[(*textureMapIndices)[triangle.first]]);
-                        int index2 = renderBuff.getTextureMapIndex((*textureMapNames)[(*textureMapIndices)[triangle.first + 1]]);
-                        int index3 = renderBuff.getTextureMapIndex((*textureMapNames)[(*textureMapIndices)[triangle.first + 2]]);
-                        renderBuff.addTextureMapIndex(index1);
-                        renderBuff.addTextureMapIndex(index2);
-                        renderBuff.addTextureMapIndex(index3);
-                    }
-                }
-
-                if (renderBuff.getVertices()->size() > 0) {
-                    
-                    auto textureIndices = renderBuff.getTextureMapIndices();
-                    auto textureNames   = renderBuff.getTextureMapNames();
-
-                    int textureIndexCount = 0;
-                    int prevTextureIndex = 0;
-                    int previousCount = 0;
-                    for (int i = 0; i < textureIndices->size(); i++) {
-                        int textureIndex = (*textureIndices)[i];
-                        
-                        if (textureIndex != prevTextureIndex) {
-                            auto textureName = (*textureNames)[prevTextureIndex];
-                            
-                            _vao.push_back(new VAO());
-                            _vao[_vao.size() - 1]->createVAO(&renderBuff, previousCount, textureIndexCount);
-
-                            _vao[_vao.size() - 1]->addTextureStride(
-                                std::pair<std::string, int>(textureName, textureIndexCount));
-
-                            _frustumVBOMapping[leafIndex].push_back(_vao[_vao.size() - 1]);
-
-                            previousCount += textureIndexCount;
-                            textureIndexCount = 0;
-                        }
-
-                        if (i == textureIndices->size() - 1) {
-                            auto textureName = (*textureNames)[textureIndex];
-                            
-                            _vao.push_back(new VAO());
-                            _vao[_vao.size() - 1]->createVAO(&renderBuff, previousCount, textureIndexCount);
-
-                            _vao[_vao.size() - 1]->addTextureStride(
-                                std::pair<std::string, int>(textureName, textureIndexCount));
-
-                            _frustumVBOMapping[leafIndex].push_back(_vao[_vao.size() - 1]);
-                        }
-
-                        textureIndexCount++;
-                        prevTextureIndex = textureIndex;
-                    }
-                }
-                leafIndex++;
-            }
-        }
-        else {
-            _vao[0]->createVAO(&_renderBuffers, _classId);
-        }
+        _vao[0]->createVAO(&_renderBuffers, _classId);
     }
 
     //If class is generic model then deallocate fbx object,
@@ -169,14 +72,109 @@ std::vector<VAO*>* Model::getVAO() {
     return &_vao;
 }
 
+void Model::generateVAOTiles(FrustumCuller* frustumCuller) {
+    
+    auto* leaves = frustumCuller->getOSP()->getOSPLeaves();
+    auto vertices = _renderBuffers.getVertices();
+    auto normals = _renderBuffers.getNormals();
+    auto textures = _renderBuffers.getTextures();
+    auto indices = _renderBuffers.getIndices();
+    auto textureMapIndices = _renderBuffers.getTextureMapIndices();
+    auto textureMapNames = _renderBuffers.getTextureMapNames();
+    int leafIndex = 1;
+    for (auto leaf : *leaves) {
+
+
+        RenderBuffers renderBuff;
+        //texture name to triangle mapping
+        std::unordered_map<std::string, std::vector<std::pair<int, Triangle*>>> textureTriangleMapper;
+        for (std::pair<Entity* const, std::set<std::pair<int, Triangle*>>>& triangleMap : *leaf->getTriangles()) {
+
+            for (auto triangleIndex : triangleMap.second) {
+                textureTriangleMapper[(*textureMapNames)[(*textureMapIndices)[triangleIndex.first]]].push_back(triangleIndex);
+            }
+        }
+
+        for (auto triangleMap : textureTriangleMapper) {
+
+            for (auto triangle : triangleMap.second) {
+                renderBuff.addVertex((*vertices)[triangle.first]);
+                renderBuff.addVertex((*vertices)[triangle.first + 1]);
+                renderBuff.addVertex((*vertices)[triangle.first + 2]);
+                renderBuff.addNormal((*normals)[triangle.first]);
+                renderBuff.addNormal((*normals)[triangle.first + 1]);
+                renderBuff.addNormal((*normals)[triangle.first + 2]);
+                renderBuff.addTexture((*textures)[triangle.first]);
+                renderBuff.addTexture((*textures)[triangle.first + 1]);
+                renderBuff.addTexture((*textures)[triangle.first + 2]);
+
+                renderBuff.addTextureMapName((*textureMapNames)[(*textureMapIndices)[triangle.first]]);
+                renderBuff.addTextureMapName((*textureMapNames)[(*textureMapIndices)[triangle.first + 1]]);
+                renderBuff.addTextureMapName((*textureMapNames)[(*textureMapIndices)[triangle.first + 2]]);
+
+                int index1 = renderBuff.getTextureMapIndex((*textureMapNames)[(*textureMapIndices)[triangle.first]]);
+                int index2 = renderBuff.getTextureMapIndex((*textureMapNames)[(*textureMapIndices)[triangle.first + 1]]);
+                int index3 = renderBuff.getTextureMapIndex((*textureMapNames)[(*textureMapIndices)[triangle.first + 2]]);
+                renderBuff.addTextureMapIndex(index1);
+                renderBuff.addTextureMapIndex(index2);
+                renderBuff.addTextureMapIndex(index3);
+            }
+        }
+
+        if (renderBuff.getVertices()->size() > 0) {
+
+            auto textureIndices = renderBuff.getTextureMapIndices();
+            auto textureNames = renderBuff.getTextureMapNames();
+
+            int textureIndexCount = 0;
+            int prevTextureIndex = 0;
+            int previousCount = 0;
+            for (int i = 0; i < textureIndices->size(); i++) {
+                int textureIndex = (*textureIndices)[i];
+
+                if (textureIndex != prevTextureIndex) {
+                    auto textureName = (*textureNames)[prevTextureIndex];
+
+                    _vao.push_back(new VAO());
+                    _vao[_vao.size() - 1]->createVAO(&renderBuff, previousCount, textureIndexCount);
+
+                    _vao[_vao.size() - 1]->addTextureStride(
+                        std::pair<std::string, int>(textureName, textureIndexCount));
+
+                    _frustumVAOMapping[leafIndex].push_back(_vao[_vao.size() - 1]);
+
+                    previousCount += textureIndexCount;
+                    textureIndexCount = 0;
+                }
+
+                if (i == textureIndices->size() - 1) {
+                    auto textureName = (*textureNames)[textureIndex];
+
+                    _vao.push_back(new VAO());
+                    _vao[_vao.size() - 1]->createVAO(&renderBuff, previousCount, textureIndexCount);
+
+                    _vao[_vao.size() - 1]->addTextureStride(
+                        std::pair<std::string, int>(textureName, textureIndexCount));
+
+                    _frustumVAOMapping[leafIndex].push_back(_vao[_vao.size() - 1]);
+                }
+
+                textureIndexCount++;
+                prevTextureIndex = textureIndex;
+            }
+        }
+        leafIndex++;
+    }
+}
+
 std::vector<VAO*>* Model::getFrustumVAO() {
     if (_name.find("landscape") != std::string::npos) {
         
         auto vboIndexes = ModelBroker::_frustumCuller->getVisibleVBOs();
         _frustumVAOs.clear();
-        for (auto vboIndex : vboIndexes) {
-            for (auto vbo : _frustumVBOMapping[vboIndex]) {
-                _frustumVAOs.push_back(vbo);
+        for (auto vaoIndex : vboIndexes) {
+            for (auto vao : _frustumVAOMapping[vaoIndex]) {
+                _frustumVAOs.push_back(vao);
             }
         }
         return &_frustumVAOs;

@@ -38,6 +38,5 @@ public:
     FrustumCuller(std::vector<Entity*> models);
     OSP* getOSP();
     void visualize();
-    void setEntityList(std::vector<Entity*>& entityList);
     std::vector<int> getVisibleVBOs();
 };

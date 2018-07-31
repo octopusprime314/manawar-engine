@@ -30,7 +30,6 @@ AnimatedModel::AnimatedModel(std::string name) :
 
     _currBones = _animations[_currentAnimation]->getBones();
 
-    _vao.push_back(new VAO());
     _vao[0]->createVAO(&_renderBuffers, ModelClass::AnimatedModelType, _animations[_currentAnimation]);
 }
 

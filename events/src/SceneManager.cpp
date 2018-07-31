@@ -104,14 +104,14 @@ SceneManager::SceneManager(int* argc, char** argv,
     _entityList.push_back(new Entity(modelBroker->getModel("landscape/landscape.fbx"), _viewManager->getEventWrapper())); //Add a static model to the scene
     _entityList.push_back(new Entity(modelBroker->getModel("werewolf/werewolf.fbx"), _viewManager->getEventWrapper())); //Add a static model to the scene
     
-    //_entityList[1]->setPosition(Vector4(-0.f, 0.68f, -15.f));
+    ModelBroker::_frustumCuller = new FrustumCuller(_entityList);
     
     _physics = new Physics();
     _physics->addEntities(_entityList); //Gives physics a pointer to all models which allows access to underlying geometry
     
     _physics->run(); //Dispatch physics to start kinematics
 
-    /*Vector4 sunLocation(0.0f, 0.0f, -300.0f);
+    Vector4 sunLocation(0.0f, 0.0f, -300.0f);
     MVP lightMVP;
     lightMVP.setView(Matrix::translation(sunLocation.getx(), sunLocation.gety(), sunLocation.getz()));
     lightMVP.setProjection(Matrix::cameraOrtho(200.0f, 200.0f, 0.0f, 600.0f));
@@ -126,7 +126,7 @@ SceneManager::SceneManager(int* argc, char** argv,
     _lightList.push_back(new ShadowedDirectionalLight(_viewManager->getEventWrapper(),
                                                       lightMapMVP,
                                                       EffectType::None,
-                                                      Vector4(1.0, 0.0, 0.0)));*/
+                                                      Vector4(1.0, 0.0, 0.0)));
 
     //Model view projection matrix for point light additions
     MVP pointLightMVP;
@@ -169,7 +169,6 @@ SceneManager::SceneManager(int* argc, char** argv,
 
     _viewManager->triggerEvents(); 
     _viewManager->setEntityList(_entityList);
-    ModelBroker::_frustumCuller->setEntityList(_entityList);
 
     _glfwContext->run();
 }

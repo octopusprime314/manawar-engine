@@ -22,7 +22,7 @@ Model::Model(std::string name, ModelClass classId) :
             std::vector<Entity*> list = { new Entity(this, ModelBroker::getViewManager()->getEventWrapper()) };
             ModelBroker::_frustumCuller = new FrustumCuller(list);
 
-            auto* leaves = ModelBroker::_frustumCuller->getOSP()->getOSPLeaves();//getFrustumLeaves();
+            auto* leaves = ModelBroker::_frustumCuller->getOSP()->getOSPLeaves();
             auto vertices = _renderBuffers.getVertices();
             auto normals = _renderBuffers.getNormals();
             auto textures = _renderBuffers.getTextures();
@@ -31,35 +31,44 @@ Model::Model(std::string name, ModelClass classId) :
             auto textureMapNames = _renderBuffers.getTextureMapNames();
             int leafIndex = 1;
             for (auto leaf : *leaves) {
+
+
                 RenderBuffers renderBuff;
+                //texture name to triangle mapping
+                std::unordered_map<std::string, std::vector<std::pair<int, Triangle*>>> textureTriangleMapper;
                 for (std::pair<Entity* const, std::set<std::pair<int, Triangle*>>>& triangleMap : *leaf->getTriangles()) {
 
                     for (auto triangleIndex : triangleMap.second) {
-                        renderBuff.addVertex((*vertices)[triangleIndex.first]);
-                        renderBuff.addVertex((*vertices)[triangleIndex.first + 1]);
-                        renderBuff.addVertex((*vertices)[triangleIndex.first + 2]);
-                        renderBuff.addNormal((*normals)[triangleIndex.first]);
-                        renderBuff.addNormal((*normals)[triangleIndex.first + 1]);
-                        renderBuff.addNormal((*normals)[triangleIndex.first + 2]);
-                        renderBuff.addTexture((*textures)[triangleIndex.first]);
-                        renderBuff.addTexture((*textures)[triangleIndex.first + 1]);
-                        renderBuff.addTexture((*textures)[triangleIndex.first + 2]);
-
-                        renderBuff.addTextureMapName((*textureMapNames)[(*textureMapIndices)[triangleIndex.first]]);
-                        renderBuff.addTextureMapName((*textureMapNames)[(*textureMapIndices)[triangleIndex.first + 1]]);
-                        renderBuff.addTextureMapName((*textureMapNames)[(*textureMapIndices)[triangleIndex.first + 2]]);
+                        textureTriangleMapper[(*textureMapNames)[(*textureMapIndices)[triangleIndex.first]]].push_back(triangleIndex);
                     }
+                }
 
-                    for (auto triangleIndex : triangleMap.second) {
-                        int index1 = renderBuff.getTextureMapIndex((*textureMapNames)[(*textureMapIndices)[triangleIndex.first]]);
-                        int index2 = renderBuff.getTextureMapIndex((*textureMapNames)[(*textureMapIndices)[triangleIndex.first + 1]]);
-                        int index3 = renderBuff.getTextureMapIndex((*textureMapNames)[(*textureMapIndices)[triangleIndex.first + 2]]);
+                for (auto triangleMap : textureTriangleMapper) {
 
+                    for (auto triangle : triangleMap.second) {
+                        renderBuff.addVertex((*vertices)[triangle.first]);
+                        renderBuff.addVertex((*vertices)[triangle.first + 1]);
+                        renderBuff.addVertex((*vertices)[triangle.first + 2]);
+                        renderBuff.addNormal((*normals)[triangle.first]);
+                        renderBuff.addNormal((*normals)[triangle.first + 1]);
+                        renderBuff.addNormal((*normals)[triangle.first + 2]);
+                        renderBuff.addTexture((*textures)[triangle.first]);
+                        renderBuff.addTexture((*textures)[triangle.first + 1]);
+                        renderBuff.addTexture((*textures)[triangle.first + 2]);
+
+                        renderBuff.addTextureMapName((*textureMapNames)[(*textureMapIndices)[triangle.first]]);
+                        renderBuff.addTextureMapName((*textureMapNames)[(*textureMapIndices)[triangle.first + 1]]);
+                        renderBuff.addTextureMapName((*textureMapNames)[(*textureMapIndices)[triangle.first + 2]]);
+
+                        int index1 = renderBuff.getTextureMapIndex((*textureMapNames)[(*textureMapIndices)[triangle.first]]);
+                        int index2 = renderBuff.getTextureMapIndex((*textureMapNames)[(*textureMapIndices)[triangle.first + 1]]);
+                        int index3 = renderBuff.getTextureMapIndex((*textureMapNames)[(*textureMapIndices)[triangle.first + 2]]);
                         renderBuff.addTextureMapIndex(index1);
                         renderBuff.addTextureMapIndex(index2);
                         renderBuff.addTextureMapIndex(index3);
                     }
                 }
+
                 if (renderBuff.getVertices()->size() > 0) {
                     
                     auto textureIndices = renderBuff.getTextureMapIndices();

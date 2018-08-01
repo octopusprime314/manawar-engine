@@ -1,6 +1,6 @@
 #include "Cube.h"
 
-Cube::Cube(float length, float width, float height, Vector4 center) :
+Cube::Cube(float length, float height, float width, Vector4 center) :
     _length(length),
     _width(width),
     _height(height),

@@ -38,9 +38,8 @@
 #include "RenderBuffers.h"
 #include "ForwardShader.h"
 #include <mutex>
-class Entity;
-class SimpleContext;
 class FrustumCuller;
+class SimpleContext;
 
 enum class ModelClass {
     ModelType = 0,
@@ -49,14 +48,12 @@ enum class ModelClass {
 
 class Model {
 
-    using VAOMap = std::map<int, std::vector<VAO*>>;
 public:
 
     //Default model to type to base class
     Model(std::string name, ModelClass classId = ModelClass::ModelType);
     virtual ~Model();
     std::vector<VAO*>*          getVAO(); //Used for dynamic additions
-    std::vector<VAO*>*          getFrustumVAO();
     RenderBuffers*              getRenderBuffers();
     ModelClass                  getClassType();
     size_t                      getArrayCount();
@@ -68,19 +65,19 @@ public:
     Geometry*                   getGeometry();
     void                        addGeometryTriangle(Triangle triangle);
     void                        addGeometrySphere(Sphere sphere);
+    void                        setAABB(Cube* aabbCube);
+    Cube*                       getAABB();
     void                        setInstances(std::vector<Vector4> offsets); //is this model used for instancing
     bool                        getIsInstancedModel();
     float*                      getInstanceOffsets();
     void                        runShader(Entity* entity);
     void                        addVAO(ModelClass classType);
     FbxLoader*                  getFbxLoader();
-    void                        generateVAOTiles(FrustumCuller* frustumCuller);
     virtual void                updateModel(Model* model);
 
 protected:
     RenderBuffers               _renderBuffers; //Manages vertex, normal and texture data
     std::vector<VAO*>           _vao; //Vao container
-    std::vector<VAO*>           _frustumVAOs; //vaos that are in view
     StaticShader*               _shaderProgram; //Container object of the Model's shader
     FbxLoader*                  _fbxLoader; //Used to load fbx data and parse it into engine format
     ModelClass                  _classId; //Used to identify which class is being used
@@ -93,5 +90,5 @@ protected:
     std::string                 _getModelName(std::string name);
     std::mutex                  _updateLock;
     std::string                 _name;
-    VAOMap                      _frustumVAOMapping;
+    Cube*                       _aabbCube;
 };

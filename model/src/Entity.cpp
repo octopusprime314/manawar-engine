@@ -1,6 +1,7 @@
 #include "Entity.h"
 #include "SimpleContext.h"
 #include "Model.h"
+#include "FrustumCuller.h"
 
 Entity::Entity(Model* model, ViewManagerEvents* eventWrapper) :
     UpdateInterface(eventWrapper),
@@ -12,6 +13,15 @@ Entity::Entity(Model* model, ViewManagerEvents* eventWrapper) :
         
         //Hook up to framerate update for proper animation progression
         _clock->subscribeAnimationRate(std::bind(&Entity::_updateAnimation, this, std::placeholders::_1));
+
+        //Test a simple bounding box for animations at first, POC
+        Cube cube(15, 15, 15, Vector4(0.0, 0.0, 0.0));
+        _frustumCuller = new FrustumCuller(this, *_model->getAABB());
+    }
+    else if (_model->getClassType() == ModelClass::ModelType) {
+        _frustumCuller = new FrustumCuller(this, 2000, 4000);
+        //Tile the terrain and other static objects in the scene
+        _generateVAOTiles();
     }
     //Hook up to kinematic update for proper physics handling
     _clock->subscribeKinematicsRate(std::bind(&Entity::_updateKinematics, this, std::placeholders::_1));
@@ -86,6 +96,128 @@ MVP* Entity::getPrevMVP() {
 
 StateVector* Entity::getStateVector() {
     return &_state;
+}
+
+void Entity::_generateVAOTiles() {
+
+    auto* leaves = _frustumCuller->getOSP()->getOSPLeaves();
+    auto renderBuffers = _model->getRenderBuffers();
+    auto vertices = renderBuffers->getVertices();
+    auto normals = renderBuffers->getNormals();
+    auto textures = renderBuffers->getTextures();
+    auto indices = renderBuffers->getIndices();
+    auto textureMapIndices = renderBuffers->getTextureMapIndices();
+    auto textureMapNames = renderBuffers->getTextureMapNames();
+    int leafIndex = 1;
+    for (auto leaf : *leaves) {
+
+
+        RenderBuffers renderBuff;
+        //texture name to triangle mapping
+        std::unordered_map<std::string, std::vector<std::pair<int, Triangle*>>> textureTriangleMapper;
+        for (std::pair<Entity* const, std::set<std::pair<int, Triangle*>>>& triangleMap : *leaf->getTriangles()) {
+
+            for (auto triangleIndex : triangleMap.second) {
+                textureTriangleMapper[(*textureMapNames)[(*textureMapIndices)[triangleIndex.first]]].push_back(triangleIndex);
+            }
+        }
+
+        for (auto triangleMap : textureTriangleMapper) {
+
+            for (auto triangle : triangleMap.second) {
+                renderBuff.addVertex((*vertices)[triangle.first]);
+                renderBuff.addVertex((*vertices)[triangle.first + 1]);
+                renderBuff.addVertex((*vertices)[triangle.first + 2]);
+                renderBuff.addNormal((*normals)[triangle.first]);
+                renderBuff.addNormal((*normals)[triangle.first + 1]);
+                renderBuff.addNormal((*normals)[triangle.first + 2]);
+                renderBuff.addTexture((*textures)[triangle.first]);
+                renderBuff.addTexture((*textures)[triangle.first + 1]);
+                renderBuff.addTexture((*textures)[triangle.first + 2]);
+
+                renderBuff.addTextureMapName((*textureMapNames)[(*textureMapIndices)[triangle.first]]);
+                renderBuff.addTextureMapName((*textureMapNames)[(*textureMapIndices)[triangle.first + 1]]);
+                renderBuff.addTextureMapName((*textureMapNames)[(*textureMapIndices)[triangle.first + 2]]);
+
+                int index1 = renderBuff.getTextureMapIndex((*textureMapNames)[(*textureMapIndices)[triangle.first]]);
+                int index2 = renderBuff.getTextureMapIndex((*textureMapNames)[(*textureMapIndices)[triangle.first + 1]]);
+                int index3 = renderBuff.getTextureMapIndex((*textureMapNames)[(*textureMapIndices)[triangle.first + 2]]);
+                renderBuff.addTextureMapIndex(index1);
+                renderBuff.addTextureMapIndex(index2);
+                renderBuff.addTextureMapIndex(index3);
+            }
+        }
+
+        if (renderBuff.getVertices()->size() > 0) {
+
+            auto textureIndices = renderBuff.getTextureMapIndices();
+            auto textureNames = renderBuff.getTextureMapNames();
+
+            int textureIndexCount = 0;
+            int prevTextureIndex = 0;
+            int previousCount = 0;
+            for (int i = 0; i < textureIndices->size(); i++) {
+                int textureIndex = (*textureIndices)[i];
+
+                if (textureIndex != prevTextureIndex) {
+                    auto textureName = (*textureNames)[prevTextureIndex];
+
+                    _frustumVAOs.push_back(new VAO());
+                    _frustumVAOs[_frustumVAOs.size() - 1]->createVAO(&renderBuff, previousCount, textureIndexCount);
+
+                    _frustumVAOs[_frustumVAOs.size() - 1]->addTextureStride(
+                        std::pair<std::string, int>(textureName, textureIndexCount));
+
+                    _frustumVAOMapping[leafIndex].push_back(_frustumVAOs[_frustumVAOs.size() - 1]);
+
+                    previousCount += textureIndexCount;
+                    textureIndexCount = 0;
+                }
+
+                if (i == textureIndices->size() - 1) {
+                    auto textureName = (*textureNames)[textureIndex];
+
+                    _frustumVAOs.push_back(new VAO());
+                    _frustumVAOs[_frustumVAOs.size() - 1]->createVAO(&renderBuff, previousCount, textureIndexCount);
+
+                    _frustumVAOs[_frustumVAOs.size() - 1]->addTextureStride(
+                        std::pair<std::string, int>(textureName, textureIndexCount));
+
+                    _frustumVAOMapping[leafIndex].push_back(_frustumVAOs[_frustumVAOs.size() - 1]);
+                }
+
+                textureIndexCount++;
+                prevTextureIndex = textureIndex;
+            }
+        }
+        leafIndex++;
+    }
+}
+std::vector<VAO*>* Entity::getFrustumVAO() {
+
+    //If not subdividing space using a frustum culler then retrieve whole of geometry
+    if (_frustumCuller->getOSP() == nullptr) {
+        if (_frustumCuller->getVisibleVAO(this)) {
+            return _model->getVAO();
+        }
+        else {
+            return new std::vector<VAO*>(); //empty
+        }
+    }
+    else {
+        auto vaoIndexes = _frustumCuller->getVisibleVAOs();
+        _frustumVAOs.clear();
+        for (auto vaoIndex : vaoIndexes) {
+            for (auto vao : _frustumVAOMapping[vaoIndex]) {
+                _frustumVAOs.push_back(vao);
+            }
+        }
+        return &_frustumVAOs;
+    }
+}
+
+FrustumCuller* Entity::getFrustumCuller() {
+    return _frustumCuller;
 }
 
 void Entity::setPosition(Vector4 position) {

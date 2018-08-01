@@ -15,7 +15,7 @@ void AnimationShader::runShader(Entity* entity) {
     AnimatedModel* model = static_cast<AnimatedModel*>(entity->getModel());
 
     //LOAD IN SHADER
-    std::vector<VAO*>* vao = model->getVAO();
+    std::vector<VAO*>* vao = entity->getFrustumVAO();
     glUseProgram(_shaderContext); //use context for loaded shader
     for (auto vaoInstance : *vao) {
         glBindVertexArray(vaoInstance->getVAOContext());

@@ -104,7 +104,7 @@ SceneManager::SceneManager(int* argc, char** argv,
     _entityList.push_back(new Entity(modelBroker->getModel("landscape/landscape.fbx"), _viewManager->getEventWrapper())); //Add a static model to the scene
     _entityList.push_back(new Entity(modelBroker->getModel("werewolf/werewolf.fbx"), _viewManager->getEventWrapper())); //Add a static model to the scene
     
-    ModelBroker::_frustumCuller = new FrustumCuller(_entityList);
+    //ModelBroker::_frustumCuller = new FrustumCuller(_entityList);
     
     _physics = new Physics();
     _physics->addEntities(_entityList); //Gives physics a pointer to all models which allows access to underlying geometry
@@ -254,7 +254,7 @@ void SceneManager::_postDraw() {
     else if (_viewManager->getViewState() == Camera::ViewState::PHYSICS) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         //_physics->visualize();
-        ModelBroker::_frustumCuller->visualize();
+        _entityList[1]->getFrustumCuller()->visualize();
         _viewManager->displayViewFrustum();
     }
     else {

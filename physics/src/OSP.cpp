@@ -55,53 +55,28 @@ void OSP::generateGeometryOSP(std::vector<Entity*>& entities) {
     _buildOctetTree(_octTree.getRoot()->getData(), node);
 }
 
-void OSP::generateRenderOSP(std::vector<Entity*>& entities) {
+void OSP::generateRenderOSP(Entity* entity) {
 
 
     //Initialize a octary tree with a rectangle of cubicDimension located at the origin of the axis
     Cube* rootCube = new Cube(_cubicDimension, _cubicDimension, _cubicDimension, Vector4(0.0f, 0.0f, 0.0f, 1.0f));
     OctNode<Cube*>* node = _octTree.insert(nullptr, rootCube);
 
-    //Go through all of the models and populate
-    for (auto entity : entities) {
+    auto triangleBuffer = entity->getModel()->getRenderBuffers();
+    auto vertices = triangleBuffer->getVertices();
 
-        auto triangleBuffer = entity->getModel()->getRenderBuffers();
-        auto vertices = triangleBuffer->getVertices();
+    for (int i = 0; i < vertices->size(); i += 3) {
 
-        for (int i = 0; i < vertices->size(); i+=3) {
-             
-            Triangle* tri = new Triangle((*vertices)[i], (*vertices)[i + 1], (*vertices)[i + 2]);
-            //if geometry data is contained within the first octet then build it out
-            if (GeometryMath::triangleCubeDetection(tri, rootCube)) {
+        Triangle* tri = new Triangle((*vertices)[i], (*vertices)[i + 1], (*vertices)[i + 2]);
+        //if geometry data is contained within the first octet then build it out
+        if (GeometryMath::triangleCubeDetection(tri, rootCube)) {
 
-                node->addGeometry(entity, tri, i);
-            }
+            node->addGeometry(entity, tri, i);
         }
     }
 
     //Recursively build Octary Space Partition Tree
     _buildOctetTree(_octTree.getRoot()->getData(), node);
-
-    Matrix inverseViewProjection = ModelBroker::getViewManager()->getFrustumView().inverse() *
-        ModelBroker::getViewManager()->getFrustumProjection().inverse();
-
-    std::vector<Vector4> frustumPlanes;
-    GeometryMath::getFrustumPlanes(inverseViewProjection, frustumPlanes);
-
-    for (OctNode<Cube*>* octNode : _ospLeaves) {
-
-        auto cube = octNode->getData();
-        auto center = cube->getCenter();
-        auto length = cube->getLength();
-        auto height = cube->getHeight();
-        auto width = cube->getWidth();
-        Vector4 mins(center.getx() - length / 2.0f, center.gety() - height / 2.0f, center.getz() - width / 2.0f);
-        Vector4 maxs(center.getx() + length / 2.0f, center.gety() + height / 2.0f, center.getz() + width / 2.0f);
-
-        if (GeometryMath::frustumAABBDetection(frustumPlanes, mins, maxs)) {
-            _frustumLeaves.push_back(octNode);
-        }
-    }
 }
 
 std::vector<Cube>* OSP::getFrustumCubes() {

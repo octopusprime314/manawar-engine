@@ -30,13 +30,15 @@
 class Entity;
 
 class FrustumCuller {
-    OSP             _octalSpacePartitioner;
-    DebugShader*    _debugShader;
-    GeometryGraphic* _octTreeGraphic;
-    std::vector<Entity*> _entityList; //Entities containing collision Geometry
+    OSP*              _octalSpacePartitioner;
+    DebugShader*      _debugShader;
+    GeometryGraphic*  _octTreeGraphic;
+    std::vector<Cube> _singleAABB;
 public:
-    FrustumCuller(std::vector<Entity*> models);
+    FrustumCuller(Entity* entity, float aabbDimension, int aabbMaxTriangles);
+    FrustumCuller(Entity* entity, Cube aabbCube);
     OSP* getOSP();
     void visualize();
-    std::vector<int> getVisibleVBOs();
+    std::vector<int> getVisibleVAOs();
+    bool             getVisibleVAO(Entity* entity);
 };

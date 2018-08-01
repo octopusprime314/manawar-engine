@@ -52,6 +52,7 @@ class FbxLoader {
     void           _buildModelData(Model* model, FbxMesh* meshNode, FbxNode* childNode, std::vector<Vector4>& vertices,
         std::vector<Vector4>& normals, std::vector<Tex2>& textures);
     void           _buildGeometryData(Model* model, std::vector<Vector4>& vertices, std::vector<int>& indices, FbxNode* node);
+
     void           _generateTextureStrides(FbxMesh* meshNode, std::vector<std::pair<int, int>>& textureStrides);
     bool           _loadTexture(Model* model, int textureStride, FbxFileTexture* textureFbx);
     bool           _loadLayeredTexture(Model* model, int textureStride, FbxLayeredTexture* layered_texture);
@@ -71,6 +72,7 @@ public:
     void loadModel(Model* model, FbxNode* node = nullptr);
     void loadModelData(Model* model, FbxMesh* meshNode, FbxNode* childNode);
     void buildAnimationFrames(AnimatedModel* model, std::vector<SkinningData>& skins);
+    void buildAABB(Model* model);
     void loadGeometry(Model* model, FbxNode* node);
     void loadGeometryData(Model* model, FbxMesh* meshNode, FbxNode* childNode);
     void addToScene(Model* modelAddedTo, FbxLoader* modelToLoad, Vector4 location);

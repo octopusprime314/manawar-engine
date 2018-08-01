@@ -6,7 +6,6 @@
 #include "Model.h"
 //#include "Logger.h"
 ModelBroker* ModelBroker::_broker = nullptr;
-FrustumCuller* ModelBroker::_frustumCuller = nullptr;
 ViewManager* ModelBroker::_viewManager = nullptr;
 
 ModelBroker* ModelBroker::instance() { //Only initializes the static pointer once

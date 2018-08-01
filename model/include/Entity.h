@@ -31,9 +31,11 @@
 
 class SimpleContext;
 class Model;
+class FrustumCuller;
 
 class Entity : public UpdateInterface {
 
+    using VAOMap = std::map<int, std::vector<VAO*>>;
 public:
 
     //Default model to type to base class
@@ -45,14 +47,20 @@ public:
     StateVector*                getStateVector();
     void                        setPosition(Vector4 position);
     void                        setVelocity(Vector4 velocity);
-    
+    std::vector<VAO*>*          getFrustumVAO();
+    FrustumCuller*              getFrustumCuller();
 protected:
+
+    VAOMap                      _frustumVAOMapping;
+    std::vector<VAO*>           _frustumVAOs; //vaos that are in view for entity
+    FrustumCuller*              _frustumCuller;
     StateVector                 _state; //Kinematics
     MasterClock*                _clock; //Used to coordinate time with the world
     Model*                      _model; //Graphics data
     MVP                         _mvp; //Model view matrix container
     MVP                         _prevMVP; //Previous Model view matrix container for motion blur
-    
+
+    void                        _generateVAOTiles();
     void                        _updateKeyboard(int key, int x, int y) {}; //Do stuff based on keyboard upate
     void                        _updateReleaseKeyboard(int key, int x, int y) {};
     void                        _updateMouse(double x, double y) {}; //Do stuff based on mouse update

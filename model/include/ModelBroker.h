@@ -24,7 +24,6 @@
 #include "AnimatedModel.h"
 #include <map>
 #include <vector>
-#include "FrustumCuller.h"
 #include "ViewManagerEvents.h"
 
 using ModelMap = std::map<std::string, Model*>;
@@ -47,6 +46,4 @@ public:
     void                 addModel(std::string modelName, std::string modelToAdd, Vector4 location);
     static void          setViewManager(ViewManager* viewManager);
     static ViewManager*  getViewManager();
-
-    static FrustumCuller* _frustumCuller;
 };

@@ -151,7 +151,6 @@ void VAO::createVAO(RenderBuffers* renderBuffers, ModelClass classId, Animation*
     auto normals = renderBuffers->getNormals();
     auto textures = renderBuffers->getTextures();
     auto indices = renderBuffers->getIndices();
-    auto debugNormals = renderBuffers->getDebugNormals();
 
     _vertexLength = static_cast<GLuint>(vertices->size());
 
@@ -161,8 +160,6 @@ void VAO::createVAO(RenderBuffers* renderBuffers, ModelClass classId, Animation*
     float* flattenNorms = nullptr; //Only include the x y and z values not w, same size as vertices
     size_t textureBuffSize = 0;
     float* flattenTextures = nullptr; //Only include the s and t
-    size_t lineBuffSize = 0;
-    float* flattenNormLines = nullptr; //Only include the x y and z values not w, flat line data
 
     if (classId == ModelClass::ModelType) {
 
@@ -172,8 +169,6 @@ void VAO::createVAO(RenderBuffers* renderBuffers, ModelClass classId, Animation*
         flattenNorms = new float[triBuffSize]; //Only include the x y and z values not w, same size as vertices
         textureBuffSize = textures->size() * 2;
         flattenTextures = new float[textureBuffSize]; //Only include the s and t
-        lineBuffSize = debugNormals->size() * 3;
-        flattenNormLines = new float[lineBuffSize]; //Only include the x y and z values not w, flat line data
         int i = 0; //iterates through vertices indexes
         for (auto vertex : *vertices) {
             float *flat = vertex.getFlatBuffer();
@@ -194,13 +189,6 @@ void VAO::createVAO(RenderBuffers* renderBuffers, ModelClass classId, Animation*
             flattenTextures[i++] = flat[0];
             flattenTextures[i++] = flat[1];
         }
-        i = 0; //Reset for normal line indexes
-        for (auto normalLine : *debugNormals) {
-            float *flat = normalLine.getFlatBuffer();
-            flattenNormLines[i++] = flat[0];
-            flattenNormLines[i++] = flat[1];
-            flattenNormLines[i++] = flat[2];
-        }
     }
     else if (classId == ModelClass::AnimatedModelType) {
 
@@ -210,8 +198,6 @@ void VAO::createVAO(RenderBuffers* renderBuffers, ModelClass classId, Animation*
         flattenNorms = new float[triBuffSize]; //Only include the x y and z values not w, same size as vertices
         textureBuffSize = textures->size() * 2;
         flattenTextures = new float[textureBuffSize]; //Only include the s and t
-        lineBuffSize = indices->size() * 2 * 3;
-        flattenNormLines = new float[lineBuffSize]; //Only include the x y and z values not w, flat line data
         int i = 0; //iterates through vertices indexes
         for (auto index : *indices) {
             float *flat = (*vertices)[index].getFlatBuffer();
@@ -232,13 +218,6 @@ void VAO::createVAO(RenderBuffers* renderBuffers, ModelClass classId, Animation*
             flattenTextures[i++] = flat[0];
             flattenTextures[i++] = flat[1];
         }
-        //i = 0; //Reset for normal line indexes
-        //for (auto normalLine : _debugNormals) {
-        //    float *flat = normalLine.getFlatBuffer();
-        //    flattenNormLines[i++] = flat[0];
-        //    flattenNormLines[i++] = flat[1];
-        //    flattenNormLines[i++] = flat[2];
-        //}
 
         auto boneIndexes = animation->getBoneIndexes();
         auto boneWeights = animation->getBoneWeights();
@@ -308,12 +287,6 @@ void VAO::createVAO(RenderBuffers* renderBuffers, ModelClass classId, Animation*
     glGenBuffers(1, &_textureBufferContext); //Do not need to double buffer
     glBindBuffer(GL_ARRAY_BUFFER, _textureBufferContext);
     glBufferData(GL_ARRAY_BUFFER, sizeof(float)*textureBuffSize, flattenTextures, GL_STATIC_DRAW);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-    //Create a double buffer that will be filled with the normal line data for visualizing normals
-    glGenBuffers(1, &_debugNormalBufferContext);
-    glBindBuffer(GL_ARRAY_BUFFER, _debugNormalBufferContext);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(float)*lineBuffSize, flattenNormLines, GL_STATIC_DRAW);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     //Bind regular vertex, normal and texture coordinate vao
@@ -465,7 +438,6 @@ void VAO::createVAO(RenderBuffers* renderBuffers, ModelClass classId, Animation*
     delete[] flattenVerts;
     delete[] flattenNorms;
     delete[] flattenTextures;
-    delete[] flattenNormLines;
 
 }
 

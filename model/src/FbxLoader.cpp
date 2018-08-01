@@ -369,12 +369,56 @@ void FbxLoader::loadModelData(Model* model, FbxMesh* meshNode, FbxNode* childNod
     _buildModelData(model, meshNode, childNode, vertices, normals, textures);
 }
 
+void FbxLoader::buildAABB(Model* model) {
+    
+    //Choose a min and max in either x y or z and that will be the diameter of the sphere
+    float min[3] = { (std::numeric_limits<float>::max)(), (std::numeric_limits<float>::max)(), (std::numeric_limits<float>::max)() };
+    float max[3] = { (std::numeric_limits<float>::min)(), (std::numeric_limits<float>::min)(), (std::numeric_limits<float>::min)() };
+
+    auto geometry = model->getGeometry();
+
+    for (auto sphere : *geometry->getSpheres()) {
+        Vector4 center = sphere.getObjectPosition();
+        float radius = sphere.getRadius();
+        if (center.getx() - radius < min[0]) {
+            min[0] = center.getx() - radius;
+        }
+        if (center.getx() + radius > max[0]) {
+            max[0] = center.getx() + radius;
+        }
+
+        if (center.gety() - radius < min[1]) {
+            min[1] = center.gety() - radius;
+        }
+        if (center.gety() + radius > max[1]) {
+            max[1] = center.gety() + radius;
+        }
+
+        if (center.getz() - radius < min[2]) {
+            min[2] = center.getz() - radius;
+        }
+        if (center.getz() + radius > max[2]) {
+            max[2] = center.getz() + radius;
+        }
+    }
+   
+    float xCenter = min[0] + ((max[0] - min[0]) / 2.0f);
+    float yCenter = min[1] + ((max[1] - min[1]) / 2.0f);
+    float zCenter = min[2] + ((max[2] - min[2]) / 2.0f);
+    Vector4 center(xCenter, yCenter, zCenter);
+    model->setAABB(new Cube(max[0] - min[0], max[1] - min[1], max[2] - min[2], center));
+}
+
 void FbxLoader::_buildGeometryData(Model* model, std::vector<Vector4>& vertices, std::vector<int>& indices, FbxNode* node) {
 
-    //Global transform
-    FbxDouble* TBuff = node->EvaluateGlobalTransform().GetT().Buffer();
+    //Global transform doesn't work always so keep it here just in case
+    /*FbxDouble* TBuff = node->EvaluateGlobalTransform().GetT().Buffer();
     FbxDouble* RBuff = node->EvaluateGlobalTransform().GetR().Buffer();
-    FbxDouble* SBuff = node->EvaluateGlobalTransform().GetS().Buffer();
+    FbxDouble* SBuff = node->EvaluateGlobalTransform().GetS().Buffer();*/
+
+    FbxDouble* TBuff = node->LclTranslation.Get().Buffer();
+    FbxDouble* RBuff = node->LclRotation.Get().Buffer();
+    FbxDouble* SBuff = node->LclScaling.Get().Buffer();
 
     //Compute x, y and z rotation vectors by multiplying through
     Matrix rotation = Matrix::rotationAroundX(static_cast<float>(RBuff[0])) *

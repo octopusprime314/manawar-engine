@@ -45,7 +45,7 @@ public:
     std::vector<Cube>*                 getCubes();
     std::vector<Cube>*                 getFrustumCubes();
     void                               generateGeometryOSP(std::vector<Entity*>& entities);
-    void                               generateRenderOSP(std::vector<Entity*>& entities);
+    void                               generateRenderOSP(Entity* entity);
     void                               updateOSP(std::vector<Entity*>& entities);
     std::vector<OctNode<Cube*>*>*      getOSPLeaves();
     std::vector<OctNode<Cube*>*>*      getFrustumLeaves();

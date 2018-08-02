@@ -619,12 +619,12 @@ void GeometryMath::getFrustumPlanes(Matrix inverseViewProjection, std::vector<Ve
 
     //right plane
     {
-        Vector4 A(frustumPoints[4] - frustumPoints[6]);
-        Vector4 B(frustumPoints[5] - frustumPoints[6]);
+        Vector4 A(frustumPoints[5] - frustumPoints[4]);
+        Vector4 B(frustumPoints[6] - frustumPoints[4]);
         Vector4 C(B.crossProduct(A));
-        float d = -(C.getx() * -frustumPoints[6].getx() +
-            C.gety() * -frustumPoints[6].gety() +
-            C.getz() * -frustumPoints[6].getz());
+        float d = -(C.getx() * -frustumPoints[4].getx() +
+            C.gety() * -frustumPoints[4].gety() +
+            C.getz() * -frustumPoints[4].getz());
         Vector4 D(C.getx(), C.gety(), C.getz(), d);
         D.normalize();
         frustumPlanes.push_back(D);

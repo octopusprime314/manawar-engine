@@ -9,6 +9,10 @@ Picker::~Picker() {
 
 }
 
+void Picker::addPickableEntities(std::vector<Entity*> entities) {
+    _entityList = entities;
+}
+
 void Picker::_mouseClick(int button, int action, int x, int y) {
 
     if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
@@ -31,7 +35,17 @@ void Picker::_mouseClick(int button, int action, int x, int y) {
 
         //invert y mouse position
         y = h - y;
-        int value = static_cast<int>(pixels[(x * packAlignment) + (y * w * packAlignment)]);
+        unsigned int entityID = static_cast<unsigned int>(pixels[(x * packAlignment) + (y * w * packAlignment)]);
+        delete[] pixels;
+
+        for (auto entity : _entityList) {
+            if (entity->getID() == entityID) {
+                entity->setSelected(true);
+            }
+            else {
+                entity->setSelected(false);
+            }
+        }
 
         glBindTexture(GL_TEXTURE_2D, 0);
     }

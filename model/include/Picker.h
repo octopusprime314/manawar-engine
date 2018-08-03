@@ -26,11 +26,12 @@
 class Picker {
 
     MRTFrameBuffer* _mrt;
-    void _mouseClick(int button, int action, int x, int y);
-    
+    void            _mouseClick(int button, int action, int x, int y);
+    std::vector<Entity*> _entityList;
 public:
     Picker(MRTFrameBuffer* mrt);
     ~Picker();
-
+    
+    void addPickableEntities(std::vector<Entity*> entities);
 
 };

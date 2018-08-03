@@ -19,6 +19,11 @@ GLuint ShadowedPointLight::getDepthTexture() {
 
 void ShadowedPointLight::render() {
     
+    Light::render();
+}
+
+void ShadowedPointLight::renderDebug() {
+
     Vector4 color(1.0, 0.0, 0.0);
     MVP mvp;
     //Model transform to create frustum cube
@@ -26,5 +31,4 @@ void ShadowedPointLight::render() {
     mvp.setProjection(_cameraMVP.getProjectionMatrix());
     _debugShader->runShader(&mvp, &_vao, {}, color.getFlatBuffer(), GeometryConstruction::LINE_WIREFRAME);
 
-    Light::render();
 }

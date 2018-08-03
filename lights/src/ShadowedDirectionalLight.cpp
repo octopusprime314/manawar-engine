@@ -22,6 +22,11 @@ GLuint ShadowedDirectionalLight::getDepthTexture() {
 
 void ShadowedDirectionalLight::render() {
 
+    Light::render();
+}
+
+void ShadowedDirectionalLight::renderDebug() {
+
     if (_type == LightType::DIRECTIONAL || _type == LightType::SHADOWED_DIRECTIONAL) {
         Vector4 color(1.0, 0.0, 0.0);
 
@@ -35,6 +40,4 @@ void ShadowedDirectionalLight::render() {
         mvp.setProjection(_cameraMVP.getProjectionMatrix());
         _debugShader->runShader(&mvp, &_vao, {}, color.getFlatBuffer(), GeometryConstruction::TRIANGLE_MESH);
     }
-
-    Light::render();
 }

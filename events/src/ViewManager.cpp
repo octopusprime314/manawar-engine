@@ -134,11 +134,6 @@ void ViewManager::_updateKeyboard(int key, int x, int y) { //Do stuff based on k
 
         _currCamera->setViewState(key);
 
-        //Toggles View frustum and physics geometry viewing
-        if (key == GLFW_KEY_F || key == GLFW_KEY_0) {
-            DebugShader::toggleDebug();
-        }
-
         if (key == GLFW_KEY_W || key == GLFW_KEY_S ||
             key == GLFW_KEY_A || key == GLFW_KEY_D ||
             key == GLFW_KEY_E || key == GLFW_KEY_C) {

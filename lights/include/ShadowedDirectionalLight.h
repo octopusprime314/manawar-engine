@@ -39,4 +39,5 @@ public:
     GLuint                getDepthTexture();
     virtual void          render();
     virtual void          renderShadow(std::vector<Entity*> entityList);
+    virtual void          renderDebug();
 };

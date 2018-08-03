@@ -50,6 +50,8 @@ public:
     std::vector<VAO*>*          getFrustumVAO();
     FrustumCuller*              getFrustumCuller();
     unsigned int                getID();
+    void                        setSelected(bool isSelected);
+    bool                        getSelected();
 protected:
 
     VAOMap                      _frustumVAOMapping;
@@ -62,6 +64,7 @@ protected:
     MVP                         _prevMVP; //Previous Model view matrix container for motion blur
     static unsigned int         _idGenerator; //id generator that is incremented every time a new Entity is added
     unsigned int                _id; //used to identify entities, used for picking
+    bool                        _selected;
 
     void                        _generateVAOTiles();
     void                        _updateKeyboard(int key, int x, int y) {}; //Do stuff based on keyboard upate

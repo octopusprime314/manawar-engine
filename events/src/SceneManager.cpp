@@ -106,9 +106,17 @@ SceneManager::SceneManager(int* argc, char** argv,
 
     _entityList.push_back(new Entity(modelBroker->getModel("landscape/landscape.fbx"), _viewManager->getEventWrapper())); //Add a static model to the scene
     _entityList.push_back(new Entity(modelBroker->getModel("werewolf/werewolf.fbx"), _viewManager->getEventWrapper())); //Add a static model to the scene
-    
-    //ModelBroker::_frustumCuller = new FrustumCuller(_entityList);
-    
+    //_entityList.push_back(new Entity(modelBroker->getModel("wolf/wolf.fbx"), _viewManager->getEventWrapper())); //Add a static model to the scene
+    //_entityList.push_back(new Entity(modelBroker->getModel("hagraven/hagraven.fbx"), _viewManager->getEventWrapper())); //Add a static model to the scene
+    //_entityList.push_back(new Entity(modelBroker->getModel("troll/troll.fbx"), _viewManager->getEventWrapper())); //Add a static model to the scene
+
+    //_entityList[1]->setPosition(Vector4(10, 0, 10));
+    //_entityList[2]->setPosition(Vector4(-10, 0, -10));
+    //_entityList[3]->setPosition(Vector4(30, 0, 10));
+    //_entityList[4]->setPosition(Vector4(30, 0, -20));
+
+    _picker->addPickableEntities(_entityList);
+
     _physics = new Physics();
     _physics->addEntities(_entityList); //Gives physics a pointer to all models which allows access to underlying geometry
     
@@ -239,7 +247,11 @@ void SceneManager::_postDraw() {
             light->render();
         }
 
-        _viewManager->displayViewFrustum();
+        for (auto entity : _entityList) {
+            if (entity->getSelected()) {
+                entity->getFrustumCuller()->visualize();
+            }
+        }
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -259,6 +271,11 @@ void SceneManager::_postDraw() {
         //_physics->visualize();
         _entityList[1]->getFrustumCuller()->visualize();
         _viewManager->displayViewFrustum();
+
+        //shows all of the light/shadow volumes
+        for (Light* light : _lightList) {
+            light->renderDebug();
+        }
     }
     else {
 

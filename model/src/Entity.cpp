@@ -9,7 +9,8 @@ Entity::Entity(Model* model, ViewManagerEvents* eventWrapper) :
     UpdateInterface(eventWrapper),
     _clock(MasterClock::instance()),
     _model(model),
-    _id(_idGenerator) {
+    _id(_idGenerator),
+    _selected(false) {
 
     _idGenerator--;
 
@@ -20,7 +21,6 @@ Entity::Entity(Model* model, ViewManagerEvents* eventWrapper) :
         _clock->subscribeAnimationRate(std::bind(&Entity::_updateAnimation, this, std::placeholders::_1));
 
         //Test a simple bounding box for animations at first, POC
-        Cube cube(15, 15, 15, Vector4(0.0, 0.0, 0.0));
         _frustumCuller = new FrustumCuller(this, *_model->getAABB());
     }
     else if (_model->getClassType() == ModelClass::ModelType) {
@@ -43,7 +43,6 @@ void Entity::_updateDraw() {
         AnimatedModel* animatedModel = static_cast<AnimatedModel*>(_model);
         animatedModel->updateAnimation();
     }
-
     //Run model shader by allowing the shader to operate on the model
     _model->runShader(this);
 }
@@ -73,6 +72,14 @@ void Entity::_updateView(Matrix view) {
 
 void Entity::_updateProjection(Matrix projection) {
     _mvp.setProjection(projection); //Receive updates when the projection matrix has changed
+}
+
+bool Entity::getSelected() {
+    return _selected;
+}
+
+void Entity::setSelected(bool isSelected) {
+    _selected = isSelected;
 }
 
 void Entity::_updateKinematics(int milliSeconds) {

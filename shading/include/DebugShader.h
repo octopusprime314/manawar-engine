@@ -29,7 +29,6 @@ enum class GeometryConstruction;
 
 class DebugShader : public Shader {
 
-    static bool _debugFlag;
 public:
     DebugShader(std::string shaderName);
     void runShader(MVP* mvp, 
@@ -37,5 +36,4 @@ public:
                    std::set<Triangle*> triangleIntersectionList,
                    float* color,
                    GeometryConstruction geometryType);
-    static void toggleDebug();
 };

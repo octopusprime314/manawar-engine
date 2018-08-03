@@ -23,6 +23,7 @@ Terminal::~Terminal() {
 void Terminal::display() {
     
     if (_gameState == 1) {
+
         glClear(GL_DEPTH_BUFFER_BIT);
         _fontRenderer.drawFont(0.0f, -1.9f, _commandString, 0);
     }

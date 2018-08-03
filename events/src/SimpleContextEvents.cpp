@@ -3,6 +3,7 @@
 
 std::vector<std::function<void(int, int, int)>> SimpleContextEvents::_keyboardFuncs;
 std::vector<std::function<void(int, int, int)>> SimpleContextEvents::_keyboardReleaseFuncs;
+std::vector<std::function<void(int, int, int, int)>> SimpleContextEvents::_mouseButtonFuncs;
 std::vector<std::function<void(double, double)>> SimpleContextEvents::_mouseFuncs;
 std::vector<std::function<void()>> SimpleContextEvents::_drawFuncs;
 std::vector<std::function<void(int)>> SimpleContextEvents::_gameStateFuncs;
@@ -23,6 +24,9 @@ void SimpleContextEvents::subscribeToDraw(std::function<void()> func) { //Use th
 }
 void SimpleContextEvents::subscribeToGameState(std::function<void(int)> func) { //Use this call to connect functions to key updates
     _gameStateFuncs.push_back(func);
+}
+void SimpleContextEvents::subscribeToMouseClick(std::function<void(int, int, int, int)> func) { //Use this call to connect functions to mouse button updates
+    _mouseButtonFuncs.push_back(func);
 }
 
 void SimpleContextEvents::setPreDrawCallback(std::function<void()> func) {
@@ -71,6 +75,14 @@ void SimpleContextEvents::updateDraw(GLFWwindow* _window) {
 void SimpleContextEvents::updateMouse(double x, double y) {
     for (auto func : _mouseFuncs) {
         func(x, y); //Call mouse movement update
+    }
+}
+
+//All mouse button input will be notified here
+void SimpleContextEvents::updateMouseClick(int button, int action, int x, int y) {
+
+    for (auto func : _mouseButtonFuncs) {
+        func(button, action, x, y); //Call mouse movement update
     }
 }
 

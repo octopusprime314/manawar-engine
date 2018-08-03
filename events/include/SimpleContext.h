@@ -59,10 +59,10 @@ public:
     void                subscribeToGameState(std::function<void(int)> func); //Use this call to connect functions up to game state updates
     void                updateGameState(int state); 
   
-    enum class GameState {
+    /*enum class GameState {
         TERMINAL,
         GRAPHICS
-    };
+    };*/
 
 private:
 
@@ -82,6 +82,8 @@ private:
     static void         _drawUpdate();
     //All mouse movement input will be notified here
     static void         _mouseUpdate(GLFWwindow* window, double x, double y);
+    //Mouse click input will be notified here
+    static void         _mouseClick(GLFWwindow* window, int button, int action, int mods);
     //Simple context synchronizes frame rate using the MasterClock tuning capability
     static void         _frameRateTrigger(int milliSeconds);
 };

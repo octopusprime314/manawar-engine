@@ -38,8 +38,8 @@ SimpleContext::SimpleContext(int* argc, char** argv, unsigned int viewportWidth,
         std::cerr << buffer << std::endl;
     });
 
-    //Create a glfw window for a context
-    _window = glfwCreateWindow(viewportWidth, viewportHeight, "ReBoot", NULL, NULL);
+    //Create a glfw window for a context and fullscreen it!
+    _window = glfwCreateWindow(viewportWidth, viewportHeight, "ReBoot", glfwGetPrimaryMonitor(), NULL);
     if (!_window) {
         // Window or OpenGL context creation failed
         // The error callback above will tell us what happened.
@@ -50,6 +50,7 @@ SimpleContext::SimpleContext(int* argc, char** argv, unsigned int viewportWidth,
     //Callbacks
     glfwSetKeyCallback(_window, &SimpleContext::_keyboardUpdate);
     glfwSetCursorPosCallback(_window, &SimpleContext::_mouseUpdate);
+    glfwSetMouseButtonCallback(_window, &SimpleContext::_mouseClick);
 
     //Sets atleast one extra render buffer for double buffering to prevent screen tearing
     //glfwSwapInterval(1); //Enables 60 hz vsync
@@ -130,6 +131,13 @@ void SimpleContext::_keyboardUpdate(GLFWwindow* window, int key, int scancode, i
 
         if (key == GLFW_KEY_GRAVE_ACCENT) { //Escape key pressed, hard exit no cleanup, TODO FIX THIS!!!!
             _gameState = !_gameState;
+
+            if (_gameState == 0) {
+                glfwSetInputMode(_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+            }
+            else {
+                glfwSetInputMode(_window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+            }
             SimpleContextEvents::updateGameState(_gameState);
         }
 
@@ -173,6 +181,14 @@ void SimpleContext::_mouseUpdate(GLFWwindow* window, double x, double y) {
 
     SimpleContextEvents::updateMouse(x, y);
 }
+
+void SimpleContext::_mouseClick(GLFWwindow* window, int button, int action, int mods) {
+    double xpos, ypos;
+    //getting cursor position
+    glfwGetCursorPos(_window, &xpos, &ypos);
+    SimpleContextEvents::updateMouseClick(button, action, xpos, ypos);
+}
+
 
 void SimpleContext::_frameRateTrigger(int milliSeconds) {
     //Triggers the simple context to draw a frame

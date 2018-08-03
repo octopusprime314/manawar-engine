@@ -24,6 +24,7 @@
 #include "ShadowedDirectionalLight.h"
 #include "ShadowedPointLight.h"
 #include "SimpleContext.h"
+#include "Picker.h"
 #include <chrono>
 
 using namespace std::chrono;
@@ -63,6 +64,8 @@ SceneManager::SceneManager(int* argc, char** argv,
 
     _deferredRenderer = new DeferredRenderer();
     glCheck();
+
+    _picker = new Picker(_deferredRenderer->getGBuffers());
 
     _forwardRenderer = new ForwardRenderer();
     glCheck();

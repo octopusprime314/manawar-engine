@@ -72,5 +72,5 @@ void main(){
 	out_1 = vTexColor;
 	out_2 = vec4(normalize(vsData.normalOut), 1.0);
 	out_3 = vec4(vec2(currProjPos - prevProjPos), 0.0, 1.0);
-	out_4 = vec4(vec3((float(id)) / 255.0), 1.0);
+	out_4 = vec4(vec3((float(id)) / 255.0), 0.0);
 }

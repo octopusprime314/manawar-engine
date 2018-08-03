@@ -49,6 +49,7 @@ public:
     void                        setVelocity(Vector4 velocity);
     std::vector<VAO*>*          getFrustumVAO();
     FrustumCuller*              getFrustumCuller();
+    unsigned int                getID();
 protected:
 
     VAOMap                      _frustumVAOMapping;
@@ -59,6 +60,8 @@ protected:
     Model*                      _model; //Graphics data
     MVP                         _mvp; //Model view matrix container
     MVP                         _prevMVP; //Previous Model view matrix container for motion blur
+    static unsigned int         _idGenerator; //id generator that is incremented every time a new Entity is added
+    unsigned int                _id; //used to identify entities, used for picking
 
     void                        _generateVAOTiles();
     void                        _updateKeyboard(int key, int x, int y) {}; //Do stuff based on keyboard upate

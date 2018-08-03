@@ -71,7 +71,6 @@ bool FrustumCuller::getVisibleVAO(Entity* entity) {
         return true;
     }
     else {
-        center.display();
         return false;
     }
 }

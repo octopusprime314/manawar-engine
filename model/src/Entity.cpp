@@ -3,10 +3,15 @@
 #include "Model.h"
 #include "FrustumCuller.h"
 
+unsigned int Entity::_idGenerator = 255;
+
 Entity::Entity(Model* model, ViewManagerEvents* eventWrapper) :
     UpdateInterface(eventWrapper),
     _clock(MasterClock::instance()),
-    _model(model) {
+    _model(model),
+    _id(_idGenerator) {
+
+    _idGenerator--;
 
     if (_model->getClassType() == ModelClass::AnimatedModelType) {
         _state.setActive(true); //initialize animations to be active
@@ -98,19 +103,22 @@ StateVector* Entity::getStateVector() {
     return &_state;
 }
 
+unsigned int Entity::getID() {
+    return _id;
+}
+
 void Entity::_generateVAOTiles() {
 
-    auto* leaves = _frustumCuller->getOSP()->getOSPLeaves();
-    auto renderBuffers = _model->getRenderBuffers();
-    auto vertices = renderBuffers->getVertices();
-    auto normals = renderBuffers->getNormals();
-    auto textures = renderBuffers->getTextures();
-    auto indices = renderBuffers->getIndices();
+    auto* leaves           = _frustumCuller->getOSP()->getOSPLeaves();
+    auto renderBuffers     = _model->getRenderBuffers();
+    auto vertices          = renderBuffers->getVertices();
+    auto normals           = renderBuffers->getNormals();
+    auto textures          = renderBuffers->getTextures();
+    auto indices           = renderBuffers->getIndices();
     auto textureMapIndices = renderBuffers->getTextureMapIndices();
-    auto textureMapNames = renderBuffers->getTextureMapNames();
+    auto textureMapNames   = renderBuffers->getTextureMapNames();
     int leafIndex = 1;
     for (auto leaf : *leaves) {
-
 
         RenderBuffers renderBuff;
         //texture name to triangle mapping

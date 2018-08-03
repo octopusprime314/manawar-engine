@@ -41,6 +41,9 @@ void StaticShader::runShader(Entity* entity) {
         //glUniform mat4 view matrix, GL_TRUE is telling GL we are passing in the matrix as row major
         updateUniform("prevView", prevMVP->getViewBuffer());
 
+        auto id = entity->getID();
+        updateUniform("id", &id);
+
         auto textureStrides = vaoInstance->getTextureStrides();
         unsigned int strideLocation = 0;
         for (auto textureStride : textureStrides) {

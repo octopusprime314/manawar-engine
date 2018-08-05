@@ -41,4 +41,6 @@ public:
     void                            addCubeTexture(std::string textureName);
     AssetTexture*                   getTexture(std::string textureName);
     LayeredTexture*                 getLayeredTexture(std::string textureName);
+    AssetTexture*                   getAssetTextureFromLayered(std::string textureName);
+    void                            updateTextureToLayered(std::string textureName);
 };

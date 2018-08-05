@@ -101,16 +101,16 @@ void Light::_updateTime(int time) {
     _milliSecondTime += (updateTimeAmplified*time);
     _milliSecondTime %= dayLengthMilliseconds;
 
-    if (_type == LightType::SHADOWED_DIRECTIONAL || _type == LightType::DIRECTIONAL) {
+    //if (_type == LightType::SHADOWED_DIRECTIONAL || _type == LightType::DIRECTIONAL) {
 
-        //fraction of the rotation
-        float posInRotation = static_cast<float>(_milliSecondTime) / static_cast<float>(dayLengthMilliseconds);
+    //    //fraction of the rotation
+    //    float posInRotation = static_cast<float>(_milliSecondTime) / static_cast<float>(dayLengthMilliseconds);
 
-        float* view = _lightMVP.getViewMatrix().getFlatBuffer();
-        float radiusOfLight = Vector4(view[3], view[7], view[11], 1.0f).getMagnitude();
-        _lightMVP.setView(
-            Matrix::cameraTranslation(0.0, 0.0, radiusOfLight) * Matrix::cameraRotationAroundX((posInRotation*360.0f)));
-    }
+    //    float* view = _lightMVP.getViewMatrix().getFlatBuffer();
+    //    float radiusOfLight = Vector4(view[3], view[7], view[11], 1.0f).getMagnitude();
+    //    _lightMVP.setView(
+    //        Matrix::cameraTranslation(0.0, 0.0, radiusOfLight) * Matrix::cameraRotationAroundX((posInRotation*360.0f)));
+    //}
 }
 
 void Light::render() {

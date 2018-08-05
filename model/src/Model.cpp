@@ -92,9 +92,14 @@ Cube* Model::getAABB() {
     return _aabbCube;
 }
 
+std::vector<std::string> Model::getTextureNames() {
+    return _textureRecorder;
+}
+
 void Model::addTexture(std::string textureName, int stride) {
     _vao[_vao.size() - 1]->addTextureStride(std::pair<std::string, int>(textureName, stride));
     _textureManager->addTexture(textureName);
+    _textureRecorder.push_back(textureName);
 }
 
 void Model::addLayeredTexture(std::vector<std::string> textureNames, int stride) {
@@ -103,6 +108,7 @@ void Model::addLayeredTexture(std::vector<std::string> textureNames, int stride)
     std::string sumString = "Layered";
     for (auto& str : textureNames) {
         sumString += str;
+        _textureRecorder.push_back(str);
     }
     //Create sum string for later identification
     _vao[_vao.size() - 1]->addTextureStride(std::pair<std::string, int>(sumString, stride));

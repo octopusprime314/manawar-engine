@@ -45,3 +45,26 @@ AssetTexture* TextureBroker::getTexture(std::string textureName) {
 LayeredTexture* TextureBroker::getLayeredTexture(std::string textureName) {
     return _layeredTextures[textureName];
 }
+
+AssetTexture* TextureBroker::getAssetTextureFromLayered(std::string textureName) {
+
+    for (auto& layeredTexture : _layeredTextures) {
+
+        auto assetTextures = layeredTexture.second->getTextures();
+        for (auto assetTexture : assetTextures) {
+            if (assetTexture->getName().find(textureName) != std::string::npos) {
+                return assetTexture;
+            }
+        }
+    }
+    return nullptr;
+}
+
+void TextureBroker::updateTextureToLayered(std::string textureName) {
+    
+    for (auto& layeredTexture : _layeredTextures) {
+
+        auto& assetTextures = layeredTexture.second->getTextures();
+        layeredTexture.second->setTexture(new AssetTexture(textureName));
+    }
+}

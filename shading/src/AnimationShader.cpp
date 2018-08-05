@@ -16,6 +16,9 @@ void AnimationShader::runShader(Entity* entity) {
 
     //LOAD IN SHADER
     std::vector<VAO*>* vao = entity->getFrustumVAO();
+
+    auto baseID = entity->getID();
+
     glUseProgram(_shaderContext); //use context for loaded shader
     for (auto vaoInstance : *vao) {
         glBindVertexArray(vaoInstance->getVAOContext());
@@ -40,9 +43,6 @@ void AnimationShader::runShader(Entity* entity) {
         //glUniform mat4 view matrix, GL_TRUE is telling GL we are passing in the matrix as row major
         updateUniform("prevView", prevMVP->getViewBuffer());
 
-        auto id = entity->getID();
-        updateUniform("id", &id);
-
         //Bone uniforms
         auto bones = model->getBones();
         float* bonesArray = new float[16 * 150]; //4x4 times number of bones
@@ -61,12 +61,16 @@ void AnimationShader::runShader(Entity* entity) {
         unsigned int strideLocation = 0;
         for (auto textureStride : textureStrides) {
 
+            updateUniform("id", &baseID);
+
             updateUniform("textureMap", GL_TEXTURE0, model->getTexture(textureStride.first)->getContext());
 
             //Draw triangles using the bound buffer vertices at starting index 0 and number of vertices
             glDrawArrays(GL_TRIANGLES, strideLocation, (GLsizei)textureStride.second);
 
             strideLocation += textureStride.second;
+
+            baseID++;
         }
 
         glBindVertexArray(0);

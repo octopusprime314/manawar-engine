@@ -73,6 +73,7 @@ public:
     void                        runShader(Entity* entity);
     void                        addVAO(ModelClass classType);
     FbxLoader*                  getFbxLoader();
+    std::vector<std::string>    getTextureNames();
     virtual void                updateModel(Model* model);
 
 protected:
@@ -91,4 +92,5 @@ protected:
     std::mutex                  _updateLock;
     std::string                 _name;
     Cube*                       _aabbCube;
+    std::vector<std::string>    _textureRecorder;
 };

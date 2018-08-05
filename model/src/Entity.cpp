@@ -3,7 +3,7 @@
 #include "Model.h"
 #include "FrustumCuller.h"
 
-unsigned int Entity::_idGenerator = 255;
+unsigned int Entity::_idGenerator = 0;
 
 Entity::Entity(Model* model, ViewManagerEvents* eventWrapper) :
     UpdateInterface(eventWrapper),
@@ -12,7 +12,6 @@ Entity::Entity(Model* model, ViewManagerEvents* eventWrapper) :
     _id(_idGenerator),
     _selected(false) {
 
-    _idGenerator--;
 
     if (_model->getClassType() == ModelClass::AnimatedModelType) {
         _state.setActive(true); //initialize animations to be active
@@ -22,11 +21,26 @@ Entity::Entity(Model* model, ViewManagerEvents* eventWrapper) :
 
         //Test a simple bounding box for animations at first, POC
         _frustumCuller = new FrustumCuller(this, *_model->getAABB());
+
+        for (auto vaoInstance : *_model->getVAO()) {
+            //Grab strides of vertex sets that have a single texture associated with them
+            auto textureStrides = vaoInstance->getTextureStrides();
+            _idGenerator += textureStrides.size();
+        }
     }
     else if (_model->getClassType() == ModelClass::ModelType) {
         _frustumCuller = new FrustumCuller(this, 2000, 4000);
         //Tile the terrain and other static objects in the scene
         _generateVAOTiles();
+
+        //Each draw has a new id but we set a base id first and increment from there through the draws
+        int max = 0;
+        for (auto vaoInstance : _frustumVAOMapping) {
+            if (vaoInstance.first > max) {
+                max = vaoInstance.first;
+            }
+        }
+        _idGenerator += max;
     }
     //Hook up to kinematic update for proper physics handling
     _clock->subscribeKinematicsRate(std::bind(&Entity::_updateKinematics, this, std::placeholders::_1));
@@ -99,6 +113,10 @@ void Entity::_updateKinematics(int milliSeconds) {
 void Entity::_updateGameState(int state) {
 }
 
+VAOMap Entity::getVAOMapping() {
+    return _frustumVAOMapping;
+}
+
 MVP* Entity::getMVP() {
     return &_mvp;
 }
@@ -114,6 +132,35 @@ unsigned int Entity::getID() {
     return _id;
 }
 
+bool Entity::isID(unsigned int entityID) {
+
+    int idLength = 0;
+    if (_model->getClassType() == ModelClass::AnimatedModelType) {
+        for (auto vaoInstance : *_model->getVAO()) {
+            //Grab strides of vertex sets that have a single texture associated with them
+            auto textureStrides = vaoInstance->getTextureStrides();
+            idLength += textureStrides.size();
+        }
+    }
+    else if (_model->getClassType() == ModelClass::ModelType) {
+        int max = 0;
+        for (auto vaoInstance : _frustumVAOMapping) {
+            if (vaoInstance.first > max) {
+                max = vaoInstance.first;
+            }
+        }
+        idLength = max;
+    }
+
+    if (entityID >= _id && entityID < _id + idLength) {
+        return true;
+    }
+    else {
+        return false;
+    }
+}
+
+
 void Entity::_generateVAOTiles() {
 
     auto* leaves           = _frustumCuller->getOSP()->getOSPLeaves();
@@ -125,6 +172,7 @@ void Entity::_generateVAOTiles() {
     auto textureMapIndices = renderBuffers->getTextureMapIndices();
     auto textureMapNames   = renderBuffers->getTextureMapNames();
     int leafIndex = 1;
+    _frustumRenderBuffers = new std::vector<RenderBuffers>();
     for (auto leaf : *leaves) {
 
         RenderBuffers renderBuff;
@@ -205,9 +253,15 @@ void Entity::_generateVAOTiles() {
                 prevTextureIndex = textureIndex;
             }
         }
+        _frustumRenderBuffers->push_back(renderBuff);
         leafIndex++;
     }
 }
+
+std::vector<RenderBuffers>* Entity::getRenderBuffers() {
+    return _frustumRenderBuffers;
+}
+
 std::vector<VAO*>* Entity::getFrustumVAO() {
 
     //If not subdividing space using a frustum culler then retrieve whole of geometry

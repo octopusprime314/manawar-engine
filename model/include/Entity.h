@@ -33,9 +33,11 @@ class SimpleContext;
 class Model;
 class FrustumCuller;
 
+
+using VAOMap = std::map<int, std::vector<VAO*>>;
+
 class Entity : public UpdateInterface {
 
-    using VAOMap = std::map<int, std::vector<VAO*>>;
 public:
 
     //Default model to type to base class
@@ -49,9 +51,12 @@ public:
     void                        setVelocity(Vector4 velocity);
     std::vector<VAO*>*          getFrustumVAO();
     FrustumCuller*              getFrustumCuller();
+    VAOMap                      getVAOMapping();
     unsigned int                getID();
+    bool                        isID(unsigned int entityID);
     void                        setSelected(bool isSelected);
     bool                        getSelected();
+    std::vector<RenderBuffers>* getRenderBuffers();
 protected:
 
     VAOMap                      _frustumVAOMapping;
@@ -65,6 +70,7 @@ protected:
     static unsigned int         _idGenerator; //id generator that is incremented every time a new Entity is added
     unsigned int                _id; //used to identify entities, used for picking
     bool                        _selected;
+    std::vector<RenderBuffers>* _frustumRenderBuffers;
 
     void                        _generateVAOTiles();
     void                        _updateKeyboard(int key, int x, int y) {}; //Do stuff based on keyboard upate

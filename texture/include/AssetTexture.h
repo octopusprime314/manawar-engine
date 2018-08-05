@@ -37,5 +37,7 @@ public:
     AssetTexture(std::string textureName, bool cubeMap = false); //if true then it is a special cube map
     ~AssetTexture();
 
-    bool getTransparency();
+    bool  getTransparency();
+    BYTE* getBits();
+
 };

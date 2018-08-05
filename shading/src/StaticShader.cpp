@@ -16,10 +16,22 @@ void StaticShader::runShader(Entity* entity) {
     //LOAD IN SHADER
     glUseProgram(_shaderContext); //use context for loaded shader
     auto model = entity->getModel();
+    auto baseID = entity->getID();
     std::vector<VAO*>* vao = entity->getFrustumVAO(); //Special vao call that factors in frustum culling for the scene
 
     for (auto vaoInstance : *vao) {
         glBindVertexArray(vaoInstance->getVAOContext());
+        
+        auto vaoMappings = entity->getVAOMapping();
+        for (auto vaoMap : vaoMappings) {
+            for (auto vaoId : vaoMap.second) {
+                if (vaoId->getVAOContext() == vaoInstance->getVAOContext()) {
+                    int* vaoId = const_cast<int*>(&vaoMap.first);
+                    int id = baseID + *vaoId;
+                    updateUniform("id", &id);
+                }
+            }
+        }
 
         MVP* mvp = entity->getMVP();
         //glUniform mat4 combined model and world matrix, GL_TRUE is telling GL we are passing in the matrix as row major
@@ -41,9 +53,7 @@ void StaticShader::runShader(Entity* entity) {
         //glUniform mat4 view matrix, GL_TRUE is telling GL we are passing in the matrix as row major
         updateUniform("prevView", prevMVP->getViewBuffer());
 
-        auto id = entity->getID();
-        updateUniform("id", &id);
-
+        
         auto textureStrides = vaoInstance->getTextureStrides();
         unsigned int strideLocation = 0;
         for (auto textureStride : textureStrides) {
@@ -58,7 +68,7 @@ void StaticShader::runShader(Entity* entity) {
                 int isLayered = 1;
                 updateUniform("isLayeredTexture", &isLayered);
 
-                if (textures.size() > 4) {
+                if (textures.size() > 5) {
                     updateUniform("tex0", GL_TEXTURE1, textures[0]->getContext());
                     updateUniform("tex1", GL_TEXTURE2, textures[1]->getContext());
                     updateUniform("tex2", GL_TEXTURE3, textures[2]->getContext());
@@ -69,7 +79,8 @@ void StaticShader::runShader(Entity* entity) {
                     updateUniform("tex0", GL_TEXTURE1, textures[0]->getContext());
                     updateUniform("tex1", GL_TEXTURE2, textures[1]->getContext());
                     updateUniform("tex2", GL_TEXTURE3, textures[2]->getContext());
-                    updateUniform("alphatex0", GL_TEXTURE5, textures[3]->getContext());
+                    updateUniform("tex3", GL_TEXTURE4, textures[3]->getContext());
+                    updateUniform("alphatex0", GL_TEXTURE5, textures[4]->getContext());
                 }
                 glDrawArrays(GL_TRIANGLES, strideLocation, (GLsizei)textureStride.second);
                 strideLocation += textureStride.second;

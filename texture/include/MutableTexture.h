@@ -1,5 +1,5 @@
 /*
-* LayeredTexture is part of the ReBoot distribution (https://github.com/octopusprime314/ReBoot.git).
+* MutableTexture is part of the ReBoot distribution (https://github.com/octopusprime314/ReBoot.git).
 * Copyright (c) 2017 Peter Morley.
 *
 * ReBoot is free software: you can redistribute it and/or modify
@@ -16,20 +16,20 @@
 */
 
 /**
-*  The LayeredTexture class stores openGL related multiple texture data.
+*  The MutableTexture class edits and can create new textures for model development
 */
 
 #pragma once
+#include "Texture.h"
 #include "AssetTexture.h"
-#include <vector>
 
-class LayeredTexture {
+class MutableTexture : public Texture{
 
-    LayeredTexture(); //Make the default constructor private which forces coder to allocate a Texture with a string name
-    std::vector<AssetTexture*> _textures;
+    MutableTexture(); //Make the default constructor private which forces coder to allocate a Texture with a string name
+    void        _createTextureData();
 public:
-    LayeredTexture(std::vector<std::string> textureNames); //if true then it is a special cube map
-    ~LayeredTexture();
-    std::vector<AssetTexture*> getTextures();
-    void                       setTexture(AssetTexture* texture);
+    MutableTexture(std::string textureName); //texture already exists!
+    MutableTexture(std::string textureName, int width, int height); 
+    ~MutableTexture();
+    void editTextureData(int x, int y);
 };

@@ -22,12 +22,14 @@
 #pragma once
 #include "Entity.h"
 #include "MRTFrameBuffer.h"
+#include "MutableTexture.h"
 
 class Picker {
 
-    MRTFrameBuffer* _mrt;
-    void            _mouseClick(int button, int action, int x, int y);
+    MRTFrameBuffer*      _mrt;
+    void                 _mouseClick(int button, int action, int x, int y);
     std::vector<Entity*> _entityList;
+    MutableTexture*      _alphaMapEditor;
 public:
     Picker(MRTFrameBuffer* mrt);
     ~Picker();

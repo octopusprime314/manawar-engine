@@ -25,6 +25,7 @@
 #include "ShadowedPointLight.h"
 #include "SimpleContext.h"
 #include "Picker.h"
+#include "MutableTexture.h"
 #include <chrono>
 
 using namespace std::chrono;
@@ -104,7 +105,7 @@ SceneManager::SceneManager(int* argc, char** argv,
 
     auto modelBroker = ModelBroker::instance();
 
-    _entityList.push_back(new Entity(modelBroker->getModel("landscape/landscape.fbx"), _viewManager->getEventWrapper())); //Add a static model to the scene
+    _entityList.push_back(new Entity(modelBroker->getModel("sandbox/sandbox.fbx"), _viewManager->getEventWrapper())); //Add a static model to the scene
     _entityList.push_back(new Entity(modelBroker->getModel("werewolf/werewolf.fbx"), _viewManager->getEventWrapper())); //Add a static model to the scene
     //_entityList.push_back(new Entity(modelBroker->getModel("wolf/wolf.fbx"), _viewManager->getEventWrapper())); //Add a static model to the scene
     //_entityList.push_back(new Entity(modelBroker->getModel("hagraven/hagraven.fbx"), _viewManager->getEventWrapper())); //Add a static model to the scene
@@ -124,7 +125,8 @@ SceneManager::SceneManager(int* argc, char** argv,
 
     Vector4 sunLocation(0.0f, 0.0f, -300.0f);
     MVP lightMVP;
-    lightMVP.setView(Matrix::translation(sunLocation.getx(), sunLocation.gety(), sunLocation.getz()));
+    lightMVP.setView(Matrix::translation(sunLocation.getx(), sunLocation.gety(), sunLocation.getz()) 
+        * Matrix::cameraRotationAroundX(-90.0f));
     lightMVP.setProjection(Matrix::cameraOrtho(200.0f, 200.0f, 0.0f, 600.0f));
     _lightList.push_back(new ShadowedDirectionalLight(_viewManager->getEventWrapper(),
                                                       lightMVP,
@@ -132,7 +134,8 @@ SceneManager::SceneManager(int* argc, char** argv,
                                                       Vector4(1.0, 0.0, 0.0)));
 
     MVP lightMapMVP;
-    lightMapMVP.setView(Matrix::translation(sunLocation.getx(), sunLocation.gety(), sunLocation.getz()));
+    lightMapMVP.setView(Matrix::translation(sunLocation.getx(), sunLocation.gety(), sunLocation.getz())
+        * Matrix::cameraRotationAroundX(-90.0f));
     lightMapMVP.setProjection(Matrix::cameraOrtho(600.0f, 600.0f, 0.0f, 600.0f));
     _lightList.push_back(new ShadowedDirectionalLight(_viewManager->getEventWrapper(),
                                                       lightMapMVP,

@@ -44,7 +44,11 @@ void AssetTexture::_build2DTexture(std::string textureName) {
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY, aniso);
 
     //Free FreeImage's copy of the data
-    FreeImage_Unload(_dib);
+    //FreeImage_Unload(_dib);
+}
+
+BYTE* AssetTexture::getBits() {
+    return _bits;
 }
 
 void AssetTexture::_buildCubeMapTexture(std::string skyboxName) {

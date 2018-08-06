@@ -24,11 +24,14 @@
 #include "ShaderBroker.h"
 #include "ModelBroker.h"
 #include "UpdateInterface.h"
+#include "MRTFrameBuffer.h"
+
+class Picker;
 
 class Terminal {
 public:
 
-    Terminal();
+    Terminal(MRTFrameBuffer* gBuffers, std::vector<Entity*> entityList);
     ~Terminal();
 
     void                 display();
@@ -46,5 +49,8 @@ private:
     static ShaderBroker* _shaderManager; 
     static ModelBroker*  _modelManager;
     int                  _gameState;
+    Picker*              _picker;
 
+
+    void                 _mousePosition(Vector4 position);
 };

@@ -52,7 +52,7 @@ void MutableTexture::_createTextureData() {
     }
 }
 
-void MutableTexture::editTextureData(int xPosition, int yPosition) {
+void MutableTexture::editTextureData(int xPosition, int yPosition, Vector4 texturePixel) {
 
     auto texture = TextureBroker::instance()->getAssetTextureFromLayered(_name);
     int textureWidth = texture->getWidth();
@@ -68,10 +68,10 @@ void MutableTexture::editTextureData(int xPosition, int yPosition) {
         for (int x = 0; x < textureWidth; x++) {
 
             if (x == xPosition && y == yPosition) {
-                bits[0] = 255; //blue
-                bits[1] = 0; //green
-                bits[2] = 0; //red
-                bits[3] = 255; //alpha
+                bits[0] = static_cast<unsigned int>(texturePixel.getz()); //blue
+                bits[1] = static_cast<unsigned int>(texturePixel.gety()); //green
+                bits[2] = static_cast<unsigned int>(texturePixel.getx()); //red
+                bits[3] = static_cast<unsigned int>(texturePixel.getw()); //alpha
             }
             else {
                 bits[0] = bitmapToRead[0];

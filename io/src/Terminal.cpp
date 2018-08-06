@@ -1,16 +1,20 @@
 #include "Terminal.h"
 #include "SimpleContextEvents.h"
+#include "Picker.h"
 
 ShaderBroker* Terminal::_shaderManager = ShaderBroker::instance();
 ModelBroker*  Terminal::_modelManager  = ModelBroker::instance();
 
 using namespace std::placeholders;
 
-Terminal::Terminal() :
+Terminal::Terminal(MRTFrameBuffer* gBuffers, std::vector<Entity*> entityList) :
     _fontRenderer("ubuntu_mono_regular.fnt"),
     _gameState(0),
     _commandString("|"),
     _commandHistoryIndex(0) {
+
+    _picker = new Picker(gBuffers, std::bind(&Terminal::_mousePosition, this, _1));
+    _picker->addPickableEntities(entityList);
 
     SimpleContextEvents::subscribeToKeyboard(std::bind(&Terminal::_updateKeyboard, this, _1, _2, _3));
     SimpleContextEvents::subscribeToGameState(std::bind(&Terminal::_updateGameState, this, _1));
@@ -63,6 +67,18 @@ void Terminal::display() {
                 static_cast<float>(atof(zStr.c_str())), 
                 static_cast<float>(atof(scale.c_str()))));
         }
+        else if (command == "MOUSEADD") {
+            _commandToProcess = _commandToProcess.substr(_commandToProcess.find(' ') + 1);
+            std::string modelName = _commandToProcess.substr(0, _commandToProcess.find(' '));
+            _commandToProcess = _commandToProcess.substr(_commandToProcess.find(' ') + 1);
+            std::string modelToAdd = _commandToProcess.substr(0, _commandToProcess.find(' '));
+            modelToAdd.pop_back();
+            /*_modelManager->addModel(modelName, modelToAdd, Vector4(
+                static_cast<float>(atof(xStr.c_str())),
+                static_cast<float>(atof(yStr.c_str())),
+                static_cast<float>(atof(zStr.c_str())),
+                static_cast<float>(atof(scale.c_str()))));*/
+        }
         else if (command == "SAVE") {
             _commandToProcess = _commandToProcess.substr(_commandToProcess.find(' ') + 1);
             std::string modelName = _commandToProcess.substr(0, _commandToProcess.find(' '));
@@ -79,6 +95,24 @@ void Terminal::display() {
             //TODO: Undo previous change to scene
         }
         _commandToProcess = "";
+    }
+}
+
+void Terminal::_mousePosition(Vector4 position) {
+
+    auto commandString = _commandHistory[_commandHistoryIndex];
+
+    auto location = commandString.find(' ');
+    std::string command = commandString.substr(0, location);
+
+    if (command == "MOUSEADD") {
+        commandString = commandString.substr(commandString.find(' ') + 1);
+        std::string modelName = commandString.substr(0, commandString.find(' '));
+        commandString = commandString.substr(commandString.find(' ') + 1);
+        std::string modelToAdd = commandString.substr(0, commandString.find(' '));
+        modelToAdd.pop_back();
+
+        _modelManager->addModel(modelName, modelToAdd, position);
     }
 }
 

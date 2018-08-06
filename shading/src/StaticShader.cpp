@@ -68,20 +68,12 @@ void StaticShader::runShader(Entity* entity) {
                 int isLayered = 1;
                 updateUniform("isLayeredTexture", &isLayered);
 
-                if (textures.size() > 5) {
-                    updateUniform("tex0", GL_TEXTURE1, textures[0]->getContext());
-                    updateUniform("tex1", GL_TEXTURE2, textures[1]->getContext());
-                    updateUniform("tex2", GL_TEXTURE3, textures[2]->getContext());
-                    updateUniform("tex3", GL_TEXTURE4, textures[3]->getContext());
-                    updateUniform("alphatex0", GL_TEXTURE5, textures[7]->getContext());
-                }
-                else {
-                    updateUniform("tex0", GL_TEXTURE1, textures[0]->getContext());
-                    updateUniform("tex1", GL_TEXTURE2, textures[1]->getContext());
-                    updateUniform("tex2", GL_TEXTURE3, textures[2]->getContext());
-                    updateUniform("tex3", GL_TEXTURE4, textures[3]->getContext());
-                    updateUniform("alphatex0", GL_TEXTURE5, textures[4]->getContext());
-                }
+                updateUniform("tex0", GL_TEXTURE1, textures[0]->getContext());
+                updateUniform("tex1", GL_TEXTURE2, textures[1]->getContext());
+                updateUniform("tex2", GL_TEXTURE3, textures[2]->getContext());
+                updateUniform("tex3", GL_TEXTURE4, textures[3]->getContext());
+                updateUniform("alphatex0", GL_TEXTURE5, textures[4]->getContext());
+                
                 glDrawArrays(GL_TRIANGLES, strideLocation, (GLsizei)textureStride.second);
                 strideLocation += textureStride.second;
             }

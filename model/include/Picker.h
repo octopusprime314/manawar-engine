@@ -1,5 +1,5 @@
 /*
-* ModelFactory is part of the ReBoot distribution (https://github.com/octopusprime314/ReBoot.git).
+* Picker is part of the ReBoot distribution (https://github.com/octopusprime314/ReBoot.git).
 * Copyright (c) 2017 Peter Morley.
 *
 * ReBoot is free software: you can redistribute it and/or modify
@@ -23,6 +23,7 @@
 #include "Entity.h"
 #include "MRTFrameBuffer.h"
 #include "MutableTexture.h"
+#include <functional>
 
 class Picker {
 
@@ -30,8 +31,11 @@ class Picker {
     void                 _mouseClick(int button, int action, int x, int y);
     std::vector<Entity*> _entityList;
     MutableTexture*      _alphaMapEditor;
+    int                  _textureSelection;
+    Vector4              _pixelEditValue;
+    std::function<void(Vector4)> _mouseCallback;
 public:
-    Picker(MRTFrameBuffer* mrt);
+    Picker(MRTFrameBuffer* mrt, std::function<void(Vector4)> terminalCallback);
     ~Picker();
     
     void addPickableEntities(std::vector<Entity*> entities);

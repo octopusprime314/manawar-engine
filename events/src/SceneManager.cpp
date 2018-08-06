@@ -25,7 +25,6 @@
 #include "ShadowedPointLight.h"
 #include "SimpleContext.h"
 #include "Picker.h"
-#include "MutableTexture.h"
 #include <chrono>
 
 using namespace std::chrono;
@@ -66,8 +65,6 @@ SceneManager::SceneManager(int* argc, char** argv,
     _deferredRenderer = new DeferredRenderer();
     glCheck();
 
-    _picker = new Picker(_deferredRenderer->getGBuffers());
-
     _forwardRenderer = new ForwardRenderer();
     glCheck();
 
@@ -95,8 +92,6 @@ SceneManager::SceneManager(int* argc, char** argv,
     _deferredFBO = new DeferredFrameBuffer();
     glCheck();
 
-    _terminal = new Terminal();
-
     _add = new SSCompute("add", screenPixelWidth, screenPixelHeight, TextureFormat::RGBA_UNSIGNED_BYTE);
 
     //Setup pre and post draw callback events received when a draw call is issued
@@ -116,7 +111,9 @@ SceneManager::SceneManager(int* argc, char** argv,
     //_entityList[3]->setPosition(Vector4(30, 0, 10));
     //_entityList[4]->setPosition(Vector4(30, 0, -20));
 
-    _picker->addPickableEntities(_entityList);
+
+    _terminal = new Terminal(_deferredRenderer->getGBuffers(), _entityList);
+
 
     _physics = new Physics();
     _physics->addEntities(_entityList); //Gives physics a pointer to all models which allows access to underlying geometry

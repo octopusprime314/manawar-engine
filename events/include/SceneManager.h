@@ -41,7 +41,6 @@ class ShaderBroker;
 class Terminal;
 class Entity;
 class SimpleContext;
-class Picker;
 
 class SceneManager {
     ViewManager*         _viewManager; //manages the view/camera matrix from the user's perspective
@@ -59,8 +58,7 @@ class SceneManager {
     MergeShader*         _mergeShader;
     SSCompute*           _add;
     Terminal*            _terminal;
-    Picker*              _picker;
-    SimpleContext*      _glfwContext;
+    SimpleContext*       _glfwContext;
 
     void _preDraw(); //Prior to drawing objects call this function
     void _postDraw(); //Post of drawing objects call this function

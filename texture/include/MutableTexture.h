@@ -22,6 +22,7 @@
 #pragma once
 #include "Texture.h"
 #include "AssetTexture.h"
+#include "Vector4.h"
 
 class MutableTexture : public Texture{
 
@@ -31,5 +32,5 @@ public:
     MutableTexture(std::string textureName); //texture already exists!
     MutableTexture(std::string textureName, int width, int height); 
     ~MutableTexture();
-    void editTextureData(int x, int y);
+    void editTextureData(int x, int y, Vector4 texturePixel);
 };

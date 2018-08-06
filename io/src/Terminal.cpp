@@ -100,19 +100,21 @@ void Terminal::display() {
 
 void Terminal::_mousePosition(Vector4 position) {
 
-    auto commandString = _commandHistory[_commandHistoryIndex];
+    if (_commandHistory.size() > 0) {
 
-    auto location = commandString.find(' ');
-    std::string command = commandString.substr(0, location);
+        auto commandString = _commandHistory[_commandHistoryIndex];
+        auto location = commandString.find(' ');
+        std::string command = commandString.substr(0, location);
 
-    if (command == "MOUSEADD") {
-        commandString = commandString.substr(commandString.find(' ') + 1);
-        std::string modelName = commandString.substr(0, commandString.find(' '));
-        commandString = commandString.substr(commandString.find(' ') + 1);
-        std::string modelToAdd = commandString.substr(0, commandString.find(' '));
-        modelToAdd.pop_back();
+        if (command == "MOUSEADD") {
+            commandString = commandString.substr(commandString.find(' ') + 1);
+            std::string modelName = commandString.substr(0, commandString.find(' '));
+            commandString = commandString.substr(commandString.find(' ') + 1);
+            std::string modelToAdd = commandString.substr(0, commandString.find(' '));
+            modelToAdd.pop_back();
 
-        _modelManager->addModel(modelName, modelToAdd, position);
+            _modelManager->addModel(modelName, modelToAdd, position);
+        }
     }
 }
 

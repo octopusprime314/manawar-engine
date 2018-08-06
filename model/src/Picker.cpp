@@ -75,6 +75,9 @@ void Picker::_mouseClick(int button, int action, int x, int y) {
                 auto renderBuffers = entity->getRenderBuffers();
                 auto renderBuffer = (*renderBuffers)[entityID - 1];
 
+                auto textureIndex = (*(*renderBuffers)[entityID - 1].getTextureMapIndices())[triangleID];
+                std::string textureName = (*(*renderBuffers)[entityID - 1].getTextureMapNames())[textureIndex];
+
                 auto vertices = renderBuffer.getVertices();
                 Vector4 A = (*vertices)[triangleID * 3];
                 Vector4 B = (*vertices)[(triangleID * 3) + 1];
@@ -85,16 +88,17 @@ void Picker::_mouseClick(int button, int action, int x, int y) {
                 C.display();
 
                 if (selectedEntity != nullptr) {
-                    auto textureNames = selectedEntity->getModel()->getTextureNames();
-                    for (auto textureName : textureNames) {
-                        if (textureName.find("alphamap") != std::string::npos) {
 
-                            _alphaMapEditor = new MutableTexture("alphamap");
+                    auto texture = TextureBroker::instance()->getLayeredTexture(textureName);
+                    auto layeredTextures = texture->getTextures();
+                    for (auto texture : layeredTextures) {
+                        if (texture->getName().find("alphamap") != std::string::npos) {
+                            _alphaMapEditor = new MutableTexture(texture->getName());
                             int width = _alphaMapEditor->getWidth();
                             int height = _alphaMapEditor->getHeight();
 
-                            int pixelLocationX = ((A.getx() + B.getx() + C.getx()) / 3.0f) + (width / 2.0f);
-                            int pixelLocationZ = ((A.getz() + B.getz() + C.getz()) / 3.0f) + (height / 2.0f);
+                            int pixelLocationX = static_cast<int>(((A.getx() + B.getx() + C.getx()) / 3.0f) + (width / 2.0f));
+                            int pixelLocationZ = static_cast<int>(((A.getz() + B.getz() + C.getz()) / 3.0f) + (height / 2.0f));
 
                             _mouseCallback(A);
 

@@ -47,6 +47,7 @@ void Physics::addEntity(Entity* entity) {
 void Physics::visualize() {
     
     
+    //Displays collidable triangles and highlights triangles that are in contact  
     int i = 0;
     for (auto geometryGraphic : _graphics) {
 
@@ -60,13 +61,14 @@ void Physics::visualize() {
         i++;
     }
 
-    float color[] = { 0.0, 1.0, 0.0 };
-    //Grab any model's mvp
-    _debugShader->runShader(_entities[0]->getMVP(),
-        _octTreeGraphic->getVAO(), 
-        _triangleIntersectionList[_entities[0]],
-        color,
-        GeometryConstruction::LINE_WIREFRAME);
+    //Displays octree
+    //float color[] = { 0.0, 1.0, 0.0 };
+    ////Grab any model's mvp
+    //_debugShader->runShader(_entities[0]->getMVP(),
+    //    _octTreeGraphic->getVAO(),
+    //    _triangleIntersectionList[_entities[0]],
+    //    color,
+    //    GeometryConstruction::LINE_WIREFRAME);
 
     std::lock_guard<std::mutex> lockGuard(_lock);
 

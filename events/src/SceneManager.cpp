@@ -268,14 +268,14 @@ void SceneManager::_postDraw() {
     }
     else if (_viewManager->getViewState() == Camera::ViewState::PHYSICS) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        //_physics->visualize();
-        _entityList[1]->getFrustumCuller()->visualize();
-        _viewManager->displayViewFrustum();
+        _physics->visualize();
+        //_entityList[1]->getFrustumCuller()->visualize();
+        //_viewManager->displayViewFrustum();
 
-        //shows all of the light/shadow volumes
-        for (Light* light : _lightList) {
-            light->renderDebug();
-        }
+        ////shows all of the light/shadow volumes
+        //for (Light* light : _lightList) {
+        //    light->renderDebug();
+        //}
     }
     else {
 

@@ -35,7 +35,8 @@ void Picker::_mouseClick(int button, int action, int x, int y) {
         _textureSelection++;
         _textureSelection %= 4;
     }
-    else if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
+    else if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS &&
+        x >= 0 && y >= 0) {
 
         glBindTexture(GL_TEXTURE_2D, _mrt->getTextureContexts()[2]);
         int packAlignment;
@@ -60,53 +61,64 @@ void Picker::_mouseClick(int button, int action, int x, int y) {
         unsigned int triangleID = static_cast<unsigned int>(
             pixels[((x * packAlignment) + (y * w * packAlignment)) + 3] * 16777216.0f);
 
-        std::cout << "Entity Draw ID: " << entityID << std::endl;
-        std::cout << "Primitive Draw ID: " << triangleID << std::endl;
-
         delete[] pixels;
 
         Entity* selectedEntity = nullptr;
         for (auto entity : _entityList) {
-            if (entity->isID(entityID)) {
+            if (entity->isID(entityID) && entityID > 0) {
                 entity->setSelected(true);
-                selectedEntity = entity;
+                if (entity->getRenderBuffers()->size() > 0) {
 
-                //used to retrieve triangle in entity
-                auto renderBuffers = entity->getRenderBuffers();
-                auto renderBuffer = (*renderBuffers)[entityID - 1];
+                    selectedEntity = entity;
 
-                auto textureIndex = (*(*renderBuffers)[entityID - 1].getTextureMapIndices())[triangleID];
-                std::string textureName = (*(*renderBuffers)[entityID - 1].getTextureMapNames())[textureIndex];
+                    //used to retrieve triangle in entity
+                    auto renderBuffers = entity->getRenderBuffers();
+                    auto renderBuffer = (*renderBuffers)[entityID - 1];
 
-                auto vertices = renderBuffer.getVertices();
-                Vector4 A = (*vertices)[triangleID * 3];
-                Vector4 B = (*vertices)[(triangleID * 3) + 1];
-                Vector4 C = (*vertices)[(triangleID * 3) + 2];
+                    auto textureIndex = (*(*renderBuffers)[entityID - 1].getTextureMapIndices())[triangleID];
+                    std::string textureName = (*(*renderBuffers)[entityID - 1].getTextureMapNames())[textureIndex];
 
-                A.display();
-                B.display();
-                C.display();
+                    auto vertices = renderBuffer.getVertices();
+                    Vector4 A = (*vertices)[triangleID * 3];
+                    Vector4 B = (*vertices)[(triangleID * 3) + 1];
+                    Vector4 C = (*vertices)[(triangleID * 3) + 2];
 
-                if (selectedEntity != nullptr) {
+                    if (selectedEntity != nullptr) {
 
-                    auto texture = TextureBroker::instance()->getLayeredTexture(textureName);
-                    auto layeredTextures = texture->getTextures();
-                    for (auto texture : layeredTextures) {
-                        if (texture->getName().find("alphamap") != std::string::npos) {
-                            _alphaMapEditor = new MutableTexture(texture->getName());
-                            int width = _alphaMapEditor->getWidth();
-                            int height = _alphaMapEditor->getHeight();
+                        auto texture = TextureBroker::instance()->getLayeredTexture(textureName);
+                        auto layeredTextures = texture->getTextures();
+                        for (auto texture : layeredTextures) {
+                            if (texture->getName().find("alphamap") != std::string::npos) {
+                                _alphaMapEditor = new MutableTexture(texture->getName());
+                                float width = static_cast<float>(_alphaMapEditor->getWidth());
+                                float height = static_cast<float>(_alphaMapEditor->getHeight());
 
-                            int pixelLocationX = static_cast<int>(((A.getx() + B.getx() + C.getx()) / 3.0f) + (width / 2.0f));
-                            int pixelLocationZ = static_cast<int>(((A.getz() + B.getz() + C.getz()) / 3.0f) + (height / 2.0f));
+                                float xOffset = width / 2.0f;
+                                float zOffset = height / 2.0f;
 
-                            _mouseCallback(A);
+                                float xCentroid = ((A.getx() + B.getx() + C.getx()) / 3.0f);
+                                float zCentroid = ((A.getz() + B.getz() + C.getz()) / 3.0f);
 
-                            _alphaMapEditor->editTextureData(pixelLocationX, pixelLocationZ, _pixelEditValue);
+                                if (xCentroid < xOffset) {
+                                    float multiplier = ceilf(fabs(xCentroid) / width);
+                                    xCentroid += multiplier * width;
+                                }
+
+                                if (zCentroid < zOffset) {
+                                    float multiplier = ceilf(fabs(zCentroid) / height);
+                                    zCentroid += multiplier * height;
+                                }
+
+                                int xPosition = static_cast<int>(xCentroid + xOffset) % static_cast<int>(width);
+                                int zPosition = static_cast<int>(zCentroid + zOffset) % static_cast<int>(height);
+
+                                _mouseCallback(A);
+
+                                _alphaMapEditor->editTextureData(xPosition, zPosition, _pixelEditValue);
+                            }
                         }
                     }
                 }
-
             }
             else {
                 entity->setSelected(false);

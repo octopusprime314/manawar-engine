@@ -33,9 +33,7 @@ SimpleContext::SimpleContext(int* argc, char** argv, unsigned int viewportWidth,
     glfwWindowHint(GLFW_MAXIMIZED, true);
 
     glfwSetErrorCallback([](int code, const char* pMsg) {
-        char buffer[1024];
-        snprintf(buffer, sizeof(buffer), "GLFW [0x%Xu] %s\n", code, pMsg);
-        std::cerr << buffer << std::endl;
+        std::cout << "GLFW " << code << " " << pMsg << std::endl;
     });
 
     //Create a glfw window for a context and fullscreen it!
@@ -186,7 +184,7 @@ void SimpleContext::_mouseClick(GLFWwindow* window, int button, int action, int 
     double xpos, ypos;
     //getting cursor position
     glfwGetCursorPos(_window, &xpos, &ypos);
-    SimpleContextEvents::updateMouseClick(button, action, xpos, ypos);
+    SimpleContextEvents::updateMouseClick(button, action, static_cast<int>(xpos), static_cast<int>(ypos));
 }
 
 

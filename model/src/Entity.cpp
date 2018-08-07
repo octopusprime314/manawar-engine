@@ -10,7 +10,8 @@ Entity::Entity(Model* model, ViewManagerEvents* eventWrapper) :
     _clock(MasterClock::instance()),
     _model(model),
     _id(_idGenerator),
-    _selected(false) {
+    _selected(false),
+    _frustumRenderBuffers(new std::vector<RenderBuffers>()) {
 
 
     if (_model->getClassType() == ModelClass::AnimatedModelType) {
@@ -25,7 +26,7 @@ Entity::Entity(Model* model, ViewManagerEvents* eventWrapper) :
         for (auto vaoInstance : *_model->getVAO()) {
             //Grab strides of vertex sets that have a single texture associated with them
             auto textureStrides = vaoInstance->getTextureStrides();
-            _idGenerator += textureStrides.size();
+            _idGenerator += static_cast<unsigned int>(textureStrides.size());
         }
     }
     else if (_model->getClassType() == ModelClass::ModelType) {
@@ -139,7 +140,7 @@ bool Entity::isID(unsigned int entityID) {
         for (auto vaoInstance : *_model->getVAO()) {
             //Grab strides of vertex sets that have a single texture associated with them
             auto textureStrides = vaoInstance->getTextureStrides();
-            idLength += textureStrides.size();
+            idLength += static_cast<int>(textureStrides.size());
         }
     }
     else if (_model->getClassType() == ModelClass::ModelType) {
@@ -172,7 +173,6 @@ void Entity::_generateVAOTiles() {
     auto textureMapIndices = renderBuffers->getTextureMapIndices();
     auto textureMapNames   = renderBuffers->getTextureMapNames();
     int leafIndex = 1;
-    _frustumRenderBuffers = new std::vector<RenderBuffers>();
     for (auto leaf : *leaves) {
 
         RenderBuffers renderBuff;

@@ -57,39 +57,42 @@ void MutableTexture::editTextureData(int xPosition, int yPosition, Vector4 textu
     auto texture = TextureBroker::instance()->getAssetTextureFromLayered(_name);
     int textureWidth = texture->getWidth();
     int textureHeight = texture->getHeight();
-    auto bitmapToRead = texture->getBits();
 
-    auto bitmapToWrite = FreeImage_Allocate(textureWidth, textureHeight, 32, 8, 8, 8);
-    //image format bmp for now
-    FREE_IMAGE_FORMAT fif = FIF_TIFF;
+    if (xPosition >= 0 && xPosition < textureWidth && yPosition >= 0 && yPosition < textureHeight) {
+        auto bitmapToRead = texture->getBits();
 
-    for (int y = textureHeight - 1; y >= 0; y--) {
-        BYTE *bits = FreeImage_GetScanLine(bitmapToWrite, textureHeight - 1 - y);
-        for (int x = 0; x < textureWidth; x++) {
+        auto bitmapToWrite = FreeImage_Allocate(textureWidth, textureHeight, 32, 8, 8, 8);
+        //image format bmp for now
+        FREE_IMAGE_FORMAT fif = FIF_TIFF;
 
-            if (x == xPosition && y == yPosition) {
-                bits[0] = static_cast<unsigned int>(texturePixel.getz()); //blue
-                bits[1] = static_cast<unsigned int>(texturePixel.gety()); //green
-                bits[2] = static_cast<unsigned int>(texturePixel.getx()); //red
-                bits[3] = static_cast<unsigned int>(texturePixel.getw()); //alpha
+        for (int y = textureHeight - 1; y >= 0; y--) {
+            BYTE *bits = FreeImage_GetScanLine(bitmapToWrite, textureHeight - 1 - y);
+            for (int x = 0; x < textureWidth; x++) {
+
+                if (x == xPosition && y == yPosition) {
+                    bits[0] = static_cast<unsigned int>(texturePixel.getz()); //blue
+                    bits[1] = static_cast<unsigned int>(texturePixel.gety()); //green
+                    bits[2] = static_cast<unsigned int>(texturePixel.getx()); //red
+                    bits[3] = static_cast<unsigned int>(texturePixel.getw()); //alpha
+                }
+                else {
+                    bits[0] = bitmapToRead[0];
+                    bits[1] = bitmapToRead[1];
+                    bits[2] = bitmapToRead[2];
+                    bits[3] = bitmapToRead[3];
+                }
+                bits += 4; //pointer math
+                bitmapToRead += 4;
             }
-            else {
-                bits[0] = bitmapToRead[0];
-                bits[1] = bitmapToRead[1];
-                bits[2] = bitmapToRead[2];
-                bits[3] = bitmapToRead[3];
-            }
-            bits += 4; //pointer math
-            bitmapToRead += 4;
         }
-    }
 
-    bool success = FreeImage_Save(fif, bitmapToWrite, (texture->getName()).c_str(), TIFF_DEFAULT);
-    FreeImage_Unload(bitmapToWrite);
+        bool success = FreeImage_Save(fif, bitmapToWrite, (texture->getName()).c_str(), TIFF_DEFAULT);
+        FreeImage_Unload(bitmapToWrite);
 
-    TextureBroker::instance()->updateTextureToLayered(_name);
+        TextureBroker::instance()->updateTextureToLayered(_name);
 
-    if (!success) {
-        std::cout << "Texture creation failed: " << _name << std::endl;
+        if (!success) {
+            std::cout << "Texture creation failed: " << _name << std::endl;
+        }
     }
 }

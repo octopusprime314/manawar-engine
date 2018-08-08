@@ -23,6 +23,7 @@ uniform sampler2D alphatex0; //texture indicating which red, green, blue, alpha 
 
 uniform int isLayeredTexture;
 uniform int id;
+uniform int primitiveOffset;
 
 void main(){
 
@@ -74,5 +75,5 @@ void main(){
 	out_1 = vec4(vTexColor.rgb, 1.0);
 	//write the primitive/triangle id to the alpha value and scale by 2^24 allowing 16 million unique triangles to id
 	out_2 = vec4(normalize(vsData.normalOut), 1.0); 
-	out_3 = vec4(vec2(currProjPos - prevProjPos), float(id) / 16777216.0f, float(gl_PrimitiveID) / 16777216.0f);
+	out_3 = vec4(vec2(currProjPos - prevProjPos), float(id) / 16777216.0f, float(gl_PrimitiveID + primitiveOffset) / 16777216.0f);
 }

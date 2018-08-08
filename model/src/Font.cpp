@@ -7,9 +7,10 @@
 #include <cassert>
 #include <vector>
 #include "font.h"
+#include "SimpleContext.h"
 #include "TextureBroker.h"
 
-const float ratio = static_cast<float>(screenPixelHeight) / screenPixelWidth;
+const float ratio = static_cast<float>(SimpleContext::screenPixelHeight) / SimpleContext::screenPixelWidth;
 
 
 struct vec2 {

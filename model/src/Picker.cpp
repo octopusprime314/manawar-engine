@@ -61,6 +61,8 @@ void Picker::_mouseClick(int button, int action, int x, int y) {
         unsigned int triangleID = static_cast<unsigned int>(
             pixels[((x * packAlignment) + (y * w * packAlignment)) + 3] * 16777216.0f);
 
+        //std::cout << "Entity ID " << entityID << " Triangle ID " << triangleID << std::endl;
+
         delete[] pixels;
 
         Entity* selectedEntity = nullptr;
@@ -75,13 +77,16 @@ void Picker::_mouseClick(int button, int action, int x, int y) {
                     auto renderBuffers = entity->getRenderBuffers();
                     auto renderBuffer = (*renderBuffers)[entityID - 1];
 
-                    auto textureIndex = (*(*renderBuffers)[entityID - 1].getTextureMapIndices())[triangleID];
+                    auto textureIndex = (*(*renderBuffers)[entityID - 1].getTextureMapIndices())[triangleID * 3];
                     std::string textureName = (*(*renderBuffers)[entityID - 1].getTextureMapNames())[textureIndex];
 
                     auto vertices = renderBuffer.getVertices();
                     Vector4 A = (*vertices)[triangleID * 3];
                     Vector4 B = (*vertices)[(triangleID * 3) + 1];
                     Vector4 C = (*vertices)[(triangleID * 3) + 2];
+                    //A.display();
+                    //B.display();
+                    //C.display();
 
                     if (selectedEntity != nullptr) {
 
@@ -112,6 +117,7 @@ void Picker::_mouseClick(int button, int action, int x, int y) {
                                 int xPosition = static_cast<int>(xCentroid + xOffset) % static_cast<int>(width);
                                 int zPosition = static_cast<int>(zCentroid + zOffset) % static_cast<int>(height);
 
+                                std::cout << xPosition << " " << zPosition << std::endl;
                                 _mouseCallback(A);
 
                                 _alphaMapEditor->editTextureData(xPosition, zPosition, _pixelEditValue);

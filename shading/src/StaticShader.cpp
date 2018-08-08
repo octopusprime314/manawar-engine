@@ -18,16 +18,21 @@ void StaticShader::runShader(Entity* entity) {
     auto model = entity->getModel();
     auto baseID = entity->getID();
     std::vector<VAO*>* vao = entity->getFrustumVAO(); //Special vao call that factors in frustum culling for the scene
-
+    std::map<unsigned int, unsigned int> primitiveOffsetMap;
     for (auto vaoInstance : *vao) {
         glBindVertexArray(vaoInstance->getVAOContext());
         
+        int id = 0;
         auto vaoMappings = entity->getVAOMapping();
         for (auto vaoMap : vaoMappings) {
+            int i = 0;
             for (auto vaoId : vaoMap.second) {
                 if (vaoId->getVAOContext() == vaoInstance->getVAOContext()) {
                     int* vaoId = const_cast<int*>(&vaoMap.first);
-                    int id = baseID + *vaoId;
+                    id = baseID + *vaoId;
+                    if (primitiveOffsetMap.find(id) == primitiveOffsetMap.end()) {
+                        primitiveOffsetMap[id] = 0;
+                    }
                     updateUniform("id", &id);
                 }
             }
@@ -58,6 +63,7 @@ void StaticShader::runShader(Entity* entity) {
         unsigned int strideLocation = 0;
         for (auto textureStride : textureStrides) {
 
+            updateUniform("primitiveOffset", &primitiveOffsetMap[id]);
             //If the texture has layered encoded into the string then it is indeed layered
             if (textureStride.first.substr(0, 7) == "Layered") {
 
@@ -76,6 +82,7 @@ void StaticShader::runShader(Entity* entity) {
                 
                 glDrawArrays(GL_TRIANGLES, strideLocation, (GLsizei)textureStride.second);
                 strideLocation += textureStride.second;
+                primitiveOffsetMap[id] += (textureStride.second / 3);
             }
             else {
                 //If triangle's textures supports transparency then do NOT draw

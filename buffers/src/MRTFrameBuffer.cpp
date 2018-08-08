@@ -1,4 +1,5 @@
 #include "MRTFrameBuffer.h"
+#include "SimpleContext.h"
 
 MRTFrameBuffer::MRTFrameBuffer() {
 
@@ -8,25 +9,25 @@ MRTFrameBuffer::MRTFrameBuffer() {
     //Bind the frame buffer context to complete operations on it
     glBindFramebuffer(GL_FRAMEBUFFER, _frameBufferContext);
 
-    _gBufferTextures.push_back(RenderTexture(screenPixelWidth, screenPixelHeight, TextureFormat::RGBA_UNSIGNED_BYTE));
+    _gBufferTextures.push_back(RenderTexture(SimpleContext::screenPixelWidth, SimpleContext::screenPixelHeight, TextureFormat::RGBA_UNSIGNED_BYTE));
 
     //Finally attach the texture to the previously generated frame buffer
     //the texture will be used in later shader texture sampling
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _gBufferTextures[0].getContext(), 0);
 
-    _gBufferTextures.push_back(RenderTexture(screenPixelWidth, screenPixelHeight, TextureFormat::RGBA_FLOAT));
+    _gBufferTextures.push_back(RenderTexture(SimpleContext::screenPixelWidth, SimpleContext::screenPixelHeight, TextureFormat::RGBA_FLOAT));
 
     //Finally attach the texture to the previously generated frame buffer
     //the texture will be used in later shader texture sampling
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, _gBufferTextures[1].getContext(), 0);
 
-    _gBufferTextures.push_back(RenderTexture(screenPixelWidth, screenPixelHeight, TextureFormat::RGBA_FLOAT));
+    _gBufferTextures.push_back(RenderTexture(SimpleContext::screenPixelWidth, SimpleContext::screenPixelHeight, TextureFormat::RGBA_FLOAT));
 
     //Finally attach the texture to the previously generated frame buffer
     //the texture will be used in later shader texture sampling
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, _gBufferTextures[2].getContext(), 0);
 
-    _gBufferTextures.push_back(RenderTexture(screenPixelWidth, screenPixelHeight, TextureFormat::DEPTH32_FLOAT));
+    _gBufferTextures.push_back(RenderTexture(SimpleContext::screenPixelWidth, SimpleContext::screenPixelHeight, TextureFormat::DEPTH32_FLOAT));
 
     //Finally attach the texture to the previously generated frame buffer
     //the texture will be used in later shader texture sampling

@@ -63,7 +63,6 @@ class SceneManager {
     void _preDraw(); //Prior to drawing objects call this function
     void _postDraw(); //Post of drawing objects call this function
 public:
-    SceneManager(int* argc, char** argv, unsigned int viewportWidth, unsigned int viewportHeight,
-        float nearPlaneDistance, float farPlaneDistance);
+    SceneManager(int* argc, char** argv);
     ~SceneManager();
 };

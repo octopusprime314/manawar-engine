@@ -7,6 +7,8 @@ std::mutex  SimpleContext::_renderLock;
 GLFWwindow* SimpleContext::_window;
 bool        SimpleContext::_quit = false;
 bool        SimpleContext::_gameState = 0;
+int         SimpleContext::screenPixelWidth = 0;
+int         SimpleContext::screenPixelHeight = 0;
 
 std::priority_queue<TimeEvent> SimpleContext::_timeEvents; // Events that trigger at a specific time
 
@@ -17,7 +19,7 @@ uint64_t nowMs() {
     return duration_cast<milliseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
 }
 
-SimpleContext::SimpleContext(int* argc, char** argv, unsigned int viewportWidth, unsigned int viewportHeight) {
+SimpleContext::SimpleContext(int* argc, char** argv) {
 
     char workingDir[1024] = "";
     GetCurrentDirectory(sizeof(workingDir), workingDir);
@@ -36,14 +38,27 @@ SimpleContext::SimpleContext(int* argc, char** argv, unsigned int viewportWidth,
         std::cout << "GLFW " << code << " " << pMsg << std::endl;
     });
 
-    //Create a glfw window for a context and fullscreen it!
-    _window = glfwCreateWindow(viewportWidth, viewportHeight, "ReBoot", glfwGetPrimaryMonitor(), NULL);
+    const GLFWvidmode * mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
+
+    int monitorResoltuionX = mode->width;
+    int monitorResoltuionY = mode->height;
+
+    //WINDOWED MODE
+    _window = glfwCreateWindow(monitorResoltuionX, monitorResoltuionY, "ReBoot", NULL, NULL);
+    //FULLSCREEN MODE
+    //_window = glfwCreateWindow(viewportWidth, viewportHeight, "ReBoot", glfwGetPrimaryMonitor(), NULL);
     if (!_window) {
         // Window or OpenGL context creation failed
         // The error callback above will tell us what happened.
         std::abort();
     }
     glfwMakeContextCurrent(_window); //Make current opengl context current
+
+    int width, height;
+    glfwGetWindowSize(_window, &width, &height);
+
+    SimpleContext::screenPixelWidth = width;
+    SimpleContext::screenPixelHeight = height;
 
     //Callbacks
     glfwSetKeyCallback(_window, &SimpleContext::_keyboardUpdate);

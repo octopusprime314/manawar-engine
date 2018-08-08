@@ -1,6 +1,7 @@
 #include "DirectionalShadow.h"
 #include "ShaderBroker.h"
 #include "Entity.h"
+#include "SimpleContext.h"
 
 static const float SHADOW_RESOLUTION = 20.0; //10 pixels per unit distance of 1
 
@@ -46,5 +47,5 @@ void DirectionalShadow::render(std::vector<Entity*> entityList, Light* light) {
     }
 
     //Bring to original rendering viewport
-    glViewport(0, 0, screenPixelWidth, screenPixelHeight);
+    glViewport(0, 0, SimpleContext::screenPixelWidth, SimpleContext::screenPixelHeight);
 }

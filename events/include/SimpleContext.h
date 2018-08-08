@@ -48,7 +48,7 @@ class SimpleContext {
 
 
 public:
-    SimpleContext(int* argc, char** argv, unsigned int viewportWidth, unsigned int viewportHeight);
+    SimpleContext(int* argc, char** argv);
 
     void                run(); //Function used to run context
 
@@ -59,10 +59,8 @@ public:
     void                subscribeToGameState(std::function<void(int)> func); //Use this call to connect functions up to game state updates
     void                updateGameState(int state); 
   
-    /*enum class GameState {
-        TERMINAL,
-        GRAPHICS
-    };*/
+    static int screenPixelWidth;
+    static int screenPixelHeight;
 
 private:
 

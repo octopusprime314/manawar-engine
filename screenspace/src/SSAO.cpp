@@ -6,12 +6,12 @@
 #include "ShaderBroker.h"
 
 SSAO::SSAO() :
-    _renderTexture(screenPixelWidth, screenPixelHeight, TextureFormat::R_FLOAT),
+    _renderTexture(SimpleContext::screenPixelWidth, SimpleContext::screenPixelHeight, TextureFormat::R_FLOAT),
     _ssaoShader(static_cast<SSAOShader*>(ShaderBroker::instance()->getShader("ssaoShader"))) {
 
-    _blur = new SSCompute("blurShader", screenPixelWidth / 4, screenPixelHeight / 4, TextureFormat::R_FLOAT);
-    _downSample = new SSCompute("downsample", screenPixelWidth / 4, screenPixelHeight / 4, TextureFormat::R_FLOAT);
-    _upSample = new SSCompute("upsample", screenPixelWidth, screenPixelHeight, TextureFormat::R_FLOAT);
+    _blur = new SSCompute("blurShader", SimpleContext::screenPixelWidth / 4, SimpleContext::screenPixelHeight / 4, TextureFormat::R_FLOAT);
+    _downSample = new SSCompute("downsample", SimpleContext::screenPixelWidth / 4, SimpleContext::screenPixelHeight / 4, TextureFormat::R_FLOAT);
+    _upSample = new SSCompute("upsample", SimpleContext::screenPixelWidth, SimpleContext::screenPixelHeight, TextureFormat::R_FLOAT);
 
     glGenFramebuffers(1, &_ssaoFBO);
     glBindFramebuffer(GL_FRAMEBUFFER, _ssaoFBO);

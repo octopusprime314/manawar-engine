@@ -1,19 +1,20 @@
 #include "Bloom.h"
 #include "SSCompute.h"
 #include "GLIncludes.h"
+#include "SimpleContext.h"
 #include "Texture.h"
 
 Bloom::Bloom() {
 
-    _luminanceFilter = new SSCompute("highLuminanceFilter", screenPixelWidth, screenPixelHeight, TextureFormat::RGBA_UNSIGNED_BYTE);
-    _horizontalBlur = new SSCompute("blurHorizontalShaderRGB", screenPixelWidth / 4, screenPixelHeight / 4, TextureFormat::RGBA_UNSIGNED_BYTE);
-    _verticalBlur = new SSCompute("blurVerticalShaderRGB", screenPixelWidth / 4, screenPixelHeight / 4, TextureFormat::RGBA_UNSIGNED_BYTE);
+    _luminanceFilter = new SSCompute("highLuminanceFilter", SimpleContext::screenPixelWidth, SimpleContext::screenPixelHeight, TextureFormat::RGBA_UNSIGNED_BYTE);
+    _horizontalBlur = new SSCompute("blurHorizontalShaderRGB", SimpleContext::screenPixelWidth / 4, SimpleContext::screenPixelHeight / 4, TextureFormat::RGBA_UNSIGNED_BYTE);
+    _verticalBlur = new SSCompute("blurVerticalShaderRGB", SimpleContext::screenPixelWidth / 4, SimpleContext::screenPixelHeight / 4, TextureFormat::RGBA_UNSIGNED_BYTE);
     
     //downsampling shader
-    _downSample = new SSCompute("downsampleRGB", screenPixelWidth / 4, screenPixelHeight / 4, TextureFormat::RGBA_UNSIGNED_BYTE);
+    _downSample = new SSCompute("downsampleRGB", SimpleContext::screenPixelWidth / 4, SimpleContext::screenPixelHeight / 4, TextureFormat::RGBA_UNSIGNED_BYTE);
 
     //upsampling shader
-    _upSample = new SSCompute("upsampleRGB", screenPixelWidth, screenPixelHeight, TextureFormat::RGBA_UNSIGNED_BYTE);
+    _upSample = new SSCompute("upsampleRGB", SimpleContext::screenPixelWidth, SimpleContext::screenPixelHeight, TextureFormat::RGBA_UNSIGNED_BYTE);
 }
 
 Bloom::~Bloom() {

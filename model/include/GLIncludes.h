@@ -26,8 +26,6 @@
 #include <string>
 #include <cassert>
 
-static int screenPixelWidth = 1920;
-static int screenPixelHeight = 1080;
 
 enum class GeometryConstruction {
     LINE_WIREFRAME,

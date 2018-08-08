@@ -24,8 +24,8 @@ ViewManager::ViewManager(int* argc, char** argv, unsigned int viewportWidth, uns
 
     _thirdPersonTranslation = Matrix::cameraTranslation(0, 5, 10);
 
-    _prevMouseX = screenPixelWidth / 2;
-    _prevMouseY = screenPixelHeight / 2;
+    _prevMouseX = SimpleContext::screenPixelWidth / 2;
+    _prevMouseY = SimpleContext::screenPixelHeight / 2;
     _gameState = 0;
 
     //Used for god mode

@@ -34,23 +34,21 @@ uint64_t nowMs();
 // We define this here because this file is basically main.
 volatile bool g_AssertOnBadOpenGlCall = false;
 
-SceneManager::SceneManager(int* argc, char** argv,
-    unsigned int viewportWidth, unsigned int viewportHeight,
-    float nearPlaneDistance, float farPlaneDistance) {
+SceneManager::SceneManager(int* argc, char** argv) {
 
     //Create instance of glfw wrapper class context
     //GLFW context can only run on main thread!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     //DO NOT THREAD GLFW CALLS
-    _glfwContext = new SimpleContext(argc, argv, viewportWidth, viewportHeight);
+    _glfwContext = new SimpleContext(argc, argv);
 
     //Load and compile all shaders for the shader broker
     ShaderBroker::instance()->compileShaders();
 
-    _viewManager = new ViewManager(argc, argv, viewportWidth, viewportHeight);
+    _viewManager = new ViewManager(argc, argv, SimpleContext::screenPixelWidth, SimpleContext::screenPixelHeight);
     
     ModelBroker::setViewManager(_viewManager); //Set the reference to the view model event interface
 
-    _viewManager->setProjection(viewportWidth, viewportHeight, nearPlaneDistance, farPlaneDistance); //Initializes projection matrix and broadcasts upate to all listeners
+    _viewManager->setProjection(SimpleContext::screenPixelWidth, SimpleContext::screenPixelHeight, 0.1f, 5000.0f); //Initializes projection matrix and broadcasts upate to all listeners
      // This view is carefully chosen to look at a mountain without showing the (lack of) water in the scene.
     _viewManager->setView(Matrix::cameraTranslation(0.0f, 0.0f, 0.0f),
         Matrix::cameraRotationAroundY(0.0f),
@@ -92,7 +90,7 @@ SceneManager::SceneManager(int* argc, char** argv,
     _deferredFBO = new DeferredFrameBuffer();
     glCheck();
 
-    _add = new SSCompute("add", screenPixelWidth, screenPixelHeight, TextureFormat::RGBA_UNSIGNED_BYTE);
+    _add = new SSCompute("add", SimpleContext::screenPixelWidth, SimpleContext::screenPixelHeight, TextureFormat::RGBA_UNSIGNED_BYTE);
 
     //Setup pre and post draw callback events received when a draw call is issued
     SimpleContextEvents::setPreDrawCallback(std::bind(&SceneManager::_preDraw, this));

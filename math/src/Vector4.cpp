@@ -125,7 +125,7 @@ void Vector4::normalize() {
 
 //Prints out the result in row major
 void Vector4::display() {
-    std::cout << setprecision(2) << std::setw(6) << _vec[0] << " " << std::setw(6) << _vec[1]
+    std::cout << setprecision(6) << std::setw(6) << _vec[0] << " " << std::setw(6) << _vec[1]
         << " " << std::setw(6) << _vec[2] << " " << std::setw(6) << _vec[3] << " " << std::endl;
 }
 

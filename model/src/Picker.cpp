@@ -67,7 +67,7 @@ void Picker::_mouseClick(int button, int action, int x, int y) {
 
         Entity* selectedEntity = nullptr;
         for (auto entity : _entityList) {
-            if (entity->isID(entityID) && entityID > 0) {
+            if (entity->isID(entityID)) {
                 entity->setSelected(true);
                 if (entity->getRenderBuffers()->size() > 0) {
 
@@ -75,18 +75,19 @@ void Picker::_mouseClick(int button, int action, int x, int y) {
 
                     //used to retrieve triangle in entity
                     auto renderBuffers = entity->getRenderBuffers();
-                    auto renderBuffer = (*renderBuffers)[entityID - 1];
 
-                    auto textureIndex = (*(*renderBuffers)[entityID - 1].getTextureMapIndices())[triangleID * 3];
-                    std::string textureName = (*(*renderBuffers)[entityID - 1].getTextureMapNames())[textureIndex];
+                    auto renderBuffer = (*renderBuffers)[0];
+                    auto textureIndex = (*renderBuffer.getTextureMapIndices())[triangleID * 3];
+                    std::string textureName = (*renderBuffer.getTextureMapNames())[textureIndex];
+                    std::cout << textureName << std::endl;
 
                     auto vertices = renderBuffer.getVertices();
                     Vector4 A = (*vertices)[triangleID * 3];
                     Vector4 B = (*vertices)[(triangleID * 3) + 1];
                     Vector4 C = (*vertices)[(triangleID * 3) + 2];
-                    //A.display();
-                    //B.display();
-                    //C.display();
+                    A.display();
+                    B.display();
+                    C.display();
 
                     if (selectedEntity != nullptr) {
 
@@ -118,6 +119,7 @@ void Picker::_mouseClick(int button, int action, int x, int y) {
                                 int zPosition = static_cast<int>(zCentroid + zOffset) % static_cast<int>(height);
 
                                 std::cout << xPosition << " " << zPosition << std::endl;
+                                A.getFlatBuffer()[3] = 0.125; //scale the models down a tad lol
                                 _mouseCallback(A);
 
                                 _alphaMapEditor->editTextureData(xPosition, zPosition, _pixelEditValue);

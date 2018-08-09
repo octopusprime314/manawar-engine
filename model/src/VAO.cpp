@@ -76,7 +76,6 @@ void VAO::createVAO(std::vector<Cube>* cubes, GeometryConstruction geometryType)
     delete[] flattenVerts;
 }
 
-
 void VAO::createVAO(std::vector<Triangle>* triangles) {
     
     float* flattenVerts = GeometryBuilder::buildTriangles(triangles, _vertexLength);
@@ -439,6 +438,14 @@ void VAO::createVAO(RenderBuffers* renderBuffers, ModelClass classId, Animation*
     delete[] flattenNorms;
     delete[] flattenTextures;
 
+}
+
+void VAO::setPrimitiveOffsetId(unsigned int id) {
+    _primitiveOffsetId = id;
+}
+
+unsigned int VAO::setPrimitiveOffsetId() {
+    return _primitiveOffsetId;
 }
 
 void VAO::createVAO(RenderBuffers* renderBuffers, int begin, int range) {

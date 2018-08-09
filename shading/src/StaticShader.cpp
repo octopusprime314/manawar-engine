@@ -18,26 +18,13 @@ void StaticShader::runShader(Entity* entity) {
     auto model = entity->getModel();
     auto baseID = entity->getID();
     std::vector<VAO*>* vao = entity->getFrustumVAO(); //Special vao call that factors in frustum culling for the scene
-    std::map<unsigned int, unsigned int> primitiveOffsetMap;
+    //std::map<unsigned int, unsigned int> primitiveOffsetMap;
     for (auto vaoInstance : *vao) {
         glBindVertexArray(vaoInstance->getVAOContext());
         
-        int id = 0;
-        auto vaoMappings = entity->getVAOMapping();
-        for (auto vaoMap : vaoMappings) {
-            int i = 0;
-            for (auto vaoId : vaoMap.second) {
-                if (vaoId->getVAOContext() == vaoInstance->getVAOContext()) {
-                    int* vaoId = const_cast<int*>(&vaoMap.first);
-                    id = baseID + *vaoId;
-                    if (primitiveOffsetMap.find(id) == primitiveOffsetMap.end()) {
-                        primitiveOffsetMap[id] = 0;
-                    }
-                    updateUniform("id", &id);
-                }
-            }
-        }
-
+        unsigned int id = entity->getID();
+        unsigned int primitiveOffsetId = vaoInstance->setPrimitiveOffsetId();
+       
         MVP* mvp = entity->getMVP();
         //glUniform mat4 combined model and world matrix, GL_TRUE is telling GL we are passing in the matrix as row major
         updateUniform("model", mvp->getModelBuffer());
@@ -63,7 +50,7 @@ void StaticShader::runShader(Entity* entity) {
         unsigned int strideLocation = 0;
         for (auto textureStride : textureStrides) {
 
-            updateUniform("primitiveOffset", &primitiveOffsetMap[id]);
+            updateUniform("primitiveOffset", &primitiveOffsetId);
             //If the texture has layered encoded into the string then it is indeed layered
             if (textureStride.first.substr(0, 7) == "Layered") {
 
@@ -82,7 +69,7 @@ void StaticShader::runShader(Entity* entity) {
                 
                 glDrawArrays(GL_TRIANGLES, strideLocation, (GLsizei)textureStride.second);
                 strideLocation += textureStride.second;
-                primitiveOffsetMap[id] += (textureStride.second / 3);
+                primitiveOffsetId += (textureStride.second / 3);
             }
             else {
                 //If triangle's textures supports transparency then do NOT draw

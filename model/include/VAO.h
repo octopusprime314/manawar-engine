@@ -47,6 +47,7 @@ class VAO {
     GLuint  _vertexLength;
     GLuint  _vertexCount;
     TextureMetaData _textureStride;
+    unsigned int _primitiveOffsetId;
 public:
     VAO();
     ~VAO();
@@ -63,6 +64,8 @@ public:
     void    setTextureContext(GLuint context);
     void    setNormalDebugContext(GLuint context);
     void    addTextureStride(std::pair<std::string, int> stride);
+    void    setPrimitiveOffsetId(unsigned int id);
+    unsigned int setPrimitiveOffsetId();
     void    createVAO(RenderBuffers* renderBuffers, ModelClass classId, Animation* = nullptr);
     void    createVAO(RenderBuffers* renderBuffers, int begin, int range); //special for frustum viewing
     void    createVAO(std::vector<Sphere>* spheres, GeometryConstruction geometryType);

@@ -13,6 +13,8 @@ FbxLoader::FbxLoader(std::string name) {
     _fbxManager = FbxManager::Create();
     _fileName = name;
     _strideIndex = 0;
+    _copiedOverFlag = false;
+    _strideIndex = 0;
     if (_fbxManager == nullptr) {
         printf("ERROR %s : %d failed creating FBX Manager!\n", __FILE__, __LINE__);
     }
@@ -181,6 +183,8 @@ void FbxLoader::addToScene(Model* modelAddedTo, FbxLoader* modelToLoad, Vector4 
     _cloneFbxNode(modelAddedTo, modelToLoad->getScene()->GetRootNode(), location);
 
     modelAddedTo->getVAO()->push_back(new VAO());
+    //Stride index needs to be reset when adding new models to the scene
+    _strideIndex = 0;
     loadModel(modelAddedTo, _export.scene->GetRootNode());
     modelAddedTo->addVAO(ModelClass::ModelType);
 }
@@ -809,7 +813,7 @@ void FbxLoader::_buildTriangles(Model* model, std::vector<Vector4>& vertices, st
             renderBuffers->addTextureMapName(stride.first);
             int textureIndex = renderBuffers->getTextureMapIndex(stride.first);
             for (int j = 0; j < stride.second; j++) {
-                flattenStrides.push_back(textureIndex);
+                flattenStrides.push_back(textureIndex/* + _strideIndex*/);
             }
         }
         i++;

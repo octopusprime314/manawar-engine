@@ -182,10 +182,6 @@ void Entity::_generateVAOTiles() {
                 renderBuff.addTexture((*textures)[triangle.first + 1]);
                 renderBuff.addTexture((*textures)[triangle.first + 2]);
 
-                /*renderBuff.addTextureMapName((*textureMapNames)[(*textureMapIndices)[triangle.first]]);
-                renderBuff.addTextureMapName((*textureMapNames)[(*textureMapIndices)[triangle.first + 1]]);
-                renderBuff.addTextureMapName((*textureMapNames)[(*textureMapIndices)[triangle.first + 2]]);*/
-
                 int index1 = renderBuff.getTextureMapIndex((*textureMapNames)[(*textureMapIndices)[triangle.first]]);
                 int index2 = renderBuff.getTextureMapIndex((*textureMapNames)[(*textureMapIndices)[triangle.first + 1]]);
                 int index3 = renderBuff.getTextureMapIndex((*textureMapNames)[(*textureMapIndices)[triangle.first + 2]]);
@@ -203,10 +199,6 @@ void Entity::_generateVAOTiles() {
                 globalRenderBuffer.addTexture((*textures)[triangle.first]);
                 globalRenderBuffer.addTexture((*textures)[triangle.first + 1]);
                 globalRenderBuffer.addTexture((*textures)[triangle.first + 2]);
-
-                /*globalRenderBuffer.addTextureMapName((*textureMapNames)[(*textureMapIndices)[triangle.first]]);
-                globalRenderBuffer.addTextureMapName((*textureMapNames)[(*textureMapIndices)[triangle.first + 1]]);
-                globalRenderBuffer.addTextureMapName((*textureMapNames)[(*textureMapIndices)[triangle.first + 2]]);*/
 
                 int globalIndex1 = globalRenderBuffer.getTextureMapIndex((*textureMapNames)[(*textureMapIndices)[triangle.first]]);
                 int globalIndex2 = globalRenderBuffer.getTextureMapIndex((*textureMapNames)[(*textureMapIndices)[triangle.first + 1]]);

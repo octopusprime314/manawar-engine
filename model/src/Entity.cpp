@@ -261,6 +261,9 @@ void Entity::_generateVAOTiles() {
     }
 
     _frustumRenderBuffers->push_back(globalRenderBuffer);
+
+    //remove all vao helper info
+    _model->getVAO()->clear();
 }
 
 std::vector<RenderBuffers>* Entity::getRenderBuffers() {

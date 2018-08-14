@@ -24,6 +24,7 @@
 #include "fbxsdk.h"
 #include <vector>
 #include "Tex2.h"
+#include <map>
 
 class Model;
 class AnimatedModel;
@@ -45,6 +46,7 @@ class FbxLoader {
     FbxExporterType _export;
     std::string    _fileName;
     int            _strideIndex;
+    bool           _firstClone;
     bool           _copiedOverFlag; //indicates the scene has been cloned over to export fbx to prevent doing it again!
     void           _loadTextures(Model* model, FbxMesh* meshNode, FbxNode* childNode);
     void           _buildTriangles(Model* model, std::vector<Vector4>& vertices, std::vector<Vector4>& normals,
@@ -62,6 +64,7 @@ class FbxLoader {
     void           _loadIndices(Model* model, FbxMesh* meshNode, int*& indices);
     void           _cloneFbxNode(Model* modelAddedTo, FbxNode* node, Vector4 location);
     int            _getASCIIFormatIndex(FbxManager* fbxManager);
+    std::map<std::string, FbxNode*> _clonedNodes;
 
 public:
     FbxLoader(std::string name);

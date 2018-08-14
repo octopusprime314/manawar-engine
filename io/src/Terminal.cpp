@@ -73,11 +73,6 @@ void Terminal::display() {
             _commandToProcess = _commandToProcess.substr(_commandToProcess.find(' ') + 1);
             std::string modelToAdd = _commandToProcess.substr(0, _commandToProcess.find(' '));
             modelToAdd.pop_back();
-            /*_modelManager->addModel(modelName, modelToAdd, Vector4(
-                static_cast<float>(atof(xStr.c_str())),
-                static_cast<float>(atof(yStr.c_str())),
-                static_cast<float>(atof(zStr.c_str())),
-                static_cast<float>(atof(scale.c_str()))));*/
         }
         else if (command == "SAVE") {
             _commandToProcess = _commandToProcess.substr(_commandToProcess.find(' ') + 1);

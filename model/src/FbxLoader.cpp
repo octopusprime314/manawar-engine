@@ -15,6 +15,7 @@ FbxLoader::FbxLoader(std::string name) {
     _strideIndex = 0;
     _copiedOverFlag = false;
     _strideIndex = 0;
+    _firstClone = false;
     if (_fbxManager == nullptr) {
         printf("ERROR %s : %d failed creating FBX Manager!\n", __FILE__, __LINE__);
     }
@@ -135,15 +136,17 @@ void FbxLoader::saveScene() {
     if (!_copiedOverFlag) {
         // Obtain the root node of a scene.
         FbxNode* sceneNode = _scene->GetRootNode();
+        FbxCloneManager::Clone(sceneNode, _export.scene->GetRootNode());
 
-        // Determine the number of children there are
-        int numChildren = sceneNode->GetChildCount();
+        //// Determine the number of children there are
+        //int numChildren = sceneNode->GetChildCount();
 
-        FbxNode* childNode = nullptr;
-        for (int i = 0; i < numChildren; i++) {
-            childNode = sceneNode->GetChild(i);
-            FbxCloneManager::Clone(childNode, _export.scene->GetRootNode());
-        }
+        //FbxNode* childNode = nullptr;
+        //for (int i = 0; i < numChildren; i++) {
+        //    childNode = sceneNode->GetChild(i);
+        //    std::cout << childNode->GetName() << std::endl;
+        //    FbxCloneManager::Clone(childNode, _export.scene->GetRootNode());
+        //}
         _copiedOverFlag = true; //no more copying of original scene
     }
 
@@ -161,6 +164,7 @@ void FbxLoader::_cloneFbxNode(Model* modelAddedTo, FbxNode* node, Vector4 locati
    
     // Determine the number of children there are
     int numChildren = node->GetChildCount();
+    auto rootNode  = _export.scene->GetRootNode();
 
     FbxNode* childNode = nullptr;
     for (int i = 0; i < numChildren; i++) {
@@ -170,6 +174,7 @@ void FbxLoader::_cloneFbxNode(Model* modelAddedTo, FbxNode* node, Vector4 locati
         childNode->LclTranslation.Set(FbxDouble3(location.getx(), location.gety(), location.getz()));
         
         FbxCloneManager::Clone(childNode, _export.scene->GetRootNode());
+        _clonedNodes[childNode->GetName()] = rootNode->GetChild(rootNode->GetChildCount() - 1);
     }
 }
 
@@ -180,11 +185,45 @@ void FbxLoader::addToScene(Model* modelAddedTo, FbxLoader* modelToLoad, Vector4 
     modelAddedTo->getRenderBuffers()->getTextures()->resize(0);
     modelAddedTo->getRenderBuffers()->getIndices()->resize(0);
 
-    _cloneFbxNode(modelAddedTo, modelToLoad->getScene()->GetRootNode(), location);
+    //_cloneFbxNode(modelAddedTo, modelToLoad->getScene()->GetRootNode(), location);
 
     modelAddedTo->getVAO()->push_back(new VAO());
     //Stride index needs to be reset when adding new models to the scene
     _strideIndex = 0;
+
+    if (!_firstClone) {
+        _cloneFbxNode(modelAddedTo, modelToLoad->getScene()->GetRootNode(), location);
+        _firstClone = true;
+    }
+    //instance off of cloned mesh
+    else {
+        // Determine the number of children there are
+        int numChildren = _clonedNodes.size();
+        auto rootNode = modelToLoad->getScene()->GetRootNode();
+        FbxNode* childNode = nullptr;
+        for (int i = 0; i < numChildren; i++) {
+            childNode = _clonedNodes[rootNode->GetChild(i)->GetName()];
+
+            FbxMesh* mesh = childNode->GetMesh();
+            if (mesh != nullptr) {
+                FbxNode* lNode = FbxNode::Create(_export.scene, mesh->GetName());
+                lNode->SetNodeAttribute(mesh);
+                lNode->LclScaling.Set(FbxDouble3(location.getw(), location.getw(), location.getw()));
+                lNode->LclTranslation.Set(FbxDouble3(location.getx(), location.gety(), location.getz()));
+                lNode->LclRotation.Set(childNode->LclRotation.Get());
+
+                int materialCount = childNode->GetSrcObjectCount<FbxSurfaceMaterial>();
+
+                for (int i = 0; i < materialCount; i++) {
+                    FbxSurfaceMaterial* material = (FbxSurfaceMaterial*)childNode->GetSrcObject<FbxSurfaceMaterial>(i);
+                    lNode->AddMaterial(material);
+                }
+                // Add node to the scene
+                _export.scene->GetRootNode()->AddChild(lNode);
+            }
+        }
+    }
+
     loadModel(modelAddedTo, _export.scene->GetRootNode());
     modelAddedTo->addVAO(ModelClass::ModelType);
 }
@@ -813,10 +852,18 @@ void FbxLoader::_buildTriangles(Model* model, std::vector<Vector4>& vertices, st
             renderBuffers->addTextureMapName(stride.first);
             int textureIndex = renderBuffers->getTextureMapIndex(stride.first);
             for (int j = 0; j < stride.second; j++) {
-                flattenStrides.push_back(textureIndex/* + _strideIndex*/);
+                flattenStrides.push_back(textureIndex);
             }
         }
         i++;
+    }
+
+    if (i == _strideIndex) {
+        int strideCount = 0;
+        for (auto stride : strides) {
+            strideCount += stride.second;
+        }
+        flattenStrides.resize(strideCount);
     }
     _strideIndex = static_cast<int>(strides.size());
 

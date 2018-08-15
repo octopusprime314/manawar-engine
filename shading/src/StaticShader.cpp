@@ -18,7 +18,6 @@ void StaticShader::runShader(Entity* entity) {
     auto model = entity->getModel();
     auto baseID = entity->getID();
     std::vector<VAO*>* vao = entity->getFrustumVAO(); //Special vao call that factors in frustum culling for the scene
-    //std::map<unsigned int, unsigned int> primitiveOffsetMap;
     for (auto vaoInstance : *vao) {
         glBindVertexArray(vaoInstance->getVAOContext());
         

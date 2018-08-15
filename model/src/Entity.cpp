@@ -262,8 +262,6 @@ void Entity::_generateVAOTiles() {
 
     _frustumRenderBuffers->push_back(globalRenderBuffer);
 
-    //remove all vao helper info
-    _model->getVAO()->clear();
 }
 
 std::vector<RenderBuffers>* Entity::getRenderBuffers() {
@@ -290,8 +288,13 @@ std::vector<VAO*>* Entity::getFrustumVAO() {
             }
         }
         auto addedVAOs = _model->getVAO();
+        //Do not add the original non frustum culled vao that needs to be used for shadows only
+        int i = 0;
         for (auto vaoIndex : *addedVAOs) {
-            _frustumVAOs.push_back(vaoIndex);
+            if (i != 0) {
+                _frustumVAOs.push_back(vaoIndex);
+            }
+            i++;
         }
 
         return &_frustumVAOs;

@@ -55,6 +55,7 @@ class FbxLoader {
         std::vector<Vector4>& normals, std::vector<Tex2>& textures);
     void           _buildGeometryData(Model* model, std::vector<Vector4>& vertices, std::vector<int>& indices, FbxNode* node);
 
+    void           _nodeExists(FbxNode* node, std::vector<FbxNode*>& nodes);
     void           _generateTextureStrides(FbxMesh* meshNode, std::vector<std::pair<int, int>>& textureStrides);
     bool           _loadTexture(Model* model, int textureStride, FbxFileTexture* textureFbx);
     bool           _loadLayeredTexture(Model* model, int textureStride, FbxLayeredTexture* layered_texture);
@@ -64,7 +65,6 @@ class FbxLoader {
     void           _loadIndices(Model* model, FbxMesh* meshNode, int*& indices);
     void           _cloneFbxNode(Model* modelAddedTo, FbxNode* node, Vector4 location);
     int            _getASCIIFormatIndex(FbxManager* fbxManager);
-    std::map<std::string, FbxNode*> _clonedNodes;
 
 public:
     FbxLoader(std::string name);

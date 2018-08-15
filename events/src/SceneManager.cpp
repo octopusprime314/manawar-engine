@@ -165,7 +165,7 @@ SceneManager::SceneManager(int* argc, char** argv) {
                                     EffectType::Smoke,
                                     Vector4(0.4f, 0.4f, 0.4f, 1.0f)));
 
-    pointLightMVP.setModel(Matrix::translation(0.0f, 0.0f, 0.0f));
+    pointLightMVP.setModel(Matrix::translation(0.0f, 10.0f, 0.0f));
     _lightList.push_back(new Light(_viewManager->getEventWrapper(),
         pointLightMVP,
         LightType::POINT,

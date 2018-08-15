@@ -18,6 +18,9 @@ Model::Model(std::string name, ModelClass classId) :
     //Populate model with fbx file data and recursivelty search with the root node of the scene
     _fbxLoader->loadModel(this, _fbxLoader->getScene()->GetRootNode());
 
+    //Still need to create this vao soley for shadowsq
+    _vao[0]->createVAO(&_renderBuffers, ModelClass::ModelType);
+
     //If class is generic model then deallocate fbx object,
     //otherwise let derived class clean up _fbxLoader object
     //because the derived class may need to access data from it still

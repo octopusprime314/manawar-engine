@@ -79,6 +79,7 @@ public:
     void loadGeometry(Model* model, FbxNode* node);
     void loadGeometryData(Model* model, FbxMesh* meshNode, FbxNode* childNode);
     void addToScene(Model* modelAddedTo, FbxLoader* modelToLoad, Vector4 location);
+    void addTileToScene(Model* modelAddedTo, FbxLoader* modelToLoad, Vector4 location, std::vector<std::string> textures);
     void saveScene();
     void clearScene();
 };

@@ -27,10 +27,12 @@
 class MutableTexture : public Texture{
 
     MutableTexture(); //Make the default constructor private which forces coder to allocate a Texture with a string name
-    void        _createTextureData();
+    void _createTextureData();
+    void _cloneTexture(std::string newName);
 public:
     MutableTexture(std::string textureName); //texture already exists!
+    MutableTexture(std::string originalTexture, std::string clonedTexture);
     MutableTexture(std::string textureName, int width, int height); 
     ~MutableTexture();
-    void editTextureData(int x, int y, Vector4 texturePixel);
+    void editTextureData(int x, int y, Vector4 texturePixel, int radius = 0);
 };

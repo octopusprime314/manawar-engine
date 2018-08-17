@@ -22,7 +22,7 @@ void StaticShader::runShader(Entity* entity) {
         glBindVertexArray(vaoInstance->getVAOContext());
         
         unsigned int id = entity->getID();
-        unsigned int primitiveOffsetId = vaoInstance->setPrimitiveOffsetId();
+        unsigned int primitiveOffsetId = vaoInstance->getPrimitiveOffsetId();
        
         MVP* mvp = entity->getMVP();
         //glUniform mat4 combined model and world matrix, GL_TRUE is telling GL we are passing in the matrix as row major

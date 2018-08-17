@@ -29,6 +29,14 @@ std::string ModelBroker::_strToUpper(std::string s) {
     return s;
 }
 
+//helper function to capitalize everything
+std::string ModelBroker::_strToLower(std::string s) {
+    std::transform(s.begin(), s.end(), s.begin(),
+        [](unsigned char c) { return std::tolower(c); } // correct
+    );
+    return s;
+}
+
 void ModelBroker::setViewManager(ViewManager* viewManager) {
     _viewManager = viewManager;
 }
@@ -72,6 +80,29 @@ void ModelBroker::addModel(std::string modelName, std::string modelToAdd, Vector
         FbxLoader* modelToAdd = _models[upperCaseMapNameToAdd]->getFbxLoader();
         FbxLoader* modelAddedTo = _models[upperCaseMapName]->getFbxLoader();
         modelAddedTo->addToScene(_models[upperCaseMapName], modelToAdd, location);
+    }
+    else {
+        std::cout << "Model doesn't exist so add it!" << std::endl;
+    }
+}
+
+void ModelBroker::addTileModel(std::string modelName, 
+    std::string modelToAdd, 
+    Vector4 location, 
+    std::vector<std::string> textures) {
+
+    std::string upperCaseMapName = _strToUpper(modelName + "/" + modelName + ".fbx");
+    std::string upperCaseMapNameToAdd = _strToUpper(modelToAdd + "/" + modelToAdd + ".fbx");
+
+    if (_models.find(upperCaseMapName) != _models.end() &&
+        _models.find(upperCaseMapNameToAdd) != _models.end()) {
+
+        FbxLoader* modelToAdd = _models[upperCaseMapNameToAdd]->getFbxLoader();
+        FbxLoader* modelAddedTo = _models[upperCaseMapName]->getFbxLoader();
+        for (auto& texture : textures) {
+            texture = _strToLower(texture);
+        }
+        modelAddedTo->addTileToScene(_models[upperCaseMapName], modelToAdd, location, textures);
     }
     else {
         std::cout << "Model doesn't exist so add it!" << std::endl;

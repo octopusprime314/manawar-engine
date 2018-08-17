@@ -29,10 +29,13 @@ class Picker {
 
     MRTFrameBuffer*      _mrt;
     void                 _mouseClick(int button, int action, int x, int y);
+    void                 _keyboardPress(int key, int x, int y);
+
     std::vector<Entity*> _entityList;
     MutableTexture*      _alphaMapEditor;
     int                  _textureSelection;
     Vector4              _pixelEditValue;
+    int                  _pickingRadius;
     std::function<void(Vector4)> _mouseCallback;
 public:
     Picker(MRTFrameBuffer* mrt, std::function<void(Vector4)> terminalCallback);

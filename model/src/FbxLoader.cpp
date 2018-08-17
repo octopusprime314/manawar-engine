@@ -8,6 +8,7 @@
 #include <limits>
 #include "RenderBuffers.h"
 #include "ModelBroker.h"
+#include "MutableTexture.h"
 
 FbxLoader::FbxLoader(std::string name) {
     _fbxManager = FbxManager::Create();
@@ -226,9 +227,9 @@ void FbxLoader::addToScene(Model* modelAddedTo, FbxLoader* modelToLoad, Vector4 
     //instance off of cloned mesh
     else {
         // Determine the number of children there are
-        int numChildren = copiedNodes.size();
+        auto numChildren = copiedNodes.size();
         FbxNode* childNode = nullptr;
-        for (int i = 0; i < numChildren; i++) {
+        for (auto i = 0; i < numChildren; i++) {
             childNode = copiedNodes[i];
 
             FbxMesh* mesh = childNode->GetMesh();
@@ -246,6 +247,114 @@ void FbxLoader::addToScene(Model* modelAddedTo, FbxLoader* modelToLoad, Vector4 
                 for (int i = 0; i < materialCount; i++) {
                     FbxSurfaceMaterial* material = (FbxSurfaceMaterial*)childNode->GetSrcObject<FbxSurfaceMaterial>(i);
                     lNode->AddMaterial(material);
+                }
+                // Add node to the scene
+                _export.scene->GetRootNode()->AddChild(lNode);
+            }
+        }
+    }
+
+    loadModel(modelAddedTo, _export.scene->GetRootNode());
+    modelAddedTo->addVAO(ModelClass::ModelType);
+}
+
+void FbxLoader::addTileToScene(Model* modelAddedTo, FbxLoader* modelToLoad, Vector4 location, std::vector<std::string> textures) {
+
+    modelAddedTo->getRenderBuffers()->getVertices()->resize(0);
+    modelAddedTo->getRenderBuffers()->getNormals()->resize(0);
+    modelAddedTo->getRenderBuffers()->getTextures()->resize(0);
+    modelAddedTo->getRenderBuffers()->getIndices()->resize(0);
+
+    modelAddedTo->getVAO()->push_back(new VAO());
+    //Stride index needs to be reset when adding new models to the scene
+    _strideIndex = 0;
+
+    std::vector<FbxNode*> copiedNodes;
+    _nodeExists(modelToLoad->getScene()->GetRootNode(), copiedNodes);
+    if (copiedNodes.size() == 0) {
+        _cloneFbxNode(modelAddedTo, modelToLoad->getScene()->GetRootNode(), location);
+        _firstClone = true;
+    }
+    //instance off of cloned mesh
+    else {
+        // Determine the number of children there are
+        auto numChildren = copiedNodes.size();
+        FbxNode* childNode = nullptr;
+        for (auto i = 0; i < numChildren; i++) {
+            childNode = copiedNodes[i];
+
+            FbxMesh* mesh = childNode->GetMesh();
+            if (mesh != nullptr) {
+                FbxNode* lNode = FbxNode::Create(_export.scene,
+                    (std::string(childNode->GetName()) +
+                        "_instance" + std::to_string(_export.scene->GetRootNode()->GetChildCount())).c_str());
+                lNode->SetNodeAttribute(mesh);
+                lNode->LclScaling.Set(FbxDouble3(location.getw(), location.getw(), location.getw()));
+                lNode->LclTranslation.Set(FbxDouble3(location.getx(), location.gety(), location.getz()));
+                lNode->LclRotation.Set(childNode->LclRotation.Get());
+
+                int materialCount = childNode->GetSrcObjectCount<FbxSurfaceMaterial>();
+
+                for (int i = 0; i < materialCount; i++) {
+
+                    FbxSurfaceMaterial* childMaterial = (FbxSurfaceMaterial*)childNode->GetSrcObject<FbxSurfaceMaterial>(i);
+
+                    FbxCloneManager::Clone(childMaterial, lNode);
+
+                    FbxSurfaceMaterial* material = (FbxSurfaceMaterial*)lNode->GetSrcObject<FbxSurfaceMaterial>(i);
+
+                    // This only gets the material of type sDiffuse,
+                    // you probably need to traverse all Standard Material Property by its name to get all possible textures.
+                    FbxProperty propDiffuse = material->FindProperty(FbxSurfaceMaterial::sDiffuse);
+
+                    // Check if it's layeredtextures
+                    int layeredTextureCount = propDiffuse.GetSrcObjectCount<FbxLayeredTexture>();
+
+                    if (layeredTextureCount > 0) {
+                        for (int j = 0; j < layeredTextureCount; j++) {
+                            FbxLayeredTexture* layered_texture = FbxCast<FbxLayeredTexture>(propDiffuse.GetSrcObject<FbxLayeredTexture>(j));
+                            if (layered_texture != nullptr) {
+                                
+                                int textureCount = layered_texture->GetSrcObjectCount<FbxTexture>();
+                                for (int textureIndex = 0; textureIndex < textureCount; textureIndex++) {
+
+                                    //Fetch the diffuse texture
+                                    FbxFileTexture* textureFbx = FbxCast<FbxFileTexture >(layered_texture->GetSrcObject<FbxFileTexture >(textureIndex));
+                                    if (textureFbx != nullptr) {
+
+                                        if (std::string(textureFbx->GetFileName()).find("alpha") != std::string::npos) {
+
+                                            std::string alphaMapName = modelAddedTo->getName() + "alphamapclone";
+                                            alphaMapName += std::to_string(static_cast<int>(location.getx())) + "_" +
+                                                std::to_string(static_cast<int>(location.gety())) + "_" +
+                                                std::to_string(static_cast<int>(location.getz()));
+                                            MutableTexture newAlphaMap("alphamap", alphaMapName);
+                                            // Then, you can get all the properties of the texture, including its name
+                                            std::string texture = textureFbx->GetFileName();
+                                            std::string texturePath = TEXTURE_LOCATION;
+                                            //Finds second to last position of string and use that for file access name
+                                            std::string filePrefix = texture.substr(texture.substr(0, texture.find_last_of("/\\")).find_last_of("/\\"));
+                                            filePrefix = filePrefix.substr(0, filePrefix.find_last_of("/\\") + 1);
+                                            textureFbx->SetFileName((TEXTURE_LOCATION + filePrefix + alphaMapName + ".tif").c_str());
+                                        }
+                                        else {
+                                            // Then, you can get all the properties of the texture, including its name
+                                            std::string texture = textureFbx->GetFileName();
+                                            std::string texturePath = TEXTURE_LOCATION;
+                                            //Finds second to last position of string and use that for file access name
+                                            std::string filePrefix = texture.substr(texture.substr(0, texture.find_last_of("/\\")).find_last_of("/\\"));
+                                            filePrefix = filePrefix.substr(0, filePrefix.find_last_of("/\\") + 1);
+                                            textureFbx->SetFileName((TEXTURE_LOCATION + filePrefix + textures[textureIndex]).c_str());
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        lNode->AddMaterial(material);
+                    }
+                    else {
+                        lNode->AddMaterial(material);
+                    }
                 }
                 // Add node to the scene
                 _export.scene->GetRootNode()->AddChild(lNode);

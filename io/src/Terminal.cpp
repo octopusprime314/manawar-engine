@@ -67,6 +67,35 @@ void Terminal::display() {
                 static_cast<float>(atof(zStr.c_str())), 
                 static_cast<float>(atof(scale.c_str()))));
         }
+        else if (command == "ADDTILE") {
+            _commandToProcess = _commandToProcess.substr(_commandToProcess.find(' ') + 1);
+            std::string modelName = _commandToProcess.substr(0, _commandToProcess.find(' '));
+            _commandToProcess = _commandToProcess.substr(_commandToProcess.find(' ') + 1);
+            std::string modelToAdd = _commandToProcess.substr(0, _commandToProcess.find(' '));
+            _commandToProcess = _commandToProcess.substr(_commandToProcess.find(' ') + 1);
+            std::string xStr = _commandToProcess.substr(0, _commandToProcess.find(' '));
+            _commandToProcess = _commandToProcess.substr(_commandToProcess.find(' ') + 1);
+            std::string yStr = _commandToProcess.substr(0, _commandToProcess.find(' '));
+            _commandToProcess = _commandToProcess.substr(_commandToProcess.find(' ') + 1);
+            std::string zStr = _commandToProcess.substr(0, _commandToProcess.find(' '));
+            _commandToProcess = _commandToProcess.substr(_commandToProcess.find(' ') + 1);
+            std::string scale = _commandToProcess.substr(0, _commandToProcess.find(' '));
+            _commandToProcess = _commandToProcess.substr(_commandToProcess.find(' ') + 1);
+            std::string rChannel = _commandToProcess.substr(0, _commandToProcess.find(' '));
+            _commandToProcess = _commandToProcess.substr(_commandToProcess.find(' ') + 1);
+            std::string gChannel = _commandToProcess.substr(0, _commandToProcess.find(' '));
+            _commandToProcess = _commandToProcess.substr(_commandToProcess.find(' ') + 1);
+            std::string bChannel = _commandToProcess.substr(0, _commandToProcess.find(' '));
+            _commandToProcess = _commandToProcess.substr(_commandToProcess.find(' ') + 1);
+            std::string aChannel = _commandToProcess.substr(0, _commandToProcess.find(' '));
+            aChannel.pop_back();
+            _modelManager->addTileModel(modelName, modelToAdd, Vector4(
+                static_cast<float>(atof(xStr.c_str())),
+                static_cast<float>(atof(yStr.c_str())),
+                static_cast<float>(atof(zStr.c_str())),
+                static_cast<float>(atof(scale.c_str()))), 
+                { rChannel, gChannel, bChannel, aChannel });
+        }
         else if (command == "MOUSEADD") {
             _commandToProcess = _commandToProcess.substr(_commandToProcess.find(' ') + 1);
             std::string modelName = _commandToProcess.substr(0, _commandToProcess.find(' '));
@@ -156,7 +185,7 @@ void Terminal::_updateKeyboard(int key, int x, int y) { //Do stuff based on keyb
             }
         }
         else if (key == GLFW_KEY_DOWN) {
-            if (_commandHistoryIndex < _commandHistory.size() - 1) {
+            if (_commandHistory.size() > 0 && _commandHistoryIndex < _commandHistory.size() - 1) {
                 _commandHistoryIndex++;
                 _commandString = _commandHistory[_commandHistoryIndex];
             }

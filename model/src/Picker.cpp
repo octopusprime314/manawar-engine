@@ -4,8 +4,10 @@
 Picker::Picker(MRTFrameBuffer* mrt, std::function<void(Vector4)> terminalCallback) :
     _mrt(mrt),
     _textureSelection(0),
-    _mouseCallback(terminalCallback) {
+    _mouseCallback(terminalCallback),
+    _pickingRadius(0) {
     SimpleContextEvents::subscribeToMouseClick(std::bind(&Picker::_mouseClick, this, _1, _2, _3, _4));
+    SimpleContextEvents::subscribeToKeyboard(std::bind(&Picker::_keyboardPress, this, _1, _2, _3));
 }
 
 Picker::~Picker() {
@@ -14,6 +16,18 @@ Picker::~Picker() {
 
 void Picker::addPickableEntities(std::vector<Entity*> entities) {
     _entityList = entities;
+}
+
+void Picker::_keyboardPress(int key, int x, int y) {
+    
+    if (key == GLFW_KEY_UP) {
+        _pickingRadius++;
+    }
+    else if (key == GLFW_KEY_DOWN) {
+        if (_pickingRadius > 0) {
+            _pickingRadius--;
+        }
+    }
 }
 
 void Picker::_mouseClick(int button, int action, int x, int y) {
@@ -122,7 +136,7 @@ void Picker::_mouseClick(int button, int action, int x, int y) {
                                 A.getFlatBuffer()[3] = 0.125; //scale the models down a tad lol
                                 _mouseCallback(A);
 
-                                _alphaMapEditor->editTextureData(xPosition, zPosition, _pixelEditValue);
+                                _alphaMapEditor->editTextureData(xPosition, zPosition, _pixelEditValue, _pickingRadius);
                             }
                         }
                     }

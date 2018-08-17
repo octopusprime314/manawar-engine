@@ -74,6 +74,7 @@ public:
     void                        addVAO(ModelClass classType);
     FbxLoader*                  getFbxLoader();
     std::vector<std::string>    getTextureNames();
+    std::string                 getName();
     virtual void                updateModel(Model* model);
 
 protected:

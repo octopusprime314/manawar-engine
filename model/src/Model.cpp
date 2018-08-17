@@ -10,7 +10,7 @@ TextureBroker* Model::_textureManager = TextureBroker::instance();
 Model::Model(std::string name, ModelClass classId) :
     _isInstanced(false),
     _classId(classId),
-    _name(name),
+    _name(name.substr(0, name.find_last_of("/") + 1)),
     _fbxLoader(new FbxLoader((classId == ModelClass::ModelType ? 
         STATIC_MESH_LOCATION : ANIMATED_MESH_LOCATION) + name)) {
 
@@ -73,6 +73,10 @@ std::vector<VAO*>* Model::getVAO() {
 
 ModelClass Model::getClassType() {
     return _classId;
+}
+
+std::string Model::getName() {
+    return _name;
 }
 
 size_t Model::getArrayCount() {

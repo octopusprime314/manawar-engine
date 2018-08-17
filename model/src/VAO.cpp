@@ -440,11 +440,11 @@ void VAO::createVAO(RenderBuffers* renderBuffers, ModelClass classId, Animation*
 
 }
 
-void VAO::setPrimitiveOffsetId(unsigned int id) {
+void VAO::setPrimitiveOffsetId(GLuint id) {
     _primitiveOffsetId = id;
 }
 
-unsigned int VAO::setPrimitiveOffsetId() {
+GLuint VAO::getPrimitiveOffsetId() {
     return _primitiveOffsetId;
 }
 

@@ -71,6 +71,7 @@ protected:
     unsigned int                _id; //used to identify entities, used for picking
     bool                        _selected;
     std::vector<RenderBuffers>* _frustumRenderBuffers;
+    int                         _gameState;
 
     void                        _generateVAOTiles();
     void                        _updateKeyboard(int key, int x, int y) {}; //Do stuff based on keyboard upate

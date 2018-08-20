@@ -18,6 +18,8 @@ Model::Model(std::string name, ModelClass classId) :
     //Populate model with fbx file data and recursivelty search with the root node of the scene
     _fbxLoader->loadModel(this, _fbxLoader->getScene()->GetRootNode());
 
+    _vao.back()->setPrimitiveOffsetId(0);
+
     //Still need to create this vao soley for shadowsq
     _vao[0]->createVAO(&_renderBuffers, ModelClass::ModelType);
 
@@ -59,6 +61,7 @@ void Model::runShader(Entity* entity) {
 
 void Model::addVAO(ModelClass classType) {
     _vao[_vao.size() - 1]->createVAO(&_renderBuffers, classType);
+    _vao.back()->setPrimitiveOffsetId(0);
 }
 
 void Model::updateModel(Model* model) {

@@ -12,6 +12,10 @@ Terminal::Terminal(MRTFrameBuffer* gBuffers, std::vector<Entity*> entityList) :
     _gameState(0),
     _commandString("|"),
     _commandHistoryIndex(0) {
+    
+    //Added global history for quick debugging of model creator
+    _commandHistory.push_back("ADDTILE SANDBOX TERRAINTILE 0 0 0 1 GRASS.JPG DIRT.JPG ROCKS.JPG SNOW.JPG|");
+    _commandHistory.push_back("ADD SANDBOX TREE 0 0 0 1|");
 
     _picker = new Picker(gBuffers, std::bind(&Terminal::_mousePosition, this, _1));
     _picker->addPickableEntities(entityList);
@@ -148,6 +152,7 @@ void Terminal::_updateKeyboard(int key, int x, int y) { //Do stuff based on keyb
     if (_gameState == 1 && key == GLFW_KEY_ENTER) {
         _commandToProcess = _commandString;
         _commandHistory.push_back(_commandToProcess);
+        _commandHistoryIndex = _commandHistory.size() - 1;
     }
 
     if (_gameState == 1 &&

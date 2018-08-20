@@ -88,14 +88,13 @@ void Picker::_mouseClick(int button, int action, int x, int y) {
                     selectedEntity = entity;
 
                     //used to retrieve triangle in entity
-                    auto renderBuffers = entity->getRenderBuffers();
+                    auto renderBuffers = entity->getModel()->getRenderBuffers();
 
-                    auto renderBuffer = (*renderBuffers)[0];
-                    auto textureIndex = (*renderBuffer.getTextureMapIndices())[triangleID * 3];
-                    std::string textureName = (*renderBuffer.getTextureMapNames())[textureIndex];
+                    auto textureIndex = (*renderBuffers->getTextureMapIndices())[triangleID * 3];
+                    std::string textureName = (*renderBuffers->getTextureMapNames())[textureIndex];
                     std::cout << textureName << std::endl;
 
-                    auto vertices = renderBuffer.getVertices();
+                    auto vertices = renderBuffers->getVertices();
                     Vector4 A = (*vertices)[triangleID * 3];
                     Vector4 B = (*vertices)[(triangleID * 3) + 1];
                     Vector4 C = (*vertices)[(triangleID * 3) + 2];

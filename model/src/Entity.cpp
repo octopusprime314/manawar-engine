@@ -99,6 +99,7 @@ void Entity::_updateKinematics(int milliSeconds) {
 }
 
 void Entity::_updateGameState(int state) {
+    _gameState = state;
 }
 
 VAOMap Entity::getVAOMapping() {
@@ -280,21 +281,24 @@ std::vector<VAO*>* Entity::getFrustumVAO() {
         }
     }
     else {
-        auto vaoIndexes = _frustumCuller->getVisibleVAOs();
-        _frustumVAOs.clear();
-        for (auto vaoIndex : vaoIndexes) {
-            for (auto vao : _frustumVAOMapping[vaoIndex]) {
-                _frustumVAOs.push_back(vao);
+        if (_gameState == 0) {
+            auto vaoIndexes = _frustumCuller->getVisibleVAOs();
+            _frustumVAOs.clear();
+            for (auto vaoIndex : vaoIndexes) {
+                for (auto vao : _frustumVAOMapping[vaoIndex]) {
+                    _frustumVAOs.push_back(vao);
+                }
             }
         }
-        auto addedVAOs = _model->getVAO();
-        //Do not add the original non frustum culled vao that needs to be used for shadows only
-        int i = 0;
-        for (auto vaoIndex : *addedVAOs) {
-            if (i != 0) {
+        else {
+            _frustumVAOs.clear();
+            auto addedVAOs = _model->getVAO();
+            //Do not add the original non frustum culled vao that needs to be used for shadows only
+            int i = 0;
+            for (auto vaoIndex : *addedVAOs) {
                 _frustumVAOs.push_back(vaoIndex);
+                i++;
             }
-            i++;
         }
 
         return &_frustumVAOs;

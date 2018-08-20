@@ -45,7 +45,6 @@ class VAO {
     GLuint  _indexContext;
     GLuint  _weightContext;
     GLuint  _vertexLength;
-    GLuint  _vertexCount;
     TextureMetaData _textureStride;
     GLuint _primitiveOffsetId;
 public:

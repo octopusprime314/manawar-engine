@@ -10,13 +10,13 @@
 #include "ModelBroker.h"
 #include "MutableTexture.h"
 
-FbxLoader::FbxLoader(std::string name) {
+FbxLoader::FbxLoader(std::string name) : 
+    _fileName(name),
+    _strideIndex(0),
+    _copiedOverFlag(false),
+    _firstClone(false) {
     _fbxManager = FbxManager::Create();
-    _fileName = name;
-    _strideIndex = 0;
-    _copiedOverFlag = false;
-    _strideIndex = 0;
-    _firstClone = false;
+    
     if (_fbxManager == nullptr) {
         printf("ERROR %s : %d failed creating FBX Manager!\n", __FILE__, __LINE__);
     }
@@ -184,6 +184,21 @@ void FbxLoader::_cloneFbxNode(Model* modelAddedTo, FbxNode* node, Vector4 locati
             childToEdit->LclTranslation.Set(FbxDouble3(location.getx(), location.gety(), location.getz()));
         }
     }
+
+    //Remove the root node. is always copied over but is bad for the fbx stability
+    int numCopiedChildren = rootNode->GetChildCount();
+    std::vector<FbxNode*> childrenToRemove;
+    for (int i = 0; i < numCopiedChildren; i++) {
+        childNode = rootNode->GetChild(i);
+        std::cout << childNode->GetName() << std::endl;
+        //Prevent root nodes from being saved!
+        if (std::string(childNode->GetName()).find("RootNode") != std::string::npos) {
+            childrenToRemove.push_back(childNode);
+        }
+    }
+    for (auto node : childrenToRemove) {
+        rootNode->RemoveChild(node);
+    }
 }
 
 void FbxLoader::_nodeExists(FbxNode* node, std::vector<FbxNode*>& nodes) {
@@ -213,8 +228,11 @@ void FbxLoader::addToScene(Model* modelAddedTo, FbxLoader* modelToLoad, Vector4 
     modelAddedTo->getRenderBuffers()->getNormals()->resize(0);
     modelAddedTo->getRenderBuffers()->getTextures()->resize(0);
     modelAddedTo->getRenderBuffers()->getIndices()->resize(0);
+    modelAddedTo->getRenderBuffers()->getTextureMapIndices()->resize(0);
+    modelAddedTo->getRenderBuffers()->getTextureMapNames()->resize(0);
 
-    modelAddedTo->getVAO()->push_back(new VAO());
+    modelAddedTo->getVAO()->back() = new VAO();
+    //modelAddedTo->getVAO()->push_back(new VAO());
     //Stride index needs to be reset when adding new models to the scene
     _strideIndex = 0;
 
@@ -264,8 +282,11 @@ void FbxLoader::addTileToScene(Model* modelAddedTo, FbxLoader* modelToLoad, Vect
     modelAddedTo->getRenderBuffers()->getNormals()->resize(0);
     modelAddedTo->getRenderBuffers()->getTextures()->resize(0);
     modelAddedTo->getRenderBuffers()->getIndices()->resize(0);
+    modelAddedTo->getRenderBuffers()->getTextureMapIndices()->resize(0);
+    modelAddedTo->getRenderBuffers()->getTextureMapNames()->resize(0);
 
-    modelAddedTo->getVAO()->push_back(new VAO());
+    //modelAddedTo->getVAO()->push_back(new VAO());
+    modelAddedTo->getVAO()->back() = new VAO();
     //Stride index needs to be reset when adding new models to the scene
     _strideIndex = 0;
 

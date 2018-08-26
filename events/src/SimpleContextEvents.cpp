@@ -6,7 +6,7 @@ std::vector<std::function<void(int, int, int)>> SimpleContextEvents::_keyboardRe
 std::vector<std::function<void(int, int, int, int)>> SimpleContextEvents::_mouseButtonFuncs;
 std::vector<std::function<void(double, double)>> SimpleContextEvents::_mouseFuncs;
 std::vector<std::function<void()>> SimpleContextEvents::_drawFuncs;
-std::vector<std::function<void(int)>> SimpleContextEvents::_gameStateFuncs;
+std::vector<std::function<void(EngineStateFlags)>> SimpleContextEvents::_gameStateFuncs;
 std::function<void()> SimpleContextEvents::_preDrawCallback;
 std::function<void()> SimpleContextEvents::_postDrawCallback;
 
@@ -22,7 +22,7 @@ void SimpleContextEvents::subscribeToMouse(std::function<void(double, double)> f
 void SimpleContextEvents::subscribeToDraw(std::function<void()> func) { //Use this call to connect functions to draw updates
     _drawFuncs.push_back(func);
 }
-void SimpleContextEvents::subscribeToGameState(std::function<void(int)> func) { //Use this call to connect functions to key updates
+void SimpleContextEvents::subscribeToGameState(std::function<void(EngineStateFlags)> func) { //Use this call to connect functions to key updates
     _gameStateFuncs.push_back(func);
 }
 void SimpleContextEvents::subscribeToMouseClick(std::function<void(int, int, int, int)> func) { //Use this call to connect functions to mouse button updates
@@ -86,7 +86,9 @@ void SimpleContextEvents::updateMouseClick(int button, int action, int x, int y)
     }
 }
 
-void SimpleContextEvents::updateGameState(int state) {
+void SimpleContextEvents::updateGameState(EngineStateFlags state) {
+    //first update static game state
+    EngineState::setEngineState(state);
     for (auto func : _gameStateFuncs) {
         func(state); //Call game state update
     }

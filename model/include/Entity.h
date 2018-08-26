@@ -71,14 +71,14 @@ protected:
     unsigned int                _id; //used to identify entities, used for picking
     bool                        _selected;
     std::vector<RenderBuffers>* _frustumRenderBuffers;
-    int                         _gameState;
+    EngineStateFlags            _gameState;
 
     void                        _generateVAOTiles();
     void                        _updateKeyboard(int key, int x, int y) {}; //Do stuff based on keyboard upate
     void                        _updateReleaseKeyboard(int key, int x, int y) {};
     void                        _updateMouse(double x, double y) {}; //Do stuff based on mouse update
     void                        _updateDraw(); //Do draw stuff
-    void                        _updateGameState(int state);
+    void                        _updateGameState(EngineStateFlags state);
     void                        _updateView(Matrix view); //Get view matrix updates
     void                        _updateProjection(Matrix projection); //Get projection matrix updates
     void                        _updateKinematics(int milliSeconds);

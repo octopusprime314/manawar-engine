@@ -9,13 +9,13 @@ using namespace std::placeholders;
 
 Terminal::Terminal(MRTFrameBuffer* gBuffers, std::vector<Entity*> entityList) :
     _fontRenderer("ubuntu_mono_regular.fnt"),
-    _gameState(0),
+    _gameState(EngineState::getEngineState()),
     _commandString("|"),
     _commandHistoryIndex(0) {
     
     //Added global history for quick debugging of model creator
-    _commandHistory.push_back("ADDTILE SANDBOX TERRAINTILE 0 0 0 1 GRASS.JPG DIRT.JPG ROCKS.JPG SNOW.JPG|");
-    _commandHistory.push_back("ADD SANDBOX TREE 0 0 0 1|");
+    _commandHistory.push_back("ADDTILE SANDBOX TERRAINTILE 0 0 0 1 SNOW.JPG DIRT.JPG ROCKS.JPG GRASS.JPG|");
+    _commandHistory.push_back("MOUSEADD SANDBOX TREE2 0 0 0 1|");
 
     _picker = new Picker(gBuffers, std::bind(&Terminal::_mousePosition, this, _1));
     _picker->addPickableEntities(entityList);
@@ -30,7 +30,7 @@ Terminal::~Terminal() {
 
 void Terminal::display() {
     
-    if (_gameState == 1) {
+    if (_gameState.worldEditorModeEnabled) {
 
         glClear(GL_DEPTH_BUFFER_BIT);
         _fontRenderer.drawFont(0.0f, -1.9f, _commandString, 0);
@@ -139,7 +139,6 @@ void Terminal::_mousePosition(Vector4 position) {
             std::string modelName = commandString.substr(0, commandString.find(' '));
             commandString = commandString.substr(commandString.find(' ') + 1);
             std::string modelToAdd = commandString.substr(0, commandString.find(' '));
-            modelToAdd.pop_back();
 
             _modelManager->addModel(modelName, modelToAdd, position);
         }
@@ -149,13 +148,13 @@ void Terminal::_mousePosition(Vector4 position) {
 void Terminal::_updateKeyboard(int key, int x, int y) { //Do stuff based on keyboard update
 
     //Process command if entered correctly
-    if (_gameState == 1 && key == GLFW_KEY_ENTER) {
+    if (_gameState.worldEditorModeEnabled && key == GLFW_KEY_ENTER) {
         _commandToProcess = _commandString;
         _commandHistory.push_back(_commandToProcess);
         _commandHistoryIndex = _commandHistory.size() - 1;
     }
 
-    if (_gameState == 1 &&
+    if (_gameState.worldEditorModeEnabled &&
         key != GLFW_KEY_GRAVE_ACCENT &&
         key != GLFW_KEY_ENTER) {
 
@@ -208,7 +207,7 @@ void Terminal::_updateKeyboard(int key, int x, int y) { //Do stuff based on keyb
     }
 }
 
-void Terminal::_updateGameState(int state) {
+void Terminal::_updateGameState(EngineStateFlags state) {
     _gameState = state;
 }
 

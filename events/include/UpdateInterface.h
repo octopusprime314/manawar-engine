@@ -24,6 +24,7 @@
 #pragma once
 #include <functional>
 #include "Matrix.h"
+#include "EngineState.h"
 using namespace std::placeholders;
 
 class ViewManagerEvents;
@@ -41,7 +42,7 @@ protected:
     virtual void _updateReleaseKeyboard(int key, int x, int y) = 0;
     virtual void _updateMouse(double x, double y) = 0;
     virtual void _updateDraw() = 0;
-    virtual void _updateGameState(int state) = 0;
+    virtual void _updateGameState(EngineStateFlags engineState) = 0;
     virtual void _updateView(Matrix view); //optional to implement overriden function
     virtual void _updateProjection(Matrix view); //optional to implement overriden function
 };

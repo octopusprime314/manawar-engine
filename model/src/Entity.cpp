@@ -11,7 +11,8 @@ Entity::Entity(Model* model, ViewManagerEvents* eventWrapper) :
     _model(model),
     _id(_idGenerator),
     _selected(false),
-    _frustumRenderBuffers(new std::vector<RenderBuffers>()) {
+    _frustumRenderBuffers(new std::vector<RenderBuffers>()),
+    _gameState(EngineState::getEngineState()) {
 
 
     if (_model->getClassType() == ModelClass::AnimatedModelType) {
@@ -98,7 +99,7 @@ void Entity::_updateKinematics(int milliSeconds) {
     _mvp.getModelBuffer()[11] = position.getz();
 }
 
-void Entity::_updateGameState(int state) {
+void Entity::_updateGameState(EngineStateFlags state) {
     _gameState = state;
 }
 
@@ -281,7 +282,7 @@ std::vector<VAO*>* Entity::getFrustumVAO() {
         }
     }
     else {
-        if (_gameState == 0) {
+        if (_gameState.frustumVisualEnabled) {
             auto vaoIndexes = _frustumCuller->getVisibleVAOs();
             _frustumVAOs.clear();
             for (auto vaoIndex : vaoIndexes) {

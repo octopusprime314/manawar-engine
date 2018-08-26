@@ -24,7 +24,7 @@ void Effect::_updateReleaseKeyboard(int key, int x, int y) {
 }
 void Effect::_updateMouse(double x, double y) {
 }
-void Effect::_updateGameState(int state) {
+void Effect::_updateGameState(EngineStateFlags state) {
 }
 
 void Effect::_updateView(Matrix view) {

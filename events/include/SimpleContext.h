@@ -51,16 +51,14 @@ public:
     SimpleContext(int* argc, char** argv);
 
     void                run(); //Function used to run context
-
     void                subscribeToKeyboard(std::function<void(int, int, int)> func); //Use this call to connect functions up to key updates
     void                subscribeToReleaseKeyboard(std::function<void(int, int, int)> func); //Use this call to connect functions up to key release updates
     void                subscribeToMouse(std::function<void(double, double)> func); //Use this call to connect functions up to mouse updates
     void                subscribeToDraw(std::function<void()> func); //Use this call to connect functions up to draw updates
-    void                subscribeToGameState(std::function<void(int)> func); //Use this call to connect functions up to game state updates
-    void                updateGameState(int state); 
-  
-    static int screenPixelWidth;
-    static int screenPixelHeight;
+    void                subscribeToGameState(std::function<void(EngineStateFlags)> func); //Use this call to connect functions up to game state updates
+    void                updateGameState(EngineStateFlags state);
+    static int          screenPixelWidth;
+    static int          screenPixelHeight;
 
 private:
 

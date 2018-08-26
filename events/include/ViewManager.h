@@ -50,46 +50,46 @@ public:
     };
 
 private:
-    Matrix              _translation; //Keep track of translation state
-    Matrix              _rotation; //Keep track of rotation state
-    Matrix              _scale; //Keep track of scale state
-    Matrix              _thirdPersonTranslation;
-    Matrix              _inverseRotation; //Manages how to translate based on the inverse of the actual rotation matrix
-    ViewManagerEvents*  _viewEvents;
+    Matrix               _translation; //Keep track of translation state
+    Matrix               _rotation; //Keep track of rotation state
+    Matrix               _scale; //Keep track of scale state
+    Matrix               _thirdPersonTranslation;
+    Matrix               _inverseRotation; //Manages how to translate based on the inverse of the actual rotation matrix
+    ViewManagerEvents*   _viewEvents;
     std::vector<Entity*> _entityList; //used to translate view to a model's transformation
-    int                 _entityIndex; //used to keep track of which model the view is set to
-    bool                _godState; //indicates whether the view is in god or model view point mode
-    FuncMap             _keyboardState;
-    double              _prevMouseX, _prevMouseY;
-    void                _updateKinematics(int milliSeconds);
-    Camera              _viewCamera;
-    Camera              _godCamera;
-    Camera*             _currCamera;
-    int                 _gameState;
+    int                  _entityIndex; //used to keep track of which model the view is set to
+    bool                 _godState; //indicates whether the view is in god or model view point mode
+    FuncMap              _keyboardState;
+    double               _prevMouseX, _prevMouseY;
+    void                 _updateKinematics(int milliSeconds);
+    Camera               _viewCamera;
+    Camera               _godCamera;
+    Camera*              _currCamera;
+    EngineStateFlags     _gameState;
 
 public:
     ViewManager();
     ViewManager(int* argc, char** argv, unsigned int viewportWidth, unsigned int viewportHeight);
     ~ViewManager();
-    void               setProjection(unsigned int viewportWidth, 
-                                     unsigned int viewportHeight, 
-                                     float nearPlaneDistance, 
-                                     float farPlaneDistance);
-    void               setView(Matrix translation, Matrix rotation, Matrix scale);
-    void               setEntityList(std::vector<Entity*> entityList);
-    Matrix             getProjection();
-    Matrix             getView();
-    Matrix             getFrustumProjection();
-    Matrix             getFrustumView();
-    ViewManagerEvents* getEventWrapper();
-    Camera::ViewState  getViewState();
-    void               displayViewFrustum();
-    void               triggerEvents();
-
-protected:
-    void               _updateKeyboard(int key, int x, int y); //Do stuff based on keyboard upate
-    void               _updateReleaseKeyboard(int key, int x, int y); //Do stuff based on keyboard release upate
-    void               _updateMouse(double x, double y); //Do stuff based on mouse update
-    void               _updateGameState(int state);
-    void               _updateDraw(); //Do draw stuff
+    void                 setProjection(unsigned int viewportWidth, 
+                                       unsigned int viewportHeight, 
+                                       float nearPlaneDistance, 
+                                       float farPlaneDistance);
+    void                 setView(Matrix translation, Matrix rotation, Matrix scale);
+    void                 setEntityList(std::vector<Entity*> entityList);
+    Matrix               getProjection();
+    Matrix               getView();
+    Matrix               getFrustumProjection();
+    Matrix               getFrustumView();
+    ViewManagerEvents*   getEventWrapper();
+    Camera::ViewState    getViewState();
+    void                 displayViewFrustum();
+    void                 triggerEvents();
+                         
+protected:               
+    void                 _updateKeyboard(int key, int x, int y); //Do stuff based on keyboard upate
+    void                 _updateReleaseKeyboard(int key, int x, int y); //Do stuff based on keyboard release upate
+    void                 _updateMouse(double x, double y); //Do stuff based on mouse update
+    void                 _updateGameState(EngineStateFlags state);
+    void                 _updateDraw(); //Do draw stuff
 };

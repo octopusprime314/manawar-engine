@@ -123,10 +123,10 @@ void SimpleContext::subscribeToMouse(std::function<void(double, double)> func) {
 void SimpleContext::subscribeToDraw(std::function<void()> func) { //Use this call to connect functions to draw updates
     _events.subscribeToDraw(func);
 }
-void SimpleContext::subscribeToGameState(std::function<void(int)> func) {
+void SimpleContext::subscribeToGameState(std::function<void(EngineStateFlags)> func) {
     _events.subscribeToGameState(func);
 }
-void SimpleContext::updateGameState(int state) {
+void SimpleContext::updateGameState(EngineStateFlags state) {
     SimpleContextEvents::updateGameState(state);
 }
 
@@ -142,16 +142,19 @@ void SimpleContext::_keyboardUpdate(GLFWwindow* window, int key, int scancode, i
             exit(0);
         }
 
-        if (key == GLFW_KEY_GRAVE_ACCENT) { //Escape key pressed, hard exit no cleanup, TODO FIX THIS!!!!
-            _gameState = !_gameState;
+        if (key == GLFW_KEY_GRAVE_ACCENT) { //toggle between world editor and game mode
+            EngineStateFlags engineStateFlags = EngineState::getEngineState();
+            
+            engineStateFlags.worldEditorModeEnabled = !engineStateFlags.worldEditorModeEnabled;
+            engineStateFlags.gameModeEnabled = !engineStateFlags.gameModeEnabled;
 
-            if (_gameState == 0) {
+            if (engineStateFlags.worldEditorModeEnabled == false) {
                 glfwSetInputMode(_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
             }
             else {
                 glfwSetInputMode(_window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
             }
-            SimpleContextEvents::updateGameState(_gameState);
+            SimpleContextEvents::updateGameState(engineStateFlags);
         }
 
         SimpleContextEvents::updateKeyboard(key, 0, 0);

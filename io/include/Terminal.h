@@ -33,24 +33,21 @@ public:
 
     Terminal(MRTFrameBuffer* gBuffers, std::vector<Entity*> entityList);
     ~Terminal();
-
-    void                 display();
+    void                     display();
 
 private:
-    FontRenderer         _fontRenderer;
-    std::string          _commandString;
-    std::string          _commandToProcess;
+    FontRenderer             _fontRenderer;
+    std::string              _commandString;
+    std::string              _commandToProcess;
     std::vector<std::string> _commandHistory;
     int                      _commandHistoryIndex;
-    void                 _updateKeyboard(int key, int x, int y);
-    void                 _updateGameState(int state);
+    void                     _updateKeyboard(int key, int x, int y);
+    void                     _updateGameState(EngineStateFlags state);
+    void                     _mousePosition(Vector4 position);
+    int                      _getCursorIndex();
 
-    int                  _getCursorIndex();
-    static ShaderBroker* _shaderManager; 
-    static ModelBroker*  _modelManager;
-    int                  _gameState;
-    Picker*              _picker;
-
-
-    void                 _mousePosition(Vector4 position);
+    static ShaderBroker*     _shaderManager; 
+    static ModelBroker*      _modelManager;
+    EngineStateFlags         _gameState;
+    Picker*                  _picker;
 };

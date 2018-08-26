@@ -26,7 +26,7 @@ ViewManager::ViewManager(int* argc, char** argv, unsigned int viewportWidth, uns
 
     _prevMouseX = SimpleContext::screenPixelWidth / 2;
     _prevMouseY = SimpleContext::screenPixelHeight / 2;
-    _gameState = 0;
+    _gameState = EngineState::getEngineState();
 
     //Used for god mode
     _currCamera = &_godCamera;
@@ -130,7 +130,7 @@ void ViewManager::_updateKinematics(int milliSeconds) {
 
 void ViewManager::_updateKeyboard(int key, int x, int y) { //Do stuff based on keyboard update
 
-    if (_gameState == 0) {
+    if (_gameState.gameModeEnabled) {
 
         _currCamera->setViewState(key);
 
@@ -244,7 +244,7 @@ void ViewManager::_updateKeyboard(int key, int x, int y) { //Do stuff based on k
     }
 }
 
-void ViewManager::_updateGameState(int state) {
+void ViewManager::_updateGameState(EngineStateFlags state) {
     _gameState = state;
 }
 

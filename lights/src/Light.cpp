@@ -3,7 +3,7 @@
 #include <random>
 #include "ShaderBroker.h"
 
-Light::Light(ViewManagerEvents* eventWrapper,
+Light::Light(ViewEvents* eventWrapper,
     MVP mvp, LightType type, EffectType effect, Vector4 color) :
     Effect(eventWrapper, "fireShader", effect),
     _type(type),

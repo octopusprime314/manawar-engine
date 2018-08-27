@@ -13,9 +13,9 @@ DeferredRenderer::~DeferredRenderer() {
 
 }
 
-void DeferredRenderer::deferredLighting(std::vector<Light*>& lights, ViewManager* viewManager,
+void DeferredRenderer::deferredLighting(std::vector<Light*>& lights, ViewEventDistributor* viewEventDistributor,
     SSAO* ssao, EnvironmentMap* environmentMap) {
-    _deferredShader->runShader(lights, viewManager, _mrtFBO, ssao, environmentMap);
+    _deferredShader->runShader(lights, viewEventDistributor, _mrtFBO, ssao, environmentMap);
 }
 
 void DeferredRenderer::bind() {

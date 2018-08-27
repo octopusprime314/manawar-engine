@@ -1,7 +1,7 @@
 #include "OSP.h"
 #include "GeometryMath.h"
 #include "ModelBroker.h"
-#include "ViewManager.h"
+#include "ViewEventDistributor.h"
 
 OSP::OSP(float cubicDimension, int maxGeometries) :
     _cubicDimension(cubicDimension),

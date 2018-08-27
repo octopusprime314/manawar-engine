@@ -1,12 +1,12 @@
 #include "Entity.h"
-#include "SimpleContext.h"
+#include "IOEventDistributor.h"
 #include "Model.h"
 #include "FrustumCuller.h"
 
 unsigned int Entity::_idGenerator = 0;
 
-Entity::Entity(Model* model, ViewManagerEvents* eventWrapper) :
-    UpdateInterface(eventWrapper),
+Entity::Entity(Model* model, ViewEvents* eventWrapper) :
+    EventSubscriber(eventWrapper),
     _clock(MasterClock::instance()),
     _model(model),
     _id(_idGenerator),

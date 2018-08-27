@@ -19,7 +19,7 @@
 *  SSAOShader class. Takes in position and normal g buffers to generate a ssao frame buffer.
 */
 #pragma once
-#include "ViewManager.h"
+#include "ViewEventDistributor.h"
 #include "Shader.h"
 class SSAO;
 class MRTFrameBuffer;
@@ -30,5 +30,5 @@ class SSAOShader : public Shader {
 public:
     SSAOShader();
     ~SSAOShader();
-    void runShader(SSAO* ssao, MRTFrameBuffer* mrtBuffer, ViewManager* viewManager);
+    void runShader(SSAO* ssao, MRTFrameBuffer* mrtBuffer, ViewEventDistributor* viewEventDistributor);
 };

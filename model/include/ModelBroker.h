@@ -24,7 +24,7 @@
 #include "AnimatedModel.h"
 #include <map>
 #include <vector>
-#include "ViewManagerEvents.h"
+#include "ViewEvents.h"
 
 using ModelMap = std::map<std::string, Model*>;
 
@@ -35,7 +35,7 @@ class ModelBroker {
     void                 _gatherModelNames();
     std::string          _strToUpper(std::string s);
     std::string          _strToLower(std::string s);
-    static ViewManager*  _viewManager;
+    static ViewEventDistributor*  _viewManager;
 public:
     static ModelBroker*  instance();
     ~ModelBroker();
@@ -46,6 +46,6 @@ public:
     void                 saveModel(std::string modelName);
     void                 addModel(std::string modelName, std::string modelToAdd, Vector4 location);
     void                 addTileModel(std::string modelName, std::string modelToAdd, Vector4 location, std::vector<std::string> textures);
-    static void          setViewManager(ViewManager* viewManager);
-    static ViewManager*  getViewManager();
+    static void          setViewManager(ViewEventDistributor* viewEventDistributor);
+    static ViewEventDistributor*  getViewManager();
 };

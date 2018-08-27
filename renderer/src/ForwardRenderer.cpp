@@ -13,16 +13,16 @@ ForwardRenderer::~ForwardRenderer() {
 
 }
 
-void ForwardRenderer::forwardLighting(std::vector<Entity*>& entityList, ViewManager* viewManager, 
+void ForwardRenderer::forwardLighting(std::vector<Entity*>& entityList, ViewEventDistributor* viewEventDistributor, 
     std::vector<Light*>& lights) {
 
     for (auto entity : entityList) {
         auto model = entity->getModel();
         if (!model->getIsInstancedModel()) {
-            _forwardShader->runShader(entity, viewManager, lights) ;
+            _forwardShader->runShader(entity, viewEventDistributor, lights) ;
         }
         else {
-            _instancedForwardShader->runShader(entity, viewManager, lights);
+            _instancedForwardShader->runShader(entity, viewEventDistributor, lights);
         }
     }
 }

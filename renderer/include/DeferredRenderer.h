@@ -28,7 +28,7 @@
 #include "DeferredShader.h"
 #include "DepthFrameBuffer.h"
 #include "MRTFrameBuffer.h"
-#include "ViewManager.h"
+#include "ViewEventDistributor.h"
 #include "Light.h"
 class Model;
 
@@ -41,7 +41,7 @@ public:
     DeferredRenderer();
     ~DeferredRenderer();
     void deferredLighting(std::vector<Light*>& lights, 
-        ViewManager* viewManager,
+        ViewEventDistributor* viewEventDistributor,
         SSAO* ssao,
         EnvironmentMap* environmentMap);
     void bind();

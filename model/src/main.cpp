@@ -1,14 +1,14 @@
 #include "Matrix.h"
 #include "Vector4.h"
-#include "SimpleContext.h"
+#include "IOEventDistributor.h"
 #include <iostream>
 #include <thread>
-#include "SceneManager.h"
+#include "EngineManager.h"
 
 int main(int argc, char** argv) {
 
     //Send the width and height in pixel units and the near and far plane to describe the view frustum
-    SceneManager sceneManager(&argc, argv); //Manages the camera view and models in scene
+    EngineManager EngineManager(&argc, argv); //Manages the camera view and models in scene
     return 0;
 }
 

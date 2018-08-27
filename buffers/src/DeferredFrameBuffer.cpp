@@ -1,8 +1,8 @@
 #include "DeferredFrameBuffer.h"
-#include "SimpleContext.h"
+#include "IOEventDistributor.h"
 
 DeferredFrameBuffer::DeferredFrameBuffer() :
-    _renderTexture(SimpleContext::screenPixelWidth, SimpleContext::screenPixelHeight, TextureFormat::RGBA_UNSIGNED_BYTE) {
+    _renderTexture(IOEventDistributor::screenPixelWidth, IOEventDistributor::screenPixelHeight, TextureFormat::RGBA_UNSIGNED_BYTE) {
 
     //Generate a context for the frame buffer
     glGenFramebuffers(1, &_frameBufferContext);

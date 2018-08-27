@@ -1,7 +1,7 @@
 #include "EffectShader.h"
 #include "Light.h"
 #include "Water.h"
-#include "ViewManager.h"
+#include "ViewEventDistributor.h"
 
 EffectShader::EffectShader(std::string shaderName) : Shader(shaderName) {
 

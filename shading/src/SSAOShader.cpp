@@ -12,15 +12,15 @@ SSAOShader::~SSAOShader() {
 
 }
 
-void SSAOShader::runShader(SSAO* ssao, MRTFrameBuffer* mrtBuffer, ViewManager* viewManager) {
+void SSAOShader::runShader(SSAO* ssao, MRTFrameBuffer* mrtBuffer, ViewEventDistributor* viewEventDistributor) {
 
     //LOAD IN SHADER
     glUseProgram(_shaderContext); //use context for loaded shader
 
     glBindVertexArray(_dummyVAO);
 
-    updateUniform("projection", viewManager->getProjection().getFlatBuffer());
-    updateUniform("projectionToViewMatrix", viewManager->getProjection().inverse().getFlatBuffer());
+    updateUniform("projection", viewEventDistributor->getProjection().getFlatBuffer());
+    updateUniform("projectionToViewMatrix", viewEventDistributor->getProjection().inverse().getFlatBuffer());
     
     auto kernel = ssao->getKernel();
 

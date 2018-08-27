@@ -1,5 +1,5 @@
 #include "Terminal.h"
-#include "SimpleContextEvents.h"
+#include "IOEvents.h"
 #include "Picker.h"
 
 ShaderBroker* Terminal::_shaderManager = ShaderBroker::instance();
@@ -20,8 +20,8 @@ Terminal::Terminal(MRTFrameBuffer* gBuffers, std::vector<Entity*> entityList) :
     _picker = new Picker(gBuffers, std::bind(&Terminal::_mousePosition, this, _1));
     _picker->addPickableEntities(entityList);
 
-    SimpleContextEvents::subscribeToKeyboard(std::bind(&Terminal::_updateKeyboard, this, _1, _2, _3));
-    SimpleContextEvents::subscribeToGameState(std::bind(&Terminal::_updateGameState, this, _1));
+    IOEvents::subscribeToKeyboard(std::bind(&Terminal::_updateKeyboard, this, _1, _2, _3));
+    IOEvents::subscribeToGameState(std::bind(&Terminal::_updateGameState, this, _1));
 }
 
 Terminal::~Terminal() {

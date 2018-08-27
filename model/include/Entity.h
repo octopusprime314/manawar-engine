@@ -23,25 +23,25 @@
 #pragma once
 #include "StateVector.h"
 #include <vector>
-#include "UpdateInterface.h"
+#include "EventSubscriber.h"
 #include <iostream>
 #include "MasterClock.h"
 #include "MVP.h"
 #include "AnimatedModel.h"
 
-class SimpleContext;
+class IOEventDistributor;
 class Model;
 class FrustumCuller;
 
 
 using VAOMap = std::map<int, std::vector<VAO*>>;
 
-class Entity : public UpdateInterface {
+class Entity : public EventSubscriber {
 
 public:
 
     //Default model to type to base class
-    Entity(Model* model, ViewManagerEvents* eventWrapper);
+    Entity(Model* model, ViewEvents* eventWrapper);
     virtual ~Entity();
     Model*                      getModel();
     MVP*                        getMVP();

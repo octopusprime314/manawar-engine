@@ -23,7 +23,7 @@
 #include "Font.h"
 #include "ShaderBroker.h"
 #include "ModelBroker.h"
-#include "UpdateInterface.h"
+#include "EventSubscriber.h"
 #include "MRTFrameBuffer.h"
 
 class Picker;
@@ -40,7 +40,7 @@ private:
     std::string              _commandString;
     std::string              _commandToProcess;
     std::vector<std::string> _commandHistory;
-    int                      _commandHistoryIndex;
+    size_t                   _commandHistoryIndex;
     void                     _updateKeyboard(int key, int x, int y);
     void                     _updateGameState(EngineStateFlags state);
     void                     _mousePosition(Vector4 position);

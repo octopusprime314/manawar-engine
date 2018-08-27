@@ -29,7 +29,7 @@ class ShadowedPointLight : public Light {
 
     PointShadow              _shadow;
 public:
-    ShadowedPointLight(ViewManagerEvents* eventWrapper,
+    ShadowedPointLight(ViewEvents* eventWrapper,
         MVP mvp,
         EffectType effect,
         Vector4 color);

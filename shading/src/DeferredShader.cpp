@@ -22,7 +22,7 @@ DeferredShader::~DeferredShader() {
 }
 
 void DeferredShader::runShader(std::vector<Light*>& lights,
-    ViewManager* viewManager,
+    ViewEventDistributor* viewEventDistributor,
     MRTFrameBuffer& mrtFBO,
     SSAO* ssao,
     EnvironmentMap* environmentMap) {
@@ -35,7 +35,7 @@ void DeferredShader::runShader(std::vector<Light*>& lights,
 
     //Get light view matrix "look at" vector which is located in the third column
     //of the inner rotation matrix at index 2,6,10
-    auto viewMatrix = (viewManager->getView() * lights[0]->getLightMVP().getViewMatrix()).getFlatBuffer();
+    auto viewMatrix = (viewEventDistributor->getView() * lights[0]->getLightMVP().getViewMatrix()).getFlatBuffer();
 
     Vector4 lightPosition(viewMatrix[2], viewMatrix[6], viewMatrix[10]);
     //lightPosition.display();
@@ -61,7 +61,7 @@ void DeferredShader::runShader(std::vector<Light*>& lights,
         if (light->getType() == LightType::POINT ||
             light->getType() == LightType::SHADOWED_POINT) {
             //Point lights need to remain stationary so move lights with camera space changes
-            auto pos = viewManager->getView() * light->getPosition();
+            auto pos = viewEventDistributor->getView() * light->getPosition();
             float* posBuff = pos.getFlatBuffer();
             float* colorBuff = light->getColor().getFlatBuffer();
             for (int i = 0; i < 3; i++) {
@@ -83,7 +83,7 @@ void DeferredShader::runShader(std::vector<Light*>& lights,
     MVP lightMVP = lights[0]->getLightMVP();
     Matrix cameraToLightSpace = lightMVP.getProjectionMatrix() *
         lightMVP.getViewMatrix() *
-        viewManager->getView().inverse();
+        viewEventDistributor->getView().inverse();
 
     updateUniform("lightViewMatrix", cameraToLightSpace.getFlatBuffer());
 
@@ -91,22 +91,22 @@ void DeferredShader::runShader(std::vector<Light*>& lights,
     MVP lightMapMVP = lights[1]->getLightMVP();
     Matrix cameraToLightMapSpace = lightMapMVP.getProjectionMatrix() *
         lightMapMVP.getViewMatrix() *
-        viewManager->getView().inverse();
+        viewEventDistributor->getView().inverse();
 
     updateUniform("lightMapViewMatrix", cameraToLightMapSpace.getFlatBuffer());
 
     //Change of basis from camera view position back to world position
-    Matrix viewToModelSpace = viewManager->getView().inverse();
+    Matrix viewToModelSpace = viewEventDistributor->getView().inverse();
 
     updateUniform("viewToModelMatrix", viewToModelSpace.getFlatBuffer());
 
-    Matrix projectionToViewSpace = (viewManager->getProjection()).inverse();
+    Matrix projectionToViewSpace = (viewEventDistributor->getProjection()).inverse();
     updateUniform("projectionToViewMatrix", projectionToViewSpace.getFlatBuffer());
 
-    updateUniform("inverseView", viewManager->getView().inverse().getFlatBuffer());
-    updateUniform("inverseProjection", viewManager->getProjection().inverse().getFlatBuffer());
+    updateUniform("inverseView", viewEventDistributor->getView().inverse().getFlatBuffer());
+    updateUniform("inverseProjection", viewEventDistributor->getProjection().inverse().getFlatBuffer());
 
-    auto viewState = viewManager->getViewState();
+    auto viewState = viewEventDistributor->getViewState();
     updateUniform("views", &viewState);
 
     ShadowedPointLight* pointShadowTexture = nullptr;

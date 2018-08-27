@@ -5,22 +5,21 @@
 #include <Windows.h>
 #include <iostream>
 
-AudioManager::AudioManager()
-{
+AudioManager::AudioManager() {
     // Core System
     FMOD_RESULT result;
-    m_pSystem = nullptr;
-    result = FMOD::System_Create(&m_pSystem);
+    _system = nullptr;
+    result = FMOD::System_Create(&_system);
     if (result != FMOD_OK) { __debugbreak(); }
 
-    result = m_pSystem->init(1, FMOD_INIT_NORMAL, /*extra*/ nullptr);
+    result = _system->init(1, FMOD_INIT_NORMAL, /*extra*/ nullptr);
     if (result != FMOD_OK) { __debugbreak(); }
 
     // Background theme
-    result = BackgroundTheme::Create(m_pSystem, THEME_MP3, &m_backgroundTheme);
+    result = BackgroundTheme::create(_system, THEME_MP3, &_backgroundTheme);
     if (result == FMOD_ERR_FILE_NOTFOUND) {
         // Maybe we're in a build directory, and need to go up a level?
-        result = BackgroundTheme::Create(m_pSystem, "../" THEME_MP3, &m_backgroundTheme);
+        result = BackgroundTheme::create(_system, "../" THEME_MP3, &_backgroundTheme);
     }
     if (result != FMOD_OK) {
         if (result == FMOD_ERR_FILE_NOTFOUND) {
@@ -31,13 +30,19 @@ AudioManager::AudioManager()
     }
 }
 
-AudioManager::~AudioManager()
-{
-    m_pSystem->release();
-    m_pSystem = nullptr;
+AudioManager::~AudioManager() {
+    _system->release();
+    _system = nullptr;
 }
 
-FMOD_RESULT AudioManager::StartAll()
-{
-    return m_backgroundTheme.PlayInBackground(m_pSystem);
+FMOD::System* AudioManager::getAudioSystem() { 
+    return _system; 
+}
+
+BackgroundTheme& AudioManager::getBackgroundTheme() { 
+    return _backgroundTheme; 
+}
+
+FMOD_RESULT AudioManager::startAll() {
+    return _backgroundTheme.playInBackground(_system);
 }

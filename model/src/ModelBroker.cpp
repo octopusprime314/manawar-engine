@@ -6,7 +6,7 @@
 #include "Model.h"
 //#include "Logger.h"
 ModelBroker* ModelBroker::_broker = nullptr;
-ViewManager* ModelBroker::_viewManager = nullptr;
+ViewEventDistributor* ModelBroker::_viewManager = nullptr;
 
 ModelBroker* ModelBroker::instance() { //Only initializes the static pointer once
     if (_broker == nullptr) {
@@ -37,11 +37,11 @@ std::string ModelBroker::_strToLower(std::string s) {
     return s;
 }
 
-void ModelBroker::setViewManager(ViewManager* viewManager) {
-    _viewManager = viewManager;
+void ModelBroker::setViewManager(ViewEventDistributor* viewEventDistributor) {
+    _viewManager = viewEventDistributor;
 }
 
-ViewManager* ModelBroker::getViewManager() {
+ViewEventDistributor* ModelBroker::getViewManager() {
     return _viewManager;
 }
 

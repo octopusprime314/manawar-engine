@@ -1,4 +1,4 @@
-#include "SimpleContext.h"
+#include "IOEventDistributor.h"
 #include "CubeMapRenderer.h"
 
 CubeMapRenderer::CubeMapRenderer(GLuint width, GLuint height, bool isDepth) :
@@ -62,5 +62,5 @@ void CubeMapRenderer::postCubeFaceRender() {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     //Need to change viewport to the resolution of the window size
-    glViewport(0, 0, SimpleContext::screenPixelWidth, SimpleContext::screenPixelHeight);
+    glViewport(0, 0, IOEventDistributor::screenPixelWidth, IOEventDistributor::screenPixelHeight);
 }

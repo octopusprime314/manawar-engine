@@ -39,7 +39,7 @@
 #include "ForwardShader.h"
 #include <mutex>
 class FrustumCuller;
-class SimpleContext;
+class IOEventDistributor;
 
 enum class ModelClass {
     ModelType = 0,

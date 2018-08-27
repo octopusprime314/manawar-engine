@@ -23,7 +23,7 @@
 #include "ForwardShader.h"
 #include "Vector4.h"
 #include <vector>
-class ViewManager;
+class ViewEventDistributor;
 class ShadowRenderer;
 class PointShadow;
 
@@ -32,5 +32,5 @@ class InstancedForwardShader : public ForwardShader {
 public:
     InstancedForwardShader(std::string shaderName);
     virtual ~InstancedForwardShader();
-    virtual void runShader(Entity* entity, ViewManager* viewManager, std::vector<Light*>& lights);
+    virtual void runShader(Entity* entity, ViewEventDistributor* viewEventDistributor, std::vector<Light*>& lights);
 };

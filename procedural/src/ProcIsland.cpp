@@ -1,5 +1,5 @@
 #include "ProcIsland.h"
-#include "ViewManager.h"
+#include "ViewEventDistributor.h"
 #include "Factory.h"
 #include "Model.h"
 #include "Noise.h"

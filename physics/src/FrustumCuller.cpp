@@ -2,7 +2,7 @@
 #include "Model.h"
 #include "ShaderBroker.h"
 #include "ModelBroker.h"
-#include "ViewManager.h"
+#include "ViewEventDistributor.h"
 #include "GeometryMath.h"
 
 FrustumCuller::FrustumCuller(Entity* entity, float aabbDimension, int aabbMaxTriangles) :

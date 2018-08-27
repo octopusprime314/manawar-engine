@@ -24,7 +24,7 @@
 #pragma once
 #include "Shader.h"
 #include <vector>
-class ViewManager;
+class ViewEventDistributor;
 class ShadowRenderer;
 class PointShadow;
 
@@ -33,5 +33,5 @@ class ForwardShader : public Shader {
 public:
     ForwardShader(std::string vertexShaderName, std::string fragmentShaderName = "");
     ~ForwardShader();
-    void runShader(Entity* entity, ViewManager* viewManager, std::vector<Light*>& lights);
+    void runShader(Entity* entity, ViewEventDistributor* viewEventDistributor, std::vector<Light*>& lights);
 };

@@ -21,7 +21,7 @@
 
 #pragma once
 #include "MVP.h"
-#include "UpdateInterface.h"
+#include "EventSubscriber.h"
 #include "Shader.h"
 #include "EffectShader.h"
 #include "Effect.h"
@@ -50,7 +50,7 @@ protected:
     VAO                     _vao;
     DebugShader*            _debugShader;
 public:
-    Light(ViewManagerEvents* eventWrapper,
+    Light(ViewEvents* eventWrapper,
         MVP mvp,
         LightType type,
         EffectType effect,

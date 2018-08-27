@@ -31,7 +31,7 @@ class ShadowedDirectionalLight : public Light {
 
     DirectionalShadow     _shadow;
 public:
-    ShadowedDirectionalLight(ViewManagerEvents* eventWrapper,
+    ShadowedDirectionalLight(ViewEvents* eventWrapper,
         MVP mvp,
         EffectType effect,
         Vector4 color);

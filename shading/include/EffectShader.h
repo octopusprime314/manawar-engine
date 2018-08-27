@@ -26,7 +26,7 @@
 class Light;
 class Water;
 class Effect;
-class ViewManager;
+class ViewEventDistributor;
 
 class EffectShader : public Shader {
 

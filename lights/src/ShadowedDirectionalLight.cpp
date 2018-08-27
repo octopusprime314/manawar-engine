@@ -1,6 +1,6 @@
 #include "ShadowedDirectionalLight.h"
 
-ShadowedDirectionalLight::ShadowedDirectionalLight(ViewManagerEvents* eventWrapper,
+ShadowedDirectionalLight::ShadowedDirectionalLight(ViewEvents* eventWrapper,
     MVP mvp, EffectType effect, Vector4 color) :
     Light(eventWrapper, mvp, LightType::SHADOWED_DIRECTIONAL, effect, color),
     _shadow(static_cast<unsigned int>(getWidth()),

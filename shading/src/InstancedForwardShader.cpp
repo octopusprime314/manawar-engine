@@ -3,7 +3,7 @@
 #include "MVP.h"
 #include "VAO.h"
 #include "Model.h"
-#include "ViewManager.h"
+#include "ViewEventDistributor.h"
 #include "PointShadow.h"
 #include "Entity.h"
 #include "ShadowedPointLight.h"
@@ -16,7 +16,7 @@ InstancedForwardShader::~InstancedForwardShader() {
 
 }
 
-void InstancedForwardShader::runShader(Entity* entity, ViewManager* viewManager, 
+void InstancedForwardShader::runShader(Entity* entity, ViewEventDistributor* viewEventDistributor, 
     std::vector<Light*>& lights) {
 
     //LOAD IN SHADER
@@ -71,7 +71,7 @@ void InstancedForwardShader::runShader(Entity* entity, ViewManager* viewManager,
             if (light->getType() == LightType::POINT ||
                 light->getType() == LightType::SHADOWED_POINT) {
                 //Point lights need to remain stationary so move lights with camera space changes
-                auto pos = viewManager->getView() * light->getPosition();
+                auto pos = viewEventDistributor->getView() * light->getPosition();
                 float* posBuff = pos.getFlatBuffer();
                 float* colorBuff = light->getColor().getFlatBuffer();
                 for (int i = 0; i < 3; i++) {
@@ -93,7 +93,7 @@ void InstancedForwardShader::runShader(Entity* entity, ViewManager* viewManager,
         MVP lightMVP = lights[0]->getLightMVP();
         Matrix cameraToLightSpace = lightMVP.getProjectionMatrix() *
             lightMVP.getViewMatrix() *
-            viewManager->getView().inverse();
+            viewEventDistributor->getView().inverse();
 
         updateUniform("lightViewMatrix", cameraToLightSpace.getFlatBuffer());
 
@@ -101,12 +101,12 @@ void InstancedForwardShader::runShader(Entity* entity, ViewManager* viewManager,
         MVP lightMapMVP = lights[1]->getLightMVP();
         Matrix cameraToLightMapSpace = lightMapMVP.getProjectionMatrix() *
             lightMapMVP.getViewMatrix() *
-            viewManager->getView().inverse();
+            viewEventDistributor->getView().inverse();
 
         updateUniform("lightMapViewMatrix", cameraToLightMapSpace.getFlatBuffer());
 
         //Change of basis from camera view position back to world position
-        Matrix viewToModelSpace = viewManager->getView().inverse();
+        Matrix viewToModelSpace = viewEventDistributor->getView().inverse();
 
         updateUniform("viewToModelMatrix", viewToModelSpace.getFlatBuffer());
 

@@ -1,6 +1,6 @@
 #include "ShadowedPointLight.h"
 
-ShadowedPointLight::ShadowedPointLight(ViewManagerEvents* eventWrapper,
+ShadowedPointLight::ShadowedPointLight(ViewEvents* eventWrapper,
     MVP mvp, EffectType effect, Vector4 color) :
     Light(eventWrapper, mvp, LightType::SHADOWED_POINT, effect, color),
     _shadow(2000, 2000){

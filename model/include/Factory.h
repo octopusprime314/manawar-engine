@@ -22,13 +22,13 @@
 #pragma once
 #include "AnimatedModel.h"
 #include "Model.h"
-#include "ViewManager.h"
+#include "ViewEventDistributor.h"
 #include "Light.h"
 
 namespace Factory {
 
     // View event wrapper that allows subscription to game events
-    extern ViewManagerEvents* _viewEventWrapper;
+    extern ViewEvents* _viewEventWrapper;
 
     ////Templated class function to generate classes that subscribe to game events
     //template<class T>
@@ -47,7 +47,7 @@ namespace Factory {
     //}
 
     //Sets the reference to the view model's event object
-    static void setViewWrapper(ViewManager* viewManager) {
-        _viewEventWrapper = viewManager->getEventWrapper();
+    static void setViewWrapper(ViewEventDistributor* viewEventDistributor) {
+        _viewEventWrapper = viewEventDistributor->getEventWrapper();
     }
 }

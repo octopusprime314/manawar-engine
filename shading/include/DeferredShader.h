@@ -27,7 +27,7 @@
 #include "AnimatedModel.h"
 #include "MRTFrameBuffer.h"
 #include "Light.h"
-#include "ViewManager.h"
+#include "ViewEventDistributor.h"
 #include "PointShadow.h"
 #include "SSAO.h"
 #include "EnvironmentMap.h"
@@ -42,7 +42,7 @@ public:
     DeferredShader(std::string shaderName);
     virtual ~DeferredShader();
     void runShader(std::vector<Light*>& lights,
-                   ViewManager* viewManager, 
+                   ViewEventDistributor* viewEventDistributor, 
                    MRTFrameBuffer& mrtFBO,
                    SSAO* ssao,
                    EnvironmentMap* environmentMap);

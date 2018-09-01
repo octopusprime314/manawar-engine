@@ -55,18 +55,6 @@ Model* ModelBroker::getModel(std::string modelName) {
     return _models[upperCaseMapName];
 }
 
-Model* ModelBroker::getModelFromTag(std::string modelTagName) {
-
-    for (auto& model : _models) {
-        auto tagName = model.second->getFbxLoader()->getTag();
-
-        if (modelTagName.find(tagName) != std::string::npos) {
-            return model.second;
-        }
-    }
-    return nullptr;
-}
-
 void ModelBroker::clearChanges(std::string modelName) {
 
     std::string upperCaseMapName = _strToUpper(modelName + "/" + modelName + ".fbx");

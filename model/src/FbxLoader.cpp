@@ -12,8 +12,6 @@
 #include "EngineManager.h"
 #include <cctype>
 
-std::vector<std::string> FbxLoader::_modelTags;
-
 FbxLoader::FbxLoader(std::string name) : 
     _fileName(name),
     _strideIndex(0),
@@ -62,8 +60,6 @@ FbxLoader::FbxLoader(std::string name) :
     importer->Destroy();
 
     _parseTags(_scene->GetRootNode());
-    _modelTags.push_back(_internalModelTag);
-    std::cout << _internalModelTag << std::endl;
    
     auto modelBroker = ModelBroker::instance();
     for (auto transform : _clonedWorldTransforms) {
@@ -76,7 +72,7 @@ FbxLoader::FbxLoader(std::string name) :
                 EngineManager::addEntity(modelToInstance, transform.second);
             }
             else {
-                std::cout << "Tag name doesn't exist for instancing: " << transform.first << std::endl;
+                std::cout << "Model name doesn't exist for instancing: " << transform.first << std::endl;
             }
         }
     }
@@ -135,10 +131,6 @@ void FbxLoader::loadModel(Model* model, FbxNode* node) {
     }
 }
 
-std::string FbxLoader::getTag() {
-    return _internalModelTag;
-}
-
 void FbxLoader::_parseTags(FbxNode* node) {
 
     static std::map<std::string, Matrix> transformations;
@@ -165,8 +157,6 @@ void FbxLoader::_parseTags(FbxNode* node) {
                 auto index = nodeName.find_first_of("_");
 
                 _clonedInstances[nodeName.substr(0, index)]++;
-                _internalModelTag += nodeName.substr(0, index);
-
                 std::string temp = nodeName.substr(index + 1);
 
                 auto tempIndex = temp.find_first_of("_");
@@ -177,7 +167,6 @@ void FbxLoader::_parseTags(FbxNode* node) {
                 }
             }
             else {
-                _internalModelTag += nodeName;
                 _clonedWorldTransforms[nodeName] = translation * rotation * scale;
             }
 

@@ -40,6 +40,8 @@ struct FbxExporterType {
 };
 
 class FbxLoader {
+    using ClonedCount = std::map<std::string, unsigned int>;
+    using ClonedMatrices = std::map<std::string, Matrix>;
     FbxManager*     _fbxManager;
     FbxIOSettings*  _ioSettings;
     FbxScene*       _scene;
@@ -64,12 +66,10 @@ class FbxLoader {
     void            _loadIndices(Model* model, FbxMesh* meshNode, int*& indices);
     void            _cloneFbxNode(Model* modelAddedTo, FbxLoader* fbxToAdd, Vector4 location);
     int             _getASCIIFormatIndex(FbxManager* fbxManager);
-    static std::vector<std::string> _modelTags;
-    std::string     _internalModelTag;
-    void             _parseTags(FbxNode* node);
-    std::map<std::string, unsigned int> _clonedInstances;
-    std::map<std::string, Matrix> _clonedWorldTransforms;
-    Matrix           _objectSpaceTransform;
+    void            _parseTags(FbxNode* node);
+    Matrix          _objectSpaceTransform;
+    ClonedCount     _clonedInstances;
+    ClonedMatrices  _clonedWorldTransforms;
 
 public:
     FbxLoader(std::string name);
@@ -87,7 +87,6 @@ public:
     void            addTileToScene(Model* modelAddedTo, FbxLoader* modelToLoad, Vector4 location, std::vector<std::string> textures);
     void            saveScene();
     void            clearScene();
-    std::string     getTag();
     std::string     getModelName();
     Matrix          getObjectSpaceTransform();
 };

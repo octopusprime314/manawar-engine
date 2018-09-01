@@ -43,7 +43,13 @@ AssetTexture* TextureBroker::getTexture(std::string textureName) {
 }
 
 LayeredTexture* TextureBroker::getLayeredTexture(std::string textureName) {
-    return _layeredTextures[textureName];
+    
+    if (_layeredTextures.find(textureName) != _layeredTextures.end()) {
+        return _layeredTextures[textureName];
+    }
+    else {
+        return nullptr;
+    }
 }
 
 AssetTexture* TextureBroker::getAssetTextureFromLayered(std::string textureName) {

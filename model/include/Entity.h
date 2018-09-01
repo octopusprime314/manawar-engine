@@ -57,6 +57,7 @@ public:
     void                        setSelected(bool isSelected);
     bool                        getSelected();
     std::vector<RenderBuffers>* getRenderBuffers();
+    Matrix                      getWorldSpaceTransform();
 protected:
 
     VAOMap                      _frustumVAOMapping;

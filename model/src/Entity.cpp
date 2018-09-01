@@ -29,7 +29,8 @@ Entity::Entity(Model* model, ViewEvents* eventWrapper, MVP transforms) :
         _idGenerator++;
     }
     else if (_model->getClassType() == ModelClass::ModelType) {
-        _frustumCuller = new FrustumCuller(this, 2000, 4000);
+        //_frustumCuller = new FrustumCuller(this, 2000, 4000);
+        _frustumCuller = new FrustumCuller(this, 10000000, 100000000);
         //Tile the terrain and other static objects in the scene
         _generateVAOTiles();
         _idGenerator++;
@@ -102,17 +103,6 @@ void Entity::_updateKinematics(int milliSeconds) {
         totalTransform.getFlatBuffer()[11]);
     _model->getGeometry()->updatePosition(pos);
     _mvp.setModel(totalTransform);
-   /* _mvp.getModelBuffer()[3] = pos.getx();
-    _mvp.getModelBuffer()[7] = pos.gety();
-    _mvp.getModelBuffer()[11] = pos.getz();*/
-
-
-    ////Pass position information to model matrix
-    //Vector4 position = _state.getLinearPosition();
-    //_model->getGeometry()->updatePosition(position);
-    //_mvp.getModelBuffer()[3] = position.getx();
-    //_mvp.getModelBuffer()[7] = position.gety();
-    //_mvp.getModelBuffer()[11] = position.getz();
 }
 
 void Entity::_updateGameState(EngineStateFlags state) {
@@ -148,7 +138,6 @@ bool Entity::isID(unsigned int entityID) {
         return false;
     }
 }
-
 
 void Entity::_generateVAOTiles() {
 
@@ -191,9 +180,9 @@ void Entity::_generateVAOTiles() {
         for (auto triangleMap : textureTriangleMapper) {
 
             for (auto triangle : triangleMap.second) {
-                renderBuff.addVertex((*vertices)[triangle.first]);
-                renderBuff.addVertex((*vertices)[triangle.first + 1]);
-                renderBuff.addVertex((*vertices)[triangle.first + 2]);
+                renderBuff.addVertex(_worldSpaceTransform * (*vertices)[triangle.first]);
+                renderBuff.addVertex(_worldSpaceTransform * (*vertices)[triangle.first + 1]);
+                renderBuff.addVertex(_worldSpaceTransform * (*vertices)[triangle.first + 2]);
                 renderBuff.addNormal((*normals)[triangle.first]);
                 renderBuff.addNormal((*normals)[triangle.first + 1]);
                 renderBuff.addNormal((*normals)[triangle.first + 2]);
@@ -209,9 +198,9 @@ void Entity::_generateVAOTiles() {
                 renderBuff.addTextureMapIndex(index2);
                 renderBuff.addTextureMapIndex(index3);
 
-                globalRenderBuffer.addVertex((*vertices)[triangle.first]);
-                globalRenderBuffer.addVertex((*vertices)[triangle.first + 1]);
-                globalRenderBuffer.addVertex((*vertices)[triangle.first + 2]);
+                globalRenderBuffer.addVertex(_worldSpaceTransform * (*vertices)[triangle.first]);
+                globalRenderBuffer.addVertex(_worldSpaceTransform * (*vertices)[triangle.first + 1]);
+                globalRenderBuffer.addVertex(_worldSpaceTransform * (*vertices)[triangle.first + 2]);
                 globalRenderBuffer.addNormal((*normals)[triangle.first]);
                 globalRenderBuffer.addNormal((*normals)[triangle.first + 1]);
                 globalRenderBuffer.addNormal((*normals)[triangle.first + 2]);
@@ -287,6 +276,11 @@ std::vector<RenderBuffers>* Entity::getRenderBuffers() {
     return _frustumRenderBuffers;
 }
 
+Matrix Entity::getWorldSpaceTransform() {
+    return _worldSpaceTransform;
+}
+
+
 std::vector<VAO*>* Entity::getFrustumVAO() {
 
     //If not subdividing space using a frustum culler then retrieve whole of geometry
@@ -342,14 +336,6 @@ void Entity::setPosition(Vector4 position) {
     _prevMVP.setModel(_mvp.getModelMatrix());
 
     _mvp.setModel(totalTransform);
-
-    //_state.setLinearPosition(position);
-    ////Pass position information to model matrix
-    //_model->getGeometry()->updatePosition(position);
-
-    //_prevMVP.setModel(_mvp.getModelMatrix());
-
-    //_mvp.setModel(Matrix::translation(position.getx(), position.gety(), position.getz()));
 }
 
 void Entity::setVelocity(Vector4 velocity) {

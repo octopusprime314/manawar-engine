@@ -15,7 +15,7 @@ Terminal::Terminal(MRTFrameBuffer* gBuffers, std::vector<Entity*> entityList) :
     
     //Added global history for quick debugging of model creator
     _commandHistory.push_back("ADDTILE ZSANDBOX TERRAINTILE 0 0 0 1 SNOW.JPG DIRT.JPG ROCKS.JPG GRASS.JPG|");
-    _commandHistory.push_back("MOUSEADD ZSANDBOX DEADTREE 0 0 0 1|");
+    _commandHistory.push_back("MOUSEADD ZSANDBOX DEADTREE 0.125|");
     _commandHistory.push_back("SAVE ZSANDBOX|");
 
     _picker = new Picker(gBuffers, std::bind(&Terminal::_mousePosition, this, _1));
@@ -139,6 +139,9 @@ void Terminal::_mousePosition(Vector4 position) {
             std::string modelName = commandString.substr(0, commandString.find(' '));
             commandString = commandString.substr(commandString.find(' ') + 1);
             std::string modelToAdd = commandString.substr(0, commandString.find(' '));
+            commandString = commandString.substr(commandString.find(' ') + 1);
+            std::string scale = commandString.substr(0, commandString.find(' '));
+            position.getFlatBuffer()[3] = static_cast<float>(atof(scale.c_str()));
 
             _modelManager->addModel(modelName, modelToAdd, position);
         }

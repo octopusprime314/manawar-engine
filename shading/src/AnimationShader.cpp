@@ -16,10 +16,10 @@ void AnimationShader::runShader(Entity* entity) {
 
     //LOAD IN SHADER
     std::vector<VAO*>* vao = entity->getFrustumVAO();
-
-    auto baseID = entity->getID();
-
     glUseProgram(_shaderContext); //use context for loaded shader
+    unsigned int id = entity->getID();
+    updateUniform("id", &id);
+
     for (auto vaoInstance : *vao) {
         glBindVertexArray(vaoInstance->getVAOContext());
 
@@ -61,16 +61,12 @@ void AnimationShader::runShader(Entity* entity) {
         unsigned int strideLocation = 0;
         for (auto textureStride : textureStrides) {
 
-            updateUniform("id", &baseID);
-
             updateUniform("textureMap", GL_TEXTURE0, model->getTexture(textureStride.first)->getContext());
 
             //Draw triangles using the bound buffer vertices at starting index 0 and number of vertices
             glDrawArrays(GL_TRIANGLES, strideLocation, (GLsizei)textureStride.second);
 
             strideLocation += textureStride.second;
-
-            baseID++;
         }
 
         glBindVertexArray(0);

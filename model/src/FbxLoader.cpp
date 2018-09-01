@@ -9,6 +9,10 @@
 #include "RenderBuffers.h"
 #include "ModelBroker.h"
 #include "MutableTexture.h"
+#include "EngineManager.h"
+#include <cctype>
+
+std::vector<std::string> FbxLoader::_modelTags;
 
 FbxLoader::FbxLoader(std::string name) : 
     _fileName(name),
@@ -57,6 +61,26 @@ FbxLoader::FbxLoader(std::string name) :
 
     importer->Destroy();
 
+    _parseTags(_scene->GetRootNode());
+    _modelTags.push_back(_internalModelTag);
+    std::cout << _internalModelTag << std::endl;
+   
+    auto modelBroker = ModelBroker::instance();
+    for (auto transform : _clonedWorldTransforms) {
+        if (transform.first.size() != 0) {
+            
+            std::string modelName = transform.first.substr(0, transform.first.find_first_of("_"));
+            modelName += "/" + modelName + ".fbx";
+            Model* modelToInstance = modelBroker->getModel(modelName);
+            if (modelToInstance != nullptr) {
+                EngineManager::addEntity(modelToInstance, transform.second);
+            }
+            else {
+                std::cout << "Tag name doesn't exist for instancing: " << transform.first << std::endl;
+            }
+        }
+    }
+
     _export.manager = FbxManager::Create();
     _export.ioSettings = FbxIOSettings::Create(_export.manager, IOSROOT);
     _export.ioSettings->SetBoolProp(EXP_FBX_MATERIAL, true);
@@ -85,6 +109,12 @@ FbxLoader::~FbxLoader() {
     _export.manager->Destroy();
 }
 
+bool isNumber(const std::string& s)
+{
+    return !s.empty() && std::find_if(s.begin(),
+        s.end(), [](char c) { return !std::isdigit(c); }) == s.end();
+}
+
 FbxScene* FbxLoader::getScene() {
     return _scene;
 }
@@ -102,6 +132,57 @@ void FbxLoader::loadModel(Model* model, FbxNode* node) {
             loadModelData(model, mesh, childNode);
         }
         loadModel(model, childNode);
+    }
+}
+
+std::string FbxLoader::getTag() {
+    return _internalModelTag;
+}
+
+void FbxLoader::_parseTags(FbxNode* node) {
+
+    static std::map<std::string, Matrix> transformations;
+    // Determine the number of children there are
+    int numChildren = node->GetChildCount();
+    FbxNode* childNode = nullptr;
+    for (int i = 0; i < numChildren; i++) {
+        childNode = node->GetChild(i);
+        FbxDouble* TBuff = childNode->LclTranslation.Get().Buffer();
+        FbxDouble* RBuff = childNode->LclRotation.Get().Buffer();
+        FbxDouble* SBuff = childNode->LclScaling.Get().Buffer();
+
+        //Compute x, y and z rotation vectors by multiplying through
+        Matrix rotation = Matrix::rotationAroundX(static_cast<float>(RBuff[0])) *
+            Matrix::rotationAroundY(static_cast<float>(RBuff[1])) *
+            Matrix::rotationAroundZ(static_cast<float>(RBuff[2]));
+        Matrix translation = Matrix::translation(static_cast<float>(TBuff[0]), static_cast<float>(TBuff[1]), static_cast<float>(TBuff[2]));
+        Matrix scale = Matrix::scale(static_cast<float>(SBuff[0]), static_cast<float>(SBuff[1]), static_cast<float>(SBuff[2]));
+
+        FbxMesh* mesh = childNode->GetMesh();
+        if (mesh != nullptr) {
+            std::string nodeName = std::string(childNode->GetName());
+            if (nodeName.find("_") != std::string::npos) {
+                auto index = nodeName.find_first_of("_");
+
+                _clonedInstances[nodeName.substr(0, index)]++;
+                _internalModelTag += nodeName.substr(0, index);
+
+                std::string temp = nodeName.substr(index + 1);
+
+                auto tempIndex = temp.find_first_of("_");
+                if (isNumber(nodeName.substr(index + 1, tempIndex))) {
+                    index += temp.find_first_of("_");
+                    std::cout << temp << std::endl;
+                    _clonedWorldTransforms[nodeName.substr(0, index + 1)] = translation * rotation * scale;
+                }
+            }
+            else {
+                _internalModelTag += nodeName;
+                _clonedWorldTransforms[nodeName] = translation * rotation * scale;
+            }
+
+        }
+        _parseTags(childNode);
     }
 }
 
@@ -168,11 +249,20 @@ void FbxLoader::clearScene() {
     _export.scene->Clear();
 }
 
-void FbxLoader::_cloneFbxNode(Model* modelAddedTo, FbxNode* node, Vector4 location) {
+std::string FbxLoader::getModelName() {
+    return _fileName;
+}
+
+void FbxLoader::_cloneFbxNode(Model* modelAddedTo, FbxLoader* fbxLoader, Vector4 location) {
    
     // Determine the number of children there are
     auto rootNode  = _export.scene->GetRootNode();
+    auto node = fbxLoader->getScene()->GetRootNode();
     FbxCloneManager::Clone(node, rootNode);
+
+    auto modelName = fbxLoader->getModelName();
+    modelName = modelName.substr(modelName.find_last_of("/") + 1);
+    modelName = modelName.substr(0, modelName.find_last_of("."));
 
     int numChildren = node->GetChildCount();
     FbxNode* childNode = nullptr;
@@ -182,6 +272,8 @@ void FbxLoader::_cloneFbxNode(Model* modelAddedTo, FbxNode* node, Vector4 locati
         if (childToEdit != nullptr) {
             childToEdit->LclScaling.Set(FbxDouble3(location.getw(), location.getw(), location.getw()));
             childToEdit->LclTranslation.Set(FbxDouble3(location.getx(), location.gety(), location.getz()));
+            childToEdit->SetName((modelName + "_0_" 
+                + std::string(childToEdit->GetName())).c_str());
         }
     }
 
@@ -201,24 +293,27 @@ void FbxLoader::_cloneFbxNode(Model* modelAddedTo, FbxNode* node, Vector4 locati
     }
 }
 
-void FbxLoader::_nodeExists(FbxNode* node, std::vector<FbxNode*>& nodes) {
+void FbxLoader::_nodeExists(std::string modelName, FbxNode* node, std::vector<FbxNode*>& nodes) {
 
     // Determine the number of children there are
     int numChildren = node->GetChildCount();
     FbxNode* childNode = nullptr;
     for (int i = 0; i < numChildren; i++) {
         childNode = node->GetChild(i);
+        modelName = modelName.substr(modelName.find_last_of("/") + 1);
+        modelName = modelName.substr(0, modelName.find_last_of("."));
+        std::string name = modelName + "_0_" + childNode->GetName();
         if (childNode != nullptr) {
-            auto node = _scene->GetRootNode()->FindChild(childNode->GetName(), true);
+            auto node = _scene->GetRootNode()->FindChild(name.c_str(), true);
             if (node != nullptr) {
                 nodes.push_back(node);
             }
-            node = _export.scene->GetRootNode()->FindChild(childNode->GetName(), true);
+            node = _export.scene->GetRootNode()->FindChild(name.c_str(), true);
             if(node != nullptr) {
                 nodes.push_back(node);
             }
         }
-        _nodeExists(childNode, nodes);
+        _nodeExists(modelName, childNode, nodes);
     }
 }
 
@@ -232,18 +327,24 @@ void FbxLoader::addToScene(Model* modelAddedTo, FbxLoader* modelToLoad, Vector4 
     modelAddedTo->getRenderBuffers()->getTextureMapNames()->resize(0);
 
     modelAddedTo->getVAO()->back() = new VAO();
-    //modelAddedTo->getVAO()->push_back(new VAO());
     //Stride index needs to be reset when adding new models to the scene
     _strideIndex = 0;
 
     std::vector<FbxNode*> copiedNodes;
-    _nodeExists(modelToLoad->getScene()->GetRootNode(), copiedNodes);
+    _nodeExists(modelToLoad->getModelName(), modelToLoad->getScene()->GetRootNode(), copiedNodes);
     if (copiedNodes.size() == 0) {
-        _cloneFbxNode(modelAddedTo, modelToLoad->getScene()->GetRootNode(), location);
+        _cloneFbxNode(modelAddedTo, modelToLoad, location);
         _firstClone = true;
     }
     //instance off of cloned mesh
     else {
+
+        std::string modelName = modelToLoad->getModelName();
+        modelName = modelName.substr(modelName.find_last_of("/") + 1);
+        modelName = modelName.substr(0, modelName.find_last_of("."));
+
+        _clonedInstances[modelName]++;
+
         // Determine the number of children there are
         auto numChildren = copiedNodes.size();
         FbxNode* childNode = nullptr;
@@ -252,9 +353,11 @@ void FbxLoader::addToScene(Model* modelAddedTo, FbxLoader* modelToLoad, Vector4 
 
             FbxMesh* mesh = childNode->GetMesh();
             if (mesh != nullptr) {
+                std::string nodeName = std::string(childNode->GetName());
+                nodeName.insert(nodeName.find_first_of("_"), "_" + std::to_string(_clonedInstances[modelName]));
                 FbxNode* lNode = FbxNode::Create(_export.scene, 
-                    (std::string(childNode->GetName()) + 
-                        "_instance" + std::to_string(_export.scene->GetRootNode()->GetChildCount())).c_str());
+                    (nodeName +
+                        "instance" + std::to_string(_export.scene->GetRootNode()->GetChildCount())).c_str());
                 lNode->SetNodeAttribute(mesh);
                 lNode->LclScaling.Set(FbxDouble3(location.getw(), location.getw(), location.getw()));
                 lNode->LclTranslation.Set(FbxDouble3(location.getx(), location.gety(), location.getz()));
@@ -272,8 +375,24 @@ void FbxLoader::addToScene(Model* modelAddedTo, FbxLoader* modelToLoad, Vector4 
         }
     }
 
-    loadModel(modelAddedTo, _export.scene->GetRootNode());
-    modelAddedTo->addVAO(ModelClass::ModelType);
+    std::string modelName = modelToLoad->getModelName();
+    modelName = modelName.substr(modelName.find_last_of("/") + 1);
+    modelName = modelName.substr(0, modelName.find_last_of("."));
+    modelName += "/" + modelName + ".fbx";
+
+    auto transformation =
+        Matrix::translation(location.getx(), -location.gety(), location.getz()) * 
+        Matrix::scale(location.getw()) * 
+        modelToLoad->getObjectSpaceTransform();
+
+    EngineManager::addEntity(ModelBroker::instance()->getModel(modelName), transformation);
+
+    //loadModel(modelAddedTo, _export.scene->GetRootNode());
+    //modelAddedTo->addVAO(ModelClass::ModelType);
+}
+
+Matrix FbxLoader::getObjectSpaceTransform() {
+    return _objectSpaceTransform;
 }
 
 void FbxLoader::addTileToScene(Model* modelAddedTo, FbxLoader* modelToLoad, Vector4 location, std::vector<std::string> textures) {
@@ -291,9 +410,9 @@ void FbxLoader::addTileToScene(Model* modelAddedTo, FbxLoader* modelToLoad, Vect
     _strideIndex = 0;
 
     std::vector<FbxNode*> copiedNodes;
-    _nodeExists(modelToLoad->getScene()->GetRootNode(), copiedNodes);
+    _nodeExists(modelToLoad->getModelName(), modelToLoad->getScene()->GetRootNode(), copiedNodes);
     if (copiedNodes.size() == 0) {
-        _cloneFbxNode(modelAddedTo, modelToLoad->getScene()->GetRootNode(), location);
+        _cloneFbxNode(modelAddedTo, modelToLoad, location);
         _firstClone = true;
     }
     //instance off of cloned mesh
@@ -383,8 +502,19 @@ void FbxLoader::addTileToScene(Model* modelAddedTo, FbxLoader* modelToLoad, Vect
         }
     }
 
-    loadModel(modelAddedTo, _export.scene->GetRootNode());
-    modelAddedTo->addVAO(ModelClass::ModelType);
+    std::string modelName = modelToLoad->getModelName();
+    modelName = modelName.substr(modelName.find_last_of("/") + 1);
+    modelName = modelName.substr(0, modelName.find_last_of("."));
+    modelName += "/" + modelName + ".fbx";
+    auto transformation =
+        Matrix::translation(location.getx(), -location.gety(), location.getz()) *
+        Matrix::scale(location.getw()) *
+        modelToLoad->getObjectSpaceTransform();
+
+    EngineManager::addEntity(ModelBroker::instance()->getModel(modelName), transformation);
+
+    //loadModel(modelAddedTo, _export.scene->GetRootNode());
+    //modelAddedTo->addVAO(ModelClass::ModelType);
 }
 
 void FbxLoader::loadAnimatedModel(AnimatedModel* model, FbxNode* node) {
@@ -548,6 +678,7 @@ void FbxLoader::loadGeometryData(Model* model, FbxMesh* meshNode, FbxNode* child
 
 void FbxLoader::loadModelData(Model* model, FbxMesh* meshNode, FbxNode* childNode) {
 
+    
     //Get the indices from the mesh
     int* indices = nullptr;
     _loadIndices(model, meshNode, indices);
@@ -753,6 +884,21 @@ void FbxLoader::_buildModelData(Model* model, FbxMesh* meshNode, FbxNode* childN
         for (int i = 0; i < textures.size(); i++) {
             renderBuffers->addTexture(textures[i]);
         }
+
+        FbxDouble* TBuff = childNode->LclTranslation.Get().Buffer();
+        FbxDouble* RBuff = childNode->LclRotation.Get().Buffer();
+        FbxDouble* SBuff = childNode->LclScaling.Get().Buffer();
+
+        //Compute x, y and z rotation vectors by multiplying through
+        Matrix rotation = Matrix::rotationAroundX(static_cast<float>(RBuff[0])) *
+            Matrix::rotationAroundY(static_cast<float>(RBuff[1])) *
+            Matrix::rotationAroundZ(static_cast<float>(RBuff[2]));
+        Matrix translation = Matrix::translation(static_cast<float>(TBuff[0]), static_cast<float>(TBuff[1]), static_cast<float>(TBuff[2]));
+        Matrix scale = Matrix::scale(static_cast<float>(SBuff[0]), static_cast<float>(SBuff[1]), static_cast<float>(SBuff[2]));
+
+        Matrix transformation = translation * rotation;// *scale;
+        renderBuffers->addWorldSpaceTransform(transformation);
+        _objectSpaceTransform = transformation;
     }
     else if (model->getClassType() == ModelClass::ModelType) {
         //Load in the entire model once if the data is not animated
@@ -999,8 +1145,9 @@ void FbxLoader::_buildTriangles(Model* model, std::vector<Vector4>& vertices, st
     Matrix scale = Matrix::scale(static_cast<float>(SBuff[0]), static_cast<float>(SBuff[1]), static_cast<float>(SBuff[2]));
 
     int triCount = 0;
-    Matrix transformation = translation * rotation * scale;
-
+    Matrix transformation = Matrix();// translation * rotation * scale;
+    _objectSpaceTransform = translation * rotation;// *scale;
+    renderBuffers->addWorldSpaceTransform(transformation);
 
     std::vector<int> flattenStrides;
     auto vao = model->getVAO();

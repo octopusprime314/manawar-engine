@@ -40,7 +40,4 @@ class Picker {
 public:
     Picker(MRTFrameBuffer* mrt, std::function<void(Vector4)> terminalCallback);
     ~Picker();
-    
-    void addPickableEntities(std::vector<Entity*> entities);
-
 };

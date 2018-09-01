@@ -16,12 +16,13 @@ void StaticShader::runShader(Entity* entity) {
     //LOAD IN SHADER
     glUseProgram(_shaderContext); //use context for loaded shader
     auto model = entity->getModel();
-    auto baseID = entity->getID();
+    unsigned int id = entity->getID();
+    updateUniform("id", &id);
+
     std::vector<VAO*>* vao = entity->getFrustumVAO(); //Special vao call that factors in frustum culling for the scene
     for (auto vaoInstance : *vao) {
         glBindVertexArray(vaoInstance->getVAOContext());
         
-        unsigned int id = entity->getID();
         unsigned int primitiveOffsetId = vaoInstance->getPrimitiveOffsetId();
        
         MVP* mvp = entity->getMVP();

@@ -1,5 +1,6 @@
 #include "Picker.h"
 #include "IOEvents.h"
+#include "EngineManager.h"
 
 Picker::Picker(MRTFrameBuffer* mrt, std::function<void(Vector4)> terminalCallback) :
     _mrt(mrt),
@@ -12,10 +13,6 @@ Picker::Picker(MRTFrameBuffer* mrt, std::function<void(Vector4)> terminalCallbac
 
 Picker::~Picker() {
 
-}
-
-void Picker::addPickableEntities(std::vector<Entity*> entities) {
-    _entityList = entities;
 }
 
 void Picker::_keyboardPress(int key, int x, int y) {
@@ -80,7 +77,7 @@ void Picker::_mouseClick(int button, int action, int x, int y) {
         delete[] pixels;
 
         Entity* selectedEntity = nullptr;
-        for (auto entity : _entityList) {
+        for (auto entity : *EngineManager::getEntityList()) {
             if (entity->isID(entityID)) {
                 entity->setSelected(true);
                 if (entity->getRenderBuffers()->size() > 0) {

@@ -151,6 +151,8 @@ void VAO::createVAO(RenderBuffers* renderBuffers, ModelClass classId, Animation*
     auto textures = renderBuffers->getTextures();
     auto indices = renderBuffers->getIndices();
 
+    auto worldSpaceMatrices = renderBuffers->getWorldSpaceTranforms();
+
     _vertexLength = static_cast<GLuint>(vertices->size());
 
     //Now flatten vertices and normals out for opengl

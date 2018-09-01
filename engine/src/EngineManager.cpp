@@ -34,6 +34,8 @@ uint64_t nowMs();
 // We define this here because this file is basically main.
 volatile bool g_AssertOnBadOpenGlCall = false;
 
+std::vector<Entity*> EngineManager::_entityList;
+
 EngineManager::EngineManager(int* argc, char** argv) {
 
     //Create instance of glfw wrapper class context
@@ -47,7 +49,6 @@ EngineManager::EngineManager(int* argc, char** argv) {
     _viewManager = new ViewEventDistributor(argc, argv, IOEventDistributor::screenPixelWidth, IOEventDistributor::screenPixelHeight);
     
     ModelBroker::setViewManager(_viewManager); //Set the reference to the view model event interface
-
     _viewManager->setProjection(IOEventDistributor::screenPixelWidth, IOEventDistributor::screenPixelHeight, 0.1f, 5000.0f); //Initializes projection matrix and broadcasts upate to all listeners
      // This view is carefully chosen to look at a mountain without showing the (lack of) water in the scene.
     _viewManager->setView(Matrix::cameraTranslation(0.0f, 0.0f, 0.0f),
@@ -98,7 +99,7 @@ EngineManager::EngineManager(int* argc, char** argv) {
 
     auto modelBroker = ModelBroker::instance();
 
-    _entityList.push_back(new Entity(modelBroker->getModel("sandbox/sandbox.fbx"), _viewManager->getEventWrapper())); //Add a static model to the scene
+    //_entityList.push_back(new Entity(modelBroker->getModel("sandbox/sandbox.fbx"), _viewManager->getEventWrapper())); //Add a static model to the scene
     _entityList.push_back(new Entity(modelBroker->getModel("werewolf/werewolf.fbx"), _viewManager->getEventWrapper())); //Add a static model to the scene
     //_entityList.push_back(new Entity(modelBroker->getModel("wolf/wolf.fbx"), _viewManager->getEventWrapper())); //Add a static model to the scene
     //_entityList.push_back(new Entity(modelBroker->getModel("hagraven/hagraven.fbx"), _viewManager->getEventWrapper())); //Add a static model to the scene
@@ -190,6 +191,20 @@ EngineManager::~EngineManager() {
     delete _viewManager;
     delete _audioManager;
     delete _forwardRenderer;
+}
+
+void EngineManager::addEntity(Model* model, Matrix transform) {
+    auto viewManager = ModelBroker::getViewManager();
+    auto viewWrapper = viewManager->getEventWrapper();
+    MVP mvp;
+    mvp.setModel(transform);
+    mvp.setView(viewManager->getView());
+    mvp.setProjection(viewManager->getProjection());
+    _entityList.push_back(new Entity(model, viewWrapper, mvp)); //Add a static model to the scene
+}
+
+std::vector<Entity*>* EngineManager::getEntityList() {
+    return &_entityList;
 }
 
 void EngineManager::_preDraw() {

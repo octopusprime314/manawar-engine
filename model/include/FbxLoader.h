@@ -25,61 +25,69 @@
 #include <vector>
 #include "Tex2.h"
 #include <map>
+#include "Matrix.h"
 
 class Model;
 class AnimatedModel;
 class SkinningData;
 class Vector4;
-class Matrix;
 
 struct FbxExporterType {
-    FbxManager*    manager;
-    FbxIOSettings* ioSettings;
-    FbxScene*      scene;
-    FbxExporter*   exporter;
+    FbxManager*     manager;
+    FbxIOSettings*  ioSettings;
+    FbxScene*       scene;
+    FbxExporter*    exporter;
 };
 
 class FbxLoader {
-    FbxManager*    _fbxManager;
-    FbxIOSettings* _ioSettings;
-    FbxScene*      _scene;
+    FbxManager*     _fbxManager;
+    FbxIOSettings*  _ioSettings;
+    FbxScene*       _scene;
     FbxExporterType _export;
-    std::string    _fileName;
-    int            _strideIndex;
-    bool           _firstClone;
-    bool           _copiedOverFlag; //indicates the scene has been cloned over to export fbx to prevent doing it again!
-    void           _loadTextures(Model* model, FbxMesh* meshNode, FbxNode* childNode);
-    void           _buildTriangles(Model* model, std::vector<Vector4>& vertices, std::vector<Vector4>& normals,
+    std::string     _fileName;
+    int             _strideIndex;
+    bool            _firstClone;
+    bool            _copiedOverFlag; //indicates the scene has been cloned over to export fbx to prevent doing it again!
+    void            _loadTextures(Model* model, FbxMesh* meshNode, FbxNode* childNode);
+    void            _buildTriangles(Model* model, std::vector<Vector4>& vertices, std::vector<Vector4>& normals,
         std::vector<Tex2>& textures, std::vector<int>& indices, FbxNode* node);
-    void           _buildModelData(Model* model, FbxMesh* meshNode, FbxNode* childNode, std::vector<Vector4>& vertices,
+    void            _buildModelData(Model* model, FbxMesh* meshNode, FbxNode* childNode, std::vector<Vector4>& vertices,
         std::vector<Vector4>& normals, std::vector<Tex2>& textures);
-    void           _buildGeometryData(Model* model, std::vector<Vector4>& vertices, std::vector<int>& indices, FbxNode* node);
-
-    void           _nodeExists(FbxNode* node, std::vector<FbxNode*>& nodes);
-    void           _generateTextureStrides(FbxMesh* meshNode, std::vector<std::pair<int, int>>& textureStrides);
-    bool           _loadTexture(Model* model, int textureStride, FbxFileTexture* textureFbx);
-    bool           _loadLayeredTexture(Model* model, int textureStride, FbxLayeredTexture* layered_texture);
-    void           _loadTextureUVs(FbxMesh* meshNode, std::vector<Tex2>& textures);
-    void           _loadNormals(FbxMesh* meshNode, int* indices, std::vector<Vector4>& normals);
-    void           _loadVertices(FbxMesh* meshNode, std::vector<Vector4>& vertices);
-    void           _loadIndices(Model* model, FbxMesh* meshNode, int*& indices);
-    void           _cloneFbxNode(Model* modelAddedTo, FbxNode* node, Vector4 location);
-    int            _getASCIIFormatIndex(FbxManager* fbxManager);
+    void            _buildGeometryData(Model* model, std::vector<Vector4>& vertices, std::vector<int>& indices, FbxNode* node);
+    void            _nodeExists(std::string modelName, FbxNode* node, std::vector<FbxNode*>& nodes);
+    void            _generateTextureStrides(FbxMesh* meshNode, std::vector<std::pair<int, int>>& textureStrides);
+    bool            _loadTexture(Model* model, int textureStride, FbxFileTexture* textureFbx);
+    bool            _loadLayeredTexture(Model* model, int textureStride, FbxLayeredTexture* layered_texture);
+    void            _loadTextureUVs(FbxMesh* meshNode, std::vector<Tex2>& textures);
+    void            _loadNormals(FbxMesh* meshNode, int* indices, std::vector<Vector4>& normals);
+    void            _loadVertices(FbxMesh* meshNode, std::vector<Vector4>& vertices);
+    void            _loadIndices(Model* model, FbxMesh* meshNode, int*& indices);
+    void            _cloneFbxNode(Model* modelAddedTo, FbxLoader* fbxToAdd, Vector4 location);
+    int             _getASCIIFormatIndex(FbxManager* fbxManager);
+    static std::vector<std::string> _modelTags;
+    std::string     _internalModelTag;
+    void             _parseTags(FbxNode* node);
+    std::map<std::string, unsigned int> _clonedInstances;
+    std::map<std::string, Matrix> _clonedWorldTransforms;
+    Matrix           _objectSpaceTransform;
 
 public:
     FbxLoader(std::string name);
     ~FbxLoader();
-    FbxScene* getScene();
-    void loadAnimatedModel(AnimatedModel* model, FbxNode* node = nullptr);
-    void loadAnimatedModelData(AnimatedModel* model, FbxSkin* pSkin, FbxNode* node, FbxMesh* mesh);
-    void loadModel(Model* model, FbxNode* node = nullptr);
-    void loadModelData(Model* model, FbxMesh* meshNode, FbxNode* childNode);
-    void buildAnimationFrames(AnimatedModel* model, std::vector<SkinningData>& skins);
-    void buildAABB(Model* model);
-    void loadGeometry(Model* model, FbxNode* node);
-    void loadGeometryData(Model* model, FbxMesh* meshNode, FbxNode* childNode);
-    void addToScene(Model* modelAddedTo, FbxLoader* modelToLoad, Vector4 location);
-    void addTileToScene(Model* modelAddedTo, FbxLoader* modelToLoad, Vector4 location, std::vector<std::string> textures);
-    void saveScene();
-    void clearScene();
+    FbxScene*       getScene();
+    void            loadAnimatedModel(AnimatedModel* model, FbxNode* node = nullptr);
+    void            loadAnimatedModelData(AnimatedModel* model, FbxSkin* pSkin, FbxNode* node, FbxMesh* mesh);
+    void            loadModel(Model* model, FbxNode* node = nullptr);
+    void            loadModelData(Model* model, FbxMesh* meshNode, FbxNode* childNode);
+    void            buildAnimationFrames(AnimatedModel* model, std::vector<SkinningData>& skins);
+    void            buildAABB(Model* model);
+    void            loadGeometry(Model* model, FbxNode* node);
+    void            loadGeometryData(Model* model, FbxMesh* meshNode, FbxNode* childNode);
+    void            addToScene(Model* modelAddedTo, FbxLoader* modelToLoad, Vector4 location);
+    void            addTileToScene(Model* modelAddedTo, FbxLoader* modelToLoad, Vector4 location, std::vector<std::string> textures);
+    void            saveScene();
+    void            clearScene();
+    std::string     getTag();
+    std::string     getModelName();
+    Matrix          getObjectSpaceTransform();
 };

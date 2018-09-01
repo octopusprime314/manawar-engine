@@ -5,7 +5,7 @@
 
 unsigned int Entity::_idGenerator = 0;
 
-Entity::Entity(Model* model, ViewEvents* eventWrapper) :
+Entity::Entity(Model* model, ViewEvents* eventWrapper, MVP transforms) :
     EventSubscriber(eventWrapper),
     _clock(MasterClock::instance()),
     _model(model),
@@ -14,6 +14,9 @@ Entity::Entity(Model* model, ViewEvents* eventWrapper) :
     _frustumRenderBuffers(new std::vector<RenderBuffers>()),
     _gameState(EngineState::getEngineState()) {
 
+    _worldSpaceTransform = transforms.getModelMatrix();
+    _mvp.setProjection(transforms.getProjectionMatrix());
+    _mvp.setView(transforms.getViewMatrix());
 
     if (_model->getClassType() == ModelClass::AnimatedModelType) {
         _state.setActive(true); //initialize animations to be active
@@ -91,17 +94,31 @@ void Entity::_updateKinematics(int milliSeconds) {
 
     _prevMVP.setModel(_mvp.getModelMatrix());
 
-    //Pass position information to model matrix
     Vector4 position = _state.getLinearPosition();
-    _model->getGeometry()->updatePosition(position);
-    _mvp.getModelBuffer()[3] = position.getx();
-    _mvp.getModelBuffer()[7] = position.gety();
-    _mvp.getModelBuffer()[11] = position.getz();
+    Matrix kinematicTransform = Matrix::translation(position.getx(), position.gety(), position.getz());
+    auto totalTransform = kinematicTransform * _worldSpaceTransform;
+    Vector4 pos = Vector4(totalTransform.getFlatBuffer()[3],
+        totalTransform.getFlatBuffer()[7],
+        totalTransform.getFlatBuffer()[11]);
+    _model->getGeometry()->updatePosition(pos);
+    _mvp.setModel(totalTransform);
+   /* _mvp.getModelBuffer()[3] = pos.getx();
+    _mvp.getModelBuffer()[7] = pos.gety();
+    _mvp.getModelBuffer()[11] = pos.getz();*/
+
+
+    ////Pass position information to model matrix
+    //Vector4 position = _state.getLinearPosition();
+    //_model->getGeometry()->updatePosition(position);
+    //_mvp.getModelBuffer()[3] = position.getx();
+    //_mvp.getModelBuffer()[7] = position.gety();
+    //_mvp.getModelBuffer()[11] = position.getz();
 }
 
 void Entity::_updateGameState(EngineStateFlags state) {
     _gameState = state;
 }
+
 
 VAOMap Entity::getVAOMapping() {
     return _frustumVAOMapping;
@@ -311,13 +328,28 @@ FrustumCuller* Entity::getFrustumCuller() {
 }
 
 void Entity::setPosition(Vector4 position) {
-    _state.setLinearPosition(position);
+
+    Matrix kinematicTransform = Matrix::translation(position.getx(), position.gety(), position.getz());
+    auto totalTransform = kinematicTransform * _worldSpaceTransform;
+    Vector4 pos = Vector4(totalTransform.getFlatBuffer()[3],
+        totalTransform.getFlatBuffer()[7],
+        totalTransform.getFlatBuffer()[11]);
+
+    _state.setLinearPosition(pos);
     //Pass position information to model matrix
-    _model->getGeometry()->updatePosition(position);
+    _model->getGeometry()->updatePosition(pos);
 
     _prevMVP.setModel(_mvp.getModelMatrix());
 
-    _mvp.setModel(Matrix::translation(position.getx(), position.gety(), position.getz()));
+    _mvp.setModel(totalTransform);
+
+    //_state.setLinearPosition(position);
+    ////Pass position information to model matrix
+    //_model->getGeometry()->updatePosition(position);
+
+    //_prevMVP.setModel(_mvp.getModelMatrix());
+
+    //_mvp.setModel(Matrix::translation(position.getx(), position.gety(), position.getz()));
 }
 
 void Entity::setVelocity(Vector4 velocity) {

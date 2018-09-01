@@ -41,7 +41,7 @@ class Entity : public EventSubscriber {
 public:
 
     //Default model to type to base class
-    Entity(Model* model, ViewEvents* eventWrapper);
+    Entity(Model* model, ViewEvents* eventWrapper, MVP worldSpaceTransform = MVP());
     virtual ~Entity();
     Model*                      getModel();
     MVP*                        getMVP();
@@ -66,6 +66,7 @@ protected:
     MasterClock*                _clock; //Used to coordinate time with the world
     Model*                      _model; //Graphics data
     MVP                         _mvp; //Model view matrix container
+    Matrix                      _worldSpaceTransform;
     MVP                         _prevMVP; //Previous Model view matrix container for motion blur
     static unsigned int         _idGenerator; //id generator that is incremented every time a new Entity is added
     unsigned int                _id; //used to identify entities, used for picking

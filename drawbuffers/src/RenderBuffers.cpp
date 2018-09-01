@@ -23,6 +23,10 @@ std::vector<Vector4>* RenderBuffers::getDebugNormals() {
     return &_debugNormals;
 }
 
+std::vector<Matrix>* RenderBuffers::getWorldSpaceTranforms() {
+    return &_worldSpaceTransforms;
+}
+
 void RenderBuffers::addVertex(Vector4 vertex) {
     _vertices.push_back(vertex);
 }
@@ -33,6 +37,10 @@ void RenderBuffers::addNormal(Vector4 normal) {
 
 void RenderBuffers::addTexture(Tex2 texture) {
     _textures.push_back(texture);
+}
+
+void RenderBuffers::addWorldSpaceTransform(Matrix worldSpaceTransform) {
+    _worldSpaceTransforms.push_back(worldSpaceTransform);
 }
 
 void RenderBuffers::addDebugNormal(Vector4 normal) {

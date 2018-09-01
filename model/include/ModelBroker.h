@@ -40,6 +40,7 @@ public:
     static ModelBroker*  instance();
     ~ModelBroker();
     Model*               getModel(std::string modelName);
+    Model*               getModelFromTag(std::string modelTagName);
     void                 buildModels();
     void                 clearChanges(std::string modelName);
     void                 updateModel(std::string modelName);

@@ -14,11 +14,11 @@ Terminal::Terminal(MRTFrameBuffer* gBuffers, std::vector<Entity*> entityList) :
     _commandHistoryIndex(0) {
     
     //Added global history for quick debugging of model creator
-    _commandHistory.push_back("ADDTILE SANDBOX TERRAINTILE 0 0 0 1 SNOW.JPG DIRT.JPG ROCKS.JPG GRASS.JPG|");
-    _commandHistory.push_back("MOUSEADD SANDBOX TREE2 0 0 0 1|");
+    _commandHistory.push_back("ADDTILE ZSANDBOX TERRAINTILE 0 0 0 1 SNOW.JPG DIRT.JPG ROCKS.JPG GRASS.JPG|");
+    _commandHistory.push_back("MOUSEADD ZSANDBOX DEADTREE 0 0 0 1|");
+    _commandHistory.push_back("SAVE ZSANDBOX|");
 
     _picker = new Picker(gBuffers, std::bind(&Terminal::_mousePosition, this, _1));
-    _picker->addPickableEntities(entityList);
 
     IOEvents::subscribeToKeyboard(std::bind(&Terminal::_updateKeyboard, this, _1, _2, _3));
     IOEvents::subscribeToGameState(std::bind(&Terminal::_updateGameState, this, _1));

@@ -4,7 +4,7 @@
 #include <cctype>
 #include "AnimatedModel.h"
 #include "Model.h"
-//#include "Logger.h"
+#include "Logger.h"
 ModelBroker* ModelBroker::_broker = nullptr;
 ViewEventDistributor* ModelBroker::_viewManager = nullptr;
 
@@ -154,7 +154,7 @@ void ModelBroker::_gatherModelNames()
     struct dirent *ent;
     if ((dir = opendir(STATIC_MESH_LOCATION.c_str())) != nullptr)
     {
-        //Logger::WriteLog("Files to be processed: \n");
+        Logger::INFO("Files to be processed: \n");
 
         while ((ent = readdir(dir)) != nullptr) {
             if (*ent->d_name) {
@@ -165,7 +165,7 @@ void ModelBroker::_gatherModelNames()
                     fileName != ".." && 
                     fileName.find(".ini") == std::string::npos) {
                     
-                    //Logger::WriteLog(ent->d_name, "\n");
+                    Logger::INFO(ent->d_name, "\n");
 
                     std::string mapName = fileName + "/" + fileName + ".fbx";
                     std::string upperCaseMapName = _strToUpper(mapName);
@@ -182,7 +182,7 @@ void ModelBroker::_gatherModelNames()
 
     if ((dir = opendir(ANIMATED_MESH_LOCATION.c_str())) != nullptr)
     {
-        //Logger::WriteLog("Files to be processed: \n");
+        Logger::INFO("Files to be processed: \n");
 
         while ((ent = readdir(dir)) != nullptr) {
             if (*ent->d_name) {
@@ -193,7 +193,7 @@ void ModelBroker::_gatherModelNames()
                     fileName != ".." &&
                     fileName.find(".ini") == std::string::npos) {
 
-                    //Logger::WriteLog(ent->d_name, "\n");
+                    Logger::INFO(ent->d_name, "\n");
 
                     std::string mapName = fileName + "/" + fileName + ".fbx";
                     std::string upperCaseMapName = _strToUpper(mapName);

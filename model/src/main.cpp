@@ -4,11 +4,13 @@
 #include <iostream>
 #include <thread>
 #include "EngineManager.h"
+#include "Logger.h"
 
 int main(int argc, char** argv) {
 
     //Send the width and height in pixel units and the near and far plane to describe the view frustum
     EngineManager EngineManager(&argc, argv); //Manages the camera view and models in scene
+	Logger::CloseLog();
     return 0;
 }
 

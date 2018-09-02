@@ -15,7 +15,8 @@
 #include "ComputeShader.h"
 #include <algorithm>
 #include <cctype>
-//#include "Logger.h"
+#include "Logger.h"
+
 ShaderBroker* ShaderBroker::_broker = nullptr;
 
 ShaderBroker* ShaderBroker::instance() { //Only initializes the static pointer once
@@ -73,7 +74,7 @@ void ShaderBroker::_gatherShaderNames()
     struct dirent *ent;
     if ((dir = opendir(SHADERS_LOCATION.c_str())) != nullptr)
     {
-        //Logger::WriteLog("Files to be processed: \n");
+        Logger::INFO("Files to be processed: \n");
 
         while ((ent = readdir(dir)) != nullptr) {
             if (*ent->d_name) {
@@ -85,7 +86,7 @@ void ShaderBroker::_gatherShaderNames()
                     fileName.find(".") != std::string::npos &&
                     fileName.find(".ini") == std::string::npos) {
                     
-                    //Logger::WriteLog(ent->d_name, "\n");
+                    Logger::INFO(ent->d_name, "\n");
 
                     std::string mapName = fileName.substr(0, fileName.find("."));
                     std::string upperCaseMapName = _strToUpper(mapName);

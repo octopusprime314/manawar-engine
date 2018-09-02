@@ -42,6 +42,7 @@ private:
     std::vector<std::string> _commandHistory;
     size_t                   _commandHistoryIndex;
     void                     _updateKeyboard(int key, int x, int y);
+    void                     _updateReleaseKeyboard(int key, int x, int y);
     void                     _updateGameState(EngineStateFlags state);
     void                     _mousePosition(Vector4 position);
     int                      _getCursorIndex();
@@ -50,4 +51,5 @@ private:
     static ModelBroker*      _modelManager;
     EngineStateFlags         _gameState;
     Picker*                  _picker;
+    bool                     _shiftKeyPressed;
 };

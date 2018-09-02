@@ -6,7 +6,6 @@ int         IOEventDistributor::_renderNow = 0;
 std::mutex  IOEventDistributor::_renderLock;
 GLFWwindow* IOEventDistributor::_window;
 bool        IOEventDistributor::_quit = false;
-bool        IOEventDistributor::_gameState = 0;
 int         IOEventDistributor::screenPixelWidth = 0;
 int         IOEventDistributor::screenPixelHeight = 0;
 
@@ -162,7 +161,13 @@ void IOEventDistributor::_keyboardUpdate(GLFWwindow* window, int key, int scanco
     else if (action == GLFW_RELEASE) {
         IOEvents::releaseKeyboard(key, 0, 0);
     }
-
+    else if (action == GLFW_REPEAT) {
+        EngineStateFlags engineStateFlags = EngineState::getEngineState();
+        if (engineStateFlags.worldEditorModeEnabled) {
+            std::cout << "Repeat" << std::endl;
+            IOEvents::updateKeyboard(key, 0, 0);
+        }
+    }
 }
 
 //One frame draw update call

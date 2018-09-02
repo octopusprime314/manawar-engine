@@ -21,6 +21,7 @@ Terminal::Terminal(MRTFrameBuffer* gBuffers, std::vector<Entity*> entityList) :
     _picker = new Picker(gBuffers, std::bind(&Terminal::_mousePosition, this, _1));
 
     IOEvents::subscribeToKeyboard(std::bind(&Terminal::_updateKeyboard, this, _1, _2, _3));
+    IOEvents::subscribeToReleaseKeyboard(std::bind(&Terminal::_updateReleaseKeyboard, this, _1, _2, _3));
     IOEvents::subscribeToGameState(std::bind(&Terminal::_updateGameState, this, _1));
 }
 
@@ -166,17 +167,30 @@ void Terminal::_updateKeyboard(int key, int x, int y) { //Do stuff based on keyb
             int i = _getCursorIndex();
             if ((i > 0 && key == GLFW_KEY_LEFT) ||
                 (i < _commandString.size() - 1 && key == GLFW_KEY_RIGHT)) {
-                if (key == GLFW_KEY_LEFT) {
+                if (key == GLFW_KEY_LEFT && !_shiftKeyPressed) {
                     auto temp = _commandString[i - 1];
                     _commandString[i - 1] = '|';
                     _commandString[i] = temp;
                 }
-                else {
+                else if (key == GLFW_KEY_LEFT && _shiftKeyPressed) {
+                    auto temp = _commandString[i - 1];
+                    _commandString[i - 1] = '|';
+                    _commandString[i] = temp;
+                }
+                else  if (key == GLFW_KEY_RIGHT && !_shiftKeyPressed) {
+                    auto temp = _commandString[i + 1];
+                    _commandString[i + 1] = '|';
+                    _commandString[i] = temp;
+                }
+                else  if (key == GLFW_KEY_RIGHT && _shiftKeyPressed) {
                     auto temp = _commandString[i + 1];
                     _commandString[i + 1] = '|';
                     _commandString[i] = temp;
                 }
             }
+        }
+        else if (key == GLFW_KEY_LEFT_SHIFT || key == GLFW_KEY_RIGHT_SHIFT) {
+            _shiftKeyPressed = true;
         }
         else if (key == GLFW_KEY_BACKSPACE) {
 
@@ -206,6 +220,19 @@ void Terminal::_updateKeyboard(int key, int x, int y) { //Do stuff based on keyb
                 _commandString[i] = char(key);
                 _commandString += '|';
             }
+        }
+    }
+}
+
+void Terminal::_updateReleaseKeyboard(int key, int x, int y) { //Do stuff based on keyboard release update
+
+
+    if (_gameState.worldEditorModeEnabled &&
+        key != GLFW_KEY_GRAVE_ACCENT &&
+        key != GLFW_KEY_ENTER) {
+
+        if (key == GLFW_KEY_LEFT_SHIFT || key == GLFW_KEY_RIGHT_SHIFT) {
+            _shiftKeyPressed = false;
         }
     }
 }

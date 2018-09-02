@@ -32,12 +32,17 @@
 
 #include "Logger.h"
 #include <Windows.h>
+#include <iomanip>
+#include <ctime>
+#include <chrono>
+
 
 std::ofstream* Logger::outputFile = 
 new std::ofstream(LOGGERPATH + "Log" + GetPID() + ".txt", std::ios_base::in | std::ios_base::out | std::ios_base::trunc);
 
 std::mutex* Logger::logMutex = new std::mutex();
 int Logger::verbosity = 1;
+LOG_LEVEL Logger::logLevel = LOG_LEVEL::TRACE;
 
 std::string Logger::GetPID() {
     //Return the program PID to generate unique log files
@@ -54,11 +59,55 @@ void Logger::CloseLog() {
     delete logMutex;
 }
 
-void Logger::dumpLog(const std::string& buffer) {
+void Logger::SetLogLevel(std::string log_level) {
+	if (log_level == "fatal") {
+		Logger::logLevel = LOG_LEVEL::FATAL;
+	}
+	else if (log_level == "err") {
+		Logger::logLevel = LOG_LEVEL::ERR;
+	}
+	else if (log_level == "warn") {
+		Logger::logLevel = LOG_LEVEL::WARN;
+	}
+	else if (log_level == "info") {
+		Logger::logLevel = LOG_LEVEL::INFO;
+	}
+	else if (log_level == "debug") {
+		Logger::logLevel = LOG_LEVEL::DEBUG;
+	}
+	else if (log_level == "trace") {
+		Logger::logLevel = LOG_LEVEL::TRACE;
+	}
+}
+
+void Logger::dumpLog(LOG_LEVEL level, const std::string& buffer) {
 
     if (cmdEnabled) {
         std::cout << buffer;
     }
+
+	auto now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+	(*outputFile) << "[" << std::put_time(std::localtime(&now), "%T") << "] ";
+	switch (level) {
+		case LOG_LEVEL::FATAL:
+			(*outputFile) << "FATAL ";
+			break;
+		case LOG_LEVEL::ERR:
+			(*outputFile) << "ERROR ";
+			break;
+		case LOG_LEVEL::WARN:
+			(*outputFile) << "WARN ";
+			break;
+		case LOG_LEVEL::INFO:
+			(*outputFile) << "INFO: ";
+			break;
+		case LOG_LEVEL::DEBUG:
+			(*outputFile) << "DEBUG ";
+			break;
+		case LOG_LEVEL::TRACE:
+			(*outputFile) << "TRACE ";
+			break;
+	}
 
     (*outputFile) << buffer.c_str();
 }

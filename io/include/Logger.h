@@ -19,12 +19,12 @@ const bool cmdEnabled = true;
 const bool disableLogging = false;
 
 enum class LOG_LEVEL {
-	FATAL = 100,
-	ERR = 200,
-	WARN  = 300,
-	INFO  =	400,
-	DEBUG =	500,
-	TRACE =	600
+    FATAL = 100,
+    ERR = 200,
+    WARN  = 300,
+    INFO  =	400,
+    DEBUG =	500,
+    TRACE =	600
 };
 
 #define LOGGERCLI "-l"
@@ -32,85 +32,85 @@ enum class LOG_LEVEL {
 class Logger
 {
 public:
-	template<typename... Args>
-	static void WriteLog(LOG_LEVEL level, Args... args) {
+    template<typename... Args>
+    static void TRACE( Args... args) {
+        writeLog(LOG_LEVEL::TRACE, args...);
+    }
 
-		if (!verbosity || disableLogging || level > logLevel) {
-			return;
-		}
+    template<typename... Args>
+    static void DEBUG(Args... args) {
+        writeLog(LOG_LEVEL::DEBUG, args...);
+    }
 
-		std::stringstream stream;
-		writeLog(stream, args...);
+    template<typename... Args>
+    static void INFO(Args... args) {
+        writeLog(LOG_LEVEL::INFO, args...);
+    }
 
-		auto buffer = stream.str();
-		dumpLog(level, buffer);
-	}
+    template<typename... Args>
+    static void WARN(Args... args) {
+        writeLog(LOG_LEVEL::WARN, args...);
+    }
 
-	template<typename... Args>
-	static void TRACE( Args... args) {
-		WriteLog(LOG_LEVEL::TRACE, args...);
-	}
+    template<typename... Args>
+    static void FATAL(Args... args) {
+        writeLog(LOG_LEVEL::FATAL, args...);
+    }
 
-	template<typename... Args>
-	static void DEBUG(Args... args) {
-		WriteLog(LOG_LEVEL::DEBUG, args...);
-	}
+    template<typename... Args>
+    static void ERR(Args... args) {
+        writeLog(LOG_LEVEL::ERR, args...);
+    }
 
-	template<typename... Args>
-	static void INFO(Args... args) {
-		WriteLog(LOG_LEVEL::INFO, args...);
-	}
+    /** @brief Closes log file by closing handle
+     *
+     *  Closes file
+     *
+     *  @return void
+     */
+    static void closeLog();
 
-	template<typename... Args>
-	static void WARN(Args... args) {
-		WriteLog(LOG_LEVEL::WARN, args...);
-	}
+    static void setLogLevel(std::string log_level);
 
-	template<typename... Args>
-	static void FATAL(Args... args) {
-		WriteLog(LOG_LEVEL::FATAL, args...);
-	}
+    /** sets logging on or off */
+    static int verbosity;
 
-	template<typename... Args>
-	static void ERR(Args... args) {
-		WriteLog(LOG_LEVEL::ERR, args...);
-	}
-
-	/** @brief Closes log file by closing handle
-	 *
-	 *  Closes file
-	 *
-	 *  @return void
-	 */
-	static void CloseLog();
-
-	static void SetLogLevel(std::string log_level);
-
-	/** sets logging on or off */
-	static int verbosity;
-
-	static LOG_LEVEL logLevel;
+    static LOG_LEVEL logLevel;
 
 private:
-	/** Streams used to write and read to files */
-	static std::ofstream* outputFile;
+    /** Streams used to write and read to files */
+    static std::ofstream* outputFile;
 
-	/** Mutexes used for logging */
-	static std::mutex* logMutex;
+    /** Mutexes used for logging */
+    static std::mutex* logMutex;
 
-	/** Get the Process ID of the current process */
-	static std::string GetPID();
+    /** Get the Process ID of the current process */
+    static std::string GetPID();
 
-	template<typename T>
-	static void writeLog(std::stringstream& stream, T streamable) {
-		stream << streamable << std::endl;
-	}
+    template<typename T>
+    static void writeLog(std::stringstream& stream, T streamable) {
+        stream << streamable << std::endl;
+    }
 
-	template<typename T, typename... Args>
-	static void writeLog(std::stringstream& stream, T streamable, Args... args) {
-		writeLog(stream, streamable);
-		writeLog(stream, args...);
-	}
+    template<typename T, typename... Args>
+    static void writeLog(std::stringstream& stream, T streamable, Args... args) {
+        writeLog(stream, streamable);
+        writeLog(stream, args...);
+    }
 
-	static void dumpLog(LOG_LEVEL level, const std::string& buffer);
+    template<typename... Args>
+    static void writeLog(LOG_LEVEL level, Args... args) {
+
+        if (!verbosity || disableLogging || level > logLevel) {
+            return;
+        }
+
+        std::stringstream stream;
+        writeLog(stream, args...);
+
+        auto buffer = stream.str();
+        dumpLog(level, buffer);
+    }
+
+    static void dumpLog(LOG_LEVEL level, const std::string& buffer);
 };

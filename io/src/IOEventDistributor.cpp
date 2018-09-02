@@ -164,7 +164,6 @@ void IOEventDistributor::_keyboardUpdate(GLFWwindow* window, int key, int scanco
     else if (action == GLFW_REPEAT) {
         EngineStateFlags engineStateFlags = EngineState::getEngineState();
         if (engineStateFlags.worldEditorModeEnabled) {
-            std::cout << "Repeat" << std::endl;
             IOEvents::updateKeyboard(key, 0, 0);
         }
     }

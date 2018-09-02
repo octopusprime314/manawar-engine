@@ -158,10 +158,10 @@ void FbxLoader::_parseTags(FbxNode* node) {
                 _clonedInstances[nodeName.substr(0, index)]++;
                 std::string temp = nodeName.substr(index + 1);
 
+                std::cout << nodeName << std::endl;
                 auto tempIndex = temp.find_first_of("_");
                 if (isNumber(nodeName.substr(index + 1, tempIndex))) {
                     index += temp.find_first_of("_");
-                    std::cout << temp << std::endl;
                     _clonedWorldTransforms[nodeName.substr(0, index + 1)] = translation * rotation * scale;
                 }
             }
@@ -374,9 +374,6 @@ void FbxLoader::addToScene(Model* modelAddedTo, FbxLoader* modelToLoad, Vector4 
         modelToLoad->getObjectSpaceTransform();
 
     EngineManager::addEntity(ModelBroker::instance()->getModel(modelName), transformation);
-
-    //loadModel(modelAddedTo, _export.scene->GetRootNode());
-    //modelAddedTo->addVAO(ModelClass::ModelType);
 }
 
 Matrix FbxLoader::getObjectSpaceTransform() {
@@ -405,6 +402,13 @@ void FbxLoader::addTileToScene(Model* modelAddedTo, FbxLoader* modelToLoad, Vect
     }
     //instance off of cloned mesh
     else {
+
+        std::string modelName = modelToLoad->getModelName();
+        modelName = modelName.substr(modelName.find_last_of("/") + 1);
+        modelName = modelName.substr(0, modelName.find_last_of("."));
+
+        _clonedInstances[modelName]++;
+
         // Determine the number of children there are
         auto numChildren = copiedNodes.size();
         FbxNode* childNode = nullptr;
@@ -413,9 +417,11 @@ void FbxLoader::addTileToScene(Model* modelAddedTo, FbxLoader* modelToLoad, Vect
 
             FbxMesh* mesh = childNode->GetMesh();
             if (mesh != nullptr) {
+                std::string nodeName = std::string(childNode->GetName());
+                nodeName.insert(nodeName.find_first_of("_"), "_" + std::to_string(_clonedInstances[modelName]));
                 FbxNode* lNode = FbxNode::Create(_export.scene,
-                    (std::string(childNode->GetName()) +
-                        "_instance" + std::to_string(_export.scene->GetRootNode()->GetChildCount())).c_str());
+                    (nodeName +
+                        "instance" + std::to_string(_export.scene->GetRootNode()->GetChildCount())).c_str());
                 lNode->SetNodeAttribute(mesh);
                 lNode->LclScaling.Set(FbxDouble3(location.getw(), location.getw(), location.getw()));
                 lNode->LclTranslation.Set(FbxDouble3(location.getx(), location.gety(), location.getz()));
@@ -500,9 +506,6 @@ void FbxLoader::addTileToScene(Model* modelAddedTo, FbxLoader* modelToLoad, Vect
         modelToLoad->getObjectSpaceTransform();
 
     EngineManager::addEntity(ModelBroker::instance()->getModel(modelName), transformation);
-
-    //loadModel(modelAddedTo, _export.scene->GetRootNode());
-    //modelAddedTo->addVAO(ModelClass::ModelType);
 }
 
 void FbxLoader::loadAnimatedModel(AnimatedModel* model, FbxNode* node) {

@@ -27,13 +27,15 @@ enum class LOG_LEVEL {
 	TRACE =	600
 };
 
+#define LOGGERCLI "-l"
+
 class Logger
 {
 public:
 	template<typename... Args>
 	static void WriteLog(LOG_LEVEL level, Args... args) {
 
-		if (!verbosity || disableLogging || level > debugLevel) {
+		if (!verbosity || disableLogging || level > logLevel) {
 			return;
 		}
 
@@ -82,10 +84,12 @@ public:
 	 */
 	static void CloseLog();
 
+	static void SetLogLevel(std::string log_level);
+
 	/** sets logging on or off */
 	static int verbosity;
 
-	static LOG_LEVEL debugLevel;
+	static LOG_LEVEL logLevel;
 
 private:
 	/** Streams used to write and read to files */

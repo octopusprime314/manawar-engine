@@ -29,37 +29,28 @@ enum class LOG_LEVEL {
 
 #define LOGGERCLI "-l"
 
+#define LOG_TRACE(...) Logger::writeLog(__FILE__, __func__, __LINE__,  LOG_LEVEL::TRACE, __VA_ARGS__)
+#define LOG_DEBUG(...) Logger::writeLog(__FILE__, __func__, __LINE__, LOG_LEVEL::DEBUG, __VA_ARGS__)
+#define LOG_INFO(...) Logger::writeLog(__FILE__, __func__, __LINE__, LOG_LEVEL::INFO, __VA_ARGS__)
+#define LOG_WARN(...) Logger::writeLog(__FILE__,  __func__, __LINE__, LOG_LEVEL::WARN, __VA_ARGS__)
+#define LOG_ERR(...) Logger::writeLog(__FILE__,  __func__, __LINE__, LOG_LEVEL::ERR, __VA_ARGS__)
+#define LOG_FATAL(...) Logger::writeLog(__FILE__, __func__, __LINE__, LOG_LEVEL::FATAL, __VA_ARGS__)
+
 class Logger
 {
 public:
     template<typename... Args>
-    static void TRACE( Args... args) {
-        writeLog(LOG_LEVEL::TRACE, args...);
-    }
+    static void writeLog(const char* file, const char* func, int line, LOG_LEVEL level, Args... args) {
 
-    template<typename... Args>
-    static void DEBUG(Args... args) {
-        writeLog(LOG_LEVEL::DEBUG, args...);
-    }
+        if (!verbosity || disableLogging || level > logLevel) {
+            return;
+        }
 
-    template<typename... Args>
-    static void INFO(Args... args) {
-        writeLog(LOG_LEVEL::INFO, args...);
-    }
+        std::stringstream stream;
+        writeLog(stream, args...);
 
-    template<typename... Args>
-    static void WARN(Args... args) {
-        writeLog(LOG_LEVEL::WARN, args...);
-    }
-
-    template<typename... Args>
-    static void FATAL(Args... args) {
-        writeLog(LOG_LEVEL::FATAL, args...);
-    }
-
-    template<typename... Args>
-    static void ERR(Args... args) {
-        writeLog(LOG_LEVEL::ERR, args...);
+        auto buffer = stream.str();
+        dumpLog(file, func, line, level, buffer);
     }
 
     /** @brief Closes log file by closing handle
@@ -98,19 +89,5 @@ private:
         writeLog(stream, args...);
     }
 
-    template<typename... Args>
-    static void writeLog(LOG_LEVEL level, Args... args) {
-
-        if (!verbosity || disableLogging || level > logLevel) {
-            return;
-        }
-
-        std::stringstream stream;
-        writeLog(stream, args...);
-
-        auto buffer = stream.str();
-        dumpLog(level, buffer);
-    }
-
-    static void dumpLog(LOG_LEVEL level, const std::string& buffer);
+    static void dumpLog(const char* file, const char* func, int line, LOG_LEVEL level, const std::string& buffer);
 };

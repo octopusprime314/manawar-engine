@@ -80,7 +80,7 @@ void Logger::setLogLevel(std::string log_level) {
     }
 }
 
-void Logger::dumpLog(LOG_LEVEL level, const std::string& buffer) {
+void Logger::dumpLog(const char* file, const char* func, int line, LOG_LEVEL level, const std::string& buffer) {
 
     if (cmdEnabled) {
         std::cout << buffer;
@@ -88,6 +88,7 @@ void Logger::dumpLog(LOG_LEVEL level, const std::string& buffer) {
 
     auto now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
     (*outputFile) << "[" << std::put_time(std::localtime(&now), "%T") << "] ";
+
     switch (level) {
         case LOG_LEVEL::FATAL:
             (*outputFile) << "FATAL ";
@@ -108,6 +109,6 @@ void Logger::dumpLog(LOG_LEVEL level, const std::string& buffer) {
             (*outputFile) << "TRACE ";
             break;
     }
-
+    (*outputFile) << file << ":" << func << ":" << line << " ";
     (*outputFile) << buffer.c_str();
 }

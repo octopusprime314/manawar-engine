@@ -36,22 +36,9 @@ Entity::Entity(Model* model, ViewEvents* eventWrapper, MVP transforms) :
         _generateVAOTiles();
         _idGenerator++;
     }
-
-    if (_model->getGeometryType() == GeometryType::Sphere) {
-        for (auto sphere : *_model->getGeometry()->getSpheres()) {
-            auto transformedSphere = GeometryMath::transform(&sphere, _worldSpaceTransform);
-            /*_worldSpaceGeometry.addSphere(transformedSphere);*/
-            _worldSpaceGeometry.addSphere(sphere);
-        }
-    }
-    else {
-        for (auto triangle : *_model->getGeometry()->getTriangles()) {
-            auto transformedTriangle = GeometryMath::transform(&triangle, _worldSpaceTransform);
-            _worldSpaceGeometry.addTriangle(triangle);
-            //_worldSpaceGeometry.addTriangle(transformedTriangle);
-        }
-    }
-
+    //Copy of the base geometry which will then be offset by the entity's world space position
+    _worldSpaceGeometry = *_model->getGeometry();
+    
     //Hook up to kinematic update for proper physics handling
     _clock->subscribeKinematicsRate(std::bind(&Entity::_updateKinematics, this, std::placeholders::_1));
 
@@ -121,7 +108,6 @@ void Entity::_updateKinematics(int milliSeconds) {
     Vector4 pos = Vector4(totalTransform.getFlatBuffer()[3],
         totalTransform.getFlatBuffer()[7],
         totalTransform.getFlatBuffer()[11]);
-    /*_model->getGeometry()->updatePosition(pos);*/
     _worldSpaceGeometry.updateTransform(totalTransform);
     _mvp.setModel(totalTransform);
 }
@@ -349,8 +335,6 @@ void Entity::setPosition(Vector4 position) {
         totalTransform.getFlatBuffer()[11]);
 
     _state.setLinearPosition(pos);
-    //Pass position information to model matrix
-    /*_model->getGeometry()->updatePosition(pos);*/
     _worldSpaceGeometry.updateTransform(totalTransform);
 
     _prevMVP.setModel(_mvp.getModelMatrix());

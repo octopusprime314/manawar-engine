@@ -1,4 +1,5 @@
 #include "Sphere.h"
+#include "GeometryMath.h"
 
 Sphere::Sphere(float radius, Vector4 position) :
     _radius(radius),
@@ -9,17 +10,26 @@ Sphere::~Sphere() {
 }
 
 float Sphere::getRadius() {
-    return _radius;
+    Sphere transformed = GeometryMath::transform(this, _modelTransform);
+    return transformed._radius;
+    //return _radius;
 }
 
 Vector4 Sphere::getPosition() {
-    return _position + _modelPosition;
+
+    Sphere transformed = GeometryMath::transform(this, _modelTransform);
+    return transformed._position;
+    //return _position;
 }
 
 Vector4 Sphere::getObjectPosition() {
     return _position;
 }
 
-void Sphere::offsetPosition(Vector4 position) {
-    _modelPosition = position;
+float Sphere::getObjectRadius() {
+    return _radius;
+}
+
+void Sphere::offsetTransform(Matrix transform) {
+    _modelTransform = transform;
 }

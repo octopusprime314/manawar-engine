@@ -32,8 +32,8 @@ public:
     static bool sphereProtrudesCube(Sphere* sphere, Cube* cube); //Returns true if the sphere is not completely enclosed within a cube
 
     //Collision detection functions
-    static bool spheresSpheresDetection(Model *spheresA, Model *spheresB); //Test all model A's spheres against all model B's spheres
-    static bool spheresTrianglesDetection(Model *spheres, Model *triangles); //Test all model A's spheres against all model B's triangles
+    static bool spheresSpheresDetection(Geometry *spheresGeometryA, Geometry *spheresGeometryB); //Test all model A's spheres against all model B's spheres
+    static bool spheresTrianglesDetection(Geometry* spheresGeometry, Geometry* triangleGeometry); //Test all model A's spheres against all model B's triangles
     static bool sphereCubeDetection(Sphere *sphere, Cube *cube); //Test a single sphere against a single cube
     static bool triangleCubeDetection(Triangle* triangle, Cube* cube); //Test a single triangle against a single cube
     static bool sphereTriangleDetection(Sphere& sphere, Triangle& triangle); //Returns true if a sphere and triangle overlap
@@ -44,4 +44,7 @@ public:
     //Collision resolution functions
     static void sphereTriangleResolution(Entity* modelA, Sphere& sphere, Entity* modelB, Triangle& triangle); //Resolve collision math
     static void sphereSphereResolution(Entity* modelA, Sphere& sphereA, Entity* modelB, Sphere& sphereB); //resolve collision math
+
+    static Sphere transform(Sphere* sphere, Matrix transform);
+    static Triangle transform(Triangle* triangle, Matrix transform);
 };

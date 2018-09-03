@@ -76,12 +76,8 @@ public:
     std::vector<std::string>    getTextureNames();
     std::string                 getName();
     virtual void                updateModel(Model* model);
-    void                        addModel(Model* model, Matrix worldTransform);
-    std::vector<std::pair<Matrix, Model*>> getModels();
-
 
 protected:
-    std::vector<std::pair<Matrix, Model*>> _subModels;
     RenderBuffers               _renderBuffers; //Manages vertex, normal and texture data
     std::vector<VAO*>           _vao; //Vao container
     StaticShader*               _shaderProgram; //Container object of the Model's shader

@@ -105,14 +105,12 @@ EngineManager::EngineManager(int* argc, char** argv) {
     //_entityList.push_back(new Entity(modelBroker->getModel("hagraven"), _viewManager->getEventWrapper())); //Add a static model to the scene
     //_entityList.push_back(new Entity(modelBroker->getModel("troll"), _viewManager->getEventWrapper())); //Add a static model to the scene
 
-    //_entityList[1]->setPosition(Vector4(10, 0, 10));
+    //_entityList[0]->setPosition(Vector4(30, 0, 10));
     //_entityList[2]->setPosition(Vector4(-10, 0, -10));
     //_entityList[3]->setPosition(Vector4(30, 0, 10));
     //_entityList[4]->setPosition(Vector4(30, 0, -20));
 
-
     _terminal = new Terminal(_deferredRenderer->getGBuffers(), _entityList);
-
 
     _physics = new Physics();
     _physics->addEntities(_entityList); //Gives physics a pointer to all models which allows access to underlying geometry

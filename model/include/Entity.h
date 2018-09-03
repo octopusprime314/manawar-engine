@@ -57,6 +57,7 @@ public:
     bool                        getSelected();
     std::vector<RenderBuffers>* getRenderBuffers();
     Matrix                      getWorldSpaceTransform();
+    Geometry*                   getGeometry();
 protected:
 
     VAOMap                      _frustumVAOMapping;
@@ -73,6 +74,7 @@ protected:
     bool                        _selected;
     std::vector<RenderBuffers>* _frustumRenderBuffers;
     EngineStateFlags            _gameState;
+    Geometry                    _worldSpaceGeometry; //Entity space geometry
 
     void                        _generateVAOTiles();
     void                        _updateKeyboard(int key, int x, int y) {}; //Do stuff based on keyboard upate

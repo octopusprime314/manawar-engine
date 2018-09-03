@@ -55,7 +55,7 @@ private:
     Matrix               _scale; //Keep track of scale state
     Matrix               _thirdPersonTranslation;
     Matrix               _inverseRotation; //Manages how to translate based on the inverse of the actual rotation matrix
-    ViewEvents*   _viewEvents;
+    ViewEvents*          _viewEvents;
     std::vector<Entity*> _entityList; //used to translate view to a model's transformation
     int                  _entityIndex; //used to keep track of which model the view is set to
     bool                 _godState; //indicates whether the view is in god or model view point mode

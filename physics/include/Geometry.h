@@ -24,6 +24,7 @@
 #include "Sphere.h"
 #include "Triangle.h"
 #include <vector>
+#include "Matrix.h"
 
 enum class GeometryType {
     Triangle = 0,
@@ -42,5 +43,5 @@ public:
     void                   addSphere(Sphere sphere);
     std::vector<Triangle>* getTriangles();
     std::vector<Sphere>*   getSpheres();
-    void                   updatePosition(Vector4 position);
+    void                   updateTransform(Matrix transform);
 };

@@ -30,7 +30,7 @@ void OSP::generateGeometryOSP(std::vector<Entity*>& entities) {
 
     //Go through all of the models and populate
     for (auto entity : entities) {
-        std::vector<Triangle>* triangles = entity->getModel()->getGeometry()->getTriangles();
+        std::vector<Triangle>* triangles = entity->getGeometry()->getTriangles();
 
         for (Triangle & triangle : *triangles) {
             //if geometry data is contained within the first octet then build it out
@@ -40,7 +40,7 @@ void OSP::generateGeometryOSP(std::vector<Entity*>& entities) {
             }
         }
 
-        std::vector<Sphere>* spheres = entity->getModel()->getGeometry()->getSpheres();
+        std::vector<Sphere>* spheres = entity->getGeometry()->getSpheres();
         for (Sphere & sphere : *spheres) {
 
             //if geometry data is contained within the first octet then build it out
@@ -168,7 +168,7 @@ void OSP::updateOSP(std::vector<Entity*>& entities) {
     for (auto entity : entities){
         if (entity->getStateVector()->getActive()) { //Only do osp updates if the model is active
 
-            std::vector<Sphere>* spheres = entity->getModel()->getGeometry()->getSpheres();
+            std::vector<Sphere>* spheres = entity->getGeometry()->getSpheres();
             for (Sphere& sphere : *spheres) {
 
                 ////Early out test if the sphere is completely contained within this cube,

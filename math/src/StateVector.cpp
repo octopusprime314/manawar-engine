@@ -35,7 +35,7 @@ void StateVector::update(int milliSeconds) {
         //Add to linear velocity
         //If there is contact with a surface then add friction coefficient to velocity
         _linearVelocity = (_linearVelocity + deltaLinearVelocity) * ((_contact || !_gravity) ? FRICTION : 1.0f);
-
+        
         //Calculate linear position changes with delta time
         Vector4 deltaLinearPosition(_linearVelocity.getx() * deltaTime,
             _linearVelocity.gety() * deltaTime,
@@ -64,57 +64,46 @@ void StateVector::update(int milliSeconds) {
 }
 
 Vector4 StateVector::getLinearPosition() {
-    std::lock_guard<std::mutex> lockGuard(_stateLock);
     return _linearPosition;
 }
 
 Vector4 StateVector::getAngularPosition() {
-    std::lock_guard<std::mutex> lockGuard(_stateLock);
     return _angularPosition;
 }
 
 Vector4 StateVector::getLinearVelocity() {
-    std::lock_guard<std::mutex> lockGuard(_stateLock);
     return _linearVelocity;
 }
 
 Vector4 StateVector::getAngularVelocity() {
-    std::lock_guard<std::mutex> lockGuard(_stateLock);
     return _angularVelocity;
 }
 
 Vector4 StateVector::getLinearAcceleration() {
-    std::lock_guard<std::mutex> lockGuard(_stateLock);
     return _linearAcceleration;
 }
 
 Vector4 StateVector::getAngularAcceleration() {
-    std::lock_guard<std::mutex> lockGuard(_stateLock);
     return _angularAcceleration;
 }
 
 Vector4 StateVector::getForce() {
-    std::lock_guard<std::mutex> lockGuard(_stateLock);
     return _force;
 }
 
 Vector4 StateVector::getTorque() {
-    std::lock_guard<std::mutex> lockGuard(_stateLock);
     return _torque;
 }
 
 float StateVector::getMass() {
-    std::lock_guard<std::mutex> lockGuard(_stateLock);
     return _mass;
 }
 
 bool StateVector::getActive() {
-    std::lock_guard<std::mutex> lockGuard(_stateLock);
     return _active;
 }
 
 bool StateVector::getContact() {
-    std::lock_guard<std::mutex> lockGuard(_stateLock);
     return _contact;
 }
 

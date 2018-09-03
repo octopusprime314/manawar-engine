@@ -28,10 +28,10 @@ void Physics::addEntities(std::vector<Entity*> entities) {
         GeometryType geomType = entity->getModel()->getGeometryType();
        
         if (geomType == GeometryType::Sphere) {
-            _graphics.push_back(new GeometryGraphic(entity->getModel()->getGeometry()->getSpheres()));
+            _graphics.push_back(new GeometryGraphic(entity->getGeometry()->getSpheres()));
         }
         else if (geomType == GeometryType::Triangle) {
-            _graphics.push_back(new GeometryGraphic(entity->getModel()->getGeometry()->getTriangles()));
+            _graphics.push_back(new GeometryGraphic(entity->getGeometry()->getTriangles()));
         }
     }
 
@@ -117,7 +117,7 @@ void Physics::_physicsProcess(int milliseconds) {
                                 //If an overlap between a sphere and a sphere is detected then process the overlap resolution
                                 if (GeometryMath::sphereSphereDetection(*sphereA, *sphereB)) {
 
-                                    //GeometryMath::sphereSphereResolution(sphereMapA.first, *sphereA, sphereMapB.first, *sphereB);
+                                    GeometryMath::sphereSphereResolution(sphereMapA.first, *sphereA, sphereMapB.first, *sphereB);
                                 }
                             }
                         }
@@ -199,16 +199,16 @@ void Physics::_slowDetection() {
         auto model = entity->getModel();
         for (int entityIndex = entityPosition; entityIndex < _entities.size(); ++entityIndex) {
             GeometryType geomTypeA = model->getGeometryType();
-            auto modelTest = _entities[entityIndex]->getModel();
-            GeometryType geomTypeB = modelTest->getGeometryType();
+            auto entityTest = _entities[entityIndex];
+            GeometryType geomTypeB = entityTest->getModel()->getGeometryType();
             if (geomTypeA == GeometryType::Triangle && geomTypeB == GeometryType::Sphere) {
-                GeometryMath::spheresTrianglesDetection(modelTest, model);
+                GeometryMath::spheresTrianglesDetection(entityTest->getGeometry(), entity->getGeometry());
             }
             else if (geomTypeA == GeometryType::Sphere && geomTypeB == GeometryType::Triangle) {
-                GeometryMath::spheresTrianglesDetection(model, modelTest);
+                GeometryMath::spheresTrianglesDetection(entity->getGeometry(), entityTest->getGeometry());
             }
             else if (geomTypeA == GeometryType::Sphere && geomTypeB == GeometryType::Sphere) {
-                GeometryMath::spheresSpheresDetection(model, modelTest);
+                GeometryMath::spheresSpheresDetection(entity->getGeometry(), entityTest->getGeometry());
             }
 
         }

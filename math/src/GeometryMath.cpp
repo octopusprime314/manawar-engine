@@ -36,10 +36,7 @@ bool GeometryMath::sphereProtrudesCube(Sphere* sphere, Cube* cube) {
     return false;
 }
 
-bool GeometryMath::spheresSpheresDetection(Model *spheresA, Model *spheresB) {
-
-    Geometry* spheresGeometryA = spheresA->getGeometry();
-    Geometry* spheresGeometryB = spheresB->getGeometry();
+bool GeometryMath::spheresSpheresDetection(Geometry *spheresGeometryA, Geometry *spheresGeometryB) {
 
     // Get all of the spheres that model the geometry A
     auto sphereVecA = spheresGeometryA->getSpheres();
@@ -58,10 +55,7 @@ bool GeometryMath::spheresSpheresDetection(Model *spheresA, Model *spheresB) {
     return false;
 }
 
-bool GeometryMath::spheresTrianglesDetection(Model *spheres, Model *triangles) {
-
-    Geometry* spheresGeometry = spheres->getGeometry();
-    Geometry* triangleGeometry = triangles->getGeometry();
+bool GeometryMath::spheresTrianglesDetection(Geometry* spheresGeometry, Geometry* triangleGeometry) {
 
     //Get all of the spheres that model the geometry
     auto sphereVec = spheresGeometry->getSpheres();
@@ -78,6 +72,22 @@ bool GeometryMath::spheresTrianglesDetection(Model *spheres, Model *triangles) {
         }
     }
     return false;
+}
+
+Sphere GeometryMath::transform(Sphere* sphere, Matrix transform) {
+    Vector4 center = transform * sphere->getObjectPosition();
+    auto buffer = transform.getFlatBuffer();
+    Vector4 scale(buffer[0], buffer[5], buffer[10]);
+    return Sphere(scale.getx() * sphere->getObjectRadius(), center);
+}
+
+Triangle GeometryMath::transform(Triangle* triangle, Matrix transform) {
+    Vector4x3 ABC = triangle->getTrianglePoints();
+    Vector4     A = transform * ABC[0];
+    Vector4     B = transform * ABC[1];
+    Vector4     C = transform * ABC[2];
+
+    return Triangle(A, B, C);
 }
 
 //3D Triangle plane test against a 3D Sphere
@@ -508,12 +518,33 @@ void GeometryMath::sphereTriangleResolution(Entity* modelA, Sphere& sphere, Enti
     modelStateA->setContact(true);
 }
 void GeometryMath::sphereSphereResolution(Entity* modelA, Sphere& sphereA, Entity* modelB, Sphere& sphereB) {
-    //TODO but for now just halt kinematics
     StateVector* modelStateA = modelA->getStateVector();
-    modelStateA->setActive(false);
-
     StateVector* modelStateB = modelB->getStateVector();
-    modelStateB->setActive(false);
+
+    Vector4 collisionNormal = sphereA.getPosition() - sphereB.getPosition();
+    
+    if (modelStateA->getActive()) {
+        //0.01 is restitution
+        float overlap = ((sphereA.getRadius() + sphereB.getRadius() - collisionNormal.getMagnitude()) / 2.0f) + 0.01f;
+        collisionNormal.normalize();
+        modelA->setVelocity(collisionNormal * modelStateA->getLinearVelocity().getMagnitude() * 0.1f);
+
+        auto prevModelBuffer = modelA->getPrevMVP()->getModelBuffer();
+        modelA->setPosition(Vector4(prevModelBuffer[3], prevModelBuffer[7], prevModelBuffer[11]));
+    }
+
+    if (modelStateB->getActive()) {
+        //Opposite reaction
+        collisionNormal = -collisionNormal;
+        //0.01 is restitution
+        float overlap = ((sphereA.getRadius() + sphereB.getRadius() - collisionNormal.getMagnitude()) / 2.0f) + 0.01f;
+        collisionNormal.normalize();
+        modelB->setVelocity(collisionNormal * modelStateB->getLinearVelocity().getMagnitude() * 0.1f);
+
+        auto prevModelBuffer = modelB->getPrevMVP()->getModelBuffer();
+        modelB->setPosition(Vector4(prevModelBuffer[3], prevModelBuffer[7], prevModelBuffer[11]));
+    }
+
 }
 
 float GeometryMath::_max(float a, float b) {

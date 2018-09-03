@@ -804,9 +804,10 @@ void FbxLoader::_buildGeometryData(Model* model, std::vector<Vector4>& vertices,
         //Find the minimum and maximum x position which will render us a diameter
         for (int i = 0; i < totalTriangles; i++) {
 
-            float xPos = vertices[indices[i]].getx();
-            float yPos = vertices[indices[i]].gety();
-            float zPos = vertices[indices[i]].getz();
+            auto vert = transformation * vertices[indices[i]];
+            float xPos = vert.getx();
+            float yPos = vert.gety();
+            float zPos = vert.getz();
 
             if (xPos < min[0]) {
                 min[0] = xPos;

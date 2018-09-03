@@ -24,9 +24,9 @@ std::vector<Sphere>* Geometry::getSpheres() {
     return &_spheres;
 }
 
-void Geometry::updatePosition(Vector4 position) {
+void Geometry::updateTransform(Matrix transform) {
     for (size_t i = 0; i < _spheres.size(); ++i) {
-        _spheres[i].offsetPosition(position); //Adds an offset to the position of the sphere
+        _spheres[i].offsetTransform(transform); //Adds an offset to the position of the sphere
     }
 
     ////TODO if necessary

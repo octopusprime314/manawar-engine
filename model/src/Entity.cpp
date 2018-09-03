@@ -2,6 +2,7 @@
 #include "IOEventDistributor.h"
 #include "Model.h"
 #include "FrustumCuller.h"
+#include "GeometryMath.h"
 
 unsigned int Entity::_idGenerator = 0;
 
@@ -35,6 +36,22 @@ Entity::Entity(Model* model, ViewEvents* eventWrapper, MVP transforms) :
         _generateVAOTiles();
         _idGenerator++;
     }
+
+    if (_model->getGeometryType() == GeometryType::Sphere) {
+        for (auto sphere : *_model->getGeometry()->getSpheres()) {
+            auto transformedSphere = GeometryMath::transform(&sphere, _worldSpaceTransform);
+            /*_worldSpaceGeometry.addSphere(transformedSphere);*/
+            _worldSpaceGeometry.addSphere(sphere);
+        }
+    }
+    else {
+        for (auto triangle : *_model->getGeometry()->getTriangles()) {
+            auto transformedTriangle = GeometryMath::transform(&triangle, _worldSpaceTransform);
+            _worldSpaceGeometry.addTriangle(triangle);
+            //_worldSpaceGeometry.addTriangle(transformedTriangle);
+        }
+    }
+
     //Hook up to kinematic update for proper physics handling
     _clock->subscribeKinematicsRate(std::bind(&Entity::_updateKinematics, this, std::placeholders::_1));
 
@@ -56,6 +73,9 @@ void Entity::_updateDraw() {
 
 Model* Entity::getModel() {
     return _model;
+}
+Geometry* Entity::getGeometry() {
+    return &_worldSpaceGeometry;
 }
 
 void Entity::_updateAnimation(int milliSeconds) {
@@ -101,7 +121,8 @@ void Entity::_updateKinematics(int milliSeconds) {
     Vector4 pos = Vector4(totalTransform.getFlatBuffer()[3],
         totalTransform.getFlatBuffer()[7],
         totalTransform.getFlatBuffer()[11]);
-    _model->getGeometry()->updatePosition(pos);
+    /*_model->getGeometry()->updatePosition(pos);*/
+    _worldSpaceGeometry.updateTransform(totalTransform);
     _mvp.setModel(totalTransform);
 }
 
@@ -329,7 +350,8 @@ void Entity::setPosition(Vector4 position) {
 
     _state.setLinearPosition(pos);
     //Pass position information to model matrix
-    _model->getGeometry()->updatePosition(pos);
+    /*_model->getGeometry()->updatePosition(pos);*/
+    _worldSpaceGeometry.updateTransform(totalTransform);
 
     _prevMVP.setModel(_mvp.getModelMatrix());
 

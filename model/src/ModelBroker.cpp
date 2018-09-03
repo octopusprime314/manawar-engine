@@ -57,7 +57,7 @@ Model* ModelBroker::getModel(std::string modelName) {
 
 void ModelBroker::clearChanges(std::string modelName) {
 
-    std::string upperCaseMapName = _strToUpper(modelName + "/" + modelName + ".fbx");
+    std::string upperCaseMapName = _strToUpper(modelName);
 
     if (_models.find(upperCaseMapName) != _models.end()) {
 
@@ -71,8 +71,8 @@ void ModelBroker::clearChanges(std::string modelName) {
 
 void ModelBroker::addModel(std::string modelName, std::string modelToAdd, Vector4 location) {
     
-    std::string upperCaseMapName = _strToUpper(modelName + "/" + modelName + ".fbx");
-    std::string upperCaseMapNameToAdd = _strToUpper(modelToAdd + "/" + modelToAdd + ".fbx");
+    std::string upperCaseMapName = _strToUpper(modelName);
+    std::string upperCaseMapNameToAdd = _strToUpper(modelToAdd);
 
     if (_models.find(upperCaseMapName) != _models.end() &&
         _models.find(upperCaseMapNameToAdd) != _models.end()) {
@@ -91,8 +91,8 @@ void ModelBroker::addTileModel(std::string modelName,
     Vector4 location, 
     std::vector<std::string> textures) {
 
-    std::string upperCaseMapName = _strToUpper(modelName + "/" + modelName + ".fbx");
-    std::string upperCaseMapNameToAdd = _strToUpper(modelToAdd + "/" + modelToAdd + ".fbx");
+    std::string upperCaseMapName = _strToUpper(modelName);
+    std::string upperCaseMapNameToAdd = _strToUpper(modelToAdd);
 
     if (_models.find(upperCaseMapName) != _models.end() &&
         _models.find(upperCaseMapNameToAdd) != _models.end()) {
@@ -111,7 +111,7 @@ void ModelBroker::addTileModel(std::string modelName,
 
 void ModelBroker::saveModel(std::string modelName) {
 
-    std::string upperCaseMapName = _strToUpper(modelName + "/" + modelName + ".fbx");
+    std::string upperCaseMapName = _strToUpper(modelName);
 
     if (_models.find(upperCaseMapName) != _models.end()) {
 
@@ -125,7 +125,7 @@ void ModelBroker::saveModel(std::string modelName) {
 
 void ModelBroker::updateModel(std::string modelName) {
 
-    std::string upperCaseMapName = _strToUpper(modelName + "/" + modelName + ".fbx");
+    std::string upperCaseMapName = _strToUpper(modelName);
 
     if (_models.find(upperCaseMapName) != _models.end()) {
 
@@ -147,13 +147,11 @@ void ModelBroker::updateModel(std::string modelName) {
 }
 
 
-void ModelBroker::_gatherModelNames()
-{
+void ModelBroker::_gatherModelNames() {
     bool isFile = false;
     DIR *dir;
     struct dirent *ent;
-    if ((dir = opendir(STATIC_MESH_LOCATION.c_str())) != nullptr)
-    {
+    if ((dir = opendir(STATIC_MESH_LOCATION.c_str())) != nullptr) {
         LOG_INFO("Files to be processed: \n");
 
         while ((ent = readdir(dir)) != nullptr) {
@@ -168,20 +166,16 @@ void ModelBroker::_gatherModelNames()
                     LOG_INFO(ent->d_name, "\n");
 
                     std::string mapName = fileName + "/" + fileName + ".fbx";
-                    std::string upperCaseMapName = _strToUpper(mapName);
-                    _models[upperCaseMapName] = new Model(mapName);
+                    _models[_strToUpper(fileName)] = new Model(STATIC_MESH_LOCATION + mapName);
                 }
             }
         }
         closedir(dir);
     }
-    else
-    {
+    else {
         std::cout << "Problem reading from directory!" << std::endl;
     }
-
-    if ((dir = opendir(ANIMATED_MESH_LOCATION.c_str())) != nullptr)
-    {
+    if ((dir = opendir(ANIMATED_MESH_LOCATION.c_str())) != nullptr) {
         LOG_INFO("Files to be processed: \n");
 
         while ((ent = readdir(dir)) != nullptr) {
@@ -196,16 +190,39 @@ void ModelBroker::_gatherModelNames()
                     LOG_INFO(ent->d_name, "\n");
 
                     std::string mapName = fileName + "/" + fileName + ".fbx";
-                    std::string upperCaseMapName = _strToUpper(mapName);
-                    _models[upperCaseMapName] = static_cast<Model*>(new AnimatedModel(mapName));
+                    _models[_strToUpper(fileName)] = static_cast<Model*>(new AnimatedModel(ANIMATED_MESH_LOCATION + mapName));
                 }
             }
         }
         closedir(dir);
     }
-    else
-    {
+    else {
         std::cout << "Problem reading from directory!" << std::endl;
     }
+    if ((dir = opendir(SCENE_MESH_LOCATION.c_str())) != nullptr) {
+        LOG_INFO("Files to be processed: \n");
+
+        while ((ent = readdir(dir)) != nullptr) {
+            if (*ent->d_name) {
+                std::string fileName = std::string(ent->d_name);
+
+                if (!fileName.empty() &&
+                    fileName != "." &&
+                    fileName != ".." &&
+                    fileName.find(".ini") == std::string::npos) {
+
+                    LOG_INFO(ent->d_name, "\n");
+
+                    std::string mapName = fileName + "/" + fileName + ".fbx";
+                    _models[_strToUpper(fileName)] = new Model(SCENE_MESH_LOCATION + mapName);
+                }
+            }
+        }
+        closedir(dir);
+    }
+    else {
+        std::cout << "Problem reading from directory!" << std::endl;
+    }
+
 }
 

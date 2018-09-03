@@ -15,8 +15,7 @@
 FbxLoader::FbxLoader(std::string name) : 
     _fileName(name),
     _strideIndex(0),
-    _copiedOverFlag(false),
-    _firstClone(false) {
+    _copiedOverFlag(false) {
     _fbxManager = FbxManager::Create();
     
     if (_fbxManager == nullptr) {
@@ -66,7 +65,6 @@ FbxLoader::FbxLoader(std::string name) :
         if (transform.first.size() != 0) {
             
             std::string modelName = transform.first.substr(0, transform.first.find_first_of("_"));
-            modelName += "/" + modelName + ".fbx";
             Model* modelToInstance = modelBroker->getModel(modelName);
             if (modelToInstance != nullptr) {
                 EngineManager::addEntity(modelToInstance, transform.second);
@@ -116,7 +114,7 @@ FbxScene* FbxLoader::getScene() {
 
 void FbxLoader::loadModel(Model* model, FbxNode* node) {
 
-    // Determine the number of children there are
+    // Determine the number of children
     int numChildren = node->GetChildCount();
     FbxNode* childNode = nullptr;
     for (int i = 0; i < numChildren; i++) {
@@ -158,11 +156,40 @@ void FbxLoader::_parseTags(FbxNode* node) {
                 _clonedInstances[nodeName.substr(0, index)]++;
                 std::string temp = nodeName.substr(index + 1);
 
-                std::cout << nodeName << std::endl;
                 auto tempIndex = temp.find_first_of("_");
                 if (isNumber(nodeName.substr(index + 1, tempIndex))) {
                     index += temp.find_first_of("_");
                     _clonedWorldTransforms[nodeName.substr(0, index + 1)] = translation * rotation * scale;
+                }
+
+                int materialCount = childNode->GetSrcObjectCount<FbxSurfaceMaterial>();
+                for (int i = 0; i < materialCount; i++) {
+
+                    FbxSurfaceMaterial* material = (FbxSurfaceMaterial*)childNode->GetSrcObject<FbxSurfaceMaterial>(i);
+
+                    // This only gets the material of type sDiffuse,
+                    // you probably need to traverse all Standard Material Property by its name to get all possible textures.
+                    FbxProperty propDiffuse = material->FindProperty(FbxSurfaceMaterial::sDiffuse);
+
+                    // Check if it's layeredtextures
+                    int layeredTextureCount = propDiffuse.GetSrcObjectCount<FbxLayeredTexture>();
+
+                    //Record layered texture data
+                    for (int j = 0; j < layeredTextureCount; j++) {
+                        FbxLayeredTexture* layeredTexture = 
+                            FbxCast<FbxLayeredTexture>(propDiffuse.GetSrcObject<FbxLayeredTexture>(j));
+                        if (layeredTexture != nullptr) {
+                            int textureCount = layeredTexture->GetSrcObjectCount<FbxTexture>();
+                            for (int textureIndex = 0; textureIndex < textureCount; textureIndex++) {
+                                //Fetch the diffuse texture
+                                FbxFileTexture* textureFbx = 
+                                    FbxCast<FbxFileTexture>(layeredTexture->GetSrcObject<FbxFileTexture>(textureIndex));
+                                if (textureFbx != nullptr) {
+                                    _tileTextures[nodeName.substr(0, index + 1)].push_back(textureFbx->GetFileName());
+                                }
+                            }
+                        }
+                    }
                 }
             }
             else {
@@ -215,7 +242,6 @@ void FbxLoader::saveScene() {
         FbxNode* childNode = nullptr;
         for (int i = 0; i < numChildren; i++) {
             childNode = rootNode->GetChild(i);
-            std::cout << childNode->GetName() << std::endl;
             //Prevent root nodes from being saved!
             if (std::string(childNode->GetName()).find("RootNode") != std::string::npos) {
                 nodesToBeRemoved.push_back(childNode);
@@ -270,7 +296,6 @@ void FbxLoader::_cloneFbxNode(Model* modelAddedTo, FbxLoader* fbxLoader, Vector4
     std::vector<FbxNode*> childrenToRemove;
     for (int i = 0; i < numCopiedChildren; i++) {
         childNode = rootNode->GetChild(i);
-        std::cout << childNode->GetName() << std::endl;
         //Prevent root nodes from being saved!
         if (std::string(childNode->GetName()).find("RootNode") != std::string::npos) {
             childrenToRemove.push_back(childNode);
@@ -314,7 +339,7 @@ void FbxLoader::addToScene(Model* modelAddedTo, FbxLoader* modelToLoad, Vector4 
     modelAddedTo->getRenderBuffers()->getTextureMapIndices()->resize(0);
     modelAddedTo->getRenderBuffers()->getTextureMapNames()->resize(0);
 
-    modelAddedTo->getVAO()->back() = new VAO();
+    modelAddedTo->getVAO()->push_back(new VAO());
     //Stride index needs to be reset when adding new models to the scene
     _strideIndex = 0;
 
@@ -322,7 +347,6 @@ void FbxLoader::addToScene(Model* modelAddedTo, FbxLoader* modelToLoad, Vector4 
     _nodeExists(modelToLoad->getModelName(), modelToLoad->getScene()->GetRootNode(), copiedNodes);
     if (copiedNodes.size() == 0) {
         _cloneFbxNode(modelAddedTo, modelToLoad, location);
-        _firstClone = true;
     }
     //instance off of cloned mesh
     else {
@@ -366,7 +390,6 @@ void FbxLoader::addToScene(Model* modelAddedTo, FbxLoader* modelToLoad, Vector4 
     std::string modelName = modelToLoad->getModelName();
     modelName = modelName.substr(modelName.find_last_of("/") + 1);
     modelName = modelName.substr(0, modelName.find_last_of("."));
-    modelName += "/" + modelName + ".fbx";
 
     auto transformation =
         Matrix::translation(location.getx(), -location.gety(), location.getz()) * 
@@ -389,8 +412,7 @@ void FbxLoader::addTileToScene(Model* modelAddedTo, FbxLoader* modelToLoad, Vect
     modelAddedTo->getRenderBuffers()->getTextureMapIndices()->resize(0);
     modelAddedTo->getRenderBuffers()->getTextureMapNames()->resize(0);
 
-    //modelAddedTo->getVAO()->push_back(new VAO());
-    modelAddedTo->getVAO()->back() = new VAO();
+    modelAddedTo->getVAO()->push_back(new VAO());
     //Stride index needs to be reset when adding new models to the scene
     _strideIndex = 0;
 
@@ -398,7 +420,6 @@ void FbxLoader::addTileToScene(Model* modelAddedTo, FbxLoader* modelToLoad, Vect
     _nodeExists(modelToLoad->getModelName(), modelToLoad->getScene()->GetRootNode(), copiedNodes);
     if (copiedNodes.size() == 0) {
         _cloneFbxNode(modelAddedTo, modelToLoad, location);
-        _firstClone = true;
     }
     //instance off of cloned mesh
     else {
@@ -432,9 +453,7 @@ void FbxLoader::addTileToScene(Model* modelAddedTo, FbxLoader* modelToLoad, Vect
                 for (int i = 0; i < materialCount; i++) {
 
                     FbxSurfaceMaterial* childMaterial = (FbxSurfaceMaterial*)childNode->GetSrcObject<FbxSurfaceMaterial>(i);
-
                     FbxCloneManager::Clone(childMaterial, lNode);
-
                     FbxSurfaceMaterial* material = (FbxSurfaceMaterial*)lNode->GetSrcObject<FbxSurfaceMaterial>(i);
 
                     // This only gets the material of type sDiffuse,
@@ -446,19 +465,19 @@ void FbxLoader::addTileToScene(Model* modelAddedTo, FbxLoader* modelToLoad, Vect
 
                     if (layeredTextureCount > 0) {
                         for (int j = 0; j < layeredTextureCount; j++) {
-                            FbxLayeredTexture* layered_texture = FbxCast<FbxLayeredTexture>(propDiffuse.GetSrcObject<FbxLayeredTexture>(j));
-                            if (layered_texture != nullptr) {
+                            FbxLayeredTexture* layeredTexture = FbxCast<FbxLayeredTexture>(propDiffuse.GetSrcObject<FbxLayeredTexture>(j));
+                            if (layeredTexture != nullptr) {
                                 
-                                int textureCount = layered_texture->GetSrcObjectCount<FbxTexture>();
+                                int textureCount = layeredTexture->GetSrcObjectCount<FbxTexture>();
                                 for (int textureIndex = 0; textureIndex < textureCount; textureIndex++) {
 
                                     //Fetch the diffuse texture
-                                    FbxFileTexture* textureFbx = FbxCast<FbxFileTexture >(layered_texture->GetSrcObject<FbxFileTexture >(textureIndex));
+                                    FbxFileTexture* textureFbx = FbxCast<FbxFileTexture >(layeredTexture->GetSrcObject<FbxFileTexture >(textureIndex));
                                     if (textureFbx != nullptr) {
 
                                         if (std::string(textureFbx->GetFileName()).find("alpha") != std::string::npos) {
 
-                                            std::string alphaMapName = modelAddedTo->getName() + "alphamapclone";
+                                            std::string alphaMapName = modelAddedTo->getName() + "/alphamapclone";
                                             alphaMapName += std::to_string(static_cast<int>(location.getx())) + "_" +
                                                 std::to_string(static_cast<int>(location.gety())) + "_" +
                                                 std::to_string(static_cast<int>(location.getz()));
@@ -484,10 +503,6 @@ void FbxLoader::addTileToScene(Model* modelAddedTo, FbxLoader* modelToLoad, Vect
                                 }
                             }
                         }
-                        lNode->AddMaterial(material);
-                    }
-                    else {
-                        lNode->AddMaterial(material);
                     }
                 }
                 // Add node to the scene
@@ -499,7 +514,6 @@ void FbxLoader::addTileToScene(Model* modelAddedTo, FbxLoader* modelToLoad, Vect
     std::string modelName = modelToLoad->getModelName();
     modelName = modelName.substr(modelName.find_last_of("/") + 1);
     modelName = modelName.substr(0, modelName.find_last_of("."));
-    modelName += "/" + modelName + ".fbx";
     auto transformation =
         Matrix::translation(location.getx(), -location.gety(), location.getz()) *
         Matrix::scale(location.getw()) *
@@ -888,7 +902,6 @@ void FbxLoader::_buildModelData(Model* model, FbxMesh* meshNode, FbxNode* childN
         Matrix scale = Matrix::scale(static_cast<float>(SBuff[0]), static_cast<float>(SBuff[1]), static_cast<float>(SBuff[2]));
 
         Matrix transformation = translation * rotation;// *scale;
-        renderBuffers->addWorldSpaceTransform(transformation);
         _objectSpaceTransform = transformation;
     }
     else if (model->getClassType() == ModelClass::ModelType) {
@@ -1136,9 +1149,7 @@ void FbxLoader::_buildTriangles(Model* model, std::vector<Vector4>& vertices, st
     Matrix scale = Matrix::scale(static_cast<float>(SBuff[0]), static_cast<float>(SBuff[1]), static_cast<float>(SBuff[2]));
 
     int triCount = 0;
-    Matrix transformation = Matrix();// translation * rotation * scale;
     _objectSpaceTransform = translation * rotation;// *scale;
-    renderBuffers->addWorldSpaceTransform(transformation);
 
     std::vector<int> flattenStrides;
     auto vao = model->getVAO();
@@ -1171,7 +1182,7 @@ void FbxLoader::_buildTriangles(Model* model, std::vector<Vector4>& vertices, st
             vertices[indices[triCount]].gety(),
             vertices[indices[triCount]].getz(),
             1.0);
-        renderBuffers->addVertex(transformation * A); //Scale then rotate vertex
+        renderBuffers->addVertex(A); //Scale then rotate vertex
 
         Vector4 AN(normals[indices[triCount]].getx(),
             normals[indices[triCount]].gety(),
@@ -1179,8 +1190,8 @@ void FbxLoader::_buildTriangles(Model* model, std::vector<Vector4>& vertices, st
             1.0);
         renderBuffers->addNormal(rotation * AN); //Scale then rotate normal
         renderBuffers->addTexture(textures[triCount]);
-        renderBuffers->addDebugNormal(transformation * A);
-        renderBuffers->addDebugNormal((transformation * A) + (rotation * AN));
+        renderBuffers->addDebugNormal(A);
+        renderBuffers->addDebugNormal((A) + (rotation * AN));
         renderBuffers->addTextureMapIndex(flattenStrides[triCount]);
         triCount++;
 
@@ -1188,7 +1199,7 @@ void FbxLoader::_buildTriangles(Model* model, std::vector<Vector4>& vertices, st
             vertices[indices[triCount]].gety(),
             vertices[indices[triCount]].getz(),
             1.0);
-        renderBuffers->addVertex(transformation * B); //Scale then rotate vertex
+        renderBuffers->addVertex(B); //Scale then rotate vertex
 
         Vector4 BN(normals[indices[triCount]].getx(),
             normals[indices[triCount]].gety(),
@@ -1196,8 +1207,8 @@ void FbxLoader::_buildTriangles(Model* model, std::vector<Vector4>& vertices, st
             1.0);
         renderBuffers->addNormal(rotation * BN); //Scale then rotate normal
         renderBuffers->addTexture(textures[triCount]);
-        renderBuffers->addDebugNormal(transformation * B);
-        renderBuffers->addDebugNormal((transformation * B) + (rotation * BN));
+        renderBuffers->addDebugNormal(B);
+        renderBuffers->addDebugNormal((B) + (rotation * BN));
         renderBuffers->addTextureMapIndex(flattenStrides[triCount]);
         triCount++;
 
@@ -1205,7 +1216,7 @@ void FbxLoader::_buildTriangles(Model* model, std::vector<Vector4>& vertices, st
             vertices[indices[triCount]].gety(),
             vertices[indices[triCount]].getz(),
             1.0);
-        renderBuffers->addVertex(transformation * C); //Scale then rotate vertex
+        renderBuffers->addVertex(C); //Scale then rotate vertex
 
         Vector4 CN(normals[indices[triCount]].getx(),
             normals[indices[triCount]].gety(),
@@ -1213,8 +1224,8 @@ void FbxLoader::_buildTriangles(Model* model, std::vector<Vector4>& vertices, st
             1.0);
         renderBuffers->addNormal(rotation * CN); //Scale then rotate normal
         renderBuffers->addTexture(textures[triCount]);
-        renderBuffers->addDebugNormal(transformation * C);
-        renderBuffers->addDebugNormal((transformation * C) + (rotation * CN));
+        renderBuffers->addDebugNormal(C);
+        renderBuffers->addDebugNormal((C) + (rotation * CN));
         renderBuffers->addTextureMapIndex(flattenStrides[triCount]);
         triCount++;
     }

@@ -34,7 +34,6 @@ class RenderBuffers {
     std::vector<int>            _textureMapIndices; //index 0 maps to texture string at index 0
     std::vector<std::string>    _textureMapNames; //texture names that map to textureMapindices
     std::vector<Vector4>        _debugNormals; //Vertex storage for normal line visualization
-    std::vector<Matrix>         _worldSpaceTransforms;
 
 public:
     RenderBuffers();
@@ -46,7 +45,6 @@ public:
     std::vector<Vector4>*       getDebugNormals();
     std::vector<int>*           getTextureMapIndices();
     std::vector<std::string>*   getTextureMapNames();
-    std::vector<Matrix>*        getWorldSpaceTranforms();
     int                         getTextureMapIndex(std::string textureName);
     void                        addVertex(Vector4 vertex);
     void                        addNormal(Vector4 normal);

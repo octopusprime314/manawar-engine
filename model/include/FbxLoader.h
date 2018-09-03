@@ -42,13 +42,13 @@ struct FbxExporterType {
 class FbxLoader {
     using ClonedCount = std::map<std::string, unsigned int>;
     using ClonedMatrices = std::map<std::string, Matrix>;
+    using TileTextures = std::map<std::string, std::vector<std::string>>;
     FbxManager*     _fbxManager;
     FbxIOSettings*  _ioSettings;
     FbxScene*       _scene;
     FbxExporterType _export;
     std::string     _fileName;
     int             _strideIndex;
-    bool            _firstClone;
     bool            _copiedOverFlag; //indicates the scene has been cloned over to export fbx to prevent doing it again!
     void            _loadTextures(Model* model, FbxMesh* meshNode, FbxNode* childNode);
     void            _buildTriangles(Model* model, std::vector<Vector4>& vertices, std::vector<Vector4>& normals,
@@ -70,6 +70,7 @@ class FbxLoader {
     Matrix          _objectSpaceTransform;
     ClonedCount     _clonedInstances;
     ClonedMatrices  _clonedWorldTransforms;
+    TileTextures    _tileTextures;
 
 public:
     FbxLoader(std::string name);

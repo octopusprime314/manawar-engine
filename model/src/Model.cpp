@@ -10,10 +10,15 @@ TextureBroker* Model::_textureManager = TextureBroker::instance();
 Model::Model(std::string name, ModelClass classId) :
     _isInstanced(false),
     _classId(classId),
-    _name(name.substr(0, name.find_last_of("/") + 1)),
-    _fbxLoader(new FbxLoader((classId == ModelClass::ModelType ? 
-        STATIC_MESH_LOCATION : ANIMATED_MESH_LOCATION) + name)) {
+    _name(name.substr(name.find_last_of("/") + 1)),
+    _fbxLoader(new FbxLoader(name)) {
 
+    //If the model loaded is a scene then all of the model instances have been added as entities
+    //in the fbx constructor call so jump out of model constructor
+    if (name.find("scene") != std::string::npos) {
+        return;
+    }
+    _name = _name.substr(0, _name.size() - 4); //trim .fbx off
     _vao.push_back(new VAO());
     //Populate model with fbx file data and recursivelty search with the root node of the scene
     _fbxLoader->loadModel(this, _fbxLoader->getScene()->GetRootNode());
@@ -34,9 +39,7 @@ Model::Model(std::string name, ModelClass classId) :
         //If the object is a standard model then it is modeled with triangles
         _geometryType = GeometryType::Triangle;
 
-        std::string modelName = _getModelName(name);
-        std::string colliderName = STATIC_MESH_LOCATION;
-        colliderName.append(modelName).append("/collider.fbx");
+        std::string colliderName = name.substr(0, name.find_last_of("/") + 1) + "collider.fbx";
         //Load in geometry fbx object
         FbxLoader geometryLoader(colliderName);
         //Populate model with fbx file data and recursivelty search with the root node of the scene

@@ -29,11 +29,11 @@ enum class LOG_LEVEL {
 
 #define LOGGERCLI "-l"
 
-#define LOG_TRACE(...) Logger::writeLog(__FILE__, __func__, __LINE__,  LOG_LEVEL::TRACE, __VA_ARGS__)
+#define LOG_TRACE(...) Logger::writeLog(__FILE__, __func__, __LINE__, LOG_LEVEL::TRACE, __VA_ARGS__)
 #define LOG_DEBUG(...) Logger::writeLog(__FILE__, __func__, __LINE__, LOG_LEVEL::DEBUG, __VA_ARGS__)
-#define LOG_INFO(...) Logger::writeLog(__FILE__, __func__, __LINE__, LOG_LEVEL::INFO, __VA_ARGS__)
-#define LOG_WARN(...) Logger::writeLog(__FILE__,  __func__, __LINE__, LOG_LEVEL::WARN, __VA_ARGS__)
-#define LOG_ERR(...) Logger::writeLog(__FILE__,  __func__, __LINE__, LOG_LEVEL::ERR, __VA_ARGS__)
+#define LOG_INFO(...)  Logger::writeLog(__FILE__, __func__, __LINE__, LOG_LEVEL::INFO,  __VA_ARGS__)
+#define LOG_WARN(...)  Logger::writeLog(__FILE__, __func__, __LINE__, LOG_LEVEL::WARN,  __VA_ARGS__)
+#define LOG_ERR(...)   Logger::writeLog(__FILE__, __func__, __LINE__, LOG_LEVEL::ERR,   __VA_ARGS__)
 #define LOG_FATAL(...) Logger::writeLog(__FILE__, __func__, __LINE__, LOG_LEVEL::FATAL, __VA_ARGS__)
 
 class Logger
@@ -59,24 +59,21 @@ public:
      *
      *  @return void
      */
-    static void closeLog();
-
-    static void setLogLevel(std::string log_level);
-
+    static void           closeLog();
+    static void           setLogLevel(std::string log_level);
     /** sets logging on or off */
-    static int verbosity;
-
-    static LOG_LEVEL logLevel;
+    static int            verbosity;
+    static LOG_LEVEL      logLevel;
 
 private:
     /** Streams used to write and read to files */
     static std::ofstream* outputFile;
 
     /** Mutexes used for logging */
-    static std::mutex* logMutex;
+    static std::mutex*    logMutex;
 
     /** Get the Process ID of the current process */
-    static std::string GetPID();
+    static std::string    getPID();
 
     template<typename T>
     static void writeLog(std::stringstream& stream, T streamable) {

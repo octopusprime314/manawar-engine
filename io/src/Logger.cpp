@@ -38,13 +38,13 @@
 
 
 std::ofstream* Logger::outputFile = 
-new std::ofstream(LOGGERPATH + "Log" + GetPID() + ".txt", std::ios_base::in | std::ios_base::out | std::ios_base::trunc);
+new std::ofstream(LOGGERPATH + "Log" + getPID() + ".txt", std::ios_base::in | std::ios_base::out | std::ios_base::trunc);
 
 std::mutex* Logger::logMutex = new std::mutex();
 int Logger::verbosity = 1;
 LOG_LEVEL Logger::logLevel = LOG_LEVEL::TRACE;
 
-std::string Logger::GetPID() {
+std::string Logger::getPID() {
     //Return the program PID to generate unique log files
     return std::to_string(GetCurrentProcessId());
 }

@@ -33,7 +33,6 @@ class IOEventDistributor;
 class Model;
 class FrustumCuller;
 
-
 using VAOMap = std::map<int, std::vector<VAO*>>;
 
 class Entity : public EventSubscriber {

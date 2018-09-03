@@ -37,6 +37,7 @@ enum class GeometryConstruction {
 const std::string ASSET_LOCATION = "../assets/";
 const std::string ANIMATED_MESH_LOCATION = ASSET_LOCATION + "meshes/animated/";
 const std::string STATIC_MESH_LOCATION = ASSET_LOCATION + "meshes/static/";
+const std::string SCENE_MESH_LOCATION = ASSET_LOCATION + "meshes/scene/";
 const std::string TEXTURE_LOCATION = ASSET_LOCATION + "textures/";
 
 // Set to true to make glCheck() assert when glGetError() returns an error code.

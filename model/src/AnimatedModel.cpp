@@ -14,9 +14,7 @@ AnimatedModel::AnimatedModel(std::string name) :
 
     _fbxLoader->buildAnimationFrames(this, animation->getSkins()); //Build up each animation frame's vertices and normals
 
-    std::string modelName = _getModelName(name);
-    std::string colliderName = ANIMATED_MESH_LOCATION;
-    colliderName.append(modelName).append("/collider.fbx");
+    std::string colliderName = name.substr(0, name.find_last_of("/") + 1) + "collider.fbx";
     //Load in geometry fbx object
     FbxLoader geometryLoader(colliderName);
     //Populate model with fbx file data and recursivelty search with the root node of the scene

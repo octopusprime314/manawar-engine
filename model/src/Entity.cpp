@@ -109,7 +109,6 @@ void Entity::_updateGameState(EngineStateFlags state) {
     _gameState = state;
 }
 
-
 VAOMap Entity::getVAOMapping() {
     return _frustumVAOMapping;
 }
@@ -279,7 +278,6 @@ std::vector<RenderBuffers>* Entity::getRenderBuffers() {
 Matrix Entity::getWorldSpaceTransform() {
     return _worldSpaceTransform;
 }
-
 
 std::vector<VAO*>* Entity::getFrustumVAO() {
 

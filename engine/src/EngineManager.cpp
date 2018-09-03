@@ -99,11 +99,11 @@ EngineManager::EngineManager(int* argc, char** argv) {
 
     auto modelBroker = ModelBroker::instance();
 
-    //_entityList.push_back(new Entity(modelBroker->getModel("sandbox/sandbox.fbx"), _viewManager->getEventWrapper())); //Add a static model to the scene
-    _entityList.push_back(new Entity(modelBroker->getModel("werewolf/werewolf.fbx"), _viewManager->getEventWrapper())); //Add a static model to the scene
-    //_entityList.push_back(new Entity(modelBroker->getModel("wolf/wolf.fbx"), _viewManager->getEventWrapper())); //Add a static model to the scene
-    //_entityList.push_back(new Entity(modelBroker->getModel("hagraven/hagraven.fbx"), _viewManager->getEventWrapper())); //Add a static model to the scene
-    //_entityList.push_back(new Entity(modelBroker->getModel("troll/troll.fbx"), _viewManager->getEventWrapper())); //Add a static model to the scene
+    //_entityList.push_back(new Entity(modelBroker->getModel("sandbox"), _viewManager->getEventWrapper())); //Add a static model to the scene
+    _entityList.push_back(new Entity(modelBroker->getModel("werewolf"), _viewManager->getEventWrapper())); //Add a static model to the scene
+    //_entityList.push_back(new Entity(modelBroker->getModel("wolf"), _viewManager->getEventWrapper())); //Add a static model to the scene
+    //_entityList.push_back(new Entity(modelBroker->getModel("hagraven"), _viewManager->getEventWrapper())); //Add a static model to the scene
+    //_entityList.push_back(new Entity(modelBroker->getModel("troll"), _viewManager->getEventWrapper())); //Add a static model to the scene
 
     //_entityList[1]->setPosition(Vector4(10, 0, 10));
     //_entityList[2]->setPosition(Vector4(-10, 0, -10));

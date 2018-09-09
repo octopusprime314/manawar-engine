@@ -13,7 +13,8 @@ Entity::Entity(Model* model, ViewEvents* eventWrapper, MVP transforms) :
     _id(_idGenerator),
     _selected(false),
     _frustumRenderBuffers(new std::vector<RenderBuffers>()),
-    _gameState(EngineState::getEngineState()) {
+    _gameState(EngineState::getEngineState()),
+    _layeredTexture(nullptr) {
 
     _worldSpaceTransform = transforms.getModelMatrix();
     _mvp.setProjection(transforms.getProjectionMatrix());
@@ -284,6 +285,14 @@ std::vector<RenderBuffers>* Entity::getRenderBuffers() {
 
 Matrix Entity::getWorldSpaceTransform() {
     return _worldSpaceTransform;
+}
+
+LayeredTexture* Entity::getLayeredTexture() {
+    return _layeredTexture;
+}
+
+void Entity::setLayeredTexture(LayeredTexture* layeredTexture) {
+    _layeredTexture = layeredTexture;
 }
 
 std::vector<VAO*>* Entity::getFrustumVAO() {

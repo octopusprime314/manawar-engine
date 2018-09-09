@@ -191,7 +191,7 @@ EngineManager::~EngineManager() {
     delete _forwardRenderer;
 }
 
-void EngineManager::addEntity(Model* model, Matrix transform) {
+Entity* EngineManager::addEntity(Model* model, Matrix transform) {
     auto viewManager = ModelBroker::getViewManager();
     auto viewWrapper = viewManager->getEventWrapper();
     MVP mvp;
@@ -199,6 +199,7 @@ void EngineManager::addEntity(Model* model, Matrix transform) {
     mvp.setView(viewManager->getView());
     mvp.setProjection(viewManager->getProjection());
     _entityList.push_back(new Entity(model, viewWrapper, mvp)); //Add a static model to the scene
+    return _entityList.back();
 }
 
 std::vector<Entity*>* EngineManager::getEntityList() {

@@ -76,33 +76,31 @@ void Picker::_mouseClick(int button, int action, int x, int y) {
 
         delete[] pixels;
 
-        Entity* selectedEntity = nullptr;
         auto entityList = *EngineManager::getEntityList();
         for (auto entity : entityList) {
             if (entity->isID(entityID)) {
                 entity->setSelected(true);
                 if (entity->getRenderBuffers()->size() > 0) {
 
-                    selectedEntity = entity;
+                    if(entity->getLayeredTexture() != nullptr) {
 
-                    //used to retrieve triangle in entity
-                    auto renderBuffers = entity->getModel()->getRenderBuffers();
+                        auto layeredTexture = entity->getLayeredTexture()->getTextures();
+                        //used to retrieve triangle in entity
+                        auto renderBuffers = entity->getModel()->getRenderBuffers();
+                        std::string layeredTextureName = "Layered";
+                        for (auto& texture : layeredTexture) {
+                            layeredTextureName += texture->getName();
+                        }
 
-                    auto textureIndex = (*renderBuffers->getTextureMapIndices())[triangleID * 3];
-                    std::string textureName = (*renderBuffers->getTextureMapNames())[textureIndex];
-                    std::cout << textureName << std::endl;
+                        auto vertices = renderBuffers->getVertices();
+                        Vector4 A = entity->getWorldSpaceTransform() * (*vertices)[triangleID * 3];
+                        Vector4 B = entity->getWorldSpaceTransform() * (*vertices)[(triangleID * 3) + 1];
+                        Vector4 C = entity->getWorldSpaceTransform() * (*vertices)[(triangleID * 3) + 2];
+                        A.display();
+                        B.display();
+                        C.display();
 
-                    auto vertices = renderBuffers->getVertices();
-                    Vector4 A = entity->getWorldSpaceTransform() * (*vertices)[triangleID * 3];
-                    Vector4 B = entity->getWorldSpaceTransform() * (*vertices)[(triangleID * 3) + 1];
-                    Vector4 C = entity->getWorldSpaceTransform() * (*vertices)[(triangleID * 3) + 2];
-                    A.display();
-                    B.display();
-                    C.display();
-
-                    if (selectedEntity != nullptr) {
-
-                        auto texture = TextureBroker::instance()->getLayeredTexture(textureName);
+                        auto texture = TextureBroker::instance()->getLayeredTexture(layeredTextureName);
                         if (texture != nullptr) {
                             auto layeredTextures = texture->getTextures();
                             for (auto texture : layeredTextures) {

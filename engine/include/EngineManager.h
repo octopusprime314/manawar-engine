@@ -43,28 +43,28 @@ class Entity;
 class IOEventDistributor;
 
 class EngineManager {
-    ViewEventDistributor* _viewManager; //manages the view/camera matrix from the user's perspective
-    static std::vector<Entity*> _entityList; //Contains models active in scene
-    std::vector<Light*>  _lightList; //Contains all lights in a scene
-    Physics*             _physics; //Manages physical interactions between models
-    DeferredRenderer*    _deferredRenderer; //Manages deferred shading g buffers
-    ForwardRenderer*     _forwardRenderer; //Manages forward shading transparent objects
-    AudioManager*        _audioManager;  // Manages audio playback
-    SSAO*                _ssaoPass;
-    EnvironmentMap*      _environmentMap;
-    Water*               _water;
-    DeferredFrameBuffer* _deferredFBO;
-    Bloom*               _bloom;
-    MergeShader*         _mergeShader;
-    SSCompute*           _add;
-    Terminal*            _terminal;
-    IOEventDistributor*  _glfwContext;
-
-    void _preDraw(); //Prior to drawing objects call this function
-    void _postDraw(); //Post of drawing objects call this function
+    ViewEventDistributor*        _viewManager; //manages the view/camera matrix from the user's perspective
+    static std::vector<Entity*>  _entityList; //Contains models active in scene
+    std::vector<Light*>          _lightList; //Contains all lights in a scene
+    Physics*                     _physics; //Manages physical interactions between models
+    DeferredRenderer*            _deferredRenderer; //Manages deferred shading g buffers
+    ForwardRenderer*             _forwardRenderer; //Manages forward shading transparent objects
+    AudioManager*                _audioManager;  // Manages audio playback
+    SSAO*                        _ssaoPass;
+    EnvironmentMap*              _environmentMap;
+    Water*                       _water;
+    DeferredFrameBuffer*         _deferredFBO;
+    Bloom*                       _bloom;
+    MergeShader*                 _mergeShader;
+    SSCompute*                   _add;
+    Terminal*                    _terminal;
+    IOEventDistributor*          _glfwContext;
+                                 
+    void                         _preDraw(); //Prior to drawing objects call this function
+    void                         _postDraw(); //Post of drawing objects call this function
 public:
     EngineManager(int* argc, char** argv);
     ~EngineManager();
-    static void addEntity(Model* model, Matrix transform);
+    static Entity*               addEntity(Model* model, Matrix transform);
     static std::vector<Entity*>* getEntityList();
 };

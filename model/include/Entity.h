@@ -58,6 +58,8 @@ public:
     std::vector<RenderBuffers>* getRenderBuffers();
     Matrix                      getWorldSpaceTransform();
     Geometry*                   getGeometry();
+    LayeredTexture*             getLayeredTexture();
+    void                        setLayeredTexture(LayeredTexture* layeredTexture);
 protected:
 
     VAOMap                      _frustumVAOMapping;
@@ -75,6 +77,7 @@ protected:
     std::vector<RenderBuffers>* _frustumRenderBuffers;
     EngineStateFlags            _gameState;
     Geometry                    _worldSpaceGeometry; //Entity space geometry
+    LayeredTexture*             _layeredTexture;
 
     void                        _generateVAOTiles();
     void                        _updateKeyboard(int key, int x, int y) {}; //Do stuff based on keyboard upate

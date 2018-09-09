@@ -54,7 +54,9 @@ void StaticShader::runShader(Entity* entity) {
             //If the texture has layered encoded into the string then it is indeed layered
             if (textureStride.first.substr(0, 7) == "Layered") {
 
-                LayeredTexture* layeredTexture = model->getLayeredTexture(textureStride.first);
+                //LayeredTexture* layeredTexture = model->getLayeredTexture(textureStride.first);
+                LayeredTexture* layeredTexture = entity->getLayeredTexture();
+
                 auto textures = layeredTexture->getTextures();
 
                 //We have a layered texture

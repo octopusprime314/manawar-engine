@@ -34,7 +34,7 @@ Entity::Entity(Model* model, ViewEvents* eventWrapper, MVP transforms) :
         //_frustumCuller = new FrustumCuller(this, 2000, 4000);
         _frustumCuller = new FrustumCuller(this, 10000000, 100000000);
         //Tile the terrain and other static objects in the scene
-        _generateVAOTiles();
+        //_generateVAOTiles();
         _idGenerator++;
     }
     //Copy of the base geometry which will then be offset by the entity's world space position

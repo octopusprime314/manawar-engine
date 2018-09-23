@@ -221,17 +221,17 @@ void VAO::createVAO(RenderBuffers* renderBuffers, ModelClass classId, Animation*
         else {
 
             //Now flatten vertices and normals out 
-            triBuffSize = indices->size() * 3;
+            triBuffSize = vertices->size() * 3;
             flattenAttribs = new float[triBuffSize + (textures->size() * 2)]; //Only include the x y and z values not w
             flattenIndexes = new uint16_t[triBuffSize / 3]; //Only include the x y and z values not w, same size as vertices
 
             int i = 0; //iterates through vertices indexes
             uint16_t j = 0;
-            for (auto index : *indices) {
-                float *flatVert = (*vertices)[index].getFlatBuffer();
+            for (auto vertex : *vertices) {
+                float *flatVert = vertex.getFlatBuffer();
                 flattenAttribs[i++] = flatVert[0];
                 flattenAttribs[i++] = flatVert[1];
-                flattenAttribs[i++] = -flatVert[2];
+                flattenAttribs[i++] = -flatVert[2];//z is flipped in directx
                 flattenIndexes[j] = j;
                 j++;
                 i += 2;
@@ -289,7 +289,7 @@ void VAO::createVAO(RenderBuffers* renderBuffers, ModelClass classId, Animation*
                 float *flatVert = (*vertices)[index].getFlatBuffer();
                 flattenAttribs[i++] = flatVert[0];
                 flattenAttribs[i++] = flatVert[1];
-                flattenAttribs[i++] = -flatVert[2];
+                flattenAttribs[i++] = -flatVert[2]; //z is flipped in directx
                 flattenIndexes[j] = j;
                 j++;
                 i += 2;

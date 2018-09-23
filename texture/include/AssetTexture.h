@@ -33,6 +33,7 @@ class AssetTexture : public Texture{
     bool                         _getTextureData(std::string textureName);
     void                         _decodeTexture(std::string textureName, unsigned int textureType);
   
+    unsigned int                 _imageBufferSize;
     BYTE*                        _bits;
     bool                         _alphaValues;
     FIBITMAP*                    _dib;

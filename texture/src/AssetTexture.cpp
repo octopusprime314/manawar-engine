@@ -89,10 +89,7 @@ void AssetTexture::bindToDXShader(ComPtr<ID3D12GraphicsCommandList>& cmdList, Pi
 void AssetTexture::_build2DTextureDX(std::string textureName,
                                    ComPtr<ID3D12GraphicsCommandList>& cmdList,
                                    ComPtr<ID3D12Device>& device) {
-
-    //Create resource backing data for texture
-    unsigned int imageSize = FreeImage_GetMemorySize(_dib);
-    _textureBuffer = new ResourceBuffer(_bits, imageSize, _width, _height, cmdList, device);
+    _textureBuffer = new ResourceBuffer(_bits, _imageBufferSize, _width, _height, cmdList, device);
 
     //Create descriptor heap
     D3D12_DESCRIPTOR_HEAP_DESC srvHeapDesc;
@@ -224,13 +221,13 @@ bool AssetTexture::_getTextureData(std::string textureName) {
     }
 
     unsigned int imageSize = FreeImage_GetMemorySize(_dib);
-    unsigned int byteSize = _width * _height * 4;
+    _imageBufferSize = _width * _height * 4;
 
-    if (byteSize <= imageSize) {
+    if (imageSize >= _imageBufferSize) {
         _alphaValues = true;
     }
     else {
-        //std::cout << _name << " supports transparency!" << std::endl;
+        _imageBufferSize = _width * _height * 3;
     }
 
     return true;

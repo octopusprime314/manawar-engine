@@ -25,8 +25,6 @@ Model::Model(std::string name, ModelClass classId) :
 
     _vao.back()->setPrimitiveOffsetId(0);
 
-    //Still need to create this vao soley for shadowsq
-    _vao[0]->createVAO(&_renderBuffers, ModelClass::ModelType);
 
     //If class is generic model then deallocate fbx object,
     //otherwise let derived class clean up _fbxLoader object
@@ -50,6 +48,8 @@ Model::Model(std::string name, ModelClass classId) :
         //Populate model with fbx file data and recursivelty search with the root node of the scene
         geometryLoader.loadGeometry(this, geometryLoader.getScene()->GetRootNode());
 
+        //Still need to create this vao soley for shadowsq
+        _vao[0]->createVAO(&_renderBuffers, ModelClass::ModelType);
         _fbxLoader->buildAABB(this);
     }
     else if (_classId == ModelClass::AnimatedModelType) {

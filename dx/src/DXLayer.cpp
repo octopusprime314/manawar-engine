@@ -186,8 +186,7 @@ void DXLayer::_render() {
 
     _cmdLists[_cmdListIndex]->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-
-    auto model = ModelBroker::instance()->getModel("werewolf");
+    auto model = ModelBroker::instance()->getModel("scene");
 
     _cmdLists[_cmdListIndex]->IASetIndexBuffer(&(*model->getVAO())[0]->getIndexBuffer());
     D3D12_VERTEX_BUFFER_VIEW vertexBuffers[] = { (*model->getVAO())[0]->getVertexBuffer() };

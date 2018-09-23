@@ -42,6 +42,39 @@ ResourceBuffer::ResourceBuffer(const void* initData,
     UINT byteSize, UINT width, UINT height,
     ComPtr<ID3D12GraphicsCommandList>& cmdList,
     ComPtr<ID3D12Device>& device) {
+    
+    D3D12_SUBRESOURCE_FOOTPRINT pitchedDesc;
+    pitchedDesc.Width = width;
+    pitchedDesc.Height = height;
+    pitchedDesc.Depth = 1;
+    auto alignment256 = ((width + D3D12_TEXTURE_DATA_PITCH_ALIGNMENT - 1) & ~(D3D12_TEXTURE_DATA_PITCH_ALIGNMENT - 1));
+    pitchedDesc.RowPitch = alignment256 * sizeof(DWORD);
+    pitchedDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
+
+    char* stream = nullptr;
+    if (width * height * 4 != pitchedDesc.RowPitch * height ||
+        width * height * 4 > byteSize) {
+
+        int channelCount = 3;
+        if (byteSize == width * height * 4) {
+            channelCount = 4;
+        }
+
+        const char* data = reinterpret_cast<const char*>(initData);
+        stream = new char[pitchedDesc.RowPitch * height];
+        for (int i = 0; i < height; i++) {
+
+            for (int j = 0; j < width; j++) {
+
+                for (int k = 0; k < channelCount; k++) {
+
+                    stream[i*pitchedDesc.RowPitch + (j * 4) + k] = data[i*width + (j*channelCount) + k];
+                }
+            }
+        }
+        initData = stream;
+        byteSize = pitchedDesc.RowPitch * height;
+    }
 
     //Upload texture data to uploadbuffer
     device->CreateCommittedResource(&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
@@ -57,15 +90,6 @@ ResourceBuffer::ResourceBuffer(const void* initData,
     _uploadBuffer->Unmap(0, nullptr);
     mappedData = nullptr;
 
-
-    D3D12_SUBRESOURCE_FOOTPRINT pitchedDesc;
-    pitchedDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
-    pitchedDesc.Width = width;
-    pitchedDesc.Height = height;
-    pitchedDesc.Depth = 1;
-    auto alignment256 = ((width + D3D12_TEXTURE_DATA_PITCH_ALIGNMENT - 1) & ~(D3D12_TEXTURE_DATA_PITCH_ALIGNMENT - 1));
-    pitchedDesc.RowPitch = alignment256 * sizeof(DWORD);
-
     D3D12_PLACED_SUBRESOURCE_FOOTPRINT placedTexture2D;
     placedTexture2D.Footprint = pitchedDesc;
     auto alignment512 = ((reinterpret_cast<UINT64>(mappedData) + D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT - 1) & ~(D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT - 1));
@@ -73,11 +97,12 @@ ResourceBuffer::ResourceBuffer(const void* initData,
 
     device->CreateCommittedResource(
         &CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
-        D3D12_HEAP_FLAG_NONE, 
-        &CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_B8G8R8A8_UNORM, width, height, 1, 1), //only 1 mip level for now
+        D3D12_HEAP_FLAG_NONE,
+        &CD3DX12_RESOURCE_DESC::Tex2D(pitchedDesc.Format, width, height, 1, 1), //only 1 mip level for now
         D3D12_RESOURCE_STATE_COMMON,
         nullptr,
         IID_PPV_ARGS(&_defaultBuffer));
+    
 
     cmdList->ResourceBarrier(1,
         &CD3DX12_RESOURCE_BARRIER::Transition(_defaultBuffer.Get(),

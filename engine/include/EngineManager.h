@@ -41,6 +41,12 @@ class ShaderBroker;
 class Terminal;
 class Entity;
 class IOEventDistributor;
+class DXLayer;
+
+enum class GraphicsLayer {
+    DX12,
+    OPENGL
+};
 
 class EngineManager {
     ViewEventDistributor*        _viewManager; //manages the view/camera matrix from the user's perspective
@@ -59,12 +65,15 @@ class EngineManager {
     SSCompute*                   _add;
     Terminal*                    _terminal;
     IOEventDistributor*          _glfwContext;
+    DXLayer*                     _dxLayer;
+    static GraphicsLayer         _graphicsLayer;
                                  
     void                         _preDraw(); //Prior to drawing objects call this function
     void                         _postDraw(); //Post of drawing objects call this function
 public:
-    EngineManager(int* argc, char** argv);
+    EngineManager(int* argc, char** argv, HINSTANCE hInstance, int nCmdShow);
     ~EngineManager();
     static Entity*               addEntity(Model* model, Matrix transform);
     static std::vector<Entity*>* getEntityList();
+    static GraphicsLayer         getGraphicsLayer();
 };

@@ -29,6 +29,12 @@
 #include "Sphere.h"
 #include "Triangle.h"
 #include "Cube.h"
+#include <d3d12.h>
+#include "d3dx12.h"
+#include <wrl.h>
+#include "ResourceBuffer.h"
+
+using namespace Microsoft::WRL;
 
 enum class GeometryConstruction;
 enum class ModelClass; //Forward declaration of enumerated type while not including Model class
@@ -47,6 +53,12 @@ class VAO {
     GLuint          _vertexLength;
     TextureMetaData _textureStride;
     GLuint          _primitiveOffsetId;
+    static ComPtr<ID3D12Device>              _device;
+    static ComPtr<ID3D12GraphicsCommandList> _cmdList;
+    ResourceBuffer*                          _vertexBuffer;
+    ResourceBuffer*                          _indexBuffer;
+    D3D12_INDEX_BUFFER_VIEW                  _ibv;
+    D3D12_VERTEX_BUFFER_VIEW                 _vbv;
 public:
     VAO();
     ~VAO();
@@ -59,6 +71,8 @@ public:
     GLuint          getPrimitiveOffsetId();
     GLuint          getNormalDebugContext();
     TextureMetaData getTextureStrides();
+    D3D12_INDEX_BUFFER_VIEW getIndexBuffer();
+    D3D12_VERTEX_BUFFER_VIEW getVertexBuffer();
     void            setVertexContext(GLuint context);
     void            setNormalContext(GLuint context);
     void            setTextureContext(GLuint context);
@@ -70,4 +84,6 @@ public:
     void            createVAO(std::vector<Sphere>* spheres, GeometryConstruction geometryType);
     void            createVAO(std::vector<Triangle>* triangles);
     void            createVAO(std::vector<Cube>* cubes, GeometryConstruction geometryType);
+    static void     init(ComPtr<ID3D12GraphicsCommandList>& cmdList,
+                         ComPtr<ID3D12Device>& device);
 };

@@ -3,6 +3,7 @@
 #include "Light.h"
 #include <iostream>
 #include <fstream>
+#include "EngineManager.h"
 
 // You can hit this in a debugger.
 // Set to 'true' to printf every shader that is linked or compiled.
@@ -41,9 +42,17 @@ void Shader::_build() {
     unsigned int geomSH;
     unsigned int computeSH;
 
-    std::string fileNameVert = SHADERS_LOCATION + _vertexShaderName;
+    std::string shadersLocation = SHADERS_LOCATION;
+    if (EngineManager::getGraphicsLayer() == GraphicsLayer::OPENGL) {
+        shadersLocation += "glsl/";
+    }
+    else {
+        shadersLocation += "hlsl/";
+    }
+
+    std::string fileNameVert = shadersLocation + _vertexShaderName;
     fileNameVert.append(".vert");
-    std::string fileNameFrag = SHADERS_LOCATION;
+    std::string fileNameFrag = shadersLocation;
     if (_fragmentShaderName != "") {
         fileNameFrag += _fragmentShaderName;
     }
@@ -51,9 +60,9 @@ void Shader::_build() {
         fileNameFrag += _vertexShaderName;
     }
     fileNameFrag.append(".frag");
-    std::string fileNameGeom = SHADERS_LOCATION + _vertexShaderName;
+    std::string fileNameGeom = shadersLocation + _vertexShaderName;
     fileNameGeom.append(".geom");
-    std::string fileNameCompute = SHADERS_LOCATION + _vertexShaderName;
+    std::string fileNameCompute = shadersLocation + _vertexShaderName;
     fileNameCompute.append(".comp");
 
     //Compile each shader

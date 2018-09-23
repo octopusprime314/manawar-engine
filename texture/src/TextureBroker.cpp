@@ -1,4 +1,5 @@
 #include "TextureBroker.h"
+#include "EngineManager.h"
 TextureBroker* TextureBroker::_broker = nullptr;
 
 TextureBroker* TextureBroker::instance() { //Only initializes the static pointer once
@@ -17,7 +18,12 @@ TextureBroker::~TextureBroker() {
 void TextureBroker::addTexture(std::string textureName) {
 
     if (_textures.find(textureName) == _textures.end()) {
-        _textures[textureName] = new AssetTexture(textureName);
+        if (EngineManager::getGraphicsLayer() == GraphicsLayer::OPENGL) {
+            _textures[textureName] = new AssetTexture(textureName);
+        }
+        else if (EngineManager::getGraphicsLayer() == GraphicsLayer::DX12) {
+            _textures[textureName] = new AssetTexture(textureName, _cmdList, _device);
+        }
     }
 }
 
@@ -28,13 +34,23 @@ void TextureBroker::addLayeredTexture(std::vector<std::string> textureNames) {
         sumString += str;
     }
     if (_layeredTextures.find(sumString) == _layeredTextures.end()) {
-        _layeredTextures[sumString] = new LayeredTexture(textureNames);
+        if (EngineManager::getGraphicsLayer() == GraphicsLayer::OPENGL) {
+            _layeredTextures[sumString] = new LayeredTexture(textureNames);
+        }
+        else if (EngineManager::getGraphicsLayer() == GraphicsLayer::DX12) {
+            _layeredTextures[sumString] = new LayeredTexture(textureNames, _cmdList, _device);
+        }
     }
 }
 
 void TextureBroker::addCubeTexture(std::string textureName) {
     if (_textures.find(textureName) == _textures.end()) {
-        _textures[textureName] = new AssetTexture(textureName, true);
+        if (EngineManager::getGraphicsLayer() == GraphicsLayer::OPENGL) {
+            _textures[textureName] = new AssetTexture(textureName, true);
+        }
+        else if (EngineManager::getGraphicsLayer() == GraphicsLayer::DX12) {
+            _textures[textureName] = new AssetTexture(textureName, _cmdList, _device, true);
+        }
     }
 }
 
@@ -71,6 +87,19 @@ void TextureBroker::updateTextureToLayered(std::string textureName) {
     for (auto& layeredTexture : _layeredTextures) {
 
         auto& assetTextures = layeredTexture.second->getTextures();
-        layeredTexture.second->setTexture(new AssetTexture(textureName));
+
+        if (EngineManager::getGraphicsLayer() == GraphicsLayer::OPENGL) {
+            layeredTexture.second->setTexture(new AssetTexture(textureName));
+        }
+        else if (EngineManager::getGraphicsLayer() == GraphicsLayer::DX12) {
+            layeredTexture.second->setTexture(new AssetTexture(textureName, _cmdList, _device));
+        }
     }
+}
+
+//Specific to DirectX
+void TextureBroker::init(ComPtr<ID3D12GraphicsCommandList>& cmdList,
+    ComPtr<ID3D12Device>& device) {
+    _device = device;
+    _cmdList = cmdList;
 }

@@ -6,8 +6,11 @@
 #include <algorithm>
 #include "EngineManager.h"
 #include "Logger.h"
+#include <Windows.h>
 
-int main(int argc, char** argv) {
+int main_entry(int argc, char** argv,
+    HINSTANCE hInstance,
+    int nCmdShow) {
 
 	// Logger command line settings
 	// Doesn't seem like there is any real CLI handling so i'll toss it here
@@ -24,19 +27,19 @@ int main(int argc, char** argv) {
     }
 
     //Send the width and height in pixel units and the near and far plane to describe the view frustum
-    EngineManager EngineManager(&argc, argv); //Manages the camera view and models in scene
+    EngineManager EngineManager(&argc, argv, hInstance, nCmdShow); //Manages the camera view and models in scene
 	Logger::closeLog();
     return 0;
 }
 
-int CALLBACK WinMain(
-    _In_ HINSTANCE hInstance,
-    _In_ HINSTANCE hPrevInstance,
-    _In_ LPSTR     lpCmdLine,
-    _In_ int       nCmdShow
-)
-{
+int CALLBACK WinMain(_In_ HINSTANCE hInstance,
+    _In_opt_ HINSTANCE hPrevInstance,
+    _In_ LPTSTR lpCmdLine,
+    _In_ int nCmdShow) {
+
     char argv0[] = "Reboot.exe";
     char* argv[] = { argv0 };
-    main(1, argv);
+    main_entry(1, argv, hInstance, nCmdShow);
+
+    return 0;
 }

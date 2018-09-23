@@ -97,27 +97,32 @@ void Physics::_physicsProcess(int milliseconds) {
         auto triangleMaps = subspaceNode->getTriangles();
 
         //Sphere on sphere detections
-        for (std::pair<Entity* const, std::set<Sphere*>>& sphereMapA : *sphereMaps) {
+        /*for (std::pair<Entity* const, std::set<Sphere*>>& sphereMapA : *sphereMaps) {*/
+        for (auto sphereMapA = sphereMaps->begin(); sphereMapA != sphereMaps->end(); sphereMapA++) {
 
-            StateVector* modelSphereStateA = sphereMapA.first->getStateVector();
+            StateVector* modelSphereStateA = sphereMapA->first->getStateVector();
 
-            for (std::pair<Entity* const, std::set<Sphere*>>& sphereMapB : *sphereMaps) {
+            if (modelSphereStateA->getActive()) {
 
-                //Only do detections for different models, do not detect an overlap for a model on itself...
-                if (sphereMapA.first != sphereMapB.first) {
+                //for (std::pair<Entity* const, std::set<Sphere*>>& sphereMapB : *sphereMaps) {
+                for (auto sphereMapB = sphereMapA; sphereMapB != sphereMaps->end(); sphereMapB++) {
 
-                    StateVector* modelSphereStateB = sphereMapB.first->getStateVector();
-                    if (modelSphereStateA->getActive() || modelSphereStateB->getActive()) { //Only test for collisions if one of the models is active
+                    //Only do detections for different models, do not detect an overlap for a model on itself...
+                    if (sphereMapA->first != sphereMapB->first) {
 
-                        std::set<Sphere*>& spheresA = sphereMapA.second;
-                        std::set<Sphere*>& spheresB = sphereMapB.second;
+                        StateVector* modelSphereStateB = sphereMapB->first->getStateVector();
+                        if (modelSphereStateB->getActive()) { //Only test for collisions if one of the models is active
 
-                        for (Sphere* sphereA : spheresA) {
-                            for (Sphere* sphereB : spheresB) {
-                                //If an overlap between a sphere and a sphere is detected then process the overlap resolution
-                                if (GeometryMath::sphereSphereDetection(*sphereA, *sphereB)) {
+                            std::set<Sphere*>& spheresA = sphereMapA->second;
+                            std::set<Sphere*>& spheresB = sphereMapB->second;
 
-                                    GeometryMath::sphereSphereResolution(sphereMapA.first, *sphereA, sphereMapB.first, *sphereB);
+                            for (Sphere* sphereA : spheresA) {
+                                for (Sphere* sphereB : spheresB) {
+                                    //If an overlap between a sphere and a sphere is detected then process the overlap resolution
+                                    if (GeometryMath::sphereSphereDetection(*sphereA, *sphereB)) {
+
+                                        GeometryMath::sphereSphereResolution(sphereMapA->first, *sphereA, sphereMapB->first, *sphereB);
+                                    }
                                 }
                             }
                         }

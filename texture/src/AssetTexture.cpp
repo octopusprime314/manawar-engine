@@ -10,7 +10,24 @@ AssetTexture::AssetTexture(std::string textureName, bool cubeMap) :
 
     if (!cubeMap) {
         if (_getTextureData(_name)) {
-            _build2DTexture(_name);
+            _build2DTextureGL(_name);
+        }
+    }
+    else {
+        _buildCubeMapTexture(_name);
+    }
+}
+
+AssetTexture::AssetTexture(std::string textureName,
+                           ComPtr<ID3D12GraphicsCommandList>& cmdList,
+                           ComPtr<ID3D12Device>& device,
+                           bool cubeMap) :
+    Texture(textureName),
+    _alphaValues(false) {
+
+    if (!cubeMap) {
+        if (_getTextureData(_name)) {
+            _build2DTextureDX(_name, cmdList, device);
         }
     }
     else {
@@ -22,7 +39,7 @@ AssetTexture::~AssetTexture() {
 
 }
 
-void AssetTexture::_build2DTexture(std::string textureName) {
+void AssetTexture::_build2DTextureGL(std::string textureName) {
 
     //Generate a texture context
     glGenTextures(1, &_textureContext);
@@ -53,6 +70,72 @@ void AssetTexture::_build2DTexture(std::string textureName) {
 
     //Free FreeImage's copy of the data
     //FreeImage_Unload(_dib);
+}
+
+void AssetTexture::bindToDXShader(ComPtr<ID3D12GraphicsCommandList>& cmdList, PipelineShader& pso) {
+
+    ID3D12DescriptorHeap* descriptorHeaps[] = { _srvDescriptorHeap.Get(),  _samplerDescriptorHeap.Get() };
+    cmdList->SetDescriptorHeaps(2, descriptorHeaps);
+
+    auto resourceBindings = pso.getResourceBindings();
+
+    cmdList->SetGraphicsRootDescriptorTable(resourceBindings["textureMap"],
+        _srvDescriptorHeap->GetGPUDescriptorHandleForHeapStart());
+
+    cmdList->SetGraphicsRootDescriptorTable(resourceBindings["textureSampler"],
+        _samplerDescriptorHeap->GetGPUDescriptorHandleForHeapStart());
+}
+
+void AssetTexture::_build2DTextureDX(std::string textureName,
+                                   ComPtr<ID3D12GraphicsCommandList>& cmdList,
+                                   ComPtr<ID3D12Device>& device) {
+
+    //Create resource backing data for texture
+    unsigned int imageSize = FreeImage_GetMemorySize(_dib);
+    _textureBuffer = new ResourceBuffer(_bits, imageSize, _width, _height, cmdList, device);
+
+    //Create descriptor heap
+    D3D12_DESCRIPTOR_HEAP_DESC srvHeapDesc;
+    ZeroMemory(&srvHeapDesc, sizeof(srvHeapDesc));
+    srvHeapDesc.NumDescriptors = 1; //1 2D texture
+    srvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+    srvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+    device->CreateDescriptorHeap(&srvHeapDesc, IID_PPV_ARGS(_srvDescriptorHeap.GetAddressOf()));
+
+    //Create view of SRV for shader access
+    CD3DX12_CPU_DESCRIPTOR_HANDLE hDescriptor(_srvDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
+    D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+    auto textureDescriptor = _textureBuffer->getDescriptor();
+    srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+    srvDesc.Format = textureDescriptor.Format;
+    srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+    srvDesc.Texture2D.MostDetailedMip = 0;
+    srvDesc.Texture2D.MipLevels = textureDescriptor.MipLevels;
+    srvDesc.Texture2D.ResourceMinLODClamp = 0;
+    device->CreateShaderResourceView(_textureBuffer->getResource(), &srvDesc, hDescriptor);
+
+    // create sampler descriptor heap
+    D3D12_DESCRIPTOR_HEAP_DESC descHeapSampler = {};
+    descHeapSampler.NumDescriptors = 1;
+    descHeapSampler.Type = D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER;
+    descHeapSampler.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+    device->CreateDescriptorHeap(&descHeapSampler,
+        IID_PPV_ARGS(_samplerDescriptorHeap.GetAddressOf()));
+
+    // create sampler descriptor in the sample descriptor heap
+    D3D12_SAMPLER_DESC samplerDesc;
+    ZeroMemory(&samplerDesc, sizeof(D3D12_SAMPLER_DESC));
+    samplerDesc.Filter = D3D12_FILTER_ANISOTROPIC;// D3D12_FILTER_MIN_MAG_MIP_LINEAR;
+    samplerDesc.AddressU = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+    samplerDesc.AddressV = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+    samplerDesc.AddressW = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+    samplerDesc.MinLOD = 0;
+    samplerDesc.MaxLOD = D3D12_FLOAT32_MAX;
+    samplerDesc.MipLODBias = 0.0f;
+    samplerDesc.MaxAnisotropy = 1;
+    samplerDesc.ComparisonFunc = D3D12_COMPARISON_FUNC_ALWAYS;
+    device->CreateSampler(&samplerDesc,
+        _samplerDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
 }
 
 BYTE* AssetTexture::getBits() {

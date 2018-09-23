@@ -15,7 +15,7 @@ Terminal::Terminal(MRTFrameBuffer* gBuffers, std::vector<Entity*> entityList) :
     
     //Added global history for quick debugging of model creator
     _commandHistory.push_back("ADDTILE SANDBOX TERRAINTILE 0 0 0 1 SNOW.JPG DIRT.JPG ROCKS.JPG GRASS.JPG|");
-    _commandHistory.push_back("MOUSEADD SANDBOX DEADTREE 0.125|");
+    _commandHistory.push_back("MOUSEADD SANDBOX DEADTREE 0.025|");
     _commandHistory.push_back("SAVE SANDBOX|");
 
     _picker = new Picker(gBuffers, std::bind(&Terminal::_mousePosition, this, _1));

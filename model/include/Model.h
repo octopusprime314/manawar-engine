@@ -77,6 +77,7 @@ public:
     std::string                 getName();
     virtual void                updateModel(Model* model);
 
+
 protected:
     RenderBuffers               _renderBuffers; //Manages vertex, normal and texture data
     std::vector<VAO*>           _vao; //Vao container

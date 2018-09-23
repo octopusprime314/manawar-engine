@@ -16,6 +16,7 @@
 #include <algorithm>
 #include <cctype>
 #include "Logger.h"
+#include "EngineManager.h"
 
 ShaderBroker* ShaderBroker::_broker = nullptr;
 
@@ -72,7 +73,15 @@ void ShaderBroker::_gatherShaderNames()
     bool isFile = false;
     DIR *dir;
     struct dirent *ent;
-    if ((dir = opendir(SHADERS_LOCATION.c_str())) != nullptr)
+    std::string shadersLocation = SHADERS_LOCATION;
+    if (EngineManager::getGraphicsLayer() == GraphicsLayer::OPENGL) {
+        shadersLocation += "glsl/";
+    }
+    else {
+        shadersLocation += "hlsl/";
+    }
+
+    if ((dir = opendir(shadersLocation.c_str())) != nullptr)
     {
         LOG_INFO("Files to be processed: \n");
 

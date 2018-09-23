@@ -20,6 +20,12 @@
 */
 
 #pragma once
+#include <wrl.h>
+#include <d3d12.h>
+#include "d3dx12.h"
+#include "ResourceBuffer.h"
+#include "PipelineShader.h"
+
 #include "GLIncludes.h"
 #include <string>
 #include "FreeImage.h"
@@ -32,6 +38,8 @@ enum class TextureFormat {
     R_FLOAT,
     R_UNSIGNED_BYTE
 };
+
+using namespace Microsoft::WRL;
 
 class Texture {
 

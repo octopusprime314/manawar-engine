@@ -30,17 +30,21 @@ using TextureMap = std::map<std::string, AssetTexture*>;
 
 class TextureBroker {
     TextureBroker();
-    TextureMap                      _textures;
-    LayeredTextureMap               _layeredTextures;
-    static TextureBroker*           _broker;
+    TextureMap                        _textures;
+    LayeredTextureMap                 _layeredTextures;
+    static TextureBroker*             _broker;
+    ComPtr<ID3D12Device>              _device;
+    ComPtr<ID3D12GraphicsCommandList> _cmdList;
 public:
-    static TextureBroker*           instance();
+    static TextureBroker*             instance();
     ~TextureBroker();
-    void                            addTexture(std::string textureName);
-    void                            addLayeredTexture(std::vector<std::string> textureNames);
-    void                            addCubeTexture(std::string textureName);
-    AssetTexture*                   getTexture(std::string textureName);
-    LayeredTexture*                 getLayeredTexture(std::string textureName);
-    AssetTexture*                   getAssetTextureFromLayered(std::string textureName);
-    void                            updateTextureToLayered(std::string textureName);
+    void                              addTexture(std::string textureName);
+    void                              addLayeredTexture(std::vector<std::string> textureNames);
+    void                              addCubeTexture(std::string textureName);
+    AssetTexture*                     getTexture(std::string textureName);
+    LayeredTexture*                   getLayeredTexture(std::string textureName);
+    AssetTexture*                     getAssetTextureFromLayered(std::string textureName);
+    void                              updateTextureToLayered(std::string textureName);
+    void                              init(ComPtr<ID3D12GraphicsCommandList>& cmdList,
+                                           ComPtr<ID3D12Device>& device);
 };

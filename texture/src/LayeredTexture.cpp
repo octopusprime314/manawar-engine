@@ -7,6 +7,15 @@ LayeredTexture::LayeredTexture(std::vector<std::string> textureNames) {
     }
 }
 
+LayeredTexture::LayeredTexture(std::vector<std::string> textureNames,
+    ComPtr<ID3D12GraphicsCommandList>& cmdList,
+    ComPtr<ID3D12Device>& device) {
+    
+    for (auto textureName : textureNames) {
+        _textures.push_back(new AssetTexture(textureName, cmdList, device));
+    }
+}
+
 LayeredTexture::~LayeredTexture() {
 
 }

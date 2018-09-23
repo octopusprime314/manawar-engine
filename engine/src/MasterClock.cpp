@@ -47,7 +47,7 @@ void MasterClock::_physicsProcess() {
             std::this_thread::sleep_for(std::chrono::milliseconds(deltaTime));
         }
         else if (deltaTime < 0) {
-            //std::cout << "Extra time being used on physics calculations: " << milliseconds - KINEMATICS_TIME << std::endl;
+            std::cout << "Extra time being used on physics calculations: " << milliseconds - KINEMATICS_TIME << std::endl;
         }
         milliSecondCounter += KINEMATICS_TIME;
     }

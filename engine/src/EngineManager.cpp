@@ -25,6 +25,7 @@
 #include "ShadowedPointLight.h"
 #include "IOEventDistributor.h"
 #include "Picker.h"
+#include "DXLayer.h"
 #include <chrono>
 
 using namespace std::chrono;
@@ -35,16 +36,23 @@ uint64_t nowMs();
 volatile bool g_AssertOnBadOpenGlCall = false;
 
 std::vector<Entity*> EngineManager::_entityList;
+GraphicsLayer EngineManager::_graphicsLayer;
 
-EngineManager::EngineManager(int* argc, char** argv) {
+EngineManager::EngineManager(int* argc, char** argv, HINSTANCE hInstance, int nCmdShow) {
 
-    //Create instance of glfw wrapper class context
-    //GLFW context can only run on main thread!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    //DO NOT THREAD GLFW CALLS
-    _glfwContext = new IOEventDistributor(argc, argv);
+    _graphicsLayer = GraphicsLayer::OPENGL;
 
-    //Load and compile all shaders for the shader broker
-    ShaderBroker::instance()->compileShaders();
+    if (_graphicsLayer == GraphicsLayer::OPENGL) {
+        //Create instance of glfw wrapper class context
+        //GLFW context can only run on main thread!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        //DO NOT THREAD GLFW CALLS
+        _glfwContext = new IOEventDistributor(argc, argv);
+    }
+    else {
+        _dxLayer = new DXLayer(hInstance, IOEventDistributor::screenPixelWidth, IOEventDistributor::screenPixelHeight, nCmdShow);
+    }
+    ////Load and compile all shaders for the shader broker
+    //ShaderBroker::instance()->compileShaders();
 
     _viewManager = new ViewEventDistributor(argc, argv, IOEventDistributor::screenPixelWidth, IOEventDistributor::screenPixelHeight);
     
@@ -55,130 +63,130 @@ EngineManager::EngineManager(int* argc, char** argv) {
         Matrix::cameraRotationAroundY(0.0f),
         Matrix());
 
-    glCheck();
 
     //Load and compile all shaders for the shader broker
+    ShaderBroker::instance()->compileShaders();
+
+    //Load and compile all models for the model broker
     ModelBroker::instance()->buildModels();
-    glCheck();
 
-    _deferredRenderer = new DeferredRenderer();
-    glCheck();
+    if (_graphicsLayer == GraphicsLayer::DX12) {
 
-    _forwardRenderer = new ForwardRenderer();
-    glCheck();
+        _dxLayer->flushCommandList();
+        auto modelBroker = ModelBroker::instance();
+        _entityList.push_back(new Entity(modelBroker->getModel("werewolf"), _viewManager->getEventWrapper())); 
+        _dxLayer->run();
+    }
+    else {
+        _deferredRenderer = new DeferredRenderer();
 
-    _ssaoPass = new SSAO();
-    glCheck();
+        _forwardRenderer = new ForwardRenderer();
 
-    //_environmentMap = new EnvironmentMap(2000, 2000);
-    //glCheck();
+        _ssaoPass = new SSAO();
 
-    _water = new Water(_viewManager->getEventWrapper());
-    glCheck();
+        //_environmentMap = new EnvironmentMap(2000, 2000);
 
-    _audioManager = new AudioManager();
-    glCheck();
+        _water = new Water(_viewManager->getEventWrapper());
 
-    _deferredFBO = new DeferredFrameBuffer();
-    glCheck();
+        _audioManager = new AudioManager();
 
-    _mergeShader = static_cast<MergeShader*>(ShaderBroker::instance()->getShader("mergeShader"));
-    glCheck();
+        _deferredFBO = new DeferredFrameBuffer();
 
-    _bloom = new Bloom();
-    glCheck();
+        _mergeShader = static_cast<MergeShader*>(ShaderBroker::instance()->getShader("mergeShader"));
 
-    _deferredFBO = new DeferredFrameBuffer();
-    glCheck();
+        _bloom = new Bloom();
 
-    _add = new SSCompute("add", IOEventDistributor::screenPixelWidth, IOEventDistributor::screenPixelHeight, TextureFormat::RGBA_UNSIGNED_BYTE);
+        _deferredFBO = new DeferredFrameBuffer();
 
-    //Setup pre and post draw callback events received when a draw call is issued
-    IOEvents::setPreDrawCallback(std::bind(&EngineManager::_preDraw, this));
-    IOEvents::setPostDrawCallback(std::bind(&EngineManager::_postDraw, this));
+        _add = new SSCompute("add", IOEventDistributor::screenPixelWidth, IOEventDistributor::screenPixelHeight, TextureFormat::RGBA_UNSIGNED_BYTE);
 
-    auto modelBroker = ModelBroker::instance();
+        //Setup pre and post draw callback events received when a draw call is issued
+        IOEvents::setPreDrawCallback(std::bind(&EngineManager::_preDraw, this));
+        IOEvents::setPostDrawCallback(std::bind(&EngineManager::_postDraw, this));
 
-    //_entityList.push_back(new Entity(modelBroker->getModel("sandbox"), _viewManager->getEventWrapper())); //Add a static model to the scene
-    _entityList.push_back(new Entity(modelBroker->getModel("werewolf"), _viewManager->getEventWrapper())); //Add a static model to the scene
-    //_entityList.push_back(new Entity(modelBroker->getModel("wolf"), _viewManager->getEventWrapper())); //Add a static model to the scene
-    //_entityList.push_back(new Entity(modelBroker->getModel("hagraven"), _viewManager->getEventWrapper())); //Add a static model to the scene
-    //_entityList.push_back(new Entity(modelBroker->getModel("troll"), _viewManager->getEventWrapper())); //Add a static model to the scene
+        auto modelBroker = ModelBroker::instance();
 
-    //_entityList[0]->setPosition(Vector4(30, 0, 10));
-    //_entityList[2]->setPosition(Vector4(-10, 0, -10));
-    //_entityList[3]->setPosition(Vector4(30, 0, 10));
-    //_entityList[4]->setPosition(Vector4(30, 0, -20));
+        //_entityList.push_back(new Entity(modelBroker->getModel("sandbox"), _viewManager->getEventWrapper())); //Add a static model to the scene
+        _entityList.push_back(new Entity(modelBroker->getModel("werewolf"), _viewManager->getEventWrapper())); //Add a static model to the scene
+        //_entityList.push_back(new Entity(modelBroker->getModel("wolf"), _viewManager->getEventWrapper())); //Add a static model to the scene
+        //_entityList.push_back(new Entity(modelBroker->getModel("hagraven"), _viewManager->getEventWrapper())); //Add a static model to the scene
+        //_entityList.push_back(new Entity(modelBroker->getModel("troll"), _viewManager->getEventWrapper())); //Add a static model to the scene
 
-    _terminal = new Terminal(_deferredRenderer->getGBuffers(), _entityList);
+        //_entityList[0]->setPosition(Vector4(30, 0, 10));
+        //_entityList[2]->setPosition(Vector4(-10, 0, -10));
+        //_entityList[3]->setPosition(Vector4(30, 0, 10));
+        //_entityList[4]->setPosition(Vector4(30, 0, -20));
 
-    _physics = new Physics();
-    _physics->addEntities(_entityList); //Gives physics a pointer to all models which allows access to underlying geometry
-    
-    _physics->run(); //Dispatch physics to start kinematics
+        _terminal = new Terminal(_deferredRenderer->getGBuffers(), _entityList);
 
-    Vector4 sunLocation(0.0f, 0.0f, -300.0f);
-    MVP lightMVP;
-    lightMVP.setView(Matrix::translation(sunLocation.getx(), sunLocation.gety(), sunLocation.getz()) 
-        * Matrix::cameraRotationAroundX(-90.0f));
-    lightMVP.setProjection(Matrix::cameraOrtho(200.0f, 200.0f, 0.0f, 600.0f));
-    _lightList.push_back(new ShadowedDirectionalLight(_viewManager->getEventWrapper(),
-                                                      lightMVP,
-                                                      EffectType::None,
-                                                      Vector4(1.0, 0.0, 0.0)));
+        _physics = new Physics();
+        _physics->addEntities(_entityList); //Gives physics a pointer to all models which allows access to underlying geometry
 
-    MVP lightMapMVP;
-    lightMapMVP.setView(Matrix::translation(sunLocation.getx(), sunLocation.gety(), sunLocation.getz())
-        * Matrix::cameraRotationAroundX(-90.0f));
-    lightMapMVP.setProjection(Matrix::cameraOrtho(600.0f, 600.0f, 0.0f, 600.0f));
-    _lightList.push_back(new ShadowedDirectionalLight(_viewManager->getEventWrapper(),
-                                                      lightMapMVP,
-                                                      EffectType::None,
-                                                      Vector4(1.0, 0.0, 0.0)));
+        _physics->run(); //Dispatch physics to start kinematics
 
-    //Model view projection matrix for point light additions
-    MVP pointLightMVP;
+        Vector4 sunLocation(0.0f, 0.0f, -300.0f);
+        MVP lightMVP;
+        lightMVP.setView(Matrix::translation(sunLocation.getx(), sunLocation.gety(), sunLocation.getz())
+            * Matrix::cameraRotationAroundX(-90.0f));
+        lightMVP.setProjection(Matrix::cameraOrtho(200.0f, 200.0f, 0.0f, 600.0f));
+        _lightList.push_back(new ShadowedDirectionalLight(_viewManager->getEventWrapper(),
+            lightMVP,
+            EffectType::None,
+            Vector4(1.0, 0.0, 0.0)));
 
-    //point light projection has a 90 degree view angle with a 1 aspect ratio for generating square shadow maps
-    //with a near z value of 1 and far z value of 100
-    pointLightMVP.setProjection(Matrix::cameraProjection(90.0f, 1.0f, 1.0f, 100.0f));
+        MVP lightMapMVP;
+        lightMapMVP.setView(Matrix::translation(sunLocation.getx(), sunLocation.gety(), sunLocation.getz())
+            * Matrix::cameraRotationAroundX(-90.0f));
+        lightMapMVP.setProjection(Matrix::cameraOrtho(600.0f, 600.0f, 0.0f, 600.0f));
+        _lightList.push_back(new ShadowedDirectionalLight(_viewManager->getEventWrapper(),
+            lightMapMVP,
+            EffectType::None,
+            Vector4(1.0, 0.0, 0.0)));
 
-    //Placing the lights in equidistant locations for testing
-    pointLightMVP.setModel(Matrix::translation(212.14f, 24.68f, 186.46f));
-    _lightList.push_back(new ShadowedPointLight(_viewManager->getEventWrapper(), 
-                                                pointLightMVP,
-                                                EffectType::Fire,
-                                                Vector4(1.0f, 0.8f, 0.3f, 1.0f)));
+        //Model view projection matrix for point light additions
+        MVP pointLightMVP;
 
-    pointLightMVP.setModel(Matrix::translation(198.45f, 24.68f, 186.71f));
-    _lightList.push_back(new Light(_viewManager->getEventWrapper(),
-                                    pointLightMVP,
-                                    LightType::POINT,
-                                    EffectType::Fire,
-                                    Vector4(1.0f, 0.8f, 0.3f, 1.0f)));
+        //point light projection has a 90 degree view angle with a 1 aspect ratio for generating square shadow maps
+        //with a near z value of 1 and far z value of 100
+        pointLightMVP.setProjection(Matrix::cameraProjection(90.0f, 1.0f, 1.0f, 100.0f));
 
-    pointLightMVP.setModel(Matrix::translation(178.45f, 143.59f, 240.71f));
-    _lightList.push_back(new Light(_viewManager->getEventWrapper(),
-                                    pointLightMVP,
-                                    LightType::POINT,
-                                    EffectType::Smoke,
-                                    Vector4(0.4f, 0.4f, 0.4f, 1.0f)));
+        //Placing the lights in equidistant locations for testing
+        pointLightMVP.setModel(Matrix::translation(212.14f, 24.68f, 186.46f));
+        _lightList.push_back(new ShadowedPointLight(_viewManager->getEventWrapper(),
+            pointLightMVP,
+            EffectType::Fire,
+            Vector4(1.0f, 0.8f, 0.3f, 1.0f)));
 
-    pointLightMVP.setModel(Matrix::translation(0.0f, 10.0f, 0.0f));
-    _lightList.push_back(new Light(_viewManager->getEventWrapper(),
-        pointLightMVP,
-        LightType::POINT,
-        EffectType::Fire,
-        Vector4(1.0f, 0.8f, 0.3f, 1.0f)));
+        pointLightMVP.setModel(Matrix::translation(198.45f, 24.68f, 186.71f));
+        _lightList.push_back(new Light(_viewManager->getEventWrapper(),
+            pointLightMVP,
+            LightType::POINT,
+            EffectType::Fire,
+            Vector4(1.0f, 0.8f, 0.3f, 1.0f)));
 
-    MasterClock::instance()->run(); //Scene manager kicks off the clock event manager
+        pointLightMVP.setModel(Matrix::translation(178.45f, 143.59f, 240.71f));
+        _lightList.push_back(new Light(_viewManager->getEventWrapper(),
+            pointLightMVP,
+            LightType::POINT,
+            EffectType::Smoke,
+            Vector4(0.4f, 0.4f, 0.4f, 1.0f)));
 
-    //_audioManager->StartAll();
+        pointLightMVP.setModel(Matrix::translation(0.0f, 10.0f, 0.0f));
+        _lightList.push_back(new Light(_viewManager->getEventWrapper(),
+            pointLightMVP,
+            LightType::POINT,
+            EffectType::Fire,
+            Vector4(1.0f, 0.8f, 0.3f, 1.0f)));
 
-    _viewManager->triggerEvents(); 
-    _viewManager->setEntityList(_entityList);
+        MasterClock::instance()->run(); //Scene manager kicks off the clock event manager
 
-    _glfwContext->run();
+        //_audioManager->StartAll();
+
+        _viewManager->triggerEvents();
+        _viewManager->setEntityList(_entityList);
+
+        _glfwContext->run();
+    }
 }
 
 EngineManager::~EngineManager() {
@@ -200,6 +208,10 @@ Entity* EngineManager::addEntity(Model* model, Matrix transform) {
     mvp.setProjection(viewManager->getProjection());
     _entityList.push_back(new Entity(model, viewWrapper, mvp)); //Add a static model to the scene
     return _entityList.back();
+}
+
+GraphicsLayer EngineManager::getGraphicsLayer() {
+    return _graphicsLayer;
 }
 
 std::vector<Entity*>* EngineManager::getEntityList() {

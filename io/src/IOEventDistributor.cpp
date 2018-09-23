@@ -6,8 +6,8 @@ int         IOEventDistributor::_renderNow = 0;
 std::mutex  IOEventDistributor::_renderLock;
 GLFWwindow* IOEventDistributor::_window;
 bool        IOEventDistributor::_quit = false;
-int         IOEventDistributor::screenPixelWidth = 0;
-int         IOEventDistributor::screenPixelHeight = 0;
+int         IOEventDistributor::screenPixelWidth = 1920;
+int         IOEventDistributor::screenPixelHeight = 1080;
 
 std::priority_queue<TimeEvent> IOEventDistributor::_timeEvents; // Events that trigger at a specific time
 

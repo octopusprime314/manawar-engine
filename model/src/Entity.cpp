@@ -99,21 +99,18 @@ void Entity::setSelected(bool isSelected) {
 
 void Entity::_updateKinematics(int milliSeconds) {
     //Do kinematic calculations
-    if (_state.getActive()) {
+    _state.update(milliSeconds);
+    _prevMVP.setModel(_mvp.getModelMatrix());
 
-        _state.update(milliSeconds);
-
-        _prevMVP.setModel(_mvp.getModelMatrix());
-
-        Vector4 position = _state.getLinearPosition();
-        Matrix kinematicTransform = Matrix::translation(position.getx(), position.gety(), position.getz());
-        auto totalTransform = kinematicTransform * _worldSpaceTransform;
-        Vector4 pos = Vector4(totalTransform.getFlatBuffer()[3],
-            totalTransform.getFlatBuffer()[7],
-            totalTransform.getFlatBuffer()[11]);
-        _worldSpaceGeometry.updateTransform(totalTransform);
-        _mvp.setModel(totalTransform);
-    }
+    Vector4 position = _state.getLinearPosition();
+    Matrix kinematicTransform = Matrix::translation(position.getx(), position.gety(), position.getz());
+    auto totalTransform = kinematicTransform * _worldSpaceTransform;
+    Vector4 pos = Vector4(totalTransform.getFlatBuffer()[3],
+        totalTransform.getFlatBuffer()[7],
+        totalTransform.getFlatBuffer()[11]);
+    _worldSpaceGeometry.updateTransform(totalTransform);
+    _mvp.setModel(totalTransform);
+    
 }
 
 void Entity::_updateGameState(EngineStateFlags state) {

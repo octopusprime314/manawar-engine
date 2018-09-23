@@ -51,8 +51,9 @@ EngineManager::EngineManager(int* argc, char** argv, HINSTANCE hInstance, int nC
     else {
         _dxLayer = new DXLayer(hInstance, IOEventDistributor::screenPixelWidth, IOEventDistributor::screenPixelHeight, nCmdShow);
     }
-    ////Load and compile all shaders for the shader broker
-    //ShaderBroker::instance()->compileShaders();
+
+    //Load and compile all shaders for the shader broker
+    ShaderBroker::instance()->compileShaders();
 
     _viewManager = new ViewEventDistributor(argc, argv, IOEventDistributor::screenPixelWidth, IOEventDistributor::screenPixelHeight);
     
@@ -62,10 +63,6 @@ EngineManager::EngineManager(int* argc, char** argv, HINSTANCE hInstance, int nC
     _viewManager->setView(Matrix::cameraTranslation(0.0f, 0.0f, 0.0f),
         Matrix::cameraRotationAroundY(0.0f),
         Matrix());
-
-
-    //Load and compile all shaders for the shader broker
-    ShaderBroker::instance()->compileShaders();
 
     //Load and compile all models for the model broker
     ModelBroker::instance()->buildModels();

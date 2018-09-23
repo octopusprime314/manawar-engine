@@ -235,9 +235,11 @@ void ViewEventDistributor::_updateKeyboard(int key, int x, int y) { //Do stuff b
             Matrix rotZ = Matrix::cameraRotationAroundZ(rotation[2]); //Set rotation around Z
             _rotation = rotZ * rotX * rotY;
             _inverseRotation = Matrix();
+            auto mvp = _entityList[_entityIndex]->getMVP();
+            auto modelTranslation = Matrix::translation(mvp->getModelBuffer()[3], mvp->getModelBuffer()[7], mvp->getModelBuffer()[11]);
 
             //Last transform to be applied to achieve third person view
-            _currCamera->setViewMatrix(_thirdPersonTranslation * _rotation * _translation); //translate then rotate around point
+            _currCamera->setViewMatrix(_thirdPersonTranslation * _rotation * _translation/* * modelTranslation*/); //translate then rotate around point
             _viewEvents->updateView(_currCamera->getView()); //Send out event to all listeners to offset locations essentially
 
         }
@@ -322,9 +324,10 @@ void ViewEventDistributor::_updateDraw() { //Do draw stuff
         _translation = Matrix::cameraTranslation(pos[0], pos[1], pos[2]); //Update the translation state matrix
         _rotation = Matrix::cameraRotationAroundY(rot[1]); //Update the rotation state matrix
         _inverseRotation = Matrix::cameraRotationAroundY(-rot[1]);
-
+        auto mvp = _entityList[_entityIndex]->getMVP();
+        auto modelTranslation = Matrix::translation(mvp->getModelBuffer()[3], mvp->getModelBuffer()[7], mvp->getModelBuffer()[11]);
         //Last transform to be applied to achieve third person view
-        _currCamera->setViewMatrix(_thirdPersonTranslation * _rotation * _translation); //translate then rotate around point
+        _currCamera->setViewMatrix(_thirdPersonTranslation * _rotation * _translation/* * modelTranslation*/); //translate then rotate around point
         _viewEvents->updateView(_currCamera->getView()); //Send out event to all listeners to offset locations essentially
 
     }

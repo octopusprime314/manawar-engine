@@ -175,6 +175,7 @@ target_compile_features(ReBoot PRIVATE cxx_range_for)
 
 if (MSVC)
     add_definitions("/MP")
+	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SUBSYSTEM:WINDOWS")
 endif()
 
 target_link_libraries(ReBoot           legacy_stdio_definitions.lib)

@@ -58,3 +58,7 @@ GLuint MRTFrameBuffer::getFrameBufferContext() {
 std::vector<GLuint> MRTFrameBuffer::getTextureContexts() {
     return _fbTextureContexts;
 }
+
+std::vector<RenderTexture>& MRTFrameBuffer::getTextures() {
+    return _gBufferTextures;
+}

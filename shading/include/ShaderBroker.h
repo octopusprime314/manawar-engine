@@ -20,11 +20,17 @@
 */
 
 #pragma once
-#include "Shader.h"
+#include "ShaderBase.h"
 #include <map>
 #include <vector>
+#include <wrl.h>
+#include <d3d12.h>
+#include "d3dx12.h"
+#include "PresentTarget.h"
 
-using ShaderMap = std::map<std::string, Shader*>;
+using namespace Microsoft::WRL;
+
+using ShaderMap = std::map<std::string, ShaderBase*>;
 
 class ShaderBroker {
     ShaderBroker();
@@ -35,7 +41,7 @@ class ShaderBroker {
 public:
     static ShaderBroker* instance();
     ~ShaderBroker();
-    Shader*              getShader(std::string shaderName);
+    ShaderBase*          getShader(std::string shaderName);
     void                 compileShaders();
     void                 recompileShader(std::string shaderName);
 };

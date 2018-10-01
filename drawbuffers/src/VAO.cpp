@@ -2,9 +2,7 @@
 #include "Model.h"
 #include "GeometryBuilder.h"
 #include "EngineManager.h"
-
-ComPtr<ID3D12Device> VAO::_device;
-ComPtr<ID3D12GraphicsCommandList> VAO::_cmdList;
+#include "DXLayer.h"
 
 VAO::VAO() {
 
@@ -186,7 +184,7 @@ void VAO::createVAO(RenderBuffers* renderBuffers, ModelClass classId, Animation*
     float* flattenTextures = nullptr; //Only include the s and t
 
     float* flattenAttribs = nullptr; //Only include the x y and z values not w
-    uint16_t* flattenIndexes = nullptr; //Only include the x y and z values not w, same size as vertices
+    uint32_t* flattenIndexes = nullptr; //Only include the x y and z values not w, same size as vertices
 
     if (classId == ModelClass::ModelType) {
 
@@ -223,10 +221,10 @@ void VAO::createVAO(RenderBuffers* renderBuffers, ModelClass classId, Animation*
             //Now flatten vertices and normals out 
             triBuffSize = vertices->size() * 3;
             flattenAttribs = new float[triBuffSize + (textures->size() * 2)]; //Only include the x y and z values not w
-            flattenIndexes = new uint16_t[triBuffSize / 3]; //Only include the x y and z values not w, same size as vertices
+            flattenIndexes = new uint32_t[triBuffSize / 3]; //Only include the x y and z values not w, same size as vertices
 
             int i = 0; //iterates through vertices indexes
-            uint16_t j = 0;
+            uint32_t j = 0;
             for (auto vertex : *vertices) {
                 float *flatVert = vertex.getFlatBuffer();
                 flattenAttribs[i++] = flatVert[0];
@@ -282,7 +280,7 @@ void VAO::createVAO(RenderBuffers* renderBuffers, ModelClass classId, Animation*
             //Now flatten vertices and normals out 
             triBuffSize = indices->size() * 3;
             flattenAttribs = new float[triBuffSize + (textures->size() * 2)]; //Only include the x y and z values not w
-            flattenIndexes = new uint16_t[triBuffSize / 3]; //Only include the x y and z values not w, same size as vertices
+            flattenIndexes = new uint32_t[triBuffSize / 3]; //Only include the x y and z values not w, same size as vertices
 
             uint16_t j = 0;
             for (auto index : *indices) {
@@ -470,17 +468,19 @@ void VAO::createVAO(RenderBuffers* renderBuffers, ModelClass classId, Animation*
 
         UINT byteSize = static_cast<UINT>((triBuffSize + (textures->size() * 2)) * sizeof(float));
 
-        _vertexBuffer = new ResourceBuffer(flattenAttribs, byteSize, _cmdList, _device);
+        _vertexBuffer = new ResourceBuffer(flattenAttribs, byteSize, 
+            DXLayer::instance()->getCmdList(), DXLayer::instance()->getDevice());
 
         _vbv.BufferLocation = _vertexBuffer->getGPUAddress();
         _vbv.StrideInBytes = sizeof(Vertex);
         _vbv.SizeInBytes = byteSize;
 
-        auto indexBytes = static_cast<UINT>((triBuffSize / 3) * sizeof(uint16_t));
-        _indexBuffer = new ResourceBuffer(flattenIndexes, indexBytes, _cmdList, _device);
+        auto indexBytes = static_cast<UINT>((triBuffSize / 3) * sizeof(uint32_t));
+        _indexBuffer = new ResourceBuffer(flattenIndexes, indexBytes, 
+            DXLayer::instance()->getCmdList(), DXLayer::instance()->getDevice());
 
         _ibv.BufferLocation = _indexBuffer->getGPUAddress();
-        _ibv.Format = DXGI_FORMAT_R16_UINT;
+        _ibv.Format = DXGI_FORMAT_R32_UINT;
         _ibv.SizeInBytes = indexBytes;
     }
 
@@ -701,11 +701,4 @@ GLuint VAO::getVAOContext() {
 
 GLuint VAO::getVAOShadowContext() {
     return _vaoShadowContext;
-}
-
-//Specific to DirectX
-void VAO::init(ComPtr<ID3D12GraphicsCommandList>& cmdList,
-    ComPtr<ID3D12Device>& device) {
-    _device = device;
-    _cmdList = cmdList;
 }

@@ -44,10 +44,10 @@ public:
     ~Uniforms();
     GLint getUniformLocation(std::string uniformName);
     void  updateUniform(std::string uniformName, void* value);
-    void  updateUniform(std::string uniformName, 
+    void  updateUniform(std::string uniformName,
         GLuint textureUnit, 
         GLuint textureContext);
-    void updateUniform(std::string uniformName,
+    void  updateUniform(std::string uniformName,
         GLuint textureUnit,
         GLuint textureContext,
         ImageData imageInfo);

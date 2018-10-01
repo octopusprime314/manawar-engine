@@ -17,8 +17,8 @@ DirectionalShadow::~DirectionalShadow() {
 
 }
 
-GLuint DirectionalShadow::getTextureContext() {
-    return _shadow.getTextureContext();
+Texture* DirectionalShadow::getTexture() {
+    return _shadow.getTexture();
 }
 
 void DirectionalShadow::render(std::vector<Entity*> entityList, Light* light) {

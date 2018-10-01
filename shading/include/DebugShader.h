@@ -24,10 +24,11 @@
 #include "VAO.h"
 #include "MVP.h"
 #include <set>
+#include "ShaderBase.h"
 
 enum class GeometryConstruction;
 
-class DebugShader : public Shader {
+class DebugShader : public ShaderBase {
 
 public:
     DebugShader(std::string shaderName);

@@ -53,8 +53,6 @@ class VAO {
     GLuint          _vertexLength;
     TextureMetaData _textureStride;
     GLuint          _primitiveOffsetId;
-    static ComPtr<ID3D12Device>              _device;
-    static ComPtr<ID3D12GraphicsCommandList> _cmdList;
     ResourceBuffer*                          _vertexBuffer;
     ResourceBuffer*                          _indexBuffer;
     D3D12_INDEX_BUFFER_VIEW                  _ibv;
@@ -84,6 +82,4 @@ public:
     void            createVAO(std::vector<Sphere>* spheres, GeometryConstruction geometryType);
     void            createVAO(std::vector<Triangle>* triangles);
     void            createVAO(std::vector<Cube>* cubes, GeometryConstruction geometryType);
-    static void     init(ComPtr<ID3D12GraphicsCommandList>& cmdList,
-                         ComPtr<ID3D12Device>& device);
 };

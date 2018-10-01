@@ -25,6 +25,14 @@
 #include <iostream>
 #include "GLIncludes.h"
 #include "Uniforms.h"
+#include "VAO.h"
+
+#include <wrl.h>
+#include <d3d12.h>
+#include "d3dx12.h"
+#include "AssetTexture.h"
+
+using namespace Microsoft::WRL;
 
 class Entity;
 class Light;
@@ -36,34 +44,25 @@ const std::string SHADERS_LOCATION = "../shading/shaders/";
 class Shader {
 
 protected:
-    GLuint       _shaderContext; //keeps track of the shader context
-    std::string  _vertexShaderName;
-    std::string  _fragmentShaderName;
-    Uniforms*    _uniforms;
-    unsigned int _compile(char* filename, unsigned int type);
-    void         _link(unsigned int vertexSH, unsigned int fragmentSH,
-                       unsigned int geomSH, unsigned int computeSH);
-    void         _build();
+    bool         _fileExists(const std::string& name);
 
 public:
-    Shader(std::string vertexShaderName, std::string fragmentShaderName = "");
+    Shader();
     Shader(const Shader& shader);
     virtual      ~Shader();
-    GLint        getShaderContext();
-    GLint        getLocation(std::string uniformName);
-    Uniforms*    getUniforms();
-    //Updates most mat, vec, etc. data types in glsl
-    void         updateUniform(std::string uniformName, 
-                    void* data);
-    //Updates samplers in glsl
-    void         updateUniform(std::string uniformName, 
-                    GLuint textureUnit, 
-                    GLuint textureContext);
-    //Updates images in glsl used primarily in compute shaders
-    void         updateUniform(std::string uniformName,
-                    GLuint textureUnit,
-                    GLuint textureContext,
-                    ImageData imageInfo);
-    void         updateShader(Shader* shader);
+    virtual void draw(int offset, int instances, int numTriangles) = 0;
+    virtual void build() = 0;
+    virtual void updateData(std::string id, void* data) = 0;
+    virtual void updateData(std::string dataName,
+                            int textureUnit,
+                            Texture* texture) = 0;
+    virtual void updateData(std::string id,
+                            GLuint textureUnit,
+                            GLuint textureContext,
+                            ImageData imageInfo) = 0;
+    virtual void bindAttributes(VAO* vao) = 0;
+    virtual void unbindAttributes() = 0;
+    virtual void bind() = 0;
+    virtual void unbind() = 0;
 
 };

@@ -23,8 +23,9 @@
 #include "Shader.h"
 #include <vector>
 #include "Matrix.h"
+#include "ShaderBase.h"
 
-class EnvironmentShader : public Shader {
+class EnvironmentShader : public ShaderBase {
 
 public:
     EnvironmentShader(std::string shaderName);

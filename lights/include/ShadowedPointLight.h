@@ -33,7 +33,7 @@ public:
         MVP mvp,
         EffectType effect,
         Vector4 color);
-    GLuint                      getDepthTexture();
+    Texture*                    getDepthTexture();
     virtual void                render();
     virtual void                renderShadow(std::vector<Entity*> entityList);
     virtual void                renderDebug();

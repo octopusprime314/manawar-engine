@@ -1,10 +1,17 @@
 #include "ComputeShader.h"
 #include "SSAO.h"
 #include "Uniforms.h"
+#include "GLSLShader.h"
+#include "HLSLShader.h"
+#include "EngineManager.h"
 
-
-ComputeShader::ComputeShader(std::string computeShaderName) : Shader(computeShaderName) {
-
+ComputeShader::ComputeShader(std::string computeShaderName) {
+    if (EngineManager::getGraphicsLayer() == GraphicsLayer::OPENGL) {
+        _shader = new GLSLShader(computeShaderName);
+    }
+    else {
+        _shader = new HLSLShader(computeShaderName);
+    }
 }
 
 ComputeShader::~ComputeShader() {
@@ -13,7 +20,8 @@ ComputeShader::~ComputeShader() {
 
 void ComputeShader::runShader(Texture* writeTexture, Texture* readTexture, TextureFormat format) {
 
-    glUseProgram(_shaderContext);
+    //LOAD IN SHADER
+    _shader->bind();
 
     ImageData imageInfo = {};
 
@@ -25,10 +33,10 @@ void ComputeShader::runShader(Texture* writeTexture, Texture* readTexture, Textu
     else if (format == TextureFormat::R_FLOAT || format == TextureFormat::R_UNSIGNED_BYTE) {
         imageInfo.format = GL_R8;
     }
-    updateUniform("readTexture", GL_TEXTURE0, readTexture->getContext(), imageInfo);
+    _shader->updateData("readTexture", GL_TEXTURE0, readTexture->getContext(), imageInfo);
 
     imageInfo.readOnly = false;
-    updateUniform("writeTexture", GL_TEXTURE1, writeTexture->getContext(), imageInfo);
+    _shader->updateData("writeTexture", GL_TEXTURE1, writeTexture->getContext(), imageInfo);
 
     //Dispatch the shader
     glDispatchCompute(static_cast<GLuint>(ceilf(static_cast<float>(writeTexture->getWidth()) / 16.0f)),

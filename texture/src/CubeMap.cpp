@@ -2,8 +2,7 @@
 #include "GLIncludes.h"
 
 CubeMap::CubeMap(unsigned int width, unsigned int height, bool isDepth) :
-    _width(width),
-    _height(height) {
+    Texture("cube", width, height) {
 
     //Generate texture context
     glGenTextures(1, &_cubemap);
@@ -51,13 +50,6 @@ CubeMap::CubeMap(unsigned int width, unsigned int height, bool isDepth) :
 
 CubeMap::~CubeMap() {
 
-}
-
-unsigned int CubeMap::getWidth() {
-    return _width;
-}
-unsigned int CubeMap::getHeight() {
-    return _height;
 }
 
 unsigned int CubeMap::getCubeFrameBufferContext() {

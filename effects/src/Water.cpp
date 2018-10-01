@@ -23,6 +23,6 @@ void Water::render() {
     _effectShader->runShader(this, realTimeMilliSeconds / 1000.f);
 }
 
-GLuint Water::getNoiseTexture() {
-    return _noiseTexture->getContext();
+Texture* Water::getNoiseTexture() {
+    return _noiseTexture;
 }

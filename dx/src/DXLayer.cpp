@@ -1,7 +1,9 @@
 #include "DXLayer.h"
-//#include "TextureBroker.h"
 #include "ModelBroker.h"
-//#include "VAO.h"
+#include "ShaderBroker.h"
+#include "HLSLShader.h"
+
+DXLayer* DXLayer::_dxLayer = nullptr;
 
 // init window class
 // this is the main message handler for the program
@@ -43,7 +45,6 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
 DXLayer::DXLayer(HINSTANCE hInstance, DWORD width, DWORD height, int cmdShow) :
     _cmdShow(cmdShow),
     _cmdListIndex(0) {
-
     WNDCLASSEX windowClass;
 
     ZeroMemory(&windowClass, sizeof(WNDCLASSEX));
@@ -58,7 +59,7 @@ DXLayer::DXLayer(HINSTANCE hInstance, DWORD width, DWORD height, int cmdShow) :
     RECT windowRect = { 0, 0, static_cast<LONG>(width), static_cast<LONG>(height) };
     AdjustWindowRect(&windowRect, WS_OVERLAPPEDWINDOW, FALSE);    // adjust the size
 
-    // create the window and store a handle to it
+                                                                  // create the window and store a handle to it
 
     _window = CreateWindowEx(NULL,
         windowClass.lpszClassName,          // name of the window class
@@ -114,7 +115,7 @@ DXLayer::DXLayer(HINSTANCE hInstance, DWORD width, DWORD height, int cmdShow) :
 
     // Fence
 
-   _device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(_cmdListFence.GetAddressOf()));
+    _device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(_cmdListFence.GetAddressOf()));
 
     //The GPU timestamp counter frequency (in ticks/second).
     UINT64 timestamp;
@@ -124,22 +125,24 @@ DXLayer::DXLayer(HINSTANCE hInstance, DWORD width, DWORD height, int cmdShow) :
 
     _presentTarget = new PresentTarget(_device, _rtvFormat, _cmdQueue, height, width, _window);
 
-    //initialize texture broker with command list and device
-    TextureBroker::instance()->init(_cmdLists[_cmdListIndex], _device);
-    VAO::init(_cmdLists[_cmdListIndex], _device);
+}
 
-    _pipelineShader = new PipelineShader("../shading/shaders/hlsl/color.hlsl", _device, _rtvFormat);
+void DXLayer::initialize(HINSTANCE hInstance, DWORD width, DWORD height, int cmdShow) {
+    
+    if (_dxLayer == nullptr) {
+        _dxLayer = new DXLayer(hInstance, width, height, cmdShow);
+    }
+}
 
-    //Constant buffers
-    _mvpConstBuff = new ConstantBuffer(_device);
-
+DXLayer* DXLayer::instance() {
+    return _dxLayer;
 }
 
 DXLayer::~DXLayer() {
 
 }
 
-void DXLayer::run() {
+void DXLayer::run(std::vector<Entity*> entities) {
 
     // show the window
     ShowWindow(_window, _cmdShow);
@@ -164,54 +167,79 @@ void DXLayer::run() {
                 break;
         }
         else {
-            _render();
+            _render(entities);
         }
     }
 }
 
-void DXLayer::_render() {
-   
+void DXLayer::_render(std::vector<Entity*> entities) {
+
     // Open command list
     _cmdAllocator->Reset();
-    _cmdLists[_cmdListIndex]->Reset(_cmdAllocator.Get(), _pipelineShader->getPSO().Get());
-
-    // Setup pipeline state / etc
-
-    _cmdLists[_cmdListIndex]->SetGraphicsRootSignature(_pipelineShader->getRootSignature().Get());
-
-    Matrix p(Matrix::cameraProjection(45.0f, 1920.0f / 1080.0f, 0.1f, 1000.0f));
-    Matrix v(Matrix::cameraTranslation(0.0f, 0.0f, 120.0f));
-
-    _mvpConstBuff->update(_cmdLists[_cmdListIndex], p * v, *_pipelineShader);
-
-    _cmdLists[_cmdListIndex]->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-    auto model = ModelBroker::instance()->getModel("scene");
-
-    _cmdLists[_cmdListIndex]->IASetIndexBuffer(&(*model->getVAO())[0]->getIndexBuffer());
-    D3D12_VERTEX_BUFFER_VIEW vertexBuffers[] = { (*model->getVAO())[0]->getVertexBuffer() };
-
-    _cmdLists[_cmdListIndex]->IASetVertexBuffers(0, 1, vertexBuffers);
+    _cmdLists[_cmdListIndex]->Reset(_cmdAllocator.Get(), nullptr);
 
     _presentTarget->bindTarget(_device, _cmdLists[_cmdListIndex], _cmdListIndex);
 
-    auto textureStrides = (*model->getVAO())[0]->getTextureStrides();
-
-    int indexLocation = 0;
-    for (auto textureStride : textureStrides) {
-        auto texture = TextureBroker::instance()->getTexture(textureStride.first);
-        if (texture != nullptr) {
-            texture->bindToDXShader(_cmdLists[_cmdListIndex], *_pipelineShader);
-        }
-
-        _cmdLists[_cmdListIndex]->DrawIndexedInstanced(textureStride.second, 1, indexLocation, 0, 0);
-        indexLocation += textureStride.second;
+    for (auto entity : entities) {
+        _staticShader = static_cast<StaticShader*>(ShaderBroker::instance()->getShader("staticShader"));
+        _staticShader->runShader(entity);
     }
 
-    _presentTarget->unbindTarget(_cmdLists[_cmdListIndex], _cmdListIndex);
-
+    
     flushCommandList();
 
+
+    //_cmdAllocator->Reset();
+    //_cmdLists[_cmdListIndex]->Reset(_cmdAllocator.Get(), nullptr);
+    //auto model = ModelBroker::instance()->getModel("werewolf");
+
+    //// Setup pipeline state / etc
+    //_cmdLists[_cmdListIndex]->SetPipelineState(_pipelineShader->getPSO().Get());
+    //_cmdLists[_cmdListIndex]->SetGraphicsRootSignature(_pipelineShader->getRootSignature().Get());
+
+    //Matrix p(Matrix::cameraProjection(45.0f, 1920.0f / 1080.0f, 0.1f, 1000.0f));
+    //Matrix v(Matrix::cameraTranslation(0.0f, 0.0f, 120.0f));
+
+    //_mvpConstBuff->update(_cmdLists[_cmdListIndex], p * v, *_pipelineShader);
+
+    //_cmdLists[_cmdListIndex]->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+    //_cmdLists[_cmdListIndex]->IASetIndexBuffer(&(*model->getVAO())[0]->getIndexBuffer());
+    //D3D12_VERTEX_BUFFER_VIEW vertexBuffers[] = { (*model->getVAO())[0]->getVertexBuffer() };
+
+    //_cmdLists[_cmdListIndex]->IASetVertexBuffers(0, 1, vertexBuffers);
+
+    //_presentTarget->bindTarget(_device, _cmdLists[_cmdListIndex], _cmdListIndex);
+
+    //auto textureStrides = (*model->getVAO())[0]->getTextureStrides();
+
+    //int indexLocation = 0;
+    //for (auto textureStride : textureStrides) {
+    //    auto texture = TextureBroker::instance()->getTexture(textureStride.first);
+    //    if (texture != nullptr) {
+    //        texture->bindToDXShader(_cmdLists[_cmdListIndex], _pipelineShader->getResourceBindings());
+    //    }
+
+    //    _cmdLists[_cmdListIndex]->DrawIndexedInstanced(textureStride.second, 1, indexLocation, 0, 0);
+    //    indexLocation += textureStride.second;
+    //}
+
+    //_presentTarget->unbindTarget(_cmdLists[_cmdListIndex], _cmdListIndex);
+
+    //flushCommandList();
+
+}
+
+int DXLayer::getCmdListIndex() {
+    return _cmdListIndex;
+}
+
+ComPtr<ID3D12CommandQueue> DXLayer::getCmdQueue() {
+    return _cmdQueue;
+}
+
+ComPtr<ID3D12CommandAllocator> DXLayer::getCmdAllocator() {
+    return _cmdAllocator;
 }
 
 void DXLayer::flushCommandList() {
@@ -231,4 +259,14 @@ void DXLayer::flushCommandList() {
     WaitForSingleObject(_event, INFINITE);
     
     _cmdListIndex = ++_cmdListIndex % NUM_SWAP_CHAIN_BUFFERS;
+}
+
+ComPtr<ID3D12GraphicsCommandList> DXLayer::getCmdList() {
+    return _cmdLists[_cmdListIndex];
+}
+ComPtr<ID3D12Device> DXLayer::getDevice() {
+    return _device;
+}
+PresentTarget* DXLayer::getPresentTarget() {
+    return _presentTarget;
 }

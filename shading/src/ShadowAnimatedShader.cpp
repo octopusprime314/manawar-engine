@@ -19,19 +19,19 @@ void ShadowAnimatedShader::runShader(Entity* entity, Light* light) {
     MVP lightMVP = light->getLightMVP();
 
     //Use one single shadow shader and replace the vbo buffer from each model
-    glUseProgram(_shaderContext); //use context for loaded shader
+    _shader->bind(); //use context for loaded shader
 
     for (auto vaoInstance : *vao) {
         glBindVertexArray(vaoInstance->getVAOShadowContext());
 
         //glUniform mat4 combined model and world matrix, GL_TRUE is telling GL we are passing in the matrix as row major
-        updateUniform("model", modelMVP->getModelBuffer());
+        _shader->updateData("model", modelMVP->getModelBuffer());
 
         //glUniform mat4 view matrix, GL_TRUE is telling GL we are passing in the matrix as row major
-        updateUniform("view", lightMVP.getViewBuffer());
+        _shader->updateData("view", lightMVP.getViewBuffer());
 
         //glUniform mat4 projection matrix, GL_TRUE is telling GL we are passing in the matrix as row major
-        updateUniform("projection", lightMVP.getProjectionBuffer());
+        _shader->updateData("projection", lightMVP.getProjectionBuffer());
 
         //Bone uniforms
         auto bones = animationModel->getBones();
@@ -43,7 +43,7 @@ void ShadowAnimatedShader::runShader(Entity* entity, Light* light) {
                 bonesArray[bonesArrayIndex++] = buff[i];
             }
         }
-        updateUniform("bones[0]", bonesArray);
+        _shader->updateData("bones[0]", bonesArray);
         delete[] bonesArray;
 
         auto textureStrides = vaoInstance->getTextureStrides();

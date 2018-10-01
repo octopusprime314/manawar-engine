@@ -10,8 +10,8 @@ CubeMapRenderer::~CubeMapRenderer() {
 
 }
 
-GLuint CubeMapRenderer::getCubeMapTexture() {
-    return _cubeTextureMap.getCubeMapContext();
+Texture* CubeMapRenderer::getCubeMapTexture() {
+    return &_cubeTextureMap;
 }
 
 void CubeMapRenderer::preCubeFaceRender(std::vector<Entity*> entityList, MVP* mvp) {

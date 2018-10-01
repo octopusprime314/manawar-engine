@@ -20,7 +20,7 @@ void InstancedForwardShader::runShader(Entity* entity, ViewEventDistributor* vie
     std::vector<Light*>& lights) {
 
     //LOAD IN SHADER
-    glUseProgram(_shaderContext); //use context for loaded shader
+    _shader->bind(); //use context for loaded shader
 
     //LOAD IN VAO
     auto model = entity->getModel();
@@ -31,25 +31,25 @@ void InstancedForwardShader::runShader(Entity* entity, ViewEventDistributor* vie
 
         MVP* mvp = entity->getMVP();
         //glUniform mat4 combined model and world matrix, GL_TRUE is telling GL we are passing in the matrix as row major
-        updateUniform("model", mvp->getModelBuffer());
+        _shader->updateData("model", mvp->getModelBuffer());
 
         //glUniform mat4 view matrix, GL_TRUE is telling GL we are passing in the matrix as row major
-        updateUniform("view", mvp->getViewBuffer());
+        _shader->updateData("view", mvp->getViewBuffer());
 
         //glUniform mat4 projection matrix, GL_TRUE is telling GL we are passing in the matrix as row major
-        updateUniform("projection", mvp->getProjectionBuffer());
+        _shader->updateData("projection", mvp->getProjectionBuffer());
 
         //glUniform mat4 normal matrix, GL_TRUE is telling GL we are passing in the matrix as row major
-        updateUniform("normal", mvp->getNormalBuffer());
+        _shader->updateData("normal", mvp->getNormalBuffer());
 
         //instance array offsets
-        updateUniform("offsets[0]", model->getInstanceOffsets());
+        _shader->updateData("offsets[0]", model->getInstanceOffsets());
 
         //Get light view matrix "look at" vector which is located in the third column
         //of the inner rotation matrix at index 2,6,10
         auto viewMatrix = lights[0]->getLightMVP().getViewBuffer();
         Vector4 lightPosition(viewMatrix[2], viewMatrix[6], viewMatrix[10]);
-        updateUniform("light", lightPosition.getFlatBuffer());
+        _shader->updateData("light", lightPosition.getFlatBuffer());
 
         //Get point light positions
         //TODO add max point light constant
@@ -83,10 +83,10 @@ void InstancedForwardShader::runShader(Entity* entity, ViewEventDistributor* vie
             }
         }
 
-        updateUniform("numPointLights", &pointLights);
-        updateUniform("pointLightColors[0]", lightColorsArray);
-        updateUniform("pointLightRanges[0]", lightRangesArray);
-        updateUniform("pointLightPositions[0]", lightPosArray);
+        _shader->updateData("numPointLights", &pointLights);
+        _shader->updateData("pointLightColors[0]", lightColorsArray);
+        _shader->updateData("pointLightRanges[0]", lightRangesArray);
+        _shader->updateData("pointLightPositions[0]", lightPosArray);
         delete[] lightPosArray;  delete[] lightColorsArray; delete[] lightRangesArray;
 
         //Change of basis from camera view position back to world position
@@ -95,7 +95,7 @@ void InstancedForwardShader::runShader(Entity* entity, ViewEventDistributor* vie
             lightMVP.getViewMatrix() *
             viewEventDistributor->getView().inverse();
 
-        updateUniform("lightViewMatrix", cameraToLightSpace.getFlatBuffer());
+        _shader->updateData("lightViewMatrix", cameraToLightSpace.getFlatBuffer());
 
         //Change of basis from camera view position back to world position
         MVP lightMapMVP = lights[1]->getLightMVP();
@@ -103,12 +103,12 @@ void InstancedForwardShader::runShader(Entity* entity, ViewEventDistributor* vie
             lightMapMVP.getViewMatrix() *
             viewEventDistributor->getView().inverse();
 
-        updateUniform("lightMapViewMatrix", cameraToLightMapSpace.getFlatBuffer());
+        _shader->updateData("lightMapViewMatrix", cameraToLightMapSpace.getFlatBuffer());
 
         //Change of basis from camera view position back to world position
         Matrix viewToModelSpace = viewEventDistributor->getView().inverse();
 
-        updateUniform("viewToModelMatrix", viewToModelSpace.getFlatBuffer());
+        _shader->updateData("viewToModelMatrix", viewToModelSpace.getFlatBuffer());
 
         ShadowedPointLight* pointShadowTexture = nullptr;
         std::vector<ShadowedDirectionalLight*> directionalShadowTextures;
@@ -133,15 +133,15 @@ void InstancedForwardShader::runShader(Entity* entity, ViewEventDistributor* vie
                 model->getClassType() != ModelClass::AnimatedModelType &&
                 model->getTexture(textureStride.first)->getTransparency()) {
 
-                updateUniform("textureMap", GL_TEXTURE0, model->getTexture(textureStride.first)->getContext());
+                _shader->updateData("textureMap", GL_TEXTURE0, model->getTexture(textureStride.first));
                 if (directionalShadowTextures.size() > 0) {
-                    updateUniform("cameraDepthTexture", GL_TEXTURE1, directionalShadowTextures[0]->getDepthTexture());
+                    _shader->updateData("cameraDepthTexture", GL_TEXTURE1, directionalShadowTextures[0]->getDepthTexture());
                 }
                 if (directionalShadowTextures.size() > 1) {
-                    updateUniform("mapDepthTexture", GL_TEXTURE2, directionalShadowTextures[1]->getDepthTexture());
+                    _shader->updateData("mapDepthTexture", GL_TEXTURE2, directionalShadowTextures[1]->getDepthTexture());
                 }
                 if (pointShadowTexture != nullptr) {
-                    updateUniform("depthMap", GL_TEXTURE3, pointShadowTexture->getDepthTexture());
+                    _shader->updateData("depthMap", GL_TEXTURE3, pointShadowTexture->getDepthTexture());
                 }
 
                 //Draw triangles using the bound buffer vertices at starting index 0 and number of triangles

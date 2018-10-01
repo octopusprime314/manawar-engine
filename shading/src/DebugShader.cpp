@@ -1,6 +1,15 @@
 #include "DebugShader.h"
+#include "GLSLShader.h"
+#include "HLSLShader.h"
+#include "EngineManager.h"
 
-DebugShader::DebugShader(std::string shaderName) : Shader(shaderName) {
+DebugShader::DebugShader(std::string shaderName) {
+    if (EngineManager::getGraphicsLayer() == GraphicsLayer::OPENGL) {
+        _shader = new GLSLShader(shaderName);
+    }
+    else {
+        _shader = new HLSLShader(shaderName);
+    }
 }
 
 void DebugShader::runShader(MVP* mvp, 
@@ -9,20 +18,20 @@ void DebugShader::runShader(MVP* mvp,
                             float* color,
                             GeometryConstruction geometryType) {
 
-    glUseProgram(_shaderContext);
+    _shader->bind();
     glBindVertexArray(vao->getVAOContext());
 
     //glUniform mat4 combined model and world matrix, GL_TRUE is telling GL we are passing in the matrix as row major
-    updateUniform("model", mvp->getModelBuffer());
+    _shader->updateData("model", mvp->getModelBuffer());
 
     //glUniform mat4 view matrix, GL_TRUE is telling GL we are passing in the matrix as row major
-    updateUniform("view", mvp->getViewBuffer());
+    _shader->updateData("view", mvp->getViewBuffer());
 
     //glUniform mat4 projection matrix, GL_TRUE is telling GL we are passing in the matrix as row major
-    updateUniform("projection", mvp->getProjectionBuffer());
+    _shader->updateData("projection", mvp->getProjectionBuffer());
 
     //glUniform mat4 projection matrix, GL_TRUE is telling GL we are passing in the matrix as row major
-    updateUniform("color", color);
+    _shader->updateData("color", color);
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -81,7 +90,7 @@ void DebugShader::runShader(MVP* mvp,
         GLuint highlightedTrianglesVAO;
         glGenVertexArrays(1, &highlightedTrianglesVAO);
 
-        glUseProgram(_shaderContext);
+        _shader->bind();
         glBindVertexArray(highlightedTrianglesVAO);
 
         //Bind vertex buff context to current buffer
@@ -96,17 +105,17 @@ void DebugShader::runShader(MVP* mvp,
 
 
         //glUniform mat4 combined model and world matrix, GL_TRUE is telling GL we are passing in the matrix as row major
-        updateUniform("model", Matrix().getFlatBuffer());
+        _shader->updateData("model", Matrix().getFlatBuffer());
 
         //glUniform mat4 view matrix, GL_TRUE is telling GL we are passing in the matrix as row major
-        updateUniform("view", mvp->getViewBuffer());
+        _shader->updateData("view", mvp->getViewBuffer());
 
         //glUniform mat4 projection matrix, GL_TRUE is telling GL we are passing in the matrix as row major
-        updateUniform("projection", mvp->getProjectionBuffer());
+        _shader->updateData("projection", mvp->getProjectionBuffer());
 
         //glUniform mat4 projection matrix, GL_TRUE is telling GL we are passing in the matrix as row major
         float color[] = { 1.0, 0.0, 0.0 };
-        updateUniform("color", color);
+        _shader->updateData("color", color);
 
 
         //Draw lines using the bound buffer vertices at starting index 0 and number of triangles

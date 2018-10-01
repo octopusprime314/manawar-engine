@@ -46,7 +46,7 @@ void ShaderBroker::compileShaders() {
     _gatherShaderNames();
 }
 
-Shader* ShaderBroker::getShader(std::string shaderName) {
+ShaderBase* ShaderBroker::getShader(std::string shaderName) {
     std::string upperCaseMapName = _strToUpper(shaderName);
     return _shaders[upperCaseMapName];
 }
@@ -57,10 +57,10 @@ void ShaderBroker::recompileShader(std::string shaderName) {
 
     if (_shaders.find(upperCaseMapName) != _shaders.end()) {
 
-        auto shader = new Shader(upperCaseMapName);
+        //auto shader = new Shader(upperCaseMapName);
         //Release previous shader
-        glDeleteShader(_shaders[upperCaseMapName]->getShaderContext());
-        _shaders[upperCaseMapName]->updateShader(shader);
+        //glDeleteShader(_shaders[upperCaseMapName]->getShaderContext());
+        //_shaders[upperCaseMapName]->updateShader(shader);
     }
     else {
         std::cout << "Shader doesn't exist so we can't recompile it!" << std::endl;

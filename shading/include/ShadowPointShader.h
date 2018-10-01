@@ -24,7 +24,7 @@
 #include "ShadowStaticShader.h"
 #include "Light.h"
 
-class ShadowPointShader : public Shader {
+class ShadowPointShader : public ShaderBase {
 
 public:
     ShadowPointShader(std::string shaderName);

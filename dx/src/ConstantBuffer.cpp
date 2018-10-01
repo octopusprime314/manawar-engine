@@ -41,13 +41,13 @@ ConstantBuffer::~ConstantBuffer() {
 }
 
 void ConstantBuffer::update(ComPtr<ID3D12GraphicsCommandList> cmdList, 
-                            Matrix mvp, 
-                            PipelineShader& pso) {
+                            void* data, 
+                            UINT resourceBinding) {
 
     BYTE* mappedData = nullptr;
     _uploadBuffer->Map(0, nullptr, reinterpret_cast<void**>(&mappedData));
 
-    memcpy(mappedData, mvp.getFlatBuffer(), sizeof(Matrix));
+    memcpy(mappedData, data, sizeof(Matrix));
 
     _uploadBuffer->Unmap(0, nullptr);
     mappedData = nullptr;
@@ -58,8 +58,11 @@ void ConstantBuffer::update(ComPtr<ID3D12GraphicsCommandList> cmdList,
     CD3DX12_GPU_DESCRIPTOR_HANDLE cbv(_cbvHeap->GetGPUDescriptorHandleForHeapStart());
     cbv.Offset(0, _cbvDesc.SizeInBytes);
 
-    auto resourceBindings = pso.getResourceBindings();
+    if (resourceBinding == 0) {
 
-    cmdList->SetGraphicsRootConstantBufferView(resourceBindings["mvp"], _uploadBuffer->GetGPUVirtualAddress());
-
+        cmdList->SetGraphicsRoot32BitConstants(0, sizeof(Matrix), data, 0);
+    }
+    else {
+        cmdList->SetGraphicsRootConstantBufferView(resourceBinding, _uploadBuffer->GetGPUVirtualAddress());
+    }
 }

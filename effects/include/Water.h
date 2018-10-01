@@ -29,5 +29,5 @@ class Water : public Effect {
 public:
     Water(ViewEvents* eventWrapper);
     void     render();
-    GLuint   getNoiseTexture();
+    Texture* getNoiseTexture();
 };

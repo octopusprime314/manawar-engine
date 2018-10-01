@@ -39,6 +39,6 @@ public:
     DirectionalShadow(GLuint width, GLuint height);
     ~DirectionalShadow();
 
-    GLuint                getTextureContext();
+    Texture*              getTexture();
     void                  render(std::vector<Entity*> entityList, Light* light);
 };

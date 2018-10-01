@@ -1,6 +1,6 @@
 /*
-* ComputeShader is part of the ReBoot distribution (https://github.com/octopusprime314/ReBoot.git).
-* Copyright (c) 2018 Peter Morley.
+* ShaderBase is part of the ReBoot distribution (https://github.com/octopusprime314/ReBoot.git).
+* Copyright (c) 2017 Peter Morley.
 *
 * ReBoot is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -16,21 +16,19 @@
 */
 
 /**
-*  ComputeShader class. Takes in a texture and outputs a texture that is based on the shader
-*  implementation.  This class should have more generic member variables.
+*  ShaderBase class. Unites all shaders lol
 */
 
 #pragma once
 #include "Shader.h"
-#include "Texture.h"
-#include "ShaderBase.h"
 
-class ComputeShader : public ShaderBase {
-
+class ShaderBase {
+protected:
+    Shader *_shader;
 public:
-    ComputeShader(std::string computeShaderName);
-    ~ComputeShader();
-    void         runShader(Texture* writeTexture, 
-                           Texture* readTexture, 
-                           TextureFormat format);
+    ShaderBase();
+    ShaderBase(const ShaderBase& shader);
+    virtual      ~ShaderBase();
+    Shader*      getShader();
+
 };

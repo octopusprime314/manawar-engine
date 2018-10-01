@@ -40,7 +40,7 @@ GraphicsLayer EngineManager::_graphicsLayer;
 
 EngineManager::EngineManager(int* argc, char** argv, HINSTANCE hInstance, int nCmdShow) {
 
-    _graphicsLayer = GraphicsLayer::OPENGL;
+    _graphicsLayer = GraphicsLayer::DX12;
 
     if (_graphicsLayer == GraphicsLayer::OPENGL) {
         //Create instance of glfw wrapper class context
@@ -49,8 +49,10 @@ EngineManager::EngineManager(int* argc, char** argv, HINSTANCE hInstance, int nC
         _glfwContext = new IOEventDistributor(argc, argv);
     }
     else {
-        _dxLayer = new DXLayer(hInstance, IOEventDistributor::screenPixelWidth, IOEventDistributor::screenPixelHeight, nCmdShow);
+        DXLayer::initialize(hInstance, IOEventDistributor::screenPixelWidth, IOEventDistributor::screenPixelHeight, nCmdShow);
+        _dxLayer = DXLayer::instance();
     }
+
 
     //Load and compile all shaders for the shader broker
     ShaderBroker::instance()->compileShaders();
@@ -60,19 +62,36 @@ EngineManager::EngineManager(int* argc, char** argv, HINSTANCE hInstance, int nC
     ModelBroker::setViewManager(_viewManager); //Set the reference to the view model event interface
     _viewManager->setProjection(IOEventDistributor::screenPixelWidth, IOEventDistributor::screenPixelHeight, 0.1f, 5000.0f); //Initializes projection matrix and broadcasts upate to all listeners
      // This view is carefully chosen to look at a mountain without showing the (lack of) water in the scene.
-    _viewManager->setView(Matrix::cameraTranslation(0.0f, 0.0f, 0.0f),
+    _viewManager->setView(Matrix::cameraTranslation(0.0f, 20.0f, 50.0f),
         Matrix::cameraRotationAroundY(0.0f),
         Matrix());
 
     //Load and compile all models for the model broker
     ModelBroker::instance()->buildModels();
 
+    //Setup pre and post draw callback events received when a draw call is issued
+    IOEvents::setPreDrawCallback(std::bind(&EngineManager::_preDraw, this));
+    IOEvents::setPostDrawCallback(std::bind(&EngineManager::_postDraw, this));
+
+    auto modelBroker = ModelBroker::instance();
+
+    _entityList.push_back(new Entity(modelBroker->getModel("werewolf"), _viewManager->getEventWrapper())); //Add a static model to the scene
+
+    _physics = new Physics();
+    _physics->addEntities(_entityList); //Gives physics a pointer to all models which allows access to underlying geometry
+
+    _physics->run(); //Dispatch physics to start kinematics
+
     if (_graphicsLayer == GraphicsLayer::DX12) {
 
         _dxLayer->flushCommandList();
-        auto modelBroker = ModelBroker::instance();
-        _entityList.push_back(new Entity(modelBroker->getModel("werewolf"), _viewManager->getEventWrapper())); 
-        _dxLayer->run();
+        
+        _viewManager->triggerEvents();
+        _viewManager->setEntityList(_entityList);
+
+        MasterClock::instance()->run(); //Scene manager kicks off the clock event manager
+        
+        _dxLayer->run(_entityList);
     }
     else {
         _deferredRenderer = new DeferredRenderer();
@@ -93,33 +112,9 @@ EngineManager::EngineManager(int* argc, char** argv, HINSTANCE hInstance, int nC
 
         _bloom = new Bloom();
 
-        _deferredFBO = new DeferredFrameBuffer();
-
         _add = new SSCompute("add", IOEventDistributor::screenPixelWidth, IOEventDistributor::screenPixelHeight, TextureFormat::RGBA_UNSIGNED_BYTE);
 
-        //Setup pre and post draw callback events received when a draw call is issued
-        IOEvents::setPreDrawCallback(std::bind(&EngineManager::_preDraw, this));
-        IOEvents::setPostDrawCallback(std::bind(&EngineManager::_postDraw, this));
-
-        auto modelBroker = ModelBroker::instance();
-
-        //_entityList.push_back(new Entity(modelBroker->getModel("sandbox"), _viewManager->getEventWrapper())); //Add a static model to the scene
-        _entityList.push_back(new Entity(modelBroker->getModel("werewolf"), _viewManager->getEventWrapper())); //Add a static model to the scene
-        //_entityList.push_back(new Entity(modelBroker->getModel("wolf"), _viewManager->getEventWrapper())); //Add a static model to the scene
-        //_entityList.push_back(new Entity(modelBroker->getModel("hagraven"), _viewManager->getEventWrapper())); //Add a static model to the scene
-        //_entityList.push_back(new Entity(modelBroker->getModel("troll"), _viewManager->getEventWrapper())); //Add a static model to the scene
-
-        //_entityList[0]->setPosition(Vector4(30, 0, 10));
-        //_entityList[2]->setPosition(Vector4(-10, 0, -10));
-        //_entityList[3]->setPosition(Vector4(30, 0, 10));
-        //_entityList[4]->setPosition(Vector4(30, 0, -20));
-
         _terminal = new Terminal(_deferredRenderer->getGBuffers(), _entityList);
-
-        _physics = new Physics();
-        _physics->addEntities(_entityList); //Gives physics a pointer to all models which allows access to underlying geometry
-
-        _physics->run(); //Dispatch physics to start kinematics
 
         Vector4 sunLocation(0.0f, 0.0f, -300.0f);
         MVP lightMVP;
@@ -284,8 +279,8 @@ void EngineManager::_postDraw() {
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        GLuint velocityBufferContext = _deferredRenderer->getGBuffers()->getTextureContexts()[2];
-        _mergeShader->runShader(_bloom->getTextureContext(), velocityBufferContext);
+        Texture* velocityTexture = &_deferredRenderer->getGBuffers()->getTextures()[2];
+        _mergeShader->runShader(_bloom->getTexture(), velocityTexture);
     }
     else if (_viewManager->getViewState() == Camera::ViewState::PHYSICS) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

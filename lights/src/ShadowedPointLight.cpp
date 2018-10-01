@@ -13,7 +13,7 @@ void ShadowedPointLight::renderShadow(std::vector<Entity*> entityList) {
     _shadow.render(entityList, this);
 }
 
-GLuint ShadowedPointLight::getDepthTexture() {
+Texture* ShadowedPointLight::getDepthTexture() {
     return _shadow.getCubeMapTexture();
 }
 

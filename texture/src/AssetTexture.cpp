@@ -72,19 +72,6 @@ void AssetTexture::_build2DTextureGL(std::string textureName) {
     //FreeImage_Unload(_dib);
 }
 
-void AssetTexture::bindToDXShader(ComPtr<ID3D12GraphicsCommandList>& cmdList, PipelineShader& pso) {
-
-    ID3D12DescriptorHeap* descriptorHeaps[] = { _srvDescriptorHeap.Get(),  _samplerDescriptorHeap.Get() };
-    cmdList->SetDescriptorHeaps(2, descriptorHeaps);
-
-    auto resourceBindings = pso.getResourceBindings();
-
-    cmdList->SetGraphicsRootDescriptorTable(resourceBindings["textureMap"],
-        _srvDescriptorHeap->GetGPUDescriptorHandleForHeapStart());
-
-    cmdList->SetGraphicsRootDescriptorTable(resourceBindings["textureSampler"],
-        _samplerDescriptorHeap->GetGPUDescriptorHandleForHeapStart());
-}
 
 void AssetTexture::_build2DTextureDX(std::string textureName,
                                    ComPtr<ID3D12GraphicsCommandList>& cmdList,
@@ -228,6 +215,11 @@ bool AssetTexture::_getTextureData(std::string textureName) {
     }
     else {
         _imageBufferSize = _width * _height * 3;
+    }
+
+    //Don't count as an alpha texture if all values are set to 1.0
+    if (_bits[3] == 255) {
+        _alphaValues = false;
     }
 
     return true;

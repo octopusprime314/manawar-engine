@@ -22,9 +22,10 @@
 */
 
 #pragma once
+#include "ShaderBase.h"
 #include "Shader.h"
 
-class StaticShader : public Shader {
+class StaticShader : public ShaderBase{
 
 public:
     StaticShader(std::string shaderName);

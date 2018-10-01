@@ -23,17 +23,18 @@
 #include "Shader.h"
 #include "Matrix.h"
 #include "MVP.h"
+#include "ShaderBase.h"
 class Light;
 class Water;
 class Effect;
 class ViewEventDistributor;
 
-class MergeShader : public Shader {
+class MergeShader : public ShaderBase {
 
 protected:
     GLuint      _dummyVAO;
 public:
     MergeShader();
     virtual ~MergeShader();
-    virtual void runShader(GLuint deferredTexture, GLuint velocityTexture);
+    virtual void runShader(Texture* deferredTexture, Texture* velocityTexture);
 };

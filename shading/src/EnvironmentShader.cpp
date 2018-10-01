@@ -1,9 +1,17 @@
 #include "EnvironmentShader.h"
 #include "Model.h"
 #include "Entity.h"
+#include "GLSLShader.h"
+#include "HLSLShader.h"
+#include "EngineManager.h"
 
-EnvironmentShader::EnvironmentShader(std::string shaderName) : Shader(shaderName) {
-
+EnvironmentShader::EnvironmentShader(std::string shaderName){
+    if (EngineManager::getGraphicsLayer() == GraphicsLayer::OPENGL) {
+        _shader = new GLSLShader(shaderName);
+    }
+    else {
+        _shader = new HLSLShader(shaderName);
+    }
 }
 
 EnvironmentShader::~EnvironmentShader() {
@@ -13,7 +21,7 @@ EnvironmentShader::~EnvironmentShader() {
 void EnvironmentShader::runShader(Entity* entity, std::vector<Matrix> viewTransforms) {
 
     //LOAD IN SHADER
-    glUseProgram(_shaderContext); //use context for loaded shader
+    _shader->bind(); //use context for loaded shader
 
     auto model = entity->getModel();
     std::vector<VAO*>* vao = model->getVAO();
@@ -23,10 +31,10 @@ void EnvironmentShader::runShader(Entity* entity, std::vector<Matrix> viewTransf
         MVP* mvp = entity->getMVP();
 
         //glUniform mat4 combined model and world matrix, GL_TRUE is telling GL we are passing in the matrix as row major
-        updateUniform("model", mvp->getModelBuffer());
+        _shader->updateData("model", mvp->getModelBuffer());
 
         //glUniform mat4 view matrix, GL_TRUE is telling GL we are passing in the matrix as row major
-        updateUniform("view", mvp->getViewBuffer());
+        _shader->updateData("view", mvp->getViewBuffer());
 
         float* lightCubeTransforms = new float[6 * 16];
         int index = 0;
@@ -38,7 +46,7 @@ void EnvironmentShader::runShader(Entity* entity, std::vector<Matrix> viewTransf
         }
         //glUniform mat4 light cube map transforms, GL_TRUE is telling GL we are passing in the matrix as row major
         //6 faces and each transform is 16 floats in a 4x4 matrix
-        updateUniform("viewMatrices[0]", lightCubeTransforms);
+        _shader->updateData("viewMatrices[0]", lightCubeTransforms);
         delete[] lightCubeTransforms;
 
         auto textureStrides = vaoInstance->getTextureStrides();
@@ -53,20 +61,20 @@ void EnvironmentShader::runShader(Entity* entity, std::vector<Matrix> viewTransf
 
                 //We have a layered texture
                 int isLayered = 1;
-                updateUniform("isLayeredTexture", &isLayered);
+                _shader->updateData("isLayeredTexture", &isLayered);
 
                 if (textures.size() > 4) {
-                    updateUniform("tex0", GL_TEXTURE1, textures[0]->getContext());
-                    updateUniform("tex1", GL_TEXTURE2, textures[1]->getContext());
-                    updateUniform("tex2", GL_TEXTURE3, textures[2]->getContext());
-                    updateUniform("tex3", GL_TEXTURE4, textures[3]->getContext());
-                    updateUniform("alphatex0", GL_TEXTURE5, textures[7]->getContext());
+                    _shader->updateData("tex0", GL_TEXTURE1, textures[0]);
+                    _shader->updateData("tex1", GL_TEXTURE2, textures[1]);
+                    _shader->updateData("tex2", GL_TEXTURE3, textures[2]);
+                    _shader->updateData("tex3", GL_TEXTURE4, textures[3]);
+                    _shader->updateData("alphatex0", GL_TEXTURE5, textures[7]);
                 }
                 else {
-                    updateUniform("tex0", GL_TEXTURE1, textures[0]->getContext());
-                    updateUniform("tex1", GL_TEXTURE2, textures[1]->getContext());
-                    updateUniform("tex2", GL_TEXTURE3, textures[2]->getContext());
-                    updateUniform("alphatex0", GL_TEXTURE5, textures[3]->getContext());
+                    _shader->updateData("tex0", GL_TEXTURE1, textures[0]);
+                    _shader->updateData("tex1", GL_TEXTURE2, textures[1]);
+                    _shader->updateData("tex2", GL_TEXTURE3, textures[2]);
+                    _shader->updateData("alphatex0", GL_TEXTURE5, textures[3]);
                 }
                 glDrawArrays(GL_TRIANGLES, strideLocation, (GLsizei)textureStride.second);
                 strideLocation += textureStride.second;
@@ -77,9 +85,9 @@ void EnvironmentShader::runShader(Entity* entity, std::vector<Matrix> viewTransf
                 if (!model->getTexture(textureStride.first)->getTransparency()) {
                     //Not layered texture
                     int isLayered = 0;
-                    updateUniform("isLayeredTexture", &isLayered);
+                    _shader->updateData("isLayeredTexture", &isLayered);
 
-                    updateUniform("textureMap", GL_TEXTURE0, model->getTexture(textureStride.first)->getContext());
+                    _shader->updateData("textureMap", GL_TEXTURE0, model->getTexture(textureStride.first));
 
                     //Draw triangles using the bound buffer vertices at starting index 0 and number of triangles
                     glDrawArrays(GL_TRIANGLES, strideLocation, (GLsizei)textureStride.second);

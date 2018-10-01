@@ -17,7 +17,6 @@ class PresentTarget {
     ComPtr<ID3D12Resource>       _depthBuffer;
     D3D12_VIEWPORT               _viewPort;
     D3D12_RECT                   _rectScissor;
-    int                          _backBufferIndex;
 
 public:
     PresentTarget(ComPtr<ID3D12Device> device,

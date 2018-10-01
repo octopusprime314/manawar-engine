@@ -45,10 +45,13 @@ class Texture {
 
 protected:
     Texture(); //Make the default constructor private which forces coder to allocate a Texture with a string name
-    GLuint      _textureContext;
-    GLuint      _width;
-    GLuint      _height;
-    std::string _name;
+    GLuint                       _textureContext;
+    GLuint                       _width;
+    GLuint                       _height;
+    std::string                  _name;
+    ResourceBuffer*              _textureBuffer;
+    ComPtr<ID3D12DescriptorHeap> _srvDescriptorHeap;
+    ComPtr<ID3D12DescriptorHeap> _samplerDescriptorHeap;
 public:
     Texture(std::string name);
     Texture(std::string name, GLuint width, GLuint height); 
@@ -58,4 +61,7 @@ public:
     GLuint      getWidth();
     GLuint      getHeight();
     std::string getName();
+    void        bindToDXShader(ComPtr<ID3D12GraphicsCommandList>& cmdList,
+                               UINT textureBinding,
+                               std::map<std::string, UINT>& resourceBindings);
 };

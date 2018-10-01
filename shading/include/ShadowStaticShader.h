@@ -26,7 +26,7 @@
 #include "Model.h"
 #include "Light.h"
 
-class ShadowStaticShader : public Shader {
+class ShadowStaticShader : public ShaderBase {
 
 public:
     ShadowStaticShader(std::string shaderName);

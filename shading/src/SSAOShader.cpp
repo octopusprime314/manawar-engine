@@ -3,8 +3,17 @@
 #include "GLIncludes.h"
 #include "MRTFrameBuffer.h"
 #include "MVP.h"
+#include "GLSLShader.h"
+#include "HLSLShader.h"
+#include "EngineManager.h"
 
-SSAOShader::SSAOShader() : Shader("ssaoShader") {
+SSAOShader::SSAOShader() {
+    if (EngineManager::getGraphicsLayer() == GraphicsLayer::OPENGL) {
+        _shader = new GLSLShader("ssaoShader");
+    }
+    else {
+        _shader = new HLSLShader("ssaoShader");
+    }
     glGenVertexArrays(1, &_dummyVAO);
 }
 
@@ -15,12 +24,12 @@ SSAOShader::~SSAOShader() {
 void SSAOShader::runShader(SSAO* ssao, MRTFrameBuffer* mrtBuffer, ViewEventDistributor* viewEventDistributor) {
 
     //LOAD IN SHADER
-    glUseProgram(_shaderContext); //use context for loaded shader
+    _shader->bind();
 
     glBindVertexArray(_dummyVAO);
 
-    updateUniform("projection", viewEventDistributor->getProjection().getFlatBuffer());
-    updateUniform("projectionToViewMatrix", viewEventDistributor->getProjection().inverse().getFlatBuffer());
+    _shader->updateData("projection", viewEventDistributor->getProjection().getFlatBuffer());
+    _shader->updateData("projectionToViewMatrix", viewEventDistributor->getProjection().inverse().getFlatBuffer());
     
     auto kernel = ssao->getKernel();
 
@@ -33,14 +42,14 @@ void SSAOShader::runShader(SSAO* ssao, MRTFrameBuffer* mrtBuffer, ViewEventDistr
         }
     }
 
-    updateUniform("kernel[0]", kernelArray);
+    _shader->updateData("kernel[0]", kernelArray);
     delete[] kernelArray;
 
-    auto textures = mrtBuffer->getTextureContexts();
+    auto textures = mrtBuffer->getTextures();
 
-    updateUniform("normalTexture",   GL_TEXTURE1, textures[1]);
-    updateUniform("noiseTexture",    GL_TEXTURE2, ssao->getNoiseTexture());
-    updateUniform("depthTexture",    GL_TEXTURE3, textures[3]);
+    _shader->updateData("normalTexture",   GL_TEXTURE1, &textures[1]);
+    //_shader->updateData("noiseTexture",    GL_TEXTURE2, ssao->getNoiseTexture());
+    _shader->updateData("depthTexture",    GL_TEXTURE3, &textures[3]);
 
     glDrawArrays(GL_TRIANGLE_STRIP, 0, (GLsizei)4);
 

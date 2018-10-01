@@ -14,34 +14,34 @@ void AnimationShader::runShader(Entity* entity) {
 
     AnimatedModel* model = static_cast<AnimatedModel*>(entity->getModel());
 
-    //LOAD IN SHADER
     std::vector<VAO*>* vao = entity->getFrustumVAO();
-    glUseProgram(_shaderContext); //use context for loaded shader
+    //LOAD IN SHADER
+    _shader->bind();
     unsigned int id = entity->getID();
-    updateUniform("id", &id);
+    _shader->updateData("id", &id);
 
     for (auto vaoInstance : *vao) {
         glBindVertexArray(vaoInstance->getVAOContext());
 
         MVP* mvp = entity->getMVP();
         //glUniform mat4 combined model and world matrix, GL_TRUE is telling GL we are passing in the matrix as row major
-        updateUniform("model", mvp->getModelBuffer());
+        _shader->updateData("model", mvp->getModelBuffer());
 
         //glUniform mat4 view matrix, GL_TRUE is telling GL we are passing in the matrix as row major
-        updateUniform("view", mvp->getViewBuffer());
+        _shader->updateData("view", mvp->getViewBuffer());
 
         //glUniform mat4 projection matrix, GL_TRUE is telling GL we are passing in the matrix as row major
-        updateUniform("projection", mvp->getProjectionBuffer());
+        _shader->updateData("projection", mvp->getProjectionBuffer());
 
         //glUniform mat4 normal matrix, GL_TRUE is telling GL we are passing in the matrix as row major
-        updateUniform("normal", mvp->getNormalBuffer());
+        _shader->updateData("normal", mvp->getNormalBuffer());
 
         MVP* prevMVP = entity->getPrevMVP();
         //glUniform mat4 combined model and world matrix, GL_TRUE is telling GL we are passing in the matrix as row major
-        updateUniform("prevModel", prevMVP->getModelBuffer());
+        _shader->updateData("prevModel", prevMVP->getModelBuffer());
 
         //glUniform mat4 view matrix, GL_TRUE is telling GL we are passing in the matrix as row major
-        updateUniform("prevView", prevMVP->getViewBuffer());
+        _shader->updateData("prevView", prevMVP->getViewBuffer());
 
         //Bone uniforms
         auto bones = model->getBones();
@@ -53,7 +53,7 @@ void AnimationShader::runShader(Entity* entity) {
                 bonesArray[bonesArrayIndex++] = buff[i];
             }
         }
-        updateUniform("bones[0]", bonesArray);
+        _shader->updateData("bones[0]", bonesArray);
         delete[] bonesArray;
 
         //Grab strides of vertex sets that have a single texture associated with them
@@ -61,7 +61,7 @@ void AnimationShader::runShader(Entity* entity) {
         unsigned int strideLocation = 0;
         for (auto textureStride : textureStrides) {
 
-            updateUniform("textureMap", GL_TEXTURE0, model->getTexture(textureStride.first)->getContext());
+            _shader->updateData("textureMap", GL_TEXTURE0, model->getTexture(textureStride.first));
 
             //Draw triangles using the bound buffer vertices at starting index 0 and number of vertices
             glDrawArrays(GL_TRIANGLES, strideLocation, (GLsizei)textureStride.second);

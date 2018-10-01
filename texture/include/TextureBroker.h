@@ -33,8 +33,6 @@ class TextureBroker {
     TextureMap                        _textures;
     LayeredTextureMap                 _layeredTextures;
     static TextureBroker*             _broker;
-    ComPtr<ID3D12Device>              _device;
-    ComPtr<ID3D12GraphicsCommandList> _cmdList;
 public:
     static TextureBroker*             instance();
     ~TextureBroker();
@@ -45,6 +43,4 @@ public:
     LayeredTexture*                   getLayeredTexture(std::string textureName);
     AssetTexture*                     getAssetTextureFromLayered(std::string textureName);
     void                              updateTextureToLayered(std::string textureName);
-    void                              init(ComPtr<ID3D12GraphicsCommandList>& cmdList,
-                                           ComPtr<ID3D12Device>& device);
 };

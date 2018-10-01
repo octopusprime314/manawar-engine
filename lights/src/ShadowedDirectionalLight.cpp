@@ -16,8 +16,8 @@ void ShadowedDirectionalLight::renderShadow(std::vector<Entity*> entityList) {
     _shadow.render(entityList, this);
 }
 
-GLuint ShadowedDirectionalLight::getDepthTexture() {
-    return _shadow.getTextureContext();
+Texture* ShadowedDirectionalLight::getDepthTexture() {
+    return _shadow.getTexture();
 }
 
 void ShadowedDirectionalLight::render() {

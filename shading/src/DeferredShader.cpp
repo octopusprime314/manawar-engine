@@ -1,9 +1,19 @@
 #include "DeferredShader.h"
 #include "ShadowedPointLight.h"
 #include "ShadowedDirectionalLight.h"
+#include "GLSLShader.h"
+#include "HLSLShader.h"
+#include "EngineManager.h"
 
-DeferredShader::DeferredShader(std::string shaderName) : Shader(shaderName) {
-    glCheck();
+DeferredShader::DeferredShader(std::string shaderName) {
+
+    if (EngineManager::getGraphicsLayer() == GraphicsLayer::OPENGL) {
+        _shader = new GLSLShader(shaderName);
+    }
+    else {
+        _shader = new HLSLShader(shaderName);
+    }
+
     glGenVertexArrays(1, &_vaoContext);
 
     //Get skybox texture
@@ -29,7 +39,7 @@ void DeferredShader::runShader(std::vector<Light*>& lights,
 
     //Take the generated texture data and do deferred shading
     //LOAD IN SHADER
-    glUseProgram(_shaderContext); //use context for loaded shader
+    _shader->bind(); //use context for loaded shader
 
     glBindVertexArray(_vaoContext);
 
@@ -39,7 +49,7 @@ void DeferredShader::runShader(std::vector<Light*>& lights,
 
     Vector4 lightPosition(viewMatrix[2], viewMatrix[6], viewMatrix[10]);
     //lightPosition.display();
-    updateUniform("light", lightPosition.getFlatBuffer());
+    _shader->updateData("light", lightPosition.getFlatBuffer());
 
     //Get point light positions
     //TODO add max point light constant
@@ -73,10 +83,10 @@ void DeferredShader::runShader(std::vector<Light*>& lights,
         }
     }
 
-    updateUniform("numPointLights", &pointLights);
-    updateUniform("pointLightColors[0]", lightColorsArray);
-    updateUniform("pointLightRanges[0]", lightRangesArray);
-    updateUniform("pointLightPositions[0]", lightPosArray);
+    _shader->updateData("numPointLights", &pointLights);
+    _shader->updateData("pointLightColors[0]", lightColorsArray);
+    _shader->updateData("pointLightRanges[0]", lightRangesArray);
+    _shader->updateData("pointLightPositions[0]", lightPosArray);
     delete[] lightPosArray;  delete[] lightColorsArray; delete[] lightRangesArray;
 
     //Change of basis from camera view position back to world position
@@ -85,7 +95,7 @@ void DeferredShader::runShader(std::vector<Light*>& lights,
         lightMVP.getViewMatrix() *
         viewEventDistributor->getView().inverse();
 
-    updateUniform("lightViewMatrix", cameraToLightSpace.getFlatBuffer());
+    _shader->updateData("lightViewMatrix", cameraToLightSpace.getFlatBuffer());
 
     //Change of basis from camera view position back to world position
     MVP lightMapMVP = lights[1]->getLightMVP();
@@ -93,21 +103,21 @@ void DeferredShader::runShader(std::vector<Light*>& lights,
         lightMapMVP.getViewMatrix() *
         viewEventDistributor->getView().inverse();
 
-    updateUniform("lightMapViewMatrix", cameraToLightMapSpace.getFlatBuffer());
+    _shader->updateData("lightMapViewMatrix", cameraToLightMapSpace.getFlatBuffer());
 
     //Change of basis from camera view position back to world position
     Matrix viewToModelSpace = viewEventDistributor->getView().inverse();
 
-    updateUniform("viewToModelMatrix", viewToModelSpace.getFlatBuffer());
+    _shader->updateData("viewToModelMatrix", viewToModelSpace.getFlatBuffer());
 
     Matrix projectionToViewSpace = (viewEventDistributor->getProjection()).inverse();
-    updateUniform("projectionToViewMatrix", projectionToViewSpace.getFlatBuffer());
+    _shader->updateData("projectionToViewMatrix", projectionToViewSpace.getFlatBuffer());
 
-    updateUniform("inverseView", viewEventDistributor->getView().inverse().getFlatBuffer());
-    updateUniform("inverseProjection", viewEventDistributor->getProjection().inverse().getFlatBuffer());
+    _shader->updateData("inverseView", viewEventDistributor->getView().inverse().getFlatBuffer());
+    _shader->updateData("inverseProjection", viewEventDistributor->getProjection().inverse().getFlatBuffer());
 
     auto viewState = viewEventDistributor->getViewState();
-    updateUniform("views", &viewState);
+    _shader->updateData("views", &viewState);
 
     ShadowedPointLight* pointShadowTexture = nullptr;
     std::vector<ShadowedDirectionalLight*> directionalShadowTextures;
@@ -121,24 +131,25 @@ void DeferredShader::runShader(std::vector<Light*>& lights,
         }
     }
 
-    auto textures = mrtFBO.getTextureContexts();
+    auto textures = mrtFBO.getTextures();
+    
 
-    updateUniform("diffuseTexture",     GL_TEXTURE0, textures[0]);
-    updateUniform("normalTexture",      GL_TEXTURE1, textures[1]);
-    updateUniform("velocityTexture",    GL_TEXTURE2, textures[2]);
-    updateUniform("depthTexture",       GL_TEXTURE3, textures[3]);
+    _shader->updateData("diffuseTexture",     GL_TEXTURE0, &textures[0]);
+    _shader->updateData("normalTexture",      GL_TEXTURE1, &textures[1]);
+    _shader->updateData("velocityTexture",    GL_TEXTURE2, &textures[2]);
+    _shader->updateData("depthTexture",       GL_TEXTURE3, &textures[3]);
     if (directionalShadowTextures.size() > 0) {
-        updateUniform("cameraDepthTexture", GL_TEXTURE4, directionalShadowTextures[0]->getDepthTexture());
+        _shader->updateData("cameraDepthTexture", GL_TEXTURE4, directionalShadowTextures[0]->getDepthTexture());
     }
     if (directionalShadowTextures.size() > 1) {
-        updateUniform("mapDepthTexture", GL_TEXTURE5, directionalShadowTextures[1]->getDepthTexture());
+        _shader->updateData("mapDepthTexture", GL_TEXTURE5, directionalShadowTextures[1]->getDepthTexture());
     }
     if (pointShadowTexture != nullptr) {
-        updateUniform("depthMap", GL_TEXTURE6, pointShadowTexture->getDepthTexture());
+        _shader->updateData("depthMap", GL_TEXTURE6, pointShadowTexture->getDepthTexture());
     }
-    updateUniform("skyboxDayTexture",   GL_TEXTURE7, _skyBoxDayTexture->getContext());
-    updateUniform("skyboxNightTexture", GL_TEXTURE8, _skyBoxNightTexture->getContext());
-    updateUniform("ssaoTexture",        GL_TEXTURE9, ssao->getBlur()->getTextureContext());
+    _shader->updateData("skyboxDayTexture",   GL_TEXTURE7, _skyBoxDayTexture);
+    _shader->updateData("skyboxNightTexture", GL_TEXTURE8, _skyBoxNightTexture);
+    _shader->updateData("ssaoTexture",        GL_TEXTURE9, ssao->getBlur()->getTexture());
 
     //Draw triangles using the bound buffer vertices at starting index 0 and number of vertices
     glDrawArrays(GL_TRIANGLE_STRIP, 0, (GLsizei)4);

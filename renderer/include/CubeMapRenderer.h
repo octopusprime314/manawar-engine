@@ -40,5 +40,5 @@ public:
 
     void                preCubeFaceRender(std::vector<Entity*> entityList, MVP* mvp);
     void                postCubeFaceRender();
-    GLuint              getCubeMapTexture();
+    Texture*            getCubeMapTexture();
 };

@@ -37,9 +37,7 @@ class AssetTexture : public Texture{
     BYTE*                        _bits;
     bool                         _alphaValues;
     FIBITMAP*                    _dib;
-    ResourceBuffer*              _textureBuffer;
-    ComPtr<ID3D12DescriptorHeap> _srvDescriptorHeap;
-    ComPtr<ID3D12DescriptorHeap> _samplerDescriptorHeap;
+
 public:
     AssetTexture(std::string textureName, bool cubeMap = false);
     AssetTexture(std::string textureName, 
@@ -50,5 +48,4 @@ public:
 
     bool  getTransparency();
     BYTE* getBits();
-    void  bindToDXShader(ComPtr<ID3D12GraphicsCommandList>& cmdList, PipelineShader& pso);
 };

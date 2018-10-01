@@ -2,9 +2,18 @@
 #include "Light.h"
 #include "Water.h"
 #include "ViewEventDistributor.h"
+#include "GLSLShader.h"
+#include "HLSLShader.h"
+#include "EngineManager.h"
 
-EffectShader::EffectShader(std::string shaderName) : Shader(shaderName) {
-
+EffectShader::EffectShader(std::string shaderName) {
+    
+    if (EngineManager::getGraphicsLayer() == GraphicsLayer::OPENGL) {
+        _shader = new GLSLShader(shaderName);
+    }
+    else {
+        _shader = new HLSLShader(shaderName);
+    }
     glGenVertexArrays(1, &_vaoContext);
 }
 
@@ -15,16 +24,16 @@ EffectShader::~EffectShader() {
 void EffectShader::runShader(Effect* effectObject, float seconds) {
 
     //LOAD IN SHADER
-    glUseProgram(_shaderContext);
+    _shader->bind();
     glBindVertexArray(_vaoContext);
     
     auto cameraMVP = effectObject->getCameraMVP();
 
     auto view = cameraMVP.getViewMatrix();
-    updateUniform("view", view.getFlatBuffer());
+    _shader->updateData("view", view.getFlatBuffer());
 
     auto projection = cameraMVP.getProjectionMatrix();
-    updateUniform("projection", projection.getFlatBuffer());
+    _shader->updateData("projection", projection.getFlatBuffer());
 
     if (effectObject->getType() == EffectType::Fire || effectObject->getType() == EffectType::Smoke) {
 
@@ -39,10 +48,10 @@ void EffectShader::runShader(Effect* effectObject, float seconds) {
 
         //Pass the type of fire to the shader to simulate i.e. candle light or bon fire
         int fireType = 2;
-        updateUniform("fireType", &fireType);
+        _shader->updateData("fireType", &fireType);
 
         float* color = light->getColor().getFlatBuffer();
-        updateUniform("fireColor", color);
+        _shader->updateData("fireColor", color);
 
         auto viewNoTrans = cameraMVP.getViewMatrix();
         viewNoTrans.getFlatBuffer()[3] = 0.0;
@@ -50,10 +59,10 @@ void EffectShader::runShader(Effect* effectObject, float seconds) {
         viewNoTrans.getFlatBuffer()[11] = 0.0;
 
         auto model = lightMVP.getModelMatrix() * planeScale;
-        updateUniform("model", model.getFlatBuffer());
+        _shader->updateData("model", model.getFlatBuffer());
 
         auto inverseViewNoTrans = viewNoTrans.inverse();
-        updateUniform("inverseViewNoTrans", inverseViewNoTrans.getFlatBuffer());
+        _shader->updateData("inverseViewNoTrans", inverseViewNoTrans.getFlatBuffer());
     }
     else if (effectObject->getType() == EffectType::Water) {
 
@@ -63,16 +72,16 @@ void EffectShader::runShader(Effect* effectObject, float seconds) {
             * Matrix::translation(20.0f, -40.0f, -1.0f)
             * Matrix::scale(300.0f); //add to z component of translation to lower water line.
 
-        updateUniform("model", model.getFlatBuffer());
+        _shader->updateData("model", model.getFlatBuffer());
 
         auto normalMatrix = (view * model).inverse().transpose();
-        updateUniform("normal", normalMatrix.getFlatBuffer());
+        _shader->updateData("normal", normalMatrix.getFlatBuffer());
 
-        updateUniform("noiseTexture", GL_TEXTURE0, water->getNoiseTexture());
+        _shader->updateData("noiseTexture", GL_TEXTURE0, water->getNoiseTexture());
     }
 
     //Pass game time to shader
-    updateUniform("time", &seconds);
+    _shader->updateData("time", &seconds);
 
     //screen space quad
     glDrawArrays(GL_TRIANGLE_STRIP, 0, (GLsizei)4);

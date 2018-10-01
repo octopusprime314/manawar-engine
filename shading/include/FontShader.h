@@ -21,10 +21,12 @@
 
 #pragma once
 #include "Shader.h"
+#include "ShaderBase.h"
 
 class FontRenderer;
 
-class FontShader : public Shader {
+class FontShader : public ShaderBase {
+protected:
     GLuint _vaoContext;
 public:
     FontShader(std::string shaderName);

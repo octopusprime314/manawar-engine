@@ -43,3 +43,7 @@ GLuint DepthFrameBuffer::getWidth() {
 GLuint DepthFrameBuffer::getHeight() {
     return _renderTexture.getHeight();
 }
+
+Texture* DepthFrameBuffer::getTexture() {
+    return &_renderTexture;
+}

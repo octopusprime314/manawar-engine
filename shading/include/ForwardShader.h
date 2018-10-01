@@ -23,12 +23,13 @@
 
 #pragma once
 #include "Shader.h"
+#include "ShaderBase.h"
 #include <vector>
 class ViewEventDistributor;
 class ShadowRenderer;
 class PointShadow;
 
-class ForwardShader : public Shader {
+class ForwardShader : public ShaderBase {
 
 public:
     ForwardShader(std::string vertexShaderName, std::string fragmentShaderName = "");

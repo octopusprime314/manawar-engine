@@ -35,6 +35,7 @@ public:
     ~DepthFrameBuffer();
     GLuint        getFrameBufferContext();
     GLuint        getTextureContext();
+    Texture*      getTexture();
     GLuint        getWidth();
     GLuint        getHeight();
 };

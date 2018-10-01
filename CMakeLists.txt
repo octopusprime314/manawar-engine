@@ -96,7 +96,8 @@ FILE(GLOB EFFECTS_HEADER_FILES      ${CMAKE_SOURCE_DIR}/effects/include/*.h)
 FILE(GLOB TEXTURE_HEADER_FILES      ${CMAKE_SOURCE_DIR}/texture/include/*.h)
 FILE(GLOB IO_HEADER_FILES 		    ${CMAKE_SOURCE_DIR}/io/include/*.h)
 FILE(GLOB LIGHTS_HEADER_FILES 	    ${CMAKE_SOURCE_DIR}/lights/include/*.h)
-FILE(GLOB SHADER_FILES 	   		    ${CMAKE_SOURCE_DIR}/shading/shaders/*)
+FILE(GLOB GLSL_SHADER_FILES 	   	${CMAKE_SOURCE_DIR}/shading/shaders/glsl/*)
+FILE(GLOB HLSL_SHADER_FILES 	   	${CMAKE_SOURCE_DIR}/shading/shaders/hlsl/*)
 FILE(GLOB VIEW_HEADER_FILES 	    ${CMAKE_SOURCE_DIR}/view/include/*.h)
 FILE(GLOB DX_HEADER_FILES 	     	${CMAKE_SOURCE_DIR}/dx/include/*.h)
 
@@ -131,7 +132,8 @@ source_group("effects"       FILES 	${EFFECTS_HEADER_FILES} ${EFFECTS_SRC_FILES}
 source_group("texture"       FILES 	${TEXTURE_HEADER_FILES} ${TEXTURE_SRC_FILES})
 source_group("io"            FILES 	${IO_HEADER_FILES} ${IO_SRC_FILES})
 source_group("lights"        FILES 	${LIGHTS_HEADER_FILES} ${LIGHTS_SRC_FILES})
-source_group("shaders"       FILES 	${SHADER_FILES})
+source_group("shaders/glsl"  FILES 	${GLSL_SHADER_FILES})
+source_group("shaders/hlsl"  FILES 	${HLSL_SHADER_FILES})
 source_group("view"          FILES 	${VIEW_HEADER_FILES} ${VIEW_SRC_FILES})
 source_group("dx"            FILES 	${DX_HEADER_FILES} ${DX_SRC_FILES})
 
@@ -165,7 +167,8 @@ add_executable(ReBoot
 				${IO_SRC_FILES}
 				${LIGHTS_HEADER_FILES}
 				${LIGHTS_SRC_FILES}
-				${SHADER_FILES}
+				${GLSL_SHADER_FILES}
+				${HLSL_SHADER_FILES}
 				${VIEW_HEADER_FILES}
 				${VIEW_SRC_FILES}
 				${DX_HEADER_FILES}

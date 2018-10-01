@@ -69,7 +69,7 @@ void Uniforms::updateUniform(std::string uniformName, void* value) {
     }
 }
 
-void Uniforms::updateUniform(std::string uniformName, 
+void Uniforms::updateUniform(std::string uniformName,
     GLuint textureUnit, 
     GLuint textureContext) {
 

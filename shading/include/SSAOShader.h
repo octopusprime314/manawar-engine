@@ -21,11 +21,12 @@
 #pragma once
 #include "ViewEventDistributor.h"
 #include "Shader.h"
+#include "ShaderBase.h"
 class SSAO;
 class MRTFrameBuffer;
 
-class SSAOShader : public Shader {
-
+class SSAOShader : public ShaderBase {
+    
     unsigned int _dummyVAO;
 public:
     SSAOShader();

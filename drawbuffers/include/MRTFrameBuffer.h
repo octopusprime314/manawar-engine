@@ -28,13 +28,14 @@
 
 class MRTFrameBuffer {
 
-    GLuint                     _frameBufferContext;
-    std::vector<RenderTexture> _gBufferTextures;
-    std::vector<GLuint>        _fbTextureContexts; //Use for color attachments in framebuffer
+    GLuint                      _frameBufferContext;
+    std::vector<RenderTexture>  _gBufferTextures;
+    std::vector<GLuint>         _fbTextureContexts; //Use for color attachments in framebuffer
 
 public:
     MRTFrameBuffer();
     ~MRTFrameBuffer();
-    GLuint                     getFrameBufferContext();
-    std::vector<GLuint>        getTextureContexts();
+    GLuint                      getFrameBufferContext();
+    std::vector<GLuint>         getTextureContexts();
+    std::vector<RenderTexture>& getTextures();
 };

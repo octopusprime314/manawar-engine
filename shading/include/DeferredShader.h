@@ -32,10 +32,10 @@
 #include "SSAO.h"
 #include "EnvironmentMap.h"
 
-class DeferredShader : public Shader {
+class DeferredShader : public ShaderBase {
 
-    Texture* _skyBoxDayTexture;
-    Texture* _skyBoxNightTexture;
+    AssetTexture* _skyBoxDayTexture;
+    AssetTexture* _skyBoxNightTexture;
     GLuint   _vaoContext;
 
 public:

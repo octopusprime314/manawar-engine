@@ -12,8 +12,8 @@ public:
     ConstantBuffer(ComPtr<ID3D12Device> device);
     ~ConstantBuffer();
     void update(ComPtr<ID3D12GraphicsCommandList> cmdList,
-                Matrix mvp,
-                PipelineShader& pso);
+                void* data,
+                UINT resourceBinding);
 
 private:
     ComPtr<ID3D12Resource>          _uploadBuffer;

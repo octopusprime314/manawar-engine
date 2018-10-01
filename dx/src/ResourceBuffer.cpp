@@ -1,4 +1,7 @@
 #include "ResourceBuffer.h"
+#include <iostream>
+#include <string>
+#include "Logger.h"
 
 ResourceBuffer::ResourceBuffer(const void* initData,
     UINT byteSize,
@@ -51,7 +54,7 @@ ResourceBuffer::ResourceBuffer(const void* initData,
     pitchedDesc.RowPitch = alignment256 * sizeof(DWORD);
     pitchedDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
 
-    char* stream = nullptr;
+    unsigned char* stream = nullptr;
     if (width * height * 4 != pitchedDesc.RowPitch * height ||
         width * height * 4 > byteSize) {
 
@@ -60,15 +63,22 @@ ResourceBuffer::ResourceBuffer(const void* initData,
             channelCount = 4;
         }
 
-        const char* data = reinterpret_cast<const char*>(initData);
-        stream = new char[pitchedDesc.RowPitch * height];
-        for (int i = 0; i < height; i++) {
+        const unsigned char* data = reinterpret_cast<const unsigned char*>(initData);
+        stream = new unsigned char[pitchedDesc.RowPitch * height];
+        for (UINT i = 0; i < height; i++) {
 
-            for (int j = 0; j < width; j++) {
+
+            //auto message = std::to_string(i * pitchedDesc.RowPitch) + "\n";
+            //LOG_INFO(message);
+
+            for (UINT j = 0; j < width; j++) {
 
                 for (int k = 0; k < channelCount; k++) {
 
-                    stream[i*pitchedDesc.RowPitch + (j * 4) + k] = data[i*width + (j*channelCount) + k];
+                    stream[i*pitchedDesc.RowPitch + (j * 4) + k] = data[(i*width*channelCount) + (j*channelCount) + k];
+                }
+                if (channelCount == 3) {
+                    stream[i*pitchedDesc.RowPitch + ((j + 1) * 4) - 1] = '\xff'; //fill in transparency opaque value
                 }
             }
         }

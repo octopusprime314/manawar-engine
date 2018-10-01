@@ -35,3 +35,17 @@ GLuint Texture::getHeight() {
 std::string Texture::getName() {
     return _name;
 }
+
+void Texture::bindToDXShader(ComPtr<ID3D12GraphicsCommandList>& cmdList, 
+    UINT textureBinding,
+    std::map<std::string, UINT>& resourceBindings) {
+
+    ID3D12DescriptorHeap* descriptorHeaps[] = { _srvDescriptorHeap.Get(),  _samplerDescriptorHeap.Get() };
+    cmdList->SetDescriptorHeaps(2, descriptorHeaps);
+
+    cmdList->SetGraphicsRootDescriptorTable(textureBinding,
+        _srvDescriptorHeap->GetGPUDescriptorHandleForHeapStart());
+
+    cmdList->SetGraphicsRootDescriptorTable(resourceBindings["textureSampler"],
+        _samplerDescriptorHeap->GetGPUDescriptorHandleForHeapStart());
+}

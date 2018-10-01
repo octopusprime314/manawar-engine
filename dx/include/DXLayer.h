@@ -12,6 +12,9 @@
 #include "ResourceBuffer.h"
 #include "PipelineShader.h"
 #include "PresentTarget.h"
+#include "StaticShader.h"
+#include "Entity.h"
+
 
 #pragma comment(lib, "D3D12.lib") 
 #pragma comment(lib, "dxgi.lib") 
@@ -26,19 +29,28 @@ using namespace Microsoft::WRL;
 
 class DXLayer {
 public:
-    DXLayer(HINSTANCE hInstance, DWORD width, DWORD height, int cmdShow);
+    
     ~DXLayer();
 
-    void flushCommandList();
-    void run();
+    void                              flushCommandList();
+    void                              run(std::vector<Entity*> entities);
+    static DXLayer*                   instance();
+    static void                       initialize(HINSTANCE hInstance, DWORD width, DWORD height, int cmdShow);
+
+    ComPtr<ID3D12GraphicsCommandList> getCmdList();
+    ComPtr<ID3D12Device>              getDevice();
+    int                               getCmdListIndex();
+    PresentTarget*                    getPresentTarget();
+    ComPtr<ID3D12CommandQueue>        getCmdQueue();
+    ComPtr<ID3D12CommandAllocator>    getCmdAllocator();
 
 private:
+    DXLayer(HINSTANCE hInstance, DWORD width, DWORD height, int cmdShow);
+    void                              _render(std::vector<Entity*> entities);
 
-    void _render();
-
-    ConstantBuffer*                   _mvpConstBuff;
     PresentTarget*                    _presentTarget;
-    PipelineShader*                   _pipelineShader;
+    StaticShader*                     _staticShader;
+    static DXLayer*                   _dxLayer;
 
     ComPtr<ID3D12Device>              _device;
     ComPtr<ID3D12CommandAllocator>    _cmdAllocator;
@@ -52,4 +64,5 @@ private:
     int                               _nextFenceValue;
     int                               _cmdListFenceValues[CMD_LIST_NUM];
     const DXGI_FORMAT                 _rtvFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
+
 };

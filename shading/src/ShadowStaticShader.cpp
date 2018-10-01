@@ -1,8 +1,17 @@
 #include "ShadowStaticShader.h"
 #include "Entity.h"
+#include "GLSLShader.h"
+#include "HLSLShader.h"
+#include "EngineManager.h"
 
-ShadowStaticShader::ShadowStaticShader(std::string shaderName) : Shader(shaderName) {
+ShadowStaticShader::ShadowStaticShader(std::string shaderName) {
 
+    if (EngineManager::getGraphicsLayer() == GraphicsLayer::OPENGL) {
+        _shader = new GLSLShader(shaderName);
+    }
+    else {
+        _shader = new HLSLShader(shaderName);
+    }
 }
 
 ShadowStaticShader::~ShadowStaticShader() {
@@ -17,21 +26,21 @@ void ShadowStaticShader::runShader(Entity* entity, Light* light) {
     MVP* modelMVP = entity->getMVP();
     MVP lightMVP = light->getLightMVP();
 
-    //Use one single shadow shader and replace the vbo buffer from each model
-    glUseProgram(_shaderContext); //use context for loaded shader
+    //LOAD IN SHADER
+    _shader->bind();
 
     for (auto vaoInstance : *vao) {
         glBindVertexArray(vaoInstance->getVAOShadowContext());
 
         MVP* mvp = entity->getMVP();
         //glUniform mat4 combined model and world matrix, GL_TRUE is telling GL we are passing in the matrix as row major
-        updateUniform("model", mvp->getModelBuffer());
+        _shader->updateData("model", mvp->getModelBuffer());
 
         //glUniform mat4 view matrix, GL_TRUE is telling GL we are passing in the matrix as row major
-        updateUniform("view", lightMVP.getViewBuffer());
+        _shader->updateData("view", lightMVP.getViewBuffer());
 
         //glUniform mat4 projection matrix, GL_TRUE is telling GL we are passing in the matrix as row major
-        updateUniform("projection", lightMVP.getProjectionBuffer());
+        _shader->updateData("projection", lightMVP.getProjectionBuffer());
 
         auto textureStrides = vaoInstance->getTextureStrides();
         unsigned int verticesSize = 0;

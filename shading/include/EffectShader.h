@@ -21,6 +21,7 @@
 
 #pragma once
 #include "Shader.h"
+#include "ShaderBase.h"
 #include "Matrix.h"
 #include "MVP.h"
 class Light;
@@ -28,8 +29,8 @@ class Water;
 class Effect;
 class ViewEventDistributor;
 
-class EffectShader : public Shader {
-
+class EffectShader : public ShaderBase {
+protected:
     GLuint       _vaoContext;
 public:
     EffectShader(std::string shaderName);

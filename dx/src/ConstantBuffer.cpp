@@ -60,7 +60,7 @@ void ConstantBuffer::update(ComPtr<ID3D12GraphicsCommandList> cmdList,
 
     if (resourceBinding == 0) {
 
-        cmdList->SetGraphicsRoot32BitConstants(0, sizeof(Matrix), data, 0);
+        cmdList->SetGraphicsRoot32BitConstants(0, sizeof(Matrix) / sizeof(float), data, 0);
     }
     else {
         cmdList->SetGraphicsRootConstantBufferView(resourceBinding, _uploadBuffer->GetGPUVirtualAddress());

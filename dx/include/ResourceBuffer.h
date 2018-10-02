@@ -21,6 +21,7 @@ public :
     //Texture2D
     ResourceBuffer(const void* initData,
         UINT byteSize, UINT width, UINT height,
+        UINT rowPitch,
         ComPtr<ID3D12GraphicsCommandList>& cmdList,
         ComPtr<ID3D12Device>& device);
 

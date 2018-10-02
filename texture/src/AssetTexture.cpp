@@ -76,7 +76,9 @@ void AssetTexture::_build2DTextureGL(std::string textureName) {
 void AssetTexture::_build2DTextureDX(std::string textureName,
                                    ComPtr<ID3D12GraphicsCommandList>& cmdList,
                                    ComPtr<ID3D12Device>& device) {
-    _textureBuffer = new ResourceBuffer(_bits, _imageBufferSize, _width, _height, cmdList, device);
+
+    auto rowPitch = FreeImage_GetPitch(_dib);
+    _textureBuffer = new ResourceBuffer(_bits, _imageBufferSize, _width, _height, rowPitch, cmdList, device);
 
     //Create descriptor heap
     D3D12_DESCRIPTOR_HEAP_DESC srvHeapDesc;

@@ -43,6 +43,7 @@ ResourceBuffer::ResourceBuffer(const void* initData,
 
 ResourceBuffer::ResourceBuffer(const void* initData,
     UINT byteSize, UINT width, UINT height,
+    UINT rowPitch,
     ComPtr<ID3D12GraphicsCommandList>& cmdList,
     ComPtr<ID3D12Device>& device) {
     
@@ -50,8 +51,9 @@ ResourceBuffer::ResourceBuffer(const void* initData,
     pitchedDesc.Width = width;
     pitchedDesc.Height = height;
     pitchedDesc.Depth = 1;
-    auto alignment256 = ((width + D3D12_TEXTURE_DATA_PITCH_ALIGNMENT - 1) & ~(D3D12_TEXTURE_DATA_PITCH_ALIGNMENT - 1));
-    pitchedDesc.RowPitch = alignment256 * sizeof(DWORD);
+    auto alignedWidthInBytes = width * sizeof(DWORD);
+    auto alignment256 = ((alignedWidthInBytes + D3D12_TEXTURE_DATA_PITCH_ALIGNMENT - 1) & ~(D3D12_TEXTURE_DATA_PITCH_ALIGNMENT - 1));
+    pitchedDesc.RowPitch = alignment256;
     pitchedDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
 
     unsigned char* stream = nullptr;
@@ -62,6 +64,8 @@ ResourceBuffer::ResourceBuffer(const void* initData,
         if (byteSize == width * height * 4) {
             channelCount = 4;
         }
+
+        auto byteOffsetPitch = rowPitch - width * channelCount;
 
         const unsigned char* data = reinterpret_cast<const unsigned char*>(initData);
         stream = new unsigned char[pitchedDesc.RowPitch * height];
@@ -75,10 +79,21 @@ ResourceBuffer::ResourceBuffer(const void* initData,
 
                 for (int k = 0; k < channelCount; k++) {
 
-                    stream[i*pitchedDesc.RowPitch + (j * 4) + k] = data[(i*width*channelCount) + (j*channelCount) + k];
+                    stream[i*pitchedDesc.RowPitch + (j * 4) + k] = 
+                        data[(i*width*channelCount) + (j*channelCount) + k + (i*byteOffsetPitch)];
+                    /*if (k == 0) {
+                        stream[i*pitchedDesc.RowPitch + (j * 4) + k] = '\xff';
+                    }
+                    else  if (k == 1) {
+                        stream[i*pitchedDesc.RowPitch + (j * 4) + k] = '\x00';
+                    }
+                    else  if (k == 2) {
+                        stream[i*pitchedDesc.RowPitch + (j * 4) + k] = '\x00';
+                    }*/
                 }
                 if (channelCount == 3) {
-                    stream[i*pitchedDesc.RowPitch + ((j + 1) * 4) - 1] = '\xff'; //fill in transparency opaque value
+                    //fill in transparency opaque value
+                    stream[i*pitchedDesc.RowPitch + ((j + 1) * 4) - 1] = '\xff'; 
                 }
             }
         }

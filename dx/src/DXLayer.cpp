@@ -185,49 +185,7 @@ void DXLayer::_render(std::vector<Entity*> entities) {
         _staticShader->runShader(entity);
     }
 
-    
     flushCommandList();
-
-
-    //_cmdAllocator->Reset();
-    //_cmdLists[_cmdListIndex]->Reset(_cmdAllocator.Get(), nullptr);
-    //auto model = ModelBroker::instance()->getModel("werewolf");
-
-    //// Setup pipeline state / etc
-    //_cmdLists[_cmdListIndex]->SetPipelineState(_pipelineShader->getPSO().Get());
-    //_cmdLists[_cmdListIndex]->SetGraphicsRootSignature(_pipelineShader->getRootSignature().Get());
-
-    //Matrix p(Matrix::cameraProjection(45.0f, 1920.0f / 1080.0f, 0.1f, 1000.0f));
-    //Matrix v(Matrix::cameraTranslation(0.0f, 0.0f, 120.0f));
-
-    //_mvpConstBuff->update(_cmdLists[_cmdListIndex], p * v, *_pipelineShader);
-
-    //_cmdLists[_cmdListIndex]->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-    //_cmdLists[_cmdListIndex]->IASetIndexBuffer(&(*model->getVAO())[0]->getIndexBuffer());
-    //D3D12_VERTEX_BUFFER_VIEW vertexBuffers[] = { (*model->getVAO())[0]->getVertexBuffer() };
-
-    //_cmdLists[_cmdListIndex]->IASetVertexBuffers(0, 1, vertexBuffers);
-
-    //_presentTarget->bindTarget(_device, _cmdLists[_cmdListIndex], _cmdListIndex);
-
-    //auto textureStrides = (*model->getVAO())[0]->getTextureStrides();
-
-    //int indexLocation = 0;
-    //for (auto textureStride : textureStrides) {
-    //    auto texture = TextureBroker::instance()->getTexture(textureStride.first);
-    //    if (texture != nullptr) {
-    //        texture->bindToDXShader(_cmdLists[_cmdListIndex], _pipelineShader->getResourceBindings());
-    //    }
-
-    //    _cmdLists[_cmdListIndex]->DrawIndexedInstanced(textureStride.second, 1, indexLocation, 0, 0);
-    //    indexLocation += textureStride.second;
-    //}
-
-    //_presentTarget->unbindTarget(_cmdLists[_cmdListIndex], _cmdListIndex);
-
-    //flushCommandList();
-
 }
 
 int DXLayer::getCmdListIndex() {

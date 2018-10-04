@@ -71,25 +71,12 @@ ResourceBuffer::ResourceBuffer(const void* initData,
         stream = new unsigned char[pitchedDesc.RowPitch * height];
         for (UINT i = 0; i < height; i++) {
 
-
-            //auto message = std::to_string(i * pitchedDesc.RowPitch) + "\n";
-            //LOG_INFO(message);
-
             for (UINT j = 0; j < width; j++) {
 
                 for (int k = 0; k < channelCount; k++) {
 
                     stream[i*pitchedDesc.RowPitch + (j * 4) + k] = 
                         data[(i*width*channelCount) + (j*channelCount) + k + (i*byteOffsetPitch)];
-                    /*if (k == 0) {
-                        stream[i*pitchedDesc.RowPitch + (j * 4) + k] = '\xff';
-                    }
-                    else  if (k == 1) {
-                        stream[i*pitchedDesc.RowPitch + (j * 4) + k] = '\x00';
-                    }
-                    else  if (k == 2) {
-                        stream[i*pitchedDesc.RowPitch + (j * 4) + k] = '\x00';
-                    }*/
                 }
                 if (channelCount == 3) {
                     //fill in transparency opaque value

@@ -89,15 +89,22 @@ void HLSLShader::build() {
     int rootParameterIndex = 0;
     for (auto resource : _resourceDescriptorTable) {
         if (resource.second.Type == D3D_SHADER_INPUT_TYPE::D3D_SIT_CBUFFER) {
-            if (std::string(resource.second.Name).compare("model") == 0) { //use root constants for per model objects
-                RP[resource.second.uID + rootParameterIndex].InitAsConstants(sizeof(Matrix) / sizeof(float),
+
+            UINT bytes = 0;
+            for (auto shaderInput : _constBuffDescriptorTable[resource.second.Name]) {
+                bytes += shaderInput.Size;
+            }
+
+            if (std::string(resource.second.Name).compare("objectData") == 0) { //use root constants for per model objects
+                
+                RP[resource.second.uID + rootParameterIndex].InitAsConstants(bytes / 4,
                     resource.second.uID + rootParameterIndex);
-                _constantBuffers[resource.second.Name] = new ConstantBuffer(device);
+                _constantBuffers[resource.second.Name] = new ConstantBuffer(device, _constBuffDescriptorTable[resource.second.Name]);
                 _resourceIndexes[resource.second.Name] = resource.second.uID + rootParameterIndex;
             }
             else {
                 RP[resource.second.uID + rootParameterIndex].InitAsConstantBufferView(resource.second.uID + rootParameterIndex);
-                _constantBuffers[resource.second.Name] = new ConstantBuffer(device);
+                _constantBuffers[resource.second.Name] = new ConstantBuffer(device, _constBuffDescriptorTable[resource.second.Name]);
                 _resourceIndexes[resource.second.Name] = resource.second.uID + rootParameterIndex;
             }
             i++;
@@ -117,7 +124,6 @@ void HLSLShader::build() {
     for (auto resource : _resourceDescriptorTable) {
         if (resource.second.Type == D3D_SHADER_INPUT_TYPE::D3D_SIT_TEXTURE) {
             srvTableRange = new CD3DX12_DESCRIPTOR_RANGE();
-            //srvTableRange->Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, resource.second.uID + rootParameterIndex);
             srvTableRange->Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, resource.second.uID);
             RP[resource.second.uID + rootParameterIndex].InitAsDescriptorTable(1, srvTableRange, D3D12_SHADER_VISIBILITY_PIXEL);
             _resourceIndexes[resource.second.Name] = resource.second.uID + rootParameterIndex;
@@ -219,7 +225,32 @@ void HLSLShader::_queryShaderResources(ComPtr<ID3DBlob> shaderBlob) {
     for (int i = 0; result == S_OK; i++) {
         D3D12_SHADER_INPUT_BIND_DESC resourceDesc;
         result = reflectionInterface->GetResourceBindingDesc(i, &resourceDesc);
+        
         if (result == S_OK) {
+            auto constBuff = reflectionInterface->GetConstantBufferByName(resourceDesc.Name);
+            if (constBuff != nullptr) {
+                ID3D12ShaderReflectionVariable* constBufferVar = nullptr;
+                for (int j = 0; ; j++) {
+                    constBufferVar = constBuff->GetVariableByIndex(j);
+                    D3D12_SHADER_VARIABLE_DESC* ref = new D3D12_SHADER_VARIABLE_DESC();
+                    auto isVariable = constBufferVar->GetDesc(ref);
+                    if (isVariable != S_OK) {
+                        break;
+                    }
+                    else {
+                        bool found = false;
+                        for (auto subIndex : _constBuffDescriptorTable[resourceDesc.Name]) {
+                            if (std::string(subIndex.Name).compare(std::string(ref->Name)) == 0) {
+                                found = true;
+                                break;
+                            }
+                        }
+                        if (!found) {
+                            _constBuffDescriptorTable[resourceDesc.Name].push_back(*ref);
+                        }
+                    }
+                }
+            }
             _resourceDescriptorTable[resourceDesc.Name] = resourceDesc;
         }
     }
@@ -228,8 +259,13 @@ void HLSLShader::_queryShaderResources(ComPtr<ID3DBlob> shaderBlob) {
 void HLSLShader::updateData(std::string id, void* data) {
     
     auto cmdList = DXLayer::instance()->getCmdList();
-    if (_constantBuffers.find(id) != _constantBuffers.end()) {
-        _constantBuffers[id]->update(cmdList, data, _resourceIndexes[id]);
+    for (auto constBuffEntry : _constBuffDescriptorTable) {
+        for (auto entry : constBuffEntry.second) {
+            if (std::string(entry.Name).compare(id) == 0) {
+                _constantBuffers[constBuffEntry.first]->update(cmdList, data, 
+                    _resourceIndexes[constBuffEntry.first], entry.Size, entry.StartOffset);
+            }
+        }
     }
 }
 

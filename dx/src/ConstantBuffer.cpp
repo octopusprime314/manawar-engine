@@ -9,9 +9,14 @@ UINT getConstantBufferByteSize(UINT byteSize) {
     return (byteSize + 255) & ~255;
 }
 
-ConstantBuffer::ConstantBuffer(ComPtr<ID3D12Device> device) {
+ConstantBuffer::ConstantBuffer(ComPtr<ID3D12Device> device, std::vector<D3D12_SHADER_VARIABLE_DESC> constants) {
 
-    UINT elementsByteSize = getConstantBufferByteSize(sizeof(ObjectConstants));
+    UINT bytes = 0;
+    for (auto constant : constants) {
+        bytes += constant.Size;
+    }
+
+    UINT elementsByteSize = getConstantBufferByteSize(bytes);
 
     device->CreateCommittedResource(&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
         D3D12_HEAP_FLAG_NONE,
@@ -31,7 +36,7 @@ ConstantBuffer::ConstantBuffer(ComPtr<ID3D12Device> device) {
     //_cbAddress += getConstantBufferByteSize(sizeof(Matrix));
 
     _cbvDesc.BufferLocation = cbAddress;
-    _cbvDesc.SizeInBytes = getConstantBufferByteSize(sizeof(Matrix));
+    _cbvDesc.SizeInBytes = getConstantBufferByteSize(bytes);
 
     device->CreateConstantBufferView(&_cbvDesc, _cbvHeap->GetCPUDescriptorHandleForHeapStart());
 }
@@ -42,27 +47,24 @@ ConstantBuffer::~ConstantBuffer() {
 
 void ConstantBuffer::update(ComPtr<ID3D12GraphicsCommandList> cmdList, 
                             void* data, 
-                            UINT resourceBinding) {
+                            UINT resourceBinding, UINT sizeInBytes, UINT offsetInBytes) {
 
-    BYTE* mappedData = nullptr;
-    _uploadBuffer->Map(0, nullptr, reinterpret_cast<void**>(&mappedData));
-
-    memcpy(mappedData, data, sizeof(Matrix));
-
-    _uploadBuffer->Unmap(0, nullptr);
-    mappedData = nullptr;
-
-    ID3D12DescriptorHeap* descriptorHeaps[] = { _cbvHeap.Get() };
-    cmdList->SetDescriptorHeaps(1, descriptorHeaps);
-
-    CD3DX12_GPU_DESCRIPTOR_HANDLE cbv(_cbvHeap->GetGPUDescriptorHandleForHeapStart());
-    cbv.Offset(0, _cbvDesc.SizeInBytes);
-
+    
     if (resourceBinding == 0) {
-
-        cmdList->SetGraphicsRoot32BitConstants(0, sizeof(Matrix) / sizeof(float), data, 0);
+        cmdList->SetGraphicsRoot32BitConstants(0, sizeInBytes / 4, data, offsetInBytes / 4);
     }
     else {
+        BYTE* mappedData = nullptr;
+        _uploadBuffer->Map(0, nullptr, reinterpret_cast<void**>(&mappedData));
+
+        memcpy(&mappedData[offsetInBytes], data, sizeInBytes);
+
+        _uploadBuffer->Unmap(0, nullptr);
+        mappedData = nullptr;
+
+        ID3D12DescriptorHeap* descriptorHeaps[] = { _cbvHeap.Get() };
+        cmdList->SetDescriptorHeaps(1, descriptorHeaps);
+
         cmdList->SetGraphicsRootConstantBufferView(resourceBinding, _uploadBuffer->GetGPUVirtualAddress());
     }
 }

@@ -45,6 +45,7 @@ class HLSLShader : public Shader {
 
     using InputDescriptors = std::map<std::string, D3D12_SIGNATURE_PARAMETER_DESC>;
     using ResourceDescriptors = std::map<std::string, D3D12_SHADER_INPUT_BIND_DESC>;
+    using ConstBuffDescriptors = std::map<std::string, std::vector<D3D12_SHADER_VARIABLE_DESC>>;
 protected:
     std::string                           _pipelineShaderName;
     std::vector<D3D12_INPUT_ELEMENT_DESC> _inputLayout;
@@ -52,6 +53,7 @@ protected:
     ComPtr<ID3D12RootSignature>           _rootSignature;
     InputDescriptors                      _inputDescriptorTable;
     ResourceDescriptors                   _resourceDescriptorTable;
+    ConstBuffDescriptors                  _constBuffDescriptorTable;
     std::map<std::string, UINT>           _resourceIndexes;
     void                                  _queryShaderResources(ComPtr<ID3DBlob> shaderBlob);
     std::wstring                          _stringToLPCWSTR(const std::string& s);

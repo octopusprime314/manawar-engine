@@ -38,4 +38,6 @@ public:
     GLuint                      getFrameBufferContext();
     std::vector<GLuint>         getTextureContexts();
     std::vector<RenderTexture>& getTextures();
+    void bind();
+    void unbind();
 };

@@ -13,7 +13,11 @@ StaticShader::StaticShader(std::string shaderName) {
         _shader = new GLSLShader(shaderName);
     }
     else {
-        _shader = new HLSLShader(shaderName);
+        std::vector<DXGI_FORMAT>* formats = new std::vector<DXGI_FORMAT>();
+        formats->push_back(DXGI_FORMAT_R8G8B8A8_UNORM);
+        formats->push_back(DXGI_FORMAT_R32G32B32A32_FLOAT);
+        formats->push_back(DXGI_FORMAT_R32G32B32A32_FLOAT);
+        _shader = new HLSLShader(shaderName, "", formats);
     }
 }
 
@@ -94,7 +98,7 @@ void StaticShader::runShader(Entity* entity) {
 
                     _shader->updateData("textureMap", GL_TEXTURE0, model->getTexture(textureStride.first));
 
-                    //Draw triangles using the bound buffer vertices at starting index 0 and number of triangles
+                    //Draw triangles using the bound buffer vertices at starting index 0 and number of vertices
                     _shader->draw(strideLocation, 1, (GLsizei)textureStride.second);
                 }
                 strideLocation += textureStride.second;

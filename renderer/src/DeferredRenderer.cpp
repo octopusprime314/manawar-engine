@@ -7,7 +7,8 @@
 
 DeferredRenderer::DeferredRenderer() : 
     _mrtFBO(), 
-    _deferredShader(static_cast<DeferredShader*>(ShaderBroker::instance()->getShader("deferredShader"))) {
+    //_deferredShader(static_cast<DeferredShader*>(ShaderBroker::instance()->getShader("deferredShader")))
+    _deferredShader(static_cast<DeferredShader*>(ShaderBroker::instance()->getShader("staticShader"))) {
 
 }
 
@@ -26,8 +27,8 @@ void DeferredRenderer::bind() {
         auto presentTarget = DXLayer::instance()->getPresentTarget();
         auto device = DXLayer::instance()->getDevice();
         auto cmdList = DXLayer::instance()->getCmdList();
-        presentTarget->bindTarget(device, cmdList, DXLayer::instance()->getCmdListIndex());
-
+        //presentTarget->bindTarget(device, cmdList, DXLayer::instance()->getCmdListIndex());
+        _mrtFBO.bind();
     }
     else {
         //Bind frame buffer
@@ -42,8 +43,13 @@ void DeferredRenderer::bind() {
     }
 }
 void DeferredRenderer::unbind() {
-    //unbind frame buffer
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    if (EngineManager::getGraphicsLayer() == GraphicsLayer::DX12) {
+        _mrtFBO.unbind();
+    }
+    else {
+        //unbind frame buffer
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    }
 }
 
 MRTFrameBuffer* DeferredRenderer::getGBuffers() {

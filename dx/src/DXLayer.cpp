@@ -142,7 +142,7 @@ DXLayer::~DXLayer() {
 
 }
 
-void DXLayer::run(std::vector<Entity*> entities) {
+void DXLayer::run(DeferredRenderer* deferred, std::vector<Entity*> entities) {
 
     // show the window
     ShowWindow(_window, _cmdShow);
@@ -167,23 +167,36 @@ void DXLayer::run(std::vector<Entity*> entities) {
                 break;
         }
         else {
-            _render(entities);
+            _render(deferred, entities);
         }
     }
 }
 
-void DXLayer::_render(std::vector<Entity*> entities) {
+void DXLayer::_render(DeferredRenderer* deferred, std::vector<Entity*> entities) {
 
     // Open command list
     _cmdAllocator->Reset();
     _cmdLists[_cmdListIndex]->Reset(_cmdAllocator.Get(), nullptr);
 
-    _presentTarget->bindTarget(_device, _cmdLists[_cmdListIndex], _cmdListIndex);
+    deferred->bind();
+
+    _staticShader = static_cast<StaticShader*>(ShaderBroker::instance()->getShader("staticShader"));
 
     for (auto entity : entities) {
-        _staticShader = static_cast<StaticShader*>(ShaderBroker::instance()->getShader("staticShader"));
+        
         _staticShader->runShader(entity);
     }
+
+    deferred->unbind();
+
+    auto presentShader = static_cast<MergeShader*>(ShaderBroker::instance()->getShader("mergeShader"));
+    
+    _presentTarget->bindTarget(_device, _cmdLists[_cmdListIndex], _cmdListIndex);
+    
+    auto texture = deferred->getGBuffers()->getTextures()[0];
+    presentShader->runShader(&texture, nullptr);
+
+    _presentTarget->unbindTarget(_cmdLists[_cmdListIndex], _cmdListIndex);
 
     flushCommandList();
 }

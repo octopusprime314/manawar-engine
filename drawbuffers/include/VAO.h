@@ -59,6 +59,7 @@ class VAO {
     D3D12_VERTEX_BUFFER_VIEW                 _vbv;
 public:
     VAO();
+    VAO(D3D12_VERTEX_BUFFER_VIEW vbv, D3D12_INDEX_BUFFER_VIEW ibv);
     ~VAO();
     GLuint          getVAOContext();
     GLuint          getVAOShadowContext();

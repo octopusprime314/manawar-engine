@@ -12,31 +12,45 @@ cbuffer objectData : register(b0)
 {
 	float4x4 model;
 	int		 isLayeredTexture;
+    int      id;
+    int      primitiveOffset;
 }
 cbuffer globalData : register(b1)
 {
     //float4x4 prevModel;  // Previous Model transformation matrix
     //float4x4 prevView;   // Previous View/Camera transformation matrix
-    //float4x4 normal;     // Normal matrix
     float4x4 view;		 // View/Camera transformation matrix
     float4x4 projection; // Projection transformation matrix
+    float4x4 normal;     // Normal matrix
 }
 
 void VS(float3 iPosL : POSITION,
+        float3 iNormal : NORMAL,
 	    float2 iUV : UV,
 		out float4 oPosH : SV_POSITION,
-		out float2 oUV : UVOUT) {
+        out float3 oNormal : NORMALOUT,
+        out float2 oUV : UVOUT) {
 	
     float4x4 mv = mul(model, view);
     float4x4 mvp = mul(mv, projection);
 	oPosH = mul(float4(iPosL, 1.0f), mvp);
 	oUV = iUV;
+    oNormal = mul(float4(iNormal, 1.0f), normal).rgb;
 }
 
-float4 PS(float4 posH : SV_POSITION,
-		  float2 uv : UVOUT) : SV_Target {
+struct MRT {
+    float4 color : SV_Target0;
+    float4 normal : SV_Target1;
+    float4 id     : SV_Target2;
+};
+
+MRT PS(float4 posH : SV_POSITION,
+       float3 normal : NORMALOUT,
+	   float2 uv : UVOUT,
+       uint primitiveID : SV_PrimitiveID) {
 
     float4 vTexColor = float4(0.0, 0.0, 0.0, 1.0);
+    MRT output;
 
     if (isLayeredTexture) {
         float4 red = float4(tex0.Sample(textureSampler, mul(uv,150.0)).rgb, 1.0);
@@ -73,9 +87,12 @@ float4 PS(float4 posH : SV_POSITION,
         lerpComponent = mul(alphaPixel, tA) + mul((1.0f - alphaPixel),lerpComponent);
 
         vTexColor = float4(lerpComponent.rgb, 1.0);
-        return vTexColor;
+        output.color = vTexColor;
     }
     else {
-        return float4(textureMap.Sample(textureSampler, uv).rgb, 1.0);
+        output.color = float4(textureMap.Sample(textureSampler, uv).rgb, 1.0);
     }
+    output.normal = float4(normal.rgb, 1.0);
+    output.id = float4(0.0, 0.0, float(id) / 16777216.0, float(primitiveID + primitiveOffset) / 16777216.0);
+    return output;
 }

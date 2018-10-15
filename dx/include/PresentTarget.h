@@ -3,6 +3,7 @@
 #include <d3d12.h>
 #include "d3dx12.h"
 #include "DXGI.h"
+#include "RenderTexture.h"
 
 #define NUM_SWAP_CHAIN_BUFFERS 2
 

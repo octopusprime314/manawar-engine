@@ -59,11 +59,12 @@ protected:
     std::wstring                          _stringToLPCWSTR(const std::string& s);
     std::map<std::string, ConstantBuffer*> _constantBuffers;
 public:
-    HLSLShader(std::string vertexShaderName, std::string fragmentShaderName = "");
+    HLSLShader(std::string vertexShaderName, std::string fragmentShaderName = "", 
+               std::vector<DXGI_FORMAT>* rtvs = nullptr);
     HLSLShader(const HLSLShader& shader);
     virtual ~HLSLShader();
     void                                  draw(int offset, int instances, int numTriangles);
-    void                                  build();
+    void                                  build(std::vector<DXGI_FORMAT>* rtvs);
     void                                  updateData(std::string id, void* data);
     void                                  updateData(std::string dataName,
                                                      int textureUnit,

@@ -13,7 +13,9 @@
 #include "PipelineShader.h"
 #include "PresentTarget.h"
 #include "StaticShader.h"
+#include "MergeShader.h"
 #include "Entity.h"
+#include "DeferredRenderer.h"
 
 
 #pragma comment(lib, "D3D12.lib") 
@@ -33,7 +35,7 @@ public:
     ~DXLayer();
 
     void                              flushCommandList();
-    void                              run(std::vector<Entity*> entities);
+    void                              run(DeferredRenderer* deffered, std::vector<Entity*> entities);
     static DXLayer*                   instance();
     static void                       initialize(HINSTANCE hInstance, DWORD width, DWORD height, int cmdShow);
 
@@ -46,7 +48,8 @@ public:
 
 private:
     DXLayer(HINSTANCE hInstance, DWORD width, DWORD height, int cmdShow);
-    void                              _render(std::vector<Entity*> entities);
+    void                              _render(DeferredRenderer* deferred,
+                                              std::vector<Entity*> entities);
 
     PresentTarget*                    _presentTarget;
     StaticShader*                     _staticShader;

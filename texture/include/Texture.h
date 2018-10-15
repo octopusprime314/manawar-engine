@@ -52,6 +52,8 @@ protected:
     ResourceBuffer*              _textureBuffer;
     ComPtr<ID3D12DescriptorHeap> _srvDescriptorHeap;
     ComPtr<ID3D12DescriptorHeap> _samplerDescriptorHeap;
+    D3D12_VIEWPORT               _viewPort;
+    D3D12_RECT                   _rectScissor;
 public:
     Texture(std::string name);
     Texture(std::string name, GLuint width, GLuint height); 

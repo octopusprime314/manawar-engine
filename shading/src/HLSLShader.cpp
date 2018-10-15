@@ -6,16 +6,18 @@
 #include "EngineManager.h"
 #include "ShaderBroker.h"
 #include "DXLayer.h"
+#include <vector>
 
 // You can hit this in a debugger.
 // Set to 'true' to printf every shader that is linked or compiled.
 static volatile bool g_VerboseShaders = false;
 
-HLSLShader::HLSLShader(std::string pipelineShaderName, std::string fragmentShaderName) {
+HLSLShader::HLSLShader(std::string pipelineShaderName, std::string fragmentShaderName,
+                       std::vector<DXGI_FORMAT>* rtvs) {
     //set vertex name
     _pipelineShaderName = pipelineShaderName;
     //build it
-    build();
+    build(rtvs);
 }
 
 HLSLShader::~HLSLShader() {
@@ -37,7 +39,7 @@ std::wstring HLSLShader::_stringToLPCWSTR(const std::string& s) {
     return r;
 }
 
-void HLSLShader::build() {
+void HLSLShader::build(std::vector<DXGI_FORMAT>* rtvs) {
 
 
     auto device = DXLayer::instance()->getDevice();
@@ -165,11 +167,21 @@ void HLSLShader::build() {
         });
 
     _inputLayout.push_back({
+        "NORMAL",
+        0,
+        DXGI_FORMAT_R32G32B32_FLOAT,
+        0,
+        12,
+        D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,
+        0
+        });
+
+    _inputLayout.push_back({
         "UV",
         0,
         DXGI_FORMAT_R32G32_FLOAT,
         0,
-        12,
+        24,
         D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,
         0
         });
@@ -193,9 +205,11 @@ void HLSLShader::build() {
     pso.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
     pso.SampleMask = UINT_MAX;
     pso.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-    pso.NumRenderTargets = 2;
-    pso.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
-    pso.RTVFormats[1] = DXGI_FORMAT_R8G8B8A8_UNORM;
+    pso.NumRenderTargets = static_cast<UINT>(rtvs->size());
+    int j = 0;
+    for (auto rtv : *rtvs) {
+        pso.RTVFormats[j++] = rtv;
+    }
     pso.SampleDesc.Count = 1;
     pso.SampleDesc.Quality = 0;
     pso.DSVFormat = DXGI_FORMAT_D32_FLOAT;
@@ -297,17 +311,19 @@ void HLSLShader::unbind() {
     auto cmdList = DXLayer::instance()->getCmdList();
     auto presentTarget = DXLayer::instance()->getPresentTarget();
     auto cmdListIndex = DXLayer::instance()->getCmdListIndex();
-    presentTarget->unbindTarget(cmdList, cmdListIndex);
+    //presentTarget->unbindTarget(cmdList, cmdListIndex);
 }
 
 void HLSLShader::bindAttributes(VAO* vao) {
     auto cmdList = DXLayer::instance()->getCmdList();
     cmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-    cmdList->IASetIndexBuffer(&(vao->getIndexBuffer()));
-    D3D12_VERTEX_BUFFER_VIEW vertexBuffers[] = { vao->getVertexBuffer() };
+    if (vao != nullptr) {
+        cmdList->IASetIndexBuffer(&(vao->getIndexBuffer()));
+        D3D12_VERTEX_BUFFER_VIEW vertexBuffers[] = { vao->getVertexBuffer() };
 
-    cmdList->IASetVertexBuffers(0, 1, vertexBuffers);
+        cmdList->IASetVertexBuffers(0, 1, vertexBuffers);
+    }
 }
 
 void HLSLShader::unbindAttributes() {

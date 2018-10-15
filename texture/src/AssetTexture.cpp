@@ -98,7 +98,7 @@ void AssetTexture::_build2DTextureDX(std::string textureName,
     srvDesc.Texture2D.MostDetailedMip = 0;
     srvDesc.Texture2D.MipLevels = textureDescriptor.MipLevels;
     srvDesc.Texture2D.ResourceMinLODClamp = 0;
-    device->CreateShaderResourceView(_textureBuffer->getResource(), &srvDesc, hDescriptor);
+    device->CreateShaderResourceView(_textureBuffer->getResource().Get(), &srvDesc, hDescriptor);
 
     // create sampler descriptor heap
     D3D12_DESCRIPTOR_HEAP_DESC descHeapSampler = {};

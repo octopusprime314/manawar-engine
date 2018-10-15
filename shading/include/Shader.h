@@ -51,7 +51,6 @@ public:
     Shader(const Shader& shader);
     virtual      ~Shader();
     virtual void draw(int offset, int instances, int numTriangles) = 0;
-    virtual void build() = 0;
     virtual void updateData(std::string id, void* data) = 0;
     virtual void updateData(std::string dataName,
                             int textureUnit,

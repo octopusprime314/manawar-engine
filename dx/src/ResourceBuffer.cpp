@@ -52,7 +52,7 @@ ResourceBuffer::ResourceBuffer(const void* initData,
     pitchedDesc.Height = height;
     pitchedDesc.Depth = 1;
     auto alignedWidthInBytes = width * sizeof(DWORD);
-    auto alignment256 = ((alignedWidthInBytes + D3D12_TEXTURE_DATA_PITCH_ALIGNMENT - 1) & ~(D3D12_TEXTURE_DATA_PITCH_ALIGNMENT - 1));
+    UINT alignment256 = ((alignedWidthInBytes + D3D12_TEXTURE_DATA_PITCH_ALIGNMENT - 1) & ~(D3D12_TEXTURE_DATA_PITCH_ALIGNMENT - 1));
     pitchedDesc.RowPitch = alignment256;
     pitchedDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
 
@@ -133,6 +133,47 @@ ResourceBuffer::ResourceBuffer(const void* initData,
             D3D12_RESOURCE_STATE_GENERIC_READ));
 }
 
+ResourceBuffer::ResourceBuffer(D3D12_CLEAR_VALUE clearValue, UINT width, UINT height,
+    ComPtr<ID3D12GraphicsCommandList>& cmdList,
+    ComPtr<ID3D12Device>& device) {
+
+    // Depth/stencil Buffer
+    if (clearValue.Format == DXGI_FORMAT_D32_FLOAT) {
+        device->CreateCommittedResource(
+            &CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
+            D3D12_HEAP_FLAG_NONE,
+            &CD3DX12_RESOURCE_DESC::Tex2D(
+                clearValue.Format,
+                width, height,
+                1,
+                1,
+                1,
+                0,
+                D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL),
+            D3D12_RESOURCE_STATE_COMMON,
+            &clearValue,
+            IID_PPV_ARGS(_defaultBuffer.GetAddressOf())
+        );
+    }
+    else {
+        device->CreateCommittedResource(
+            &CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
+            D3D12_HEAP_FLAG_NONE,
+            &CD3DX12_RESOURCE_DESC::Tex2D(
+                clearValue.Format,
+                width, height,
+                1,
+                1,
+                1,
+                0,
+                D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET),
+            D3D12_RESOURCE_STATE_COMMON,
+            &clearValue,
+            IID_PPV_ARGS(_defaultBuffer.GetAddressOf())
+        );
+    }
+}
+
 D3D12_GPU_VIRTUAL_ADDRESS ResourceBuffer::getGPUAddress() {
     return _defaultBuffer->GetGPUVirtualAddress();
 }
@@ -141,8 +182,8 @@ D3D12_RESOURCE_DESC ResourceBuffer::getDescriptor() {
     return _defaultBuffer->GetDesc();
 }
 
-ID3D12Resource* ResourceBuffer::getResource() {
-    return _defaultBuffer.Get();
+ComPtr<ID3D12Resource> ResourceBuffer::getResource() {
+    return _defaultBuffer;
 }
 
 

@@ -57,6 +57,8 @@ EngineManager::EngineManager(int* argc, char** argv, HINSTANCE hInstance, int nC
     //Load and compile all shaders for the shader broker
     ShaderBroker::instance()->compileShaders();
 
+    _deferredRenderer = new DeferredRenderer();
+
     _viewManager = new ViewEventDistributor(argc, argv, IOEventDistributor::screenPixelWidth, IOEventDistributor::screenPixelHeight);
     
     ModelBroker::setViewManager(_viewManager); //Set the reference to the view model event interface
@@ -89,9 +91,10 @@ EngineManager::EngineManager(int* argc, char** argv, HINSTANCE hInstance, int nC
         _viewManager->triggerEvents();
         _viewManager->setEntityList(_entityList);
 
+
         MasterClock::instance()->run(); //Scene manager kicks off the clock event manager
         
-        _dxLayer->run(_entityList);
+        _dxLayer->run(_deferredRenderer, _entityList);
     }
     else {
         _deferredRenderer = new DeferredRenderer();

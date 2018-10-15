@@ -23,9 +23,14 @@
 #include "Texture.h"
 
 class RenderTexture : public Texture {
-
     RenderTexture(); //Make the default constructor private which forces coder to allocate a Texture with a string name
+    DXGI_FORMAT _format;
+    ComPtr<ID3D12DescriptorHeap> _rtvDescriptorHeap;
 public:
     RenderTexture(GLuint width, GLuint height, TextureFormat format);
     ~RenderTexture();
+    void bindTarget(D3D12_RESOURCE_STATES state);
+    void unbindTarget(D3D12_RESOURCE_STATES state);
+    D3D12_CPU_DESCRIPTOR_HANDLE getHandle();
+    DXGI_FORMAT getFormat();
 };

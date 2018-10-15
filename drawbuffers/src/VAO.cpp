@@ -11,6 +11,11 @@ VAO::~VAO() {
 
 }
 
+VAO::VAO(D3D12_VERTEX_BUFFER_VIEW vbv, D3D12_INDEX_BUFFER_VIEW ibv) {
+    _vbv = vbv;
+    _ibv = ibv;
+}
+
 void VAO::setVertexContext(GLuint context) {
     _vertexBufferContext = context;
 }
@@ -220,7 +225,7 @@ void VAO::createVAO(RenderBuffers* renderBuffers, ModelClass classId, Animation*
 
             //Now flatten vertices and normals out 
             triBuffSize = vertices->size() * 3;
-            flattenAttribs = new float[triBuffSize + (textures->size() * 2)]; //Only include the x y and z values not w
+            flattenAttribs = new float[triBuffSize + (normals->size() * 3) + (textures->size() * 2)]; //Only include the x y and z values not w
             flattenIndexes = new uint32_t[triBuffSize / 3]; //Only include the x y and z values not w, same size as vertices
 
             int i = 0; //iterates through vertices indexes
@@ -232,15 +237,24 @@ void VAO::createVAO(RenderBuffers* renderBuffers, ModelClass classId, Animation*
                 flattenAttribs[i++] = -flatVert[2];//z is flipped in directx
                 flattenIndexes[j] = j;
                 j++;
-                i += 2;
+                i += 5;
             }
 
             i = 3;
+            for (auto normal : *normals) {
+                float *flatNormal = normal.getFlatBuffer();
+                flattenAttribs[i++] = flatNormal[0];
+                flattenAttribs[i++] = flatNormal[1];
+                flattenAttribs[i++] = -flatNormal[2];
+                i += 5;
+            }
+
+            i = 6;
             for (auto texture : *textures) {
                 float *flat = texture.getFlatBuffer();
                 flattenAttribs[i++] = flat[0];
                 flattenAttribs[i++] = flat[1];
-                i += 3;
+                i += 6;
             }
         }
     }
@@ -279,10 +293,11 @@ void VAO::createVAO(RenderBuffers* renderBuffers, ModelClass classId, Animation*
 
             //Now flatten vertices and normals out 
             triBuffSize = indices->size() * 3;
-            flattenAttribs = new float[triBuffSize + (textures->size() * 2)]; //Only include the x y and z values not w
+            flattenAttribs = new float[triBuffSize + (indices->size() * 3) + (textures->size() * 2)]; //Only include the x y and z values not w
             flattenIndexes = new uint32_t[triBuffSize / 3]; //Only include the x y and z values not w, same size as vertices
 
             uint16_t j = 0;
+            i = 0;
             for (auto index : *indices) {
                 float *flatVert = (*vertices)[index].getFlatBuffer();
                 flattenAttribs[i++] = flatVert[0];
@@ -290,15 +305,24 @@ void VAO::createVAO(RenderBuffers* renderBuffers, ModelClass classId, Animation*
                 flattenAttribs[i++] = -flatVert[2]; //z is flipped in directx
                 flattenIndexes[j] = j;
                 j++;
-                i += 2;
+                i += 5;
             }
 
             i = 3;
+            for (auto index : *indices) {
+                float *flatNormal = (*normals)[index].getFlatBuffer();
+                flattenAttribs[i++] = flatNormal[0];
+                flattenAttribs[i++] = flatNormal[1];
+                flattenAttribs[i++] = -flatNormal[2];
+                i += 5;
+            }
+
+            i = 6;
             for (auto texture : *textures) {
                 float *flat = texture.getFlatBuffer();
                 flattenAttribs[i++] = flat[0];
                 flattenAttribs[i++] = flat[1];
-                i += 3;
+                i += 6;
             }
         }
 
@@ -463,10 +487,11 @@ void VAO::createVAO(RenderBuffers* renderBuffers, ModelClass classId, Animation*
 
         struct Vertex {
             float pos[3];
+            float normal[3];
             float uv[2];
         };
 
-        UINT byteSize = static_cast<UINT>((triBuffSize + (textures->size() * 2)) * sizeof(float));
+        UINT byteSize = static_cast<UINT>((triBuffSize + (normals->size() * 3) + (textures->size() * 2)) * sizeof(float));
 
         _vertexBuffer = new ResourceBuffer(flattenAttribs, byteSize, 
             DXLayer::instance()->getCmdList(), DXLayer::instance()->getDevice());

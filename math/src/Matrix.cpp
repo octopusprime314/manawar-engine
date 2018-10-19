@@ -1,6 +1,7 @@
 #include "Matrix.h"
 #include <iostream>
 #include <iomanip>
+#include "EngineManager.h"
 using namespace std;
 
 Matrix::Matrix() {
@@ -394,11 +395,21 @@ Matrix Matrix::cameraProjection(float angleOfView, float imageAspectRatio, float
     float t = scale; //scale again
     float b = -t; //negative scale
 
-    // Perspective Matrix
-    result[0] = 2 * n / (r - l), result[1] = 0, result[2] = (r + l) / (r - l), result[3] = 0;
-    result[4] = 0, result[5] = 2 * n / (t - b), result[6] = (t + b) / (t - b), result[7] = 0;
-    result[8] = 0, result[9] = 0, result[10] = -(f + n) / (f - n), result[11] = -2 * f * n / (f - n);
-    result[12] = 0, result[13] = 0, result[14] = -1, result[15] = 0;
+    if (EngineManager::getGraphicsLayer() == GraphicsLayer::OPENGL) {
+
+        // Perspective Matrix
+        result[0] = 2 * n / (r - l), result[1] = 0, result[2] = (r + l) / (r - l), result[3] = 0;
+        result[4] = 0, result[5] = 2 * n / (t - b), result[6] = (t + b) / (t - b), result[7] = 0;
+        result[8] = 0, result[9] = 0, result[10] = -(f + n) / (f - n), result[11] = -2 * f * n / (f - n);
+        result[12] = 0, result[13] = 0, result[14] = -1, result[15] = 0;
+    }
+    else {
+        // Perspective Matrix
+        result[0] = 2 * n / (r - l), result[1] = 0, result[2] = -(r + l) / (r - l), result[3] = 0;
+        result[4] = 0, result[5] = 2 * n / (t - b), result[6] = -(t + b) / (t - b), result[7] = 0;
+        result[8] = 0, result[9] = 0, result[10] = (f) / (f - n), result[11] = - f * n / (f - n);
+        result[12] = 0, result[13] = 0, result[14] = 1, result[15] = 0;
+    }
 
     return Matrix(result);
 }
@@ -413,11 +424,22 @@ Matrix Matrix::cameraOrtho(float orthoWidth, float orthoHeight, float n, float f
     float t = orthoHeight / 2.0f;  //Top
     float b = -t;                  //Bottom
 
-    // Ortho Matrix
-    result[0] = 2.0f / (r - l), result[1] = 0.0f, result[2] = 0.0f, result[3] = -((r + l) / (r - l));
-    result[4] = 0.0f, result[5] = 2.0f / (t - b), result[6] = 0.0f, result[7] = -((t + b) / (t - b));
-    result[8] = 0.0f, result[9] = 0.0f, result[10] = -2.0f / (f - n), result[11] = -((f + n) / (f - n));
-    result[12] = 0.0f, result[13] = 0.0f, result[14] = 0.0f, result[15] = 1.0f;
+    if (EngineManager::getGraphicsLayer() == GraphicsLayer::OPENGL) {
+        // Clip space in z is -1 to 1 in opengl
+        // Ortho Matrix
+        result[0] = 2.0f / (r - l), result[1] = 0.0f, result[2] = 0.0f, result[3] = -((r + l) / (r - l));
+        result[4] = 0.0f, result[5] = 2.0f / (t - b), result[6] = 0.0f, result[7] = -((t + b) / (t - b));
+        result[8] = 0.0f, result[9] = 0.0f, result[10] = -2.0f / (f - n), result[11] = -((f + n) / (f - n));
+        result[12] = 0.0f, result[13] = 0.0f, result[14] = 0.0f, result[15] = 1.0f;
+    }
+    else {
+        // Clip space in z is 0 to 1 in directx
+        // Ortho Matrix
+        result[0] = 2.0f / (r - l), result[1] = 0.0f, result[2] = 0.0f, result[3] = -((r + l) / (r - l));
+        result[4] = 0.0f, result[5] = 2.0f / (t - b), result[6] = 0.0f, result[7] = -((t + b) / (t - b));
+        result[8] = 0.0f, result[9] = 0.0f, result[10] = -1.0f / (f - n), result[11] = -((n) / (f - n));
+        result[12] = 0.0f, result[13] = 0.0f, result[14] = 0.0f, result[15] = 1.0f;
+    }
 
     return Matrix(result);
 

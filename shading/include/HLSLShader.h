@@ -33,6 +33,7 @@
 #include <D3Dcompiler.h>
 #include "Shader.h"
 #include "ConstantBuffer.h"
+#include "RenderTexture.h"
 
 using namespace Microsoft::WRL;
 
@@ -77,4 +78,6 @@ public:
     void                                  unbindAttributes();
     void                                  bind();
     void                                  unbind();
+    static void                           setOM(std::vector<RenderTexture> targets, int width, int height);
+    static void                           releaseOM(std::vector<RenderTexture> targets);
 };

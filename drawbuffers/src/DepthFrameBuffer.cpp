@@ -1,30 +1,33 @@
 #include "DepthFrameBuffer.h"
+#include "EngineManager.h"
 
 DepthFrameBuffer::DepthFrameBuffer(unsigned int width, unsigned int height) :
     _renderTexture(width, height, TextureFormat::DEPTH32_FLOAT) {
 
-    //Generate a context for the frame buffer
-    glGenFramebuffers(1, &_frameBufferContext);
+    if (EngineManager::getGraphicsLayer() == GraphicsLayer::OPENGL) {
+        //Generate a context for the frame buffer
+        glGenFramebuffers(1, &_frameBufferContext);
 
-    //Bind the frame buffer context to complete operations on it
-    glBindFramebuffer(GL_FRAMEBUFFER, _frameBufferContext);
+        //Bind the frame buffer context to complete operations on it
+        glBindFramebuffer(GL_FRAMEBUFFER, _frameBufferContext);
 
-    //Finally attach the texture to the previously generated frame buffer
-    //the texture will be used in later shader texture sampling
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, _renderTexture.getContext(), 0);
+        //Finally attach the texture to the previously generated frame buffer
+        //the texture will be used in later shader texture sampling
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, _renderTexture.getContext(), 0);
 
-    //Tells opengl that the frame buffer will not have a color buffer
-    glDrawBuffer(GL_NONE);
-    glReadBuffer(GL_NONE);
+        //Tells opengl that the frame buffer will not have a color buffer
+        glDrawBuffer(GL_NONE);
+        glReadBuffer(GL_NONE);
 
-    //check the frame buffer's health
-    GLuint status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-    if (status != GL_FRAMEBUFFER_COMPLETE) {
-        std::cout << "Frame buffer cannot be generated! Status: " << status << std::endl;
+        //check the frame buffer's health
+        GLuint status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+        if (status != GL_FRAMEBUFFER_COMPLETE) {
+            std::cout << "Frame buffer cannot be generated! Status: " << status << std::endl;
+        }
+
+        //remove framebuffer context
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
-
-    //remove framebuffer context
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 DepthFrameBuffer::~DepthFrameBuffer() {

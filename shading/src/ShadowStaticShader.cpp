@@ -30,7 +30,8 @@ void ShadowStaticShader::runShader(Entity* entity, Light* light) {
     _shader->bind();
 
     for (auto vaoInstance : *vao) {
-        glBindVertexArray(vaoInstance->getVAOShadowContext());
+
+        _shader->bindAttributes(vaoInstance);
 
         MVP* mvp = entity->getMVP();
         //glUniform mat4 combined model and world matrix, GL_TRUE is telling GL we are passing in the matrix as row major
@@ -49,9 +50,9 @@ void ShadowStaticShader::runShader(Entity* entity, Light* light) {
         }
 
         //Draw triangles using the bound buffer vertices at starting index 0 and number of vertices
-        glDrawArrays(GL_TRIANGLES, 0, (GLsizei)verticesSize);
+        _shader->draw(0, 1, (GLsizei)verticesSize);
 
-        glBindVertexArray(0);
+        _shader->unbindAttributes();
     }
-    glUseProgram(0);//end using this shader
+    _shader->unbind();
 }

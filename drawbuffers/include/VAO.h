@@ -57,6 +57,8 @@ class VAO {
     ResourceBuffer*                          _indexBuffer;
     D3D12_INDEX_BUFFER_VIEW                  _ibv;
     D3D12_VERTEX_BUFFER_VIEW                 _vbv;
+    D3D12_INDEX_BUFFER_VIEW                  _shadowIBV;
+    D3D12_VERTEX_BUFFER_VIEW                 _shadowVBV;
 public:
     VAO();
     VAO(D3D12_VERTEX_BUFFER_VIEW vbv, D3D12_INDEX_BUFFER_VIEW ibv);

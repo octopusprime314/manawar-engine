@@ -35,7 +35,9 @@ public:
     ~DXLayer();
 
     void                              flushCommandList();
-    void                              run(DeferredRenderer* deffered, std::vector<Entity*> entities);
+    void                              run(DeferredRenderer* deffered, 
+                                          std::vector<Entity*> entities,
+                                          std::vector<Light*> lightList);
     static DXLayer*                   instance();
     static void                       initialize(HINSTANCE hInstance, DWORD width, DWORD height, int cmdShow);
 
@@ -49,7 +51,8 @@ public:
 private:
     DXLayer(HINSTANCE hInstance, DWORD width, DWORD height, int cmdShow);
     void                              _render(DeferredRenderer* deferred,
-                                              std::vector<Entity*> entities);
+                                              std::vector<Entity*> entities,
+                                              std::vector<Light*> lightList);
 
     PresentTarget*                    _presentTarget;
     StaticShader*                     _staticShader;

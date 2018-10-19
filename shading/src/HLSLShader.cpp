@@ -80,8 +80,12 @@ void HLSLShader::build(std::vector<DXGI_FORMAT>* rtvs) {
 
     // Query shaders to properly build root signature
 
-    _queryShaderResources(compiledVS);
-    _queryShaderResources(compiledPS);
+    if (!errorsVS) {
+        _queryShaderResources(compiledVS);
+    }
+    if (!errorsPS) {
+        _queryShaderResources(compiledPS);
+    }
 
     CD3DX12_ROOT_PARAMETER* RP = new CD3DX12_ROOT_PARAMETER[_resourceDescriptorTable.size()];
     CD3DX12_DESCRIPTOR_RANGE* srvTableRange; //reuse
@@ -190,14 +194,18 @@ void HLSLShader::build(std::vector<DXGI_FORMAT>* rtvs) {
     ZeroMemory(&pso, sizeof(D3D12_GRAPHICS_PIPELINE_STATE_DESC));
     pso.InputLayout = { _inputLayout.data(), static_cast<UINT>(_inputLayout.size()) };
     pso.pRootSignature = _rootSignature.Get();
-    pso.VS = {
-        reinterpret_cast<BYTE*>(compiledVS->GetBufferPointer()),
-        compiledVS->GetBufferSize()
-    };
-    pso.PS = {
-        reinterpret_cast<BYTE*>(compiledPS->GetBufferPointer()),
-        compiledPS->GetBufferSize()
-    };
+    if (!errorsVS) {
+        pso.VS = {
+            reinterpret_cast<BYTE*>(compiledVS->GetBufferPointer()),
+            compiledVS->GetBufferSize()
+        };
+    }
+    if (!errorsPS) {
+        pso.PS = {
+            reinterpret_cast<BYTE*>(compiledPS->GetBufferPointer()),
+            compiledPS->GetBufferSize()
+        };
+    }
     auto rasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
     rasterizerState.CullMode = D3D12_CULL_MODE_NONE; //disabled culling 
     pso.RasterizerState = rasterizerState;
@@ -205,10 +213,15 @@ void HLSLShader::build(std::vector<DXGI_FORMAT>* rtvs) {
     pso.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
     pso.SampleMask = UINT_MAX;
     pso.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-    pso.NumRenderTargets = static_cast<UINT>(rtvs->size());
-    int j = 0;
-    for (auto rtv : *rtvs) {
-        pso.RTVFormats[j++] = rtv;
+    if (rtvs != nullptr) {
+        pso.NumRenderTargets = static_cast<UINT>(rtvs->size());
+        int j = 0;
+        for (auto rtv : *rtvs) {
+            pso.RTVFormats[j++] = rtv;
+        }
+    }
+    else {
+        pso.NumRenderTargets = 0;
     }
     pso.SampleDesc.Count = 1;
     pso.SampleDesc.Quality = 0;
@@ -217,6 +230,88 @@ void HLSLShader::build(std::vector<DXGI_FORMAT>* rtvs) {
     result = device->CreateGraphicsPipelineState(&pso, IID_PPV_ARGS(&_psoState));
 
 }
+
+void HLSLShader::setOM(std::vector<RenderTexture> targets, int width, int height) {
+    auto device = DXLayer::instance()->getDevice();
+    auto cmdList = DXLayer::instance()->getCmdList();
+
+    D3D12_VIEWPORT viewPort =
+    {
+        0.0f,
+        0.0f,
+        static_cast<float>(width),
+        static_cast<float>(height),
+        0.0f,
+        1.0f
+    };
+
+    // Scissor rectangle
+
+    D3D12_RECT rectScissor = { 0, 0, (LONG)width,(LONG)height};
+
+    D3D12_CPU_DESCRIPTOR_HANDLE* handles = new D3D12_CPU_DESCRIPTOR_HANDLE[targets.size() - 1];
+    int handleIndex = 0;
+    CD3DX12_CPU_DESCRIPTOR_HANDLE dsvHandle;
+    for (auto buffer : targets) {
+        if (buffer.getFormat() == DXGI_FORMAT_D32_FLOAT) {
+            dsvHandle = buffer.getHandle();
+            buffer.bindTarget(D3D12_RESOURCE_STATE_DEPTH_WRITE);
+        }
+        else {
+            handles[handleIndex++] = buffer.getHandle();
+            buffer.bindTarget(D3D12_RESOURCE_STATE_RENDER_TARGET);
+        }
+    }
+
+    const float clear[] = { 0.0f, 0.0f, 0.0f, 1.000f };
+
+    cmdList->RSSetViewports(1, &viewPort);
+    cmdList->RSSetScissorRects(1, &rectScissor);
+
+    cmdList->OMSetRenderTargets(
+        static_cast<UINT>(targets.size() - 1),
+        handles,
+        false,
+        &dsvHandle);
+
+    int rtvIndex = 0;
+    for (int i = 0; i < targets.size(); i++) {
+
+        // Clear target
+        if (targets[i].getFormat() == DXGI_FORMAT_D32_FLOAT) {
+
+            cmdList->ClearDepthStencilView(
+                dsvHandle,
+                D3D12_CLEAR_FLAG_DEPTH,
+                1.0f,
+                0,
+                NULL,
+                0
+            );
+        }
+        else {
+
+            cmdList->ClearRenderTargetView(
+                handles[rtvIndex++],
+                clear,
+                NULL,
+                0
+            );
+        }
+    }
+}
+
+void HLSLShader::releaseOM(std::vector<RenderTexture> targets) {
+    for (auto buffer : targets) {
+        if (buffer.getFormat() == DXGI_FORMAT_D32_FLOAT) {
+            buffer.unbindTarget(D3D12_RESOURCE_STATE_DEPTH_WRITE);
+        }
+        else {
+            buffer.unbindTarget(D3D12_RESOURCE_STATE_RENDER_TARGET);
+        }
+    }
+}
+
 
 void HLSLShader::_queryShaderResources(ComPtr<ID3DBlob> shaderBlob) {
 

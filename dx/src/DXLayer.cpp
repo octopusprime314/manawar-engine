@@ -2,6 +2,7 @@
 #include "ModelBroker.h"
 #include "ShaderBroker.h"
 #include "HLSLShader.h"
+#include "Light.h"
 
 DXLayer* DXLayer::_dxLayer = nullptr;
 
@@ -142,7 +143,7 @@ DXLayer::~DXLayer() {
 
 }
 
-void DXLayer::run(DeferredRenderer* deferred, std::vector<Entity*> entities) {
+void DXLayer::run(DeferredRenderer* deferred, std::vector<Entity*> entities, std::vector<Light*> lightList) {
 
     // show the window
     ShowWindow(_window, _cmdShow);
@@ -167,16 +168,21 @@ void DXLayer::run(DeferredRenderer* deferred, std::vector<Entity*> entities) {
                 break;
         }
         else {
-            _render(deferred, entities);
+            _render(deferred, entities, lightList);
         }
     }
 }
 
-void DXLayer::_render(DeferredRenderer* deferred, std::vector<Entity*> entities) {
+void DXLayer::_render(DeferredRenderer* deferred, std::vector<Entity*> entities, std::vector<Light*> lightList) {
 
     // Open command list
     _cmdAllocator->Reset();
     _cmdLists[_cmdListIndex]->Reset(_cmdAllocator.Get(), nullptr);
+
+    //send all vbo data to point light shadow pre pass
+    for (Light* light : lightList) {
+        light->renderShadow(entities);
+    }
 
     deferred->bind();
 

@@ -2,6 +2,8 @@
 #include "ShaderBroker.h"
 #include "Entity.h"
 #include "IOEventDistributor.h"
+#include "EngineManager.h"
+#include "HLSLShader.h"
 
 static const float SHADOW_RESOLUTION = 20.0; //10 pixels per unit distance of 1
 
@@ -23,29 +25,48 @@ Texture* DirectionalShadow::getTexture() {
 
 void DirectionalShadow::render(std::vector<Entity*> entityList, Light* light) {
 
-    // Specify what to render an start acquiring
-    GLenum buffers[] = { GL_NONE };
-    //Bind frame buffer
-    glBindFramebuffer(GL_FRAMEBUFFER, _shadow.getFrameBufferContext());
+    if (EngineManager::getGraphicsLayer() == GraphicsLayer::OPENGL) {
+        // Specify what to render an start acquiring
+        GLenum buffers[] = { GL_NONE };
+        //Bind frame buffer
+        glBindFramebuffer(GL_FRAMEBUFFER, _shadow.getFrameBufferContext());
 
-    //Need to change viewport to the resolution of the shadow texture
-    glViewport(0, 0, _shadow.getWidth(), _shadow.getHeight());
+        //Need to change viewport to the resolution of the shadow texture
+        glViewport(0, 0, _shadow.getWidth(), _shadow.getHeight());
 
-    //Clear depth buffer
-    glClear(GL_DEPTH_BUFFER_BIT);
+        //Clear depth buffer
+        glClear(GL_DEPTH_BUFFER_BIT);
 
-    glDrawBuffers(1, buffers);
+        glDrawBuffers(1, buffers);
 
-    for (Entity* entity : entityList) {
+        for (Entity* entity : entityList) {
 
-        if (entity->getModel()->getClassType() == ModelClass::ModelType) {
-            _staticShadowShader->runShader(entity, light);
+            if (entity->getModel()->getClassType() == ModelClass::ModelType) {
+                _staticShadowShader->runShader(entity, light);
+            }
+            else if (entity->getModel()->getClassType() == ModelClass::AnimatedModelType) {
+                _animatedShadowShader->runShader(entity, light);
+            }
         }
-        else if (entity->getModel()->getClassType() == ModelClass::AnimatedModelType) {
-            _animatedShadowShader->runShader(entity, light);
-        }
+
+        //Bring to original rendering viewport
+        glViewport(0, 0, IOEventDistributor::screenPixelWidth, IOEventDistributor::screenPixelHeight);
     }
+    else {
+        RenderTexture* depthTexture = static_cast<RenderTexture*>(_shadow.getTexture());
+        std::vector<RenderTexture> textures = { *depthTexture };
+        HLSLShader::setOM(textures, _shadow.getWidth(), _shadow.getHeight());
 
-    //Bring to original rendering viewport
-    glViewport(0, 0, IOEventDistributor::screenPixelWidth, IOEventDistributor::screenPixelHeight);
+        for (Entity* entity : entityList) {
+
+            if (entity->getModel()->getClassType() == ModelClass::ModelType) {
+                _staticShadowShader->runShader(entity, light);
+            }
+            else if (entity->getModel()->getClassType() == ModelClass::AnimatedModelType) {
+                _animatedShadowShader->runShader(entity, light);
+            }
+        }
+
+        HLSLShader::releaseOM(textures);
+    }
 }

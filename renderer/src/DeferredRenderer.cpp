@@ -4,11 +4,12 @@
 #include "ShaderBroker.h"
 #include "EngineManager.h"
 #include "DXLayer.h"
+#include "HLSLShader.h"
 
 DeferredRenderer::DeferredRenderer() : 
     _mrtFBO(), 
-    //_deferredShader(static_cast<DeferredShader*>(ShaderBroker::instance()->getShader("deferredShader")))
-    _deferredShader(static_cast<DeferredShader*>(ShaderBroker::instance()->getShader("staticShader"))) {
+    _deferredShader(static_cast<DeferredShader*>(ShaderBroker::instance()->getShader("deferredShader"))) {
+    //_deferredShader(static_cast<DeferredShader*>(ShaderBroker::instance()->getShader("staticShader"))) {
 
 }
 
@@ -24,11 +25,8 @@ void DeferredRenderer::deferredLighting(std::vector<Light*>& lights, ViewEventDi
 void DeferredRenderer::bind() {
 
     if (EngineManager::getGraphicsLayer() == GraphicsLayer::DX12) {
-        auto presentTarget = DXLayer::instance()->getPresentTarget();
-        auto device = DXLayer::instance()->getDevice();
-        auto cmdList = DXLayer::instance()->getCmdList();
-        //presentTarget->bindTarget(device, cmdList, DXLayer::instance()->getCmdListIndex());
-        _mrtFBO.bind();
+
+        HLSLShader::setOM(_mrtFBO.getTextures(), IOEventDistributor::screenPixelWidth, IOEventDistributor::screenPixelHeight);
     }
     else {
         //Bind frame buffer
@@ -44,7 +42,8 @@ void DeferredRenderer::bind() {
 }
 void DeferredRenderer::unbind() {
     if (EngineManager::getGraphicsLayer() == GraphicsLayer::DX12) {
-        _mrtFBO.unbind();
+
+        HLSLShader::releaseOM(_mrtFBO.getTextures());
     }
     else {
         //unbind frame buffer

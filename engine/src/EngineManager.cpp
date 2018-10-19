@@ -94,10 +94,27 @@ EngineManager::EngineManager(int* argc, char** argv, HINSTANCE hInstance, int nC
 
         MasterClock::instance()->run(); //Scene manager kicks off the clock event manager
         
-        _dxLayer->run(_deferredRenderer, _entityList);
+        Vector4 sunLocation(0.0f, 0.0f, -300.0f);
+        MVP lightMapMVP;
+        
+        lightMapMVP.setView(Matrix::translation(sunLocation.getx(), sunLocation.gety(), sunLocation.getz())
+            * Matrix::cameraRotationAroundX(-90.0f));
+        
+        lightMapMVP.setProjection(Matrix::cameraOrtho(600.0f, 600.0f, 0.0f, 600.0f));
+        
+        std::vector<Light*> lightList;
+        lightList.push_back(new ShadowedDirectionalLight(_viewManager->getEventWrapper(),
+            lightMapMVP,
+            EffectType::None,
+            Vector4(1.0, 0.0, 0.0)));
+
+        _dxLayer->run(_deferredRenderer, _entityList, lightList);
+
+        //Eventually replace _dxLayer->run with _glfwContext->run
+        //_glfwContext->run();
+
     }
     else {
-        _deferredRenderer = new DeferredRenderer();
 
         _forwardRenderer = new ForwardRenderer();
 

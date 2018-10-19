@@ -234,7 +234,7 @@ void VAO::createVAO(RenderBuffers* renderBuffers, ModelClass classId, Animation*
                 float *flatVert = vertex.getFlatBuffer();
                 flattenAttribs[i++] = flatVert[0];
                 flattenAttribs[i++] = flatVert[1];
-                flattenAttribs[i++] = -flatVert[2];//z is flipped in directx
+                flattenAttribs[i++] = flatVert[2];//z is flipped in directx
                 flattenIndexes[j] = j;
                 j++;
                 i += 5;
@@ -245,7 +245,7 @@ void VAO::createVAO(RenderBuffers* renderBuffers, ModelClass classId, Animation*
                 float *flatNormal = normal.getFlatBuffer();
                 flattenAttribs[i++] = flatNormal[0];
                 flattenAttribs[i++] = flatNormal[1];
-                flattenAttribs[i++] = -flatNormal[2];
+                flattenAttribs[i++] = flatNormal[2];
                 i += 5;
             }
 
@@ -302,7 +302,7 @@ void VAO::createVAO(RenderBuffers* renderBuffers, ModelClass classId, Animation*
                 float *flatVert = (*vertices)[index].getFlatBuffer();
                 flattenAttribs[i++] = flatVert[0];
                 flattenAttribs[i++] = flatVert[1];
-                flattenAttribs[i++] = -flatVert[2]; //z is flipped in directx
+                flattenAttribs[i++] = flatVert[2]; //z is flipped in directx
                 flattenIndexes[j] = j;
                 j++;
                 i += 5;
@@ -313,7 +313,7 @@ void VAO::createVAO(RenderBuffers* renderBuffers, ModelClass classId, Animation*
                 float *flatNormal = (*normals)[index].getFlatBuffer();
                 flattenAttribs[i++] = flatNormal[0];
                 flattenAttribs[i++] = flatNormal[1];
-                flattenAttribs[i++] = -flatNormal[2];
+                flattenAttribs[i++] = flatNormal[2];
                 i += 5;
             }
 
@@ -491,7 +491,13 @@ void VAO::createVAO(RenderBuffers* renderBuffers, ModelClass classId, Animation*
             float uv[2];
         };
 
-        UINT byteSize = static_cast<UINT>((triBuffSize + (normals->size() * 3) + (textures->size() * 2)) * sizeof(float));
+        UINT byteSize = 0;
+        if (classId == ModelClass::AnimatedModelType) {
+            byteSize = static_cast<UINT>((triBuffSize + (indices->size() * 3) + (textures->size() * 2)) * sizeof(float));
+        }
+        else {
+            byteSize = static_cast<UINT>((triBuffSize + (normals->size() * 3) + (textures->size() * 2)) * sizeof(float));
+        }
 
         _vertexBuffer = new ResourceBuffer(flattenAttribs, byteSize, 
             DXLayer::instance()->getCmdList(), DXLayer::instance()->getDevice());

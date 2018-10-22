@@ -40,12 +40,14 @@ void Texture::bindToDXShader(ComPtr<ID3D12GraphicsCommandList>& cmdList,
     UINT textureBinding,
     std::map<std::string, UINT>& resourceBindings) {
 
-    ID3D12DescriptorHeap* descriptorHeaps[] = { _srvDescriptorHeap.Get(),  _samplerDescriptorHeap.Get() };
-    cmdList->SetDescriptorHeaps(2, descriptorHeaps);
+    if (_srvDescriptorHeap != nullptr && _samplerDescriptorHeap != nullptr) {
+        ID3D12DescriptorHeap* descriptorHeaps[] = { _srvDescriptorHeap.Get(),  _samplerDescriptorHeap.Get() };
+        cmdList->SetDescriptorHeaps(2, descriptorHeaps);
 
-    cmdList->SetGraphicsRootDescriptorTable(textureBinding,
-        _srvDescriptorHeap->GetGPUDescriptorHandleForHeapStart());
+        cmdList->SetGraphicsRootDescriptorTable(textureBinding,
+            _srvDescriptorHeap->GetGPUDescriptorHandleForHeapStart());
 
-    cmdList->SetGraphicsRootDescriptorTable(resourceBindings["textureSampler"],
-        _samplerDescriptorHeap->GetGPUDescriptorHandleForHeapStart());
+        cmdList->SetGraphicsRootDescriptorTable(resourceBindings["textureSampler"],
+            _samplerDescriptorHeap->GetGPUDescriptorHandleForHeapStart());
+    }
 }

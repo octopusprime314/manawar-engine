@@ -16,7 +16,7 @@
 #include "MergeShader.h"
 #include "Entity.h"
 #include "DeferredRenderer.h"
-
+#include "DeferredFrameBuffer.h"
 
 #pragma comment(lib, "D3D12.lib") 
 #pragma comment(lib, "dxgi.lib") 
@@ -37,7 +37,8 @@ public:
     void                              flushCommandList();
     void                              run(DeferredRenderer* deffered, 
                                           std::vector<Entity*> entities,
-                                          std::vector<Light*> lightList);
+                                          std::vector<Light*> lightList,
+                                          ViewEventDistributor* viewEventDistributor);
     static DXLayer*                   instance();
     static void                       initialize(HINSTANCE hInstance, DWORD width, DWORD height, int cmdShow);
 
@@ -52,11 +53,13 @@ private:
     DXLayer(HINSTANCE hInstance, DWORD width, DWORD height, int cmdShow);
     void                              _render(DeferredRenderer* deferred,
                                               std::vector<Entity*> entities,
-                                              std::vector<Light*> lightList);
+                                              std::vector<Light*> lightList,
+                                              ViewEventDistributor* viewEventDistributor);
 
     PresentTarget*                    _presentTarget;
     StaticShader*                     _staticShader;
     static DXLayer*                   _dxLayer;
+    DeferredFrameBuffer*              _deferredFBO;
 
     ComPtr<ID3D12Device>              _device;
     ComPtr<ID3D12CommandAllocator>    _cmdAllocator;

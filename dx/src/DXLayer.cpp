@@ -126,6 +126,7 @@ DXLayer::DXLayer(HINSTANCE hInstance, DWORD width, DWORD height, int cmdShow) :
 
     _presentTarget = new PresentTarget(_device, _rtvFormat, _cmdQueue, height, width, _window);
 
+
 }
 
 void DXLayer::initialize(HINSTANCE hInstance, DWORD width, DWORD height, int cmdShow) {
@@ -143,7 +144,12 @@ DXLayer::~DXLayer() {
 
 }
 
-void DXLayer::run(DeferredRenderer* deferred, std::vector<Entity*> entities, std::vector<Light*> lightList) {
+void DXLayer::run(DeferredRenderer* deferred, 
+    std::vector<Entity*> entities, 
+    std::vector<Light*> lightList,
+    ViewEventDistributor* viewEventDistributor) {
+
+    _deferredFBO = new DeferredFrameBuffer();
 
     // show the window
     ShowWindow(_window, _cmdShow);
@@ -168,12 +174,15 @@ void DXLayer::run(DeferredRenderer* deferred, std::vector<Entity*> entities, std
                 break;
         }
         else {
-            _render(deferred, entities, lightList);
+            _render(deferred, entities, lightList, viewEventDistributor);
         }
     }
 }
 
-void DXLayer::_render(DeferredRenderer* deferred, std::vector<Entity*> entities, std::vector<Light*> lightList) {
+void DXLayer::_render(DeferredRenderer* deferred, 
+    std::vector<Entity*> entities, 
+    std::vector<Light*> lightList,
+    ViewEventDistributor* viewEventDistributor) {
 
     // Open command list
     _cmdAllocator->Reset();
@@ -195,12 +204,24 @@ void DXLayer::_render(DeferredRenderer* deferred, std::vector<Entity*> entities,
 
     deferred->unbind();
 
+    RenderTexture* renderTexture = static_cast<RenderTexture*>(_deferredFBO->getRenderTexture());
+    RenderTexture* depthTexture = static_cast<RenderTexture*>(_deferredFBO->getDepthTexture());
+
+    std::vector<RenderTexture> textures = { *renderTexture, *depthTexture };
+    HLSLShader::setOM(textures,
+        IOEventDistributor::screenPixelWidth, IOEventDistributor::screenPixelHeight);
+    
+    //Pass lights to deferred shading pass
+    deferred->deferredLighting(lightList, viewEventDistributor, nullptr, nullptr);
+
+    HLSLShader::releaseOM(textures);
+
     auto presentShader = static_cast<MergeShader*>(ShaderBroker::instance()->getShader("mergeShader"));
     
     _presentTarget->bindTarget(_device, _cmdLists[_cmdListIndex], _cmdListIndex);
     
-    auto texture = deferred->getGBuffers()->getTextures()[0];
-    presentShader->runShader(&texture, nullptr);
+    auto texture = _deferredFBO->getRenderTexture();
+    presentShader->runShader(texture, nullptr);
 
     _presentTarget->unbindTarget(_cmdLists[_cmdListIndex], _cmdListIndex);
 

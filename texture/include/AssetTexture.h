@@ -29,7 +29,10 @@ class AssetTexture : public Texture{
                                                  ComPtr<ID3D12GraphicsCommandList>& cmdList,
                                                  ComPtr<ID3D12Device>& device);
     void                         _build2DTextureGL(std::string textureName);
-    void                         _buildCubeMapTexture(std::string skyboxName);
+    void                         _buildCubeMapTextureGL(std::string skyboxName);
+    void                         _buildCubeMapTextureDX(std::string skyboxName,
+                                                 ComPtr<ID3D12GraphicsCommandList>& cmdList,
+                                                 ComPtr<ID3D12Device>& device);
     bool                         _getTextureData(std::string textureName);
     void                         _decodeTexture(std::string textureName, unsigned int textureType);
   

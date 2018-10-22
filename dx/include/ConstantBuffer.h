@@ -12,7 +12,7 @@ public:
     ConstantBuffer(ComPtr<ID3D12Device> device, std::vector<D3D12_SHADER_VARIABLE_DESC> constants);
     ~ConstantBuffer();
     void update(ComPtr<ID3D12GraphicsCommandList> cmdList,
-                void* data,
+                void* data, std::string id,
                 UINT resourceBinding, UINT sizeInBytes, UINT offsetInBytes);
 
 private:

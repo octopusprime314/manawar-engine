@@ -46,11 +46,11 @@ ConstantBuffer::~ConstantBuffer() {
 }
 
 void ConstantBuffer::update(ComPtr<ID3D12GraphicsCommandList> cmdList, 
-                            void* data, 
+                            void* data, std::string id,
                             UINT resourceBinding, UINT sizeInBytes, UINT offsetInBytes) {
 
     
-    if (resourceBinding == 0) {
+    if (id.compare("objectData") == 0) {
         cmdList->SetGraphicsRoot32BitConstants(0, sizeInBytes / 4, data, offsetInBytes / 4);
     }
     else {

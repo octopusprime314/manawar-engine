@@ -108,7 +108,7 @@ EngineManager::EngineManager(int* argc, char** argv, HINSTANCE hInstance, int nC
             EffectType::None,
             Vector4(1.0, 0.0, 0.0)));
 
-        _dxLayer->run(_deferredRenderer, _entityList, lightList);
+        _dxLayer->run(_deferredRenderer, _entityList, lightList, _viewManager);
 
         //Eventually replace _dxLayer->run with _glfwContext->run
         //_glfwContext->run();
@@ -292,10 +292,10 @@ void EngineManager::_postDraw() {
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
         //Compute bloom from deferred fbo texture
-        _bloom->compute(_deferredFBO->getTexture());
+        _bloom->compute(_deferredFBO->getRenderTexture());
 
         //If adding a second texture then all writes are to this texture second param
-        _add->compute(_deferredFBO->getTexture(), _bloom->getTexture());
+        _add->compute(_deferredFBO->getRenderTexture(), _bloom->getTexture());
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 

@@ -185,18 +185,62 @@ RenderTexture::RenderTexture(GLuint width, GLuint height, TextureFormat format) 
             depthStencilViewDesc.Flags = D3D12_DSV_FLAG_NONE;
 
             //Create descriptor heap
-            D3D12_DESCRIPTOR_HEAP_DESC srvHeapDesc;
-            ZeroMemory(&srvHeapDesc, sizeof(srvHeapDesc));
-            srvHeapDesc.NumDescriptors = 1; //1 2D texture
-            srvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
-            srvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
-            device->CreateDescriptorHeap(&srvHeapDesc, IID_PPV_ARGS(_rtvDescriptorHeap.GetAddressOf()));
+            D3D12_DESCRIPTOR_HEAP_DESC dsvHeapDesc;
+            ZeroMemory(&dsvHeapDesc, sizeof(dsvHeapDesc));
+            dsvHeapDesc.NumDescriptors = 1; //1 2D texture
+            dsvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
+            dsvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+            device->CreateDescriptorHeap(&dsvHeapDesc, IID_PPV_ARGS(_rtvDescriptorHeap.GetAddressOf()));
+
 
             // Backbuffer / render target
             CD3DX12_CPU_DESCRIPTOR_HANDLE dsvHandle(_rtvDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
             auto dsvDescriptorSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
 
             device->CreateDepthStencilView(_textureBuffer->getResource().Get(), &depthStencilViewDesc, dsvHandle);
+
+            //Create descriptor heap
+            D3D12_DESCRIPTOR_HEAP_DESC srvHeapDesc;
+            ZeroMemory(&srvHeapDesc, sizeof(srvHeapDesc));
+            srvHeapDesc.NumDescriptors = 1; //1 2D texture
+            srvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+            srvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+            device->CreateDescriptorHeap(&srvHeapDesc, IID_PPV_ARGS(_srvDescriptorHeap.GetAddressOf()));
+
+            //Create view of SRV for shader access
+            CD3DX12_CPU_DESCRIPTOR_HANDLE hDescriptor(_srvDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
+            D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+            auto textureDescriptor = _textureBuffer->getDescriptor();
+            srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+            srvDesc.Format = DXGI_FORMAT_R32_FLOAT;// textureDescriptor.Format; Can't use D32_FLOAT
+            srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+            srvDesc.Texture2D.MostDetailedMip = 0;
+            srvDesc.Texture2D.MipLevels = textureDescriptor.MipLevels;
+            srvDesc.Texture2D.ResourceMinLODClamp = 0;
+            device->CreateShaderResourceView(_textureBuffer->getResource().Get(), &srvDesc, hDescriptor);
+
+            // create sampler descriptor heap
+            D3D12_DESCRIPTOR_HEAP_DESC descHeapSampler = {};
+            descHeapSampler.NumDescriptors = 1;
+            descHeapSampler.Type = D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER;
+            descHeapSampler.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+            device->CreateDescriptorHeap(&descHeapSampler,
+                IID_PPV_ARGS(_samplerDescriptorHeap.GetAddressOf()));
+
+            // create sampler descriptor in the sample descriptor heap
+            D3D12_SAMPLER_DESC samplerDesc;
+            ZeroMemory(&samplerDesc, sizeof(D3D12_SAMPLER_DESC));
+            samplerDesc.Filter = D3D12_FILTER_ANISOTROPIC;// D3D12_FILTER_MIN_MAG_MIP_LINEAR;
+            samplerDesc.AddressU = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+            samplerDesc.AddressV = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+            samplerDesc.AddressW = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+            samplerDesc.MinLOD = 0;
+            samplerDesc.MaxLOD = D3D12_FLOAT32_MAX;
+            samplerDesc.MipLODBias = 0.0f;
+            samplerDesc.MaxAnisotropy = 1;
+            samplerDesc.ComparisonFunc = D3D12_COMPARISON_FUNC_ALWAYS;
+            device->CreateSampler(&samplerDesc,
+                _samplerDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
 
             // Viewport
 

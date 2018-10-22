@@ -14,7 +14,7 @@ AssetTexture::AssetTexture(std::string textureName, bool cubeMap) :
         }
     }
     else {
-        _buildCubeMapTexture(_name);
+        _buildCubeMapTextureGL(_name);
     }
 }
 
@@ -31,7 +31,7 @@ AssetTexture::AssetTexture(std::string textureName,
         }
     }
     else {
-        _buildCubeMapTexture(_name);
+        _buildCubeMapTextureDX(_name, cmdList, device);
     }
 }
 
@@ -128,7 +128,7 @@ BYTE* AssetTexture::getBits() {
     return _bits;
 }
 
-void AssetTexture::_buildCubeMapTexture(std::string skyboxName) {
+void AssetTexture::_buildCubeMapTextureGL(std::string skyboxName) {
     glGenTextures(1, &_textureContext);
 
     //Bind the texture and create 6 sides of a texture cube
@@ -172,6 +172,95 @@ void AssetTexture::_buildCubeMapTexture(std::string skyboxName) {
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+}
+
+void AssetTexture::_buildCubeMapTextureDX(std::string skyboxName,
+                                          ComPtr<ID3D12GraphicsCommandList>& cmdList,
+                                          ComPtr<ID3D12Device>& device) {
+
+    std::vector<unsigned char> cubeMapData;
+    unsigned int rowPitch = 0;
+    for (unsigned int i = 0; i < 6; ++i) {
+        std::string textureName = "";
+        if (i == 0) {
+            textureName = skyboxName + "/front.jpg";
+            _getTextureData(textureName);
+        }
+        else  if (i == 1) {
+            textureName = skyboxName + "/back.jpg";
+            _getTextureData(textureName);
+        }
+        else if (i == 2) {
+            textureName = skyboxName + "/top.jpg";
+            _getTextureData(textureName);
+        }
+        else if (i == 3) {
+            textureName = skyboxName + "/bottom.jpg";
+            _getTextureData(textureName);
+        }
+        else if (i == 4) {
+            textureName = skyboxName + "/right.jpg";
+            _getTextureData(textureName);
+        }
+        else if (i == 5) {
+            textureName = skyboxName + "/left.jpg";
+            _getTextureData(textureName);
+        }
+
+        //_build2DTextureDX(textureName, cmdList, device);
+        rowPitch = FreeImage_GetPitch(_dib);
+        auto size = FreeImage_GetMemorySize(_dib);
+        cubeMapData.insert(cubeMapData.end(), &_bits[0], &_bits[rowPitch * _height]);
+
+        //Free FreeImage's copy of the data
+        FreeImage_Unload(_dib);
+    }
+
+    _textureBuffer = new ResourceBuffer(cubeMapData.data(), 6, cubeMapData.size(), _width, _height, rowPitch, cmdList, device);
+
+    //Create descriptor heap
+    D3D12_DESCRIPTOR_HEAP_DESC srvHeapDesc;
+    ZeroMemory(&srvHeapDesc, sizeof(srvHeapDesc));
+    srvHeapDesc.NumDescriptors = 1; //1 Cubemap texture
+    srvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+    srvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+    device->CreateDescriptorHeap(&srvHeapDesc, IID_PPV_ARGS(_srvDescriptorHeap.GetAddressOf()));
+
+    //Create view of SRV for shader access
+    CD3DX12_CPU_DESCRIPTOR_HANDLE hDescriptor(_srvDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
+    D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+    auto textureDescriptor = _textureBuffer->getDescriptor();
+    srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+    srvDesc.Format = textureDescriptor.Format;
+    srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURECUBE;
+    srvDesc.TextureCube.MostDetailedMip = 0;
+    srvDesc.TextureCube.MipLevels = textureDescriptor.MipLevels;
+    srvDesc.TextureCube.ResourceMinLODClamp = 0;
+    device->CreateShaderResourceView(_textureBuffer->getResource().Get(), &srvDesc, hDescriptor);
+
+    // create sampler descriptor heap
+    D3D12_DESCRIPTOR_HEAP_DESC descHeapSampler = {};
+    descHeapSampler.NumDescriptors = 1;
+    descHeapSampler.Type = D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER;
+    descHeapSampler.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+    device->CreateDescriptorHeap(&descHeapSampler,
+        IID_PPV_ARGS(_samplerDescriptorHeap.GetAddressOf()));
+
+    // create sampler descriptor in the sample descriptor heap
+    D3D12_SAMPLER_DESC samplerDesc;
+    ZeroMemory(&samplerDesc, sizeof(D3D12_SAMPLER_DESC));
+    samplerDesc.Filter = D3D12_FILTER_ANISOTROPIC;// D3D12_FILTER_MIN_MAG_MIP_LINEAR;
+    samplerDesc.AddressU = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+    samplerDesc.AddressV = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+    samplerDesc.AddressW = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+    samplerDesc.MinLOD = 0;
+    samplerDesc.MaxLOD = D3D12_FLOAT32_MAX;
+    samplerDesc.MipLODBias = 0.0f;
+    samplerDesc.MaxAnisotropy = 1;
+    samplerDesc.ComparisonFunc = D3D12_COMPARISON_FUNC_ALWAYS;
+    device->CreateSampler(&samplerDesc,
+        _samplerDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
+   
 }
 
 bool AssetTexture::_getTextureData(std::string textureName) {

@@ -60,7 +60,7 @@ void HLSLShader::build(std::vector<DXGI_FORMAT>* rtvs) {
     ComPtr<ID3DBlob> compiledVS;
     ComPtr<ID3DBlob> errorsVS;
 
-    HRESULT result = D3DCompileFromFile(shaderString.c_str(), 0,
+    HRESULT vsResult = D3DCompileFromFile(shaderString.c_str(), 0,
         D3D_COMPILE_STANDARD_FILE_INCLUDE, "VS", "vs_5_0", 0, 0,
         compiledVS.GetAddressOf(), errorsVS.GetAddressOf());
 
@@ -70,7 +70,7 @@ void HLSLShader::build(std::vector<DXGI_FORMAT>* rtvs) {
 
     ComPtr<ID3DBlob> compiledPS;
     ComPtr<ID3DBlob> errorsPS;
-    result = D3DCompileFromFile(shaderString.c_str(), 0,
+    HRESULT psResult = D3DCompileFromFile(shaderString.c_str(), 0,
         D3D_COMPILE_STANDARD_FILE_INCLUDE, "PS", "ps_5_0", 0, 0,
         compiledPS.GetAddressOf(), errorsPS.GetAddressOf());
 
@@ -80,10 +80,10 @@ void HLSLShader::build(std::vector<DXGI_FORMAT>* rtvs) {
 
     // Query shaders to properly build root signature
 
-    if (!errorsVS) {
+    if (vsResult == S_OK) {
         _queryShaderResources(compiledVS);
     }
-    if (!errorsPS) {
+    if (psResult == S_OK) {
         _queryShaderResources(compiledPS);
     }
 
@@ -194,13 +194,13 @@ void HLSLShader::build(std::vector<DXGI_FORMAT>* rtvs) {
     ZeroMemory(&pso, sizeof(D3D12_GRAPHICS_PIPELINE_STATE_DESC));
     pso.InputLayout = { _inputLayout.data(), static_cast<UINT>(_inputLayout.size()) };
     pso.pRootSignature = _rootSignature.Get();
-    if (!errorsVS) {
+    if (vsResult == S_OK) {
         pso.VS = {
             reinterpret_cast<BYTE*>(compiledVS->GetBufferPointer()),
             compiledVS->GetBufferSize()
         };
     }
-    if (!errorsPS) {
+    if (psResult == S_OK) {
         pso.PS = {
             reinterpret_cast<BYTE*>(compiledPS->GetBufferPointer()),
             compiledPS->GetBufferSize()
@@ -227,7 +227,7 @@ void HLSLShader::build(std::vector<DXGI_FORMAT>* rtvs) {
     pso.SampleDesc.Quality = 0;
     pso.DSVFormat = DXGI_FORMAT_D32_FLOAT;
 
-    result = device->CreateGraphicsPipelineState(&pso, IID_PPV_ARGS(&_psoState));
+    HRESULT result = device->CreateGraphicsPipelineState(&pso, IID_PPV_ARGS(&_psoState));
 
 }
 
@@ -371,7 +371,7 @@ void HLSLShader::updateData(std::string id, void* data) {
     for (auto constBuffEntry : _constBuffDescriptorTable) {
         for (auto entry : constBuffEntry.second) {
             if (std::string(entry.Name).compare(id) == 0) {
-                _constantBuffers[constBuffEntry.first]->update(cmdList, data, 
+                _constantBuffers[constBuffEntry.first]->update(cmdList, data, constBuffEntry.first,
                     _resourceIndexes[constBuffEntry.first], entry.Size, entry.StartOffset);
             }
         }

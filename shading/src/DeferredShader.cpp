@@ -9,12 +9,14 @@ DeferredShader::DeferredShader(std::string shaderName) {
 
     if (EngineManager::getGraphicsLayer() == GraphicsLayer::OPENGL) {
         _shader = new GLSLShader(shaderName);
+        glGenVertexArrays(1, &_vaoContext);
     }
     else {
-        _shader = new HLSLShader(shaderName);
+        std::vector<DXGI_FORMAT>* formats = new std::vector<DXGI_FORMAT>();
+        formats->push_back(DXGI_FORMAT_R8G8B8A8_UNORM);
+        formats->push_back(DXGI_FORMAT_D32_FLOAT);
+        _shader = new HLSLShader(shaderName, "", formats);
     }
-
-    glGenVertexArrays(1, &_vaoContext);
 
     //Get skybox texture
     TextureBroker* textureManager = TextureBroker::instance();
@@ -39,9 +41,14 @@ void DeferredShader::runShader(std::vector<Light*>& lights,
 
     //Take the generated texture data and do deferred shading
     //LOAD IN SHADER
-    _shader->bind(); //use context for loaded shader
+     _shader->bind(); //use context for loaded shader
 
-    glBindVertexArray(_vaoContext);
+    if (EngineManager::getGraphicsLayer() == GraphicsLayer::OPENGL) {
+        glBindVertexArray(_vaoContext);
+    }
+    else {
+        _shader->bindAttributes(nullptr);
+    }
 
     //Get light view matrix "look at" vector which is located in the third column
     //of the inner rotation matrix at index 2,6,10
@@ -90,20 +97,25 @@ void DeferredShader::runShader(std::vector<Light*>& lights,
     delete[] lightPosArray;  delete[] lightColorsArray; delete[] lightRangesArray;
 
     //Change of basis from camera view position back to world position
-    MVP lightMVP = lights[0]->getLightMVP();
-    Matrix cameraToLightSpace = lightMVP.getProjectionMatrix() *
-        lightMVP.getViewMatrix() *
-        viewEventDistributor->getView().inverse();
+    if (lights.size() > 0 && lights[0] != nullptr) {
+        MVP lightMVP = lights[0]->getLightMVP();
+        Matrix cameraToLightSpace = lightMVP.getProjectionMatrix() *
+            lightMVP.getViewMatrix() *
+            viewEventDistributor->getView().inverse();
 
-    _shader->updateData("lightViewMatrix", cameraToLightSpace.getFlatBuffer());
+        _shader->updateData("lightViewMatrix", cameraToLightSpace.getFlatBuffer());
+    }
+
 
     //Change of basis from camera view position back to world position
-    MVP lightMapMVP = lights[1]->getLightMVP();
-    Matrix cameraToLightMapSpace = lightMapMVP.getProjectionMatrix() *
-        lightMapMVP.getViewMatrix() *
-        viewEventDistributor->getView().inverse();
+    if (lights.size() > 1 && lights[1] != nullptr) {
+        MVP lightMapMVP = lights[1]->getLightMVP();
+        Matrix cameraToLightMapSpace = lightMapMVP.getProjectionMatrix() *
+            lightMapMVP.getViewMatrix() *
+            viewEventDistributor->getView().inverse();
 
-    _shader->updateData("lightMapViewMatrix", cameraToLightMapSpace.getFlatBuffer());
+        _shader->updateData("lightMapViewMatrix", cameraToLightMapSpace.getFlatBuffer());
+    }
 
     //Change of basis from camera view position back to world position
     Matrix viewToModelSpace = viewEventDistributor->getView().inverse();
@@ -133,15 +145,14 @@ void DeferredShader::runShader(std::vector<Light*>& lights,
 
     auto textures = mrtFBO.getTextures();
     
-
     _shader->updateData("diffuseTexture",     GL_TEXTURE0, &textures[0]);
     _shader->updateData("normalTexture",      GL_TEXTURE1, &textures[1]);
     _shader->updateData("velocityTexture",    GL_TEXTURE2, &textures[2]);
     _shader->updateData("depthTexture",       GL_TEXTURE3, &textures[3]);
-    if (directionalShadowTextures.size() > 0) {
+    if (directionalShadowTextures.size() > 0 && directionalShadowTextures[0] != nullptr) {
         _shader->updateData("cameraDepthTexture", GL_TEXTURE4, directionalShadowTextures[0]->getDepthTexture());
     }
-    if (directionalShadowTextures.size() > 1) {
+    if (directionalShadowTextures.size() > 1 && directionalShadowTextures[1] != nullptr) {
         _shader->updateData("mapDepthTexture", GL_TEXTURE5, directionalShadowTextures[1]->getDepthTexture());
     }
     if (pointShadowTexture != nullptr) {
@@ -149,13 +160,21 @@ void DeferredShader::runShader(std::vector<Light*>& lights,
     }
     _shader->updateData("skyboxDayTexture",   GL_TEXTURE7, _skyBoxDayTexture);
     _shader->updateData("skyboxNightTexture", GL_TEXTURE8, _skyBoxNightTexture);
-    _shader->updateData("ssaoTexture",        GL_TEXTURE9, ssao->getBlur()->getTexture());
+    if (ssao != nullptr) {
+        _shader->updateData("ssaoTexture", GL_TEXTURE9, ssao->getBlur()->getTexture());
+    }
 
-    //Draw triangles using the bound buffer vertices at starting index 0 and number of vertices
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, (GLsizei)4);
+    if (EngineManager::getGraphicsLayer() == GraphicsLayer::OPENGL) {
+        glDrawArrays(GL_TRIANGLE_STRIP, 0, (GLsizei)4);
+    }
+    else {
+        _shader->draw(0, 1, 3);
+    }
 
-    glBindVertexArray(0);
-    glBindTexture(GL_TEXTURE_2D, 0); //Unbind texture
-    glBindTexture(GL_TEXTURE_CUBE_MAP, 0); //Unbind texture
-    glUseProgram(0);//end using this shader
+    _shader->unbindAttributes();
+    _shader->unbind();
+    //glBindVertexArray(0);
+    //glBindTexture(GL_TEXTURE_2D, 0); //Unbind texture
+    //glBindTexture(GL_TEXTURE_CUBE_MAP, 0); //Unbind texture
+    //glUseProgram(0);//end using this shader
 }

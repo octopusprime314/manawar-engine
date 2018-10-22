@@ -25,6 +25,13 @@ public :
         ComPtr<ID3D12GraphicsCommandList>& cmdList,
         ComPtr<ID3D12Device>& device);
 
+    //TextureCube
+    ResourceBuffer(const void* initData, UINT count,
+        UINT byteSize, UINT width, UINT height,
+        UINT rowPitch,
+        ComPtr<ID3D12GraphicsCommandList>& cmdList,
+        ComPtr<ID3D12Device>& device);
+
     //Render Target and Depth/Stencil Texture2D
     ResourceBuffer(D3D12_CLEAR_VALUE clearValue, 
         UINT width, UINT height,

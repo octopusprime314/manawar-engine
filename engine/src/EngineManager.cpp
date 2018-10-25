@@ -64,7 +64,7 @@ EngineManager::EngineManager(int* argc, char** argv, HINSTANCE hInstance, int nC
     ModelBroker::setViewManager(_viewManager); //Set the reference to the view model event interface
     _viewManager->setProjection(IOEventDistributor::screenPixelWidth, IOEventDistributor::screenPixelHeight, 0.1f, 5000.0f); //Initializes projection matrix and broadcasts upate to all listeners
      // This view is carefully chosen to look at a mountain without showing the (lack of) water in the scene.
-    _viewManager->setView(Matrix::cameraTranslation(0.0f, 20.0f, 50.0f),
+    _viewManager->setView(Matrix::cameraTranslation(0.0f, 20.0f, -200.0f),
         Matrix::cameraRotationAroundY(0.0f),
         Matrix());
 
@@ -77,7 +77,7 @@ EngineManager::EngineManager(int* argc, char** argv, HINSTANCE hInstance, int nC
 
     auto modelBroker = ModelBroker::instance();
 
-    _entityList.push_back(new Entity(modelBroker->getModel("werewolf"), _viewManager->getEventWrapper())); //Add a static model to the scene
+    //_entityList.push_back(new Entity(modelBroker->getModel("werewolf"), _viewManager->getEventWrapper())); //Add a static model to the scene
 
     _physics = new Physics();
     _physics->addEntities(_entityList); //Gives physics a pointer to all models which allows access to underlying geometry
@@ -100,7 +100,7 @@ EngineManager::EngineManager(int* argc, char** argv, HINSTANCE hInstance, int nC
         lightMapMVP.setView(Matrix::translation(sunLocation.getx(), sunLocation.gety(), sunLocation.getz())
             * Matrix::cameraRotationAroundX(-90.0f));
         
-        lightMapMVP.setProjection(Matrix::cameraOrtho(600.0f, 600.0f, 0.0f, 600.0f));
+        lightMapMVP.setProjection(Matrix::cameraOrtho(200.0f, 200.0f, 0.0f, 600.0f));
         
         std::vector<Light*> lightList;
         lightList.push_back(new ShadowedDirectionalLight(_viewManager->getEventWrapper(),

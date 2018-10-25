@@ -35,13 +35,14 @@ static const float2 poissonDisk[4] = {
     float2(0.34495938, 0.29387760)
 };
 
-float ambient = 0.3;
-float shadowEffect = 0.6;
+static const float ambient = 0.3;
+static const float shadowEffect = 0.6;
 
 float3 decodeLocation(float2 uv) {
     float4 clipSpaceLocation;
     clipSpaceLocation.xy = mul(uv, 2.0f) - 1.0f;
-    clipSpaceLocation.z = (depthTexture.Sample(textureSampler, uv).r * 2.0f) - 1.0f;
+    clipSpaceLocation.y = -clipSpaceLocation.y; //TODO: need to fix cpu
+    clipSpaceLocation.z = depthTexture.Sample(textureSampler, uv).r; //dx z clip space is [0,1]
     clipSpaceLocation.w = 1.0f;
     float4 homogenousLocation = mul(clipSpaceLocation, projectionToViewMatrix);
     return homogenousLocation.xyz / homogenousLocation.w;
@@ -93,7 +94,7 @@ PixelOut PS(float4 posH : SV_POSITION,
     //Convert from camera space vertex to light clip space vertex
     float4 shadowMapping = mul(float4(position.xyz, 1.0), lightViewMatrix);
     shadowMapping = shadowMapping / shadowMapping.w;
-    float2 shadowTextureCoordinates = shadowMapping.xy * float2(0.5,0.5) + float2(0.5,0.5);
+    float2 shadowTextureCoordinates = mul(shadowMapping.xy, 0.5) + float2(0.5, 0.5);
 
     float4 shadowMappingMap = mul(float4(position.xyz, 1.0), lightMapViewMatrix);
     shadowMappingMap = shadowMappingMap / shadowMappingMap.w;
@@ -101,7 +102,7 @@ PixelOut PS(float4 posH : SV_POSITION,
 
     if (views == 0) {
         //Detects if there is no screen space information and then displays skybox!
-        if (normal.x == 0.0 && normal.y == 0.0 && normal.z == 0.0) {
+        if (normal.x == 1.0 && normal.y == 1.0 && normal.z == 1.0) {
             float4 dayColor = skyboxDayTexture.Sample(textureSampler, float3(position.x, position.y, position.z));
             float4 nightColor = skyboxNightTexture.Sample(textureSampler, float3(position.x, position.y, position.z));
             pixel.color = (((1.0 - light.y) / 2.0) * dayColor) + (((1.0 + light.y) / 2.0) * nightColor);
@@ -115,14 +116,18 @@ PixelOut PS(float4 posH : SV_POSITION,
             float totalShadow = 1.0;
             float directionalShadow = 1.0;
             float pointShadow = 1.0;
+            float2 invertedYCoord = float2(shadowTextureCoordinates.x, -shadowTextureCoordinates.y); //TODO: need to fix cpu
+            float d = cameraDepthTexture.Sample(textureSampler, invertedYCoord).r;
             //illumination is from directional light but we don't want to illuminate when the sun is past the horizon
             //aka night time
             if (light.y <= 0.0) {
                 const float bias = 0.005; //removes shadow acne by adding a small bias
-                                          //Only shadow in textures space
+                //Only shadow in textures space
                 if (shadowTextureCoordinates.x <= 1.0 && shadowTextureCoordinates.x >= 0.0 && shadowTextureCoordinates.y <= 1.0 && shadowTextureCoordinates.y >= 0.0) {
 
-                    if (cameraDepthTexture.Sample(textureSampler, shadowTextureCoordinates).r < ((shadowMapping.z * 0.5) + 0.5) - bias) {
+                    //Crap z is in [0,1] not in [-1,1]
+                    if (d < shadowMapping.z - bias) {
+
                         directionalShadow = shadowEffect;
                     }
                 }
@@ -180,7 +185,16 @@ PixelOut PS(float4 posH : SV_POSITION,
                 (pointLighting * diffuse.rgb * pointShadow);
 
             //pixel.color = float4((lightComponentIllumination)+(ambient * diffuse.rgb * occlusion), 1.0);
-            pixel.color = float4((illumination * diffuse.rgb/* * directionalShadow*/), 1.0);
+            /*if (shadowTextureCoordinates.x <= 1.0 && shadowTextureCoordinates.x >= 0.0 && shadowTextureCoordinates.y <= 1.0 && shadowTextureCoordinates.y >= 0.0) {
+                pixel.color = float4(d, d, d, 1.0);
+            }
+            else {
+                pixel.color = float4(1.0, 1.0, 1.0, 1.0);
+            }
+            pixel.depth = shadowMapping.z;*/
+
+            pixel.color = float4((illumination * diffuse.rgb * directionalShadow), 1.0);
+
         }
     }
     else if (views == 1) {

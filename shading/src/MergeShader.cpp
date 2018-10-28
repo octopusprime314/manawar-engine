@@ -35,8 +35,12 @@ void MergeShader::runShader(Texture* deferredTexture, Texture* velocityTexture) 
         _shader->bindAttributes(nullptr);
     }
 
-    _shader->updateData("deferredTexture", GL_TEXTURE0, deferredTexture);
-    //_shader->updateData("velocityTexture", GL_TEXTURE1, velocityTexture);
+    if (deferredTexture != nullptr) {
+        _shader->updateData("deferredTexture", GL_TEXTURE0, deferredTexture);
+    }
+    if (velocityTexture != nullptr) {
+        _shader->updateData("velocityTexture", GL_TEXTURE1, velocityTexture);
+    }
 
     if (EngineManager::getGraphicsLayer() == GraphicsLayer::OPENGL) {
         glDrawArrays(GL_TRIANGLE_STRIP, 0, (GLsizei)4);

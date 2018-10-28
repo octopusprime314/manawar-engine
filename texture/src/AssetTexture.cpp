@@ -27,6 +27,11 @@ AssetTexture::AssetTexture(std::string textureName,
 
     if (!cubeMap) {
         if (_getTextureData(_name)) {
+
+            //Don't count as an alpha texture if all values are set to 1.0
+            if (_bits[3] == 255) {
+                _alphaValues = false;
+            }
             _build2DTextureDX(_name, cmdList, device);
         }
     }
@@ -306,11 +311,6 @@ bool AssetTexture::_getTextureData(std::string textureName) {
     }
     else {
         _imageBufferSize = _width * _height * 3;
-    }
-
-    //Don't count as an alpha texture if all values are set to 1.0
-    if (_bits[3] == 255) {
-        _alphaValues = false;
     }
 
     return true;

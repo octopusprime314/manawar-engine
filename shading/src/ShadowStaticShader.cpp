@@ -10,7 +10,9 @@ ShadowStaticShader::ShadowStaticShader(std::string shaderName) {
         _shader = new GLSLShader(shaderName);
     }
     else {
-        _shader = new HLSLShader(shaderName);
+        std::vector<DXGI_FORMAT>* formats = new std::vector<DXGI_FORMAT>();
+        formats->push_back(DXGI_FORMAT_D32_FLOAT);
+        _shader = new HLSLShader(shaderName, "", formats);
     }
 }
 

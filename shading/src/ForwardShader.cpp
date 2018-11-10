@@ -16,7 +16,10 @@ ForwardShader::ForwardShader(std::string vertexShaderName, std::string fragmentS
         _shader = new GLSLShader(vertexShaderName, fragmentShaderName);
     }
     else {
-        _shader = new HLSLShader(vertexShaderName, fragmentShaderName);
+        std::vector<DXGI_FORMAT>* formats = new std::vector<DXGI_FORMAT>();
+        formats->push_back(DXGI_FORMAT_R8G8B8A8_UNORM);
+        formats->push_back(DXGI_FORMAT_D32_FLOAT);
+        _shader = new HLSLShader(vertexShaderName, "", formats);
     }
 }
 
@@ -36,7 +39,7 @@ void ForwardShader::runShader(Entity* entity, ViewEventDistributor* viewEventDis
         //LOAD IN VAO
         std::vector<VAO*>* vao = entity->getFrustumVAO();
         for (auto vaoInstance : *vao) {
-            glBindVertexArray(vaoInstance->getVAOContext());
+            _shader->bindAttributes(vaoInstance);
 
             MVP* mvp = entity->getMVP();
             //glUniform mat4 combined model and world matrix, GL_TRUE is telling GL we are passing in the matrix as row major
@@ -96,20 +99,24 @@ void ForwardShader::runShader(Entity* entity, ViewEventDistributor* viewEventDis
             delete[] lightPosArray;  delete[] lightColorsArray; delete[] lightRangesArray;
 
             //Change of basis from camera view position back to world position
-            MVP lightMVP = lights[0]->getLightMVP();
-            Matrix cameraToLightSpace = lightMVP.getProjectionMatrix() *
-                lightMVP.getViewMatrix() *
-                viewEventDistributor->getView().inverse();
+            if (lights.size() > 0 && lights[0] != nullptr) {
+                MVP lightMVP = lights[0]->getLightMVP();
+                Matrix cameraToLightSpace = lightMVP.getProjectionMatrix() *
+                    lightMVP.getViewMatrix() *
+                    viewEventDistributor->getView().inverse();
 
-            _shader->updateData("lightViewMatrix", cameraToLightSpace.getFlatBuffer());
+                _shader->updateData("lightViewMatrix", cameraToLightSpace.getFlatBuffer());
+            }
 
-            //Change of basis from camera view position back to world position
-            MVP lightMapMVP = lights[1]->getLightMVP();
-            Matrix cameraToLightMapSpace = lightMapMVP.getProjectionMatrix() *
-                lightMapMVP.getViewMatrix() *
-                viewEventDistributor->getView().inverse();
+            if (lights.size() > 1 && lights[1] != nullptr) {
+                //Change of basis from camera view position back to world position
+                MVP lightMapMVP = lights[1]->getLightMVP();
+                Matrix cameraToLightMapSpace = lightMapMVP.getProjectionMatrix() *
+                    lightMapMVP.getViewMatrix() *
+                    viewEventDistributor->getView().inverse();
 
-            _shader->updateData("lightMapViewMatrix", cameraToLightMapSpace.getFlatBuffer());
+                _shader->updateData("lightMapViewMatrix", cameraToLightMapSpace.getFlatBuffer());
+            }
 
             //Change of basis from camera view position back to world position
             Matrix viewToModelSpace = viewEventDistributor->getView().inverse();
@@ -149,15 +156,14 @@ void ForwardShader::runShader(Entity* entity, ViewEventDistributor* viewEventDis
                         _shader->updateData("depthMap", GL_TEXTURE3, pointShadowTexture->getDepthTexture());
                     }
 
-                    //Draw triangles using the bound buffer vertices at starting index 0 and number of triangles
-                    glDrawArrays(GL_TRIANGLES, strideLocation, (GLsizei)textureStride.second);
+                    //Draw triangles using the bound buffer vertices at starting index 0 and number of vertices
+                    _shader->draw(strideLocation, 1, (GLsizei)textureStride.second);
                 }
                 strideLocation += textureStride.second;
             }
 
-            glBindVertexArray(0);
-            glBindTexture(GL_TEXTURE_2D, 0); //Unbind texture
+            _shader->unbindAttributes();
         }
-        glUseProgram(0);//end using this shader
+        _shader->unbind();
     }
 }

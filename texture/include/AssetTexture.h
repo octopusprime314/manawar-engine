@@ -28,6 +28,10 @@ class AssetTexture : public Texture{
     void                         _build2DTextureDX(std::string textureName,
                                                  ComPtr<ID3D12GraphicsCommandList>& cmdList,
                                                  ComPtr<ID3D12Device>& device);
+    void                         _build2DTextureDX(void* data, UINT width, UINT height,
+                                                 ComPtr<ID3D12GraphicsCommandList>& cmdList,
+                                                 ComPtr<ID3D12Device>& device);
+    void                         _build2DTextureGL(void* data, UINT width, UINT height);
     void                         _build2DTextureGL(std::string textureName);
     void                         _buildCubeMapTextureGL(std::string skyboxName);
     void                         _buildCubeMapTextureDX(std::string skyboxName,
@@ -47,6 +51,10 @@ public:
                  ComPtr<ID3D12GraphicsCommandList>& cmdList,
                  ComPtr<ID3D12Device>& device,
                  bool cubeMap = false); //if true then it is a special cube map
+    AssetTexture(void* data, UINT width, UINT height,
+                 ComPtr<ID3D12GraphicsCommandList>& cmdList,
+                 ComPtr<ID3D12Device>& device);
+    AssetTexture(void* data, UINT width, UINT height);
     ~AssetTexture();
 
     bool  getTransparency();

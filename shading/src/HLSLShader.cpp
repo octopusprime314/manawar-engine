@@ -213,19 +213,33 @@ void HLSLShader::build(std::vector<DXGI_FORMAT>* rtvs) {
     pso.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
     pso.SampleMask = UINT_MAX;
     pso.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+
+    bool foundDepthStencil = false;
     if (rtvs != nullptr) {
-        pso.NumRenderTargets = static_cast<UINT>(rtvs->size());
         int j = 0;
         for (auto rtv : *rtvs) {
-            pso.RTVFormats[j++] = rtv;
+            if (rtv == DXGI_FORMAT_D32_FLOAT) {
+                foundDepthStencil = true;
+            }
+            else {
+                pso.RTVFormats[j++] = rtv;
+                pso.NumRenderTargets++;
+            }
         }
     }
     else {
         pso.NumRenderTargets = 0;
     }
-    pso.SampleDesc.Count = 1;
+
     pso.SampleDesc.Quality = 0;
-    pso.DSVFormat = DXGI_FORMAT_D32_FLOAT;
+    pso.SampleDesc.Count = 1;
+   
+    if (foundDepthStencil) {
+        pso.DSVFormat = DXGI_FORMAT_D32_FLOAT;
+    }
+    else {
+        pso.DSVFormat = DXGI_FORMAT_UNKNOWN;
+    }
 
     HRESULT result = device->CreateGraphicsPipelineState(&pso, IID_PPV_ARGS(&_psoState));
 
@@ -252,14 +266,18 @@ void HLSLShader::setOM(std::vector<RenderTexture> targets, int width, int height
     D3D12_CPU_DESCRIPTOR_HANDLE* handles = new D3D12_CPU_DESCRIPTOR_HANDLE[targets.size() - 1];
     int handleIndex = 0;
     CD3DX12_CPU_DESCRIPTOR_HANDLE dsvHandle;
+    bool containsDepthStencil = false;
+    UINT rtvCount = 0;
     for (auto buffer : targets) {
         if (buffer.getFormat() == DXGI_FORMAT_D32_FLOAT) {
             dsvHandle = buffer.getHandle();
             buffer.bindTarget(D3D12_RESOURCE_STATE_DEPTH_WRITE);
+            containsDepthStencil = true;
         }
         else {
             handles[handleIndex++] = buffer.getHandle();
             buffer.bindTarget(D3D12_RESOURCE_STATE_RENDER_TARGET);
+            rtvCount++;
         }
     }
 
@@ -268,11 +286,20 @@ void HLSLShader::setOM(std::vector<RenderTexture> targets, int width, int height
     cmdList->RSSetViewports(1, &viewPort);
     cmdList->RSSetScissorRects(1, &rectScissor);
 
-    cmdList->OMSetRenderTargets(
-        static_cast<UINT>(targets.size() - 1),
-        handles,
-        false,
-        &dsvHandle);
+    if (containsDepthStencil) {
+        cmdList->OMSetRenderTargets(
+            rtvCount,
+            handles,
+            false,
+            &dsvHandle);
+    }
+    else {
+        cmdList->OMSetRenderTargets(
+            rtvCount,
+            handles,
+            false,
+            nullptr);
+    }
 
     int rtvIndex = 0;
     for (int i = 0; i < targets.size(); i++) {
@@ -370,7 +397,12 @@ void HLSLShader::updateData(std::string id, void* data) {
     auto cmdList = DXLayer::instance()->getCmdList();
     for (auto constBuffEntry : _constBuffDescriptorTable) {
         for (auto entry : constBuffEntry.second) {
-            if (std::string(entry.Name).compare(id) == 0) {
+            std::string identifier = id;
+            size_t index = identifier.find("[");
+            if (index != std::string::npos) {
+                identifier = identifier.substr(0, index);
+            }
+            if (std::string(entry.Name).compare(identifier) == 0) {
                 _constantBuffers[constBuffEntry.first]->update(cmdList, data, constBuffEntry.first,
                     _resourceIndexes[constBuffEntry.first], entry.Size, entry.StartOffset);
             }

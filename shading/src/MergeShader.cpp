@@ -15,6 +15,7 @@ MergeShader::MergeShader() {
     else {
         std::vector<DXGI_FORMAT>* formats = new std::vector<DXGI_FORMAT>();
         formats->push_back(DXGI_FORMAT_R8G8B8A8_UNORM);
+        formats->push_back(DXGI_FORMAT_D32_FLOAT);
         _shader = new HLSLShader("mergeShader", "", formats);
     }
 }

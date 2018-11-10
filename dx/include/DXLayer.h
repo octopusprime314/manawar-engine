@@ -17,6 +17,7 @@
 #include "Entity.h"
 #include "DeferredRenderer.h"
 #include "DeferredFrameBuffer.h"
+#include "ForwardRenderer.h"
 
 #pragma comment(lib, "D3D12.lib") 
 #pragma comment(lib, "dxgi.lib") 
@@ -38,7 +39,9 @@ public:
     void                              run(DeferredRenderer* deffered, 
                                           std::vector<Entity*> entities,
                                           std::vector<Light*> lightList,
-                                          ViewEventDistributor* viewEventDistributor);
+                                          ViewEventDistributor* viewEventDistributor,
+                                          ForwardRenderer* forwardRenderer,
+                                          SSAO* ssaoPass);
     static DXLayer*                   instance();
     static void                       initialize(HINSTANCE hInstance, DWORD width, DWORD height, int cmdShow);
 
@@ -54,7 +57,9 @@ private:
     void                              _render(DeferredRenderer* deferred,
                                               std::vector<Entity*> entities,
                                               std::vector<Light*> lightList,
-                                              ViewEventDistributor* viewEventDistributor);
+                                              ViewEventDistributor* viewEventDistributor,
+                                              ForwardRenderer* forwardRenderer,
+                                              SSAO* ssaoPass);
 
     PresentTarget*                    _presentTarget;
     StaticShader*                     _staticShader;

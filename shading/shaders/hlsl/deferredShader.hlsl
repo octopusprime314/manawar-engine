@@ -102,9 +102,9 @@ PixelOut PS(float4 posH : SV_POSITION,
 
     if (views == 0) {
         //Detects if there is no screen space information and then displays skybox!
-        if (normal.x == 1.0 && normal.y == 1.0 && normal.z == 1.0) {
-            float4 dayColor = skyboxDayTexture.Sample(textureSampler, float3(position.x, position.y, position.z));
-            float4 nightColor = skyboxNightTexture.Sample(textureSampler, float3(position.x, position.y, position.z));
+        if (normal.x == 0.0 && normal.y == 0.0 && normal.z == 0.0) {
+            float4 dayColor = skyboxDayTexture.Sample(textureSampler, float3(position.x, -position.y, position.z));
+            float4 nightColor = skyboxNightTexture.Sample(textureSampler, float3(position.x, -position.y, position.z));
             pixel.color = (((1.0 - light.y) / 2.0) * dayColor) + (((1.0 + light.y) / 2.0) * nightColor);
             //skybox depth trick to have it displayed at the depth boundary
             //precision matters here and must be as close as possible to 1.0

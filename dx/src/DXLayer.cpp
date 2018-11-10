@@ -147,7 +147,9 @@ DXLayer::~DXLayer() {
 void DXLayer::run(DeferredRenderer* deferred, 
     std::vector<Entity*> entities, 
     std::vector<Light*> lightList,
-    ViewEventDistributor* viewEventDistributor) {
+    ViewEventDistributor* viewEventDistributor,
+    ForwardRenderer* forwardRenderer,
+    SSAO* ssaoPass) {
 
     _deferredFBO = new DeferredFrameBuffer();
 
@@ -174,7 +176,7 @@ void DXLayer::run(DeferredRenderer* deferred,
                 break;
         }
         else {
-            _render(deferred, entities, lightList, viewEventDistributor);
+            _render(deferred, entities, lightList, viewEventDistributor, forwardRenderer, ssaoPass);
         }
     }
 }
@@ -182,7 +184,9 @@ void DXLayer::run(DeferredRenderer* deferred,
 void DXLayer::_render(DeferredRenderer* deferred, 
     std::vector<Entity*> entities, 
     std::vector<Light*> lightList,
-    ViewEventDistributor* viewEventDistributor) {
+    ViewEventDistributor* viewEventDistributor,
+    ForwardRenderer* forwardRenderer,
+    SSAO* ssaoPass) {
 
     // Open command list
     _cmdAllocator->Reset();
@@ -204,6 +208,9 @@ void DXLayer::_render(DeferredRenderer* deferred,
 
     deferred->unbind();
 
+    //Only compute ssao for opaque objects
+    ssaoPass->computeSSAO(deferred->getGBuffers(), viewEventDistributor);
+
     RenderTexture* renderTexture = static_cast<RenderTexture*>(_deferredFBO->getRenderTexture());
     RenderTexture* depthTexture = static_cast<RenderTexture*>(_deferredFBO->getDepthTexture());
 
@@ -213,6 +220,8 @@ void DXLayer::_render(DeferredRenderer* deferred,
     
     //Pass lights to deferred shading pass
     deferred->deferredLighting(lightList, viewEventDistributor, nullptr, nullptr);
+
+    forwardRenderer->forwardLighting(entities, viewEventDistributor, lightList);
 
     HLSLShader::releaseOM(textures);
 

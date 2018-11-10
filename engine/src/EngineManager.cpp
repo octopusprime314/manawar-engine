@@ -86,6 +86,9 @@ EngineManager::EngineManager(int* argc, char** argv, HINSTANCE hInstance, int nC
 
     if (_graphicsLayer == GraphicsLayer::DX12) {
 
+        _forwardRenderer = new ForwardRenderer();
+        _ssaoPass = new SSAO();
+
         _dxLayer->flushCommandList();
         
         _viewManager->triggerEvents();
@@ -108,7 +111,11 @@ EngineManager::EngineManager(int* argc, char** argv, HINSTANCE hInstance, int nC
             EffectType::None,
             Vector4(1.0, 0.0, 0.0)));
 
-        _dxLayer->run(_deferredRenderer, _entityList, lightList, _viewManager);
+        _dxLayer->run(_deferredRenderer, 
+            _entityList, 
+            lightList, 
+            _viewManager,
+            _forwardRenderer,_ssaoPass);
 
         //Eventually replace _dxLayer->run with _glfwContext->run
         //_glfwContext->run();

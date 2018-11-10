@@ -41,12 +41,13 @@ class SSAO {
     SSCompute*            _downSample;
     SSCompute*            _upSample;
     RenderTexture         _renderTexture; 
+    AssetTexture*         _noise;
 
 public:
     SSAO();
     ~SSAO();
     void                  computeSSAO(MRTFrameBuffer* mrtBuffer, ViewEventDistributor* viewEventDistributor);
-    unsigned int          getNoiseTexture();
+    Texture*              getNoiseTexture();
     std::vector<Vector4>& getKernel();
     SSCompute*            getBlur();
 };

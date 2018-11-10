@@ -259,7 +259,118 @@ RenderTexture::RenderTexture(GLuint width, GLuint height, TextureFormat format) 
             _rectScissor = { 0, 0, (LONG)_width,(LONG)_height };
         }
         else if (format == TextureFormat::R_FLOAT) {
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, _width, _height, 0, GL_RGB, GL_FLOAT, NULL);
+
+            // Color Buffer
+
+            D3D12_CLEAR_VALUE colorOptimizedClearValue;
+            ZeroMemory(&colorOptimizedClearValue, sizeof(colorOptimizedClearValue));
+
+            switch (format) {
+                case TextureFormat::R_FLOAT:
+                {
+                    colorOptimizedClearValue.Format = DXGI_FORMAT_R32_FLOAT;
+                    break;
+                }
+                /*case TextureFormat::RGBA_FLOAT:
+                {
+                    colorOptimizedClearValue.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+                    break;
+                }*/
+                default:
+                {
+                    break;
+                }
+            };
+
+            _format = colorOptimizedClearValue.Format;
+
+            colorOptimizedClearValue.Color[0] = 0.0f;
+            colorOptimizedClearValue.Color[1] = 0.0f;
+            colorOptimizedClearValue.Color[2] = 0.0f;
+            colorOptimizedClearValue.Color[3] = 1.0f;
+
+            auto device = DXLayer::instance()->getDevice();
+            auto cmdList = DXLayer::instance()->getCmdList();
+
+            _textureBuffer = new ResourceBuffer(colorOptimizedClearValue, _width, _height, cmdList, device);
+
+            D3D12_RENDER_TARGET_VIEW_DESC renderTargetViewDesc;
+            ZeroMemory(&renderTargetViewDesc, sizeof(renderTargetViewDesc));
+            renderTargetViewDesc.Format = colorOptimizedClearValue.Format;
+            renderTargetViewDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2DMS;
+
+            //Create descriptor heap
+            D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc;
+            ZeroMemory(&rtvHeapDesc, sizeof(rtvHeapDesc));
+            rtvHeapDesc.NumDescriptors = 1; //1 2D texture
+            rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
+            rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+            device->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(_rtvDescriptorHeap.GetAddressOf()));
+
+            // Backbuffer / render target
+            CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(_rtvDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
+            auto rtvDescriptorSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+
+            device->CreateRenderTargetView(_textureBuffer->getResource().Get(), &renderTargetViewDesc, rtvHandle);
+
+            //Create descriptor heap
+            D3D12_DESCRIPTOR_HEAP_DESC srvHeapDesc;
+            ZeroMemory(&srvHeapDesc, sizeof(srvHeapDesc));
+            srvHeapDesc.NumDescriptors = 1; //1 2D texture
+            srvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+            srvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+            device->CreateDescriptorHeap(&srvHeapDesc, IID_PPV_ARGS(_srvDescriptorHeap.GetAddressOf()));
+
+            //Create view of SRV for shader access
+            CD3DX12_CPU_DESCRIPTOR_HANDLE hDescriptor(_srvDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
+            D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+            auto textureDescriptor = _textureBuffer->getDescriptor();
+            srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+            srvDesc.Format = textureDescriptor.Format;
+            srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+            srvDesc.Texture2D.MostDetailedMip = 0;
+            srvDesc.Texture2D.MipLevels = textureDescriptor.MipLevels;
+            srvDesc.Texture2D.ResourceMinLODClamp = 0;
+            device->CreateShaderResourceView(_textureBuffer->getResource().Get(), &srvDesc, hDescriptor);
+
+            // create sampler descriptor heap
+            D3D12_DESCRIPTOR_HEAP_DESC descHeapSampler = {};
+            descHeapSampler.NumDescriptors = 1;
+            descHeapSampler.Type = D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER;
+            descHeapSampler.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+            device->CreateDescriptorHeap(&descHeapSampler,
+                IID_PPV_ARGS(_samplerDescriptorHeap.GetAddressOf()));
+
+            // create sampler descriptor in the sample descriptor heap
+            D3D12_SAMPLER_DESC samplerDesc;
+            ZeroMemory(&samplerDesc, sizeof(D3D12_SAMPLER_DESC));
+            samplerDesc.Filter = D3D12_FILTER_ANISOTROPIC;// D3D12_FILTER_MIN_MAG_MIP_LINEAR;
+            samplerDesc.AddressU = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+            samplerDesc.AddressV = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+            samplerDesc.AddressW = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+            samplerDesc.MinLOD = 0;
+            samplerDesc.MaxLOD = D3D12_FLOAT32_MAX;
+            samplerDesc.MipLODBias = 0.0f;
+            samplerDesc.MaxAnisotropy = 1;
+            samplerDesc.ComparisonFunc = D3D12_COMPARISON_FUNC_ALWAYS;
+            device->CreateSampler(&samplerDesc,
+                _samplerDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
+
+            // Viewport
+
+            _viewPort =
+            {
+                0.0f,
+                0.0f,
+                static_cast<float>(_width),
+                static_cast<float>(_height),
+                0.0f,
+                1.0f
+            };
+
+            // Scissor rectangle
+
+            _rectScissor = { 0, 0, (LONG)_width,(LONG)_height };
         }
         else if (format == TextureFormat::R_UNSIGNED_BYTE) {
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, _width, _height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);

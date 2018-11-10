@@ -2,6 +2,8 @@
 #include "Model.h"
 #include "ShaderBroker.h"
 #include "Entity.h"
+#include "EngineManager.h"
+#include "HLSLShader.h"
 
 ForwardRenderer::ForwardRenderer() :
     _forwardShader(static_cast<ForwardShader*>(ShaderBroker::instance()->getShader("forwardShader"))),

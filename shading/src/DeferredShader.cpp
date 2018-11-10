@@ -173,8 +173,4 @@ void DeferredShader::runShader(std::vector<Light*>& lights,
 
     _shader->unbindAttributes();
     _shader->unbind();
-    //glBindVertexArray(0);
-    //glBindTexture(GL_TEXTURE_2D, 0); //Unbind texture
-    //glBindTexture(GL_TEXTURE_CUBE_MAP, 0); //Unbind texture
-    //glUseProgram(0);//end using this shader
 }

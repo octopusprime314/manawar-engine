@@ -36,12 +36,42 @@ AssetTexture::AssetTexture(std::string textureName,
         }
     }
     else {
+        
         _buildCubeMapTextureDX(_name, cmdList, device);
     }
 }
 
+AssetTexture::AssetTexture(void* data, UINT width, UINT height,
+    ComPtr<ID3D12GraphicsCommandList>& cmdList,
+    ComPtr<ID3D12Device>& device) :
+    Texture(""),
+    _alphaValues(false) {
+
+    _build2DTextureDX(data, width, height, cmdList, device);
+}
+
+AssetTexture::AssetTexture(void* data, UINT width, UINT height) :
+    Texture(""),
+    _alphaValues(false) {
+
+    _build2DTextureGL(data, width, height);
+}
+
 AssetTexture::~AssetTexture() {
 
+}
+
+void AssetTexture::_build2DTextureGL(void* data, UINT width, UINT height) {
+    
+    glGenTextures(1, &_textureContext);
+    glBindTexture(GL_TEXTURE_2D, _textureContext);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, width, height, 0, GL_RGB, GL_FLOAT, data);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+    glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 void AssetTexture::_build2DTextureGL(std::string textureName) {
@@ -77,6 +107,55 @@ void AssetTexture::_build2DTextureGL(std::string textureName) {
     //FreeImage_Unload(_dib);
 }
 
+void AssetTexture::_build2DTextureDX(void* data, UINT width, UINT height, 
+                                    ComPtr<ID3D12GraphicsCommandList>& cmdList,
+                                    ComPtr<ID3D12Device>& device) {
+
+    _textureBuffer = new ResourceBuffer(data, width * height * 4, width, height, width * 4, cmdList, device);
+
+    //Create descriptor heap
+    D3D12_DESCRIPTOR_HEAP_DESC srvHeapDesc;
+    ZeroMemory(&srvHeapDesc, sizeof(srvHeapDesc));
+    srvHeapDesc.NumDescriptors = 1; //1 2D texture
+    srvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+    srvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+    device->CreateDescriptorHeap(&srvHeapDesc, IID_PPV_ARGS(_srvDescriptorHeap.GetAddressOf()));
+
+    //Create view of SRV for shader access
+    CD3DX12_CPU_DESCRIPTOR_HANDLE hDescriptor(_srvDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
+    D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+    auto textureDescriptor = _textureBuffer->getDescriptor();
+    srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+    srvDesc.Format = textureDescriptor.Format;
+    srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+    srvDesc.Texture2D.MostDetailedMip = 0;
+    srvDesc.Texture2D.MipLevels = textureDescriptor.MipLevels;
+    srvDesc.Texture2D.ResourceMinLODClamp = 0;
+    device->CreateShaderResourceView(_textureBuffer->getResource().Get(), &srvDesc, hDescriptor);
+
+    // create sampler descriptor heap
+    D3D12_DESCRIPTOR_HEAP_DESC descHeapSampler = {};
+    descHeapSampler.NumDescriptors = 1;
+    descHeapSampler.Type = D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER;
+    descHeapSampler.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+    device->CreateDescriptorHeap(&descHeapSampler,
+        IID_PPV_ARGS(_samplerDescriptorHeap.GetAddressOf()));
+
+    // create sampler descriptor in the sample descriptor heap
+    D3D12_SAMPLER_DESC samplerDesc;
+    ZeroMemory(&samplerDesc, sizeof(D3D12_SAMPLER_DESC));
+    samplerDesc.Filter = D3D12_FILTER_ANISOTROPIC;// D3D12_FILTER_MIN_MAG_MIP_LINEAR;
+    samplerDesc.AddressU = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+    samplerDesc.AddressV = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+    samplerDesc.AddressW = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+    samplerDesc.MinLOD = 0;
+    samplerDesc.MaxLOD = D3D12_FLOAT32_MAX;
+    samplerDesc.MipLODBias = 0.0f;
+    samplerDesc.MaxAnisotropy = 1;
+    samplerDesc.ComparisonFunc = D3D12_COMPARISON_FUNC_ALWAYS;
+    device->CreateSampler(&samplerDesc,
+        _samplerDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
+}
 
 void AssetTexture::_build2DTextureDX(std::string textureName,
                                    ComPtr<ID3D12GraphicsCommandList>& cmdList,
@@ -211,6 +290,10 @@ void AssetTexture::_buildCubeMapTextureDX(std::string skyboxName,
             textureName = skyboxName + "/left.jpg";
             _getTextureData(textureName);
         }
+        //Don't count as an alpha texture if all values are set to 1.0
+        if (_bits[3] == 255) {
+            _alphaValues = false;
+        }
 
         //_build2DTextureDX(textureName, cmdList, device);
         rowPitch = FreeImage_GetPitch(_dib);
@@ -221,7 +304,8 @@ void AssetTexture::_buildCubeMapTextureDX(std::string skyboxName,
         FreeImage_Unload(_dib);
     }
 
-    _textureBuffer = new ResourceBuffer(cubeMapData.data(), 6, cubeMapData.size(), _width, _height, rowPitch, cmdList, device);
+    _textureBuffer = new ResourceBuffer(cubeMapData.data(), 6, 
+        static_cast<UINT>(cubeMapData.size()), _width, _height, rowPitch, cmdList, device);
 
     //Create descriptor heap
     D3D12_DESCRIPTOR_HEAP_DESC srvHeapDesc;

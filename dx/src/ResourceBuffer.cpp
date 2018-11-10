@@ -256,6 +256,24 @@ ResourceBuffer::ResourceBuffer(D3D12_CLEAR_VALUE clearValue, UINT width, UINT he
             IID_PPV_ARGS(_defaultBuffer.GetAddressOf())
         );
     }
+    else if (clearValue.Format == DXGI_FORMAT_R32_TYPELESS) {
+        clearValue.Format = DXGI_FORMAT_D32_FLOAT;
+            device->CreateCommittedResource(
+                &CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
+                D3D12_HEAP_FLAG_NONE,
+                &CD3DX12_RESOURCE_DESC::Tex2D(
+                    DXGI_FORMAT_R32_TYPELESS,
+                    width, height,
+                    1,
+                    1,
+                    1,
+                    0,
+                    D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL),
+                D3D12_RESOURCE_STATE_COMMON,
+                &clearValue,
+                IID_PPV_ARGS(_defaultBuffer.GetAddressOf())
+            );
+        }
     else {
         device->CreateCommittedResource(
             &CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),

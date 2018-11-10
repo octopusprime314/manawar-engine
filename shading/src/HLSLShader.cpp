@@ -218,7 +218,7 @@ void HLSLShader::build(std::vector<DXGI_FORMAT>* rtvs) {
     if (rtvs != nullptr) {
         int j = 0;
         for (auto rtv : *rtvs) {
-            if (rtv == DXGI_FORMAT_D32_FLOAT) {
+            if (rtv == DXGI_FORMAT_D32_FLOAT || rtv == DXGI_FORMAT_R32_TYPELESS) {
                 foundDepthStencil = true;
             }
             else {
@@ -269,7 +269,7 @@ void HLSLShader::setOM(std::vector<RenderTexture> targets, int width, int height
     bool containsDepthStencil = false;
     UINT rtvCount = 0;
     for (auto buffer : targets) {
-        if (buffer.getFormat() == DXGI_FORMAT_D32_FLOAT) {
+        if (buffer.getFormat() == DXGI_FORMAT_D32_FLOAT || buffer.getFormat() == DXGI_FORMAT_R32_TYPELESS) {
             dsvHandle = buffer.getHandle();
             buffer.bindTarget(D3D12_RESOURCE_STATE_DEPTH_WRITE);
             containsDepthStencil = true;
@@ -305,7 +305,7 @@ void HLSLShader::setOM(std::vector<RenderTexture> targets, int width, int height
     for (int i = 0; i < targets.size(); i++) {
 
         // Clear target
-        if (targets[i].getFormat() == DXGI_FORMAT_D32_FLOAT) {
+        if (targets[i].getFormat() == DXGI_FORMAT_D32_FLOAT || targets[i].getFormat() == DXGI_FORMAT_R32_TYPELESS) {
 
             cmdList->ClearDepthStencilView(
                 dsvHandle,
@@ -330,7 +330,7 @@ void HLSLShader::setOM(std::vector<RenderTexture> targets, int width, int height
 
 void HLSLShader::releaseOM(std::vector<RenderTexture> targets) {
     for (auto buffer : targets) {
-        if (buffer.getFormat() == DXGI_FORMAT_D32_FLOAT) {
+        if (buffer.getFormat() == DXGI_FORMAT_D32_FLOAT || buffer.getFormat() == DXGI_FORMAT_R32_TYPELESS) {
             buffer.unbindTarget(D3D12_RESOURCE_STATE_DEPTH_WRITE);
         }
         else {

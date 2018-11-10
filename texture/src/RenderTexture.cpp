@@ -167,7 +167,7 @@ RenderTexture::RenderTexture(GLuint width, GLuint height, TextureFormat format) 
 
             D3D12_CLEAR_VALUE depthOptimizedClearValue;
             ZeroMemory(&depthOptimizedClearValue, sizeof(depthOptimizedClearValue));
-            depthOptimizedClearValue.Format = DXGI_FORMAT_D32_FLOAT;
+            depthOptimizedClearValue.Format = DXGI_FORMAT_R32_TYPELESS;
             depthOptimizedClearValue.DepthStencil.Depth = 1.0f;
             depthOptimizedClearValue.DepthStencil.Stencil = 0;
 

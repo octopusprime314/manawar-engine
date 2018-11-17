@@ -57,25 +57,13 @@ void SSAO::_generateKernelNoise() {
         _ssaoKernel.push_back(sample);
     }
 
-    if (EngineManager::getGraphicsLayer() == GraphicsLayer::OPENGL) {
-        for (unsigned int i = 0; i < 16; i++) {
-            Vector4 noise(
-                randomFloats(generator) * 2.0f - 1.0f,
-                randomFloats(generator) * 2.0f - 1.0f,
-                0.0f,
-                1.0f);
-            _ssaoNoise.push_back(noise);
-        }
-    }
-    else {
-        for (unsigned int i = 0; i < 16; i++) {
-            Vector4 noise(
-                0.0f,
-                randomFloats(generator) * 2.0f - 1.0f,
-                randomFloats(generator) * 2.0f - 1.0f,
-                1.0f);
-            _ssaoNoise.push_back(noise);
-        }
+    for (unsigned int i = 0; i < 16; i++) {
+        Vector4 noise(
+            randomFloats(generator) * 2.0f - 1.0f,
+            randomFloats(generator) * 2.0f - 1.0f,
+            0.0f,
+            1.0f);
+        _ssaoNoise.push_back(noise);
     }
 
     if (EngineManager::getGraphicsLayer() == GraphicsLayer::DX12) {

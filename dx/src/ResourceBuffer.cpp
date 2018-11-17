@@ -48,44 +48,79 @@ ResourceBuffer::ResourceBuffer(const void* initData,
     ComPtr<ID3D12Device>& device) {
     
     D3D12_SUBRESOURCE_FOOTPRINT pitchedDesc;
+    UINT alignedWidthInBytes = 0;
+
+    if (width*height == 16) {
+        pitchedDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+        alignedWidthInBytes = width * 4 * sizeof(float);
+        byteSize *= 4;
+        rowPitch *= 4;
+    }
+    else {
+        pitchedDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
+        alignedWidthInBytes = width * sizeof(DWORD);
+    }
     pitchedDesc.Width = width;
     pitchedDesc.Height = height;
     pitchedDesc.Depth = 1;
-    auto alignedWidthInBytes = width * sizeof(DWORD);
     UINT alignment256 = ((alignedWidthInBytes + D3D12_TEXTURE_DATA_PITCH_ALIGNMENT - 1) & ~(D3D12_TEXTURE_DATA_PITCH_ALIGNMENT - 1));
     pitchedDesc.RowPitch = alignment256;
-    pitchedDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
 
-    unsigned char* stream = nullptr;
-    if (width * height * 4 != pitchedDesc.RowPitch * height ||
-        width * height * 4 > byteSize) {
+    if (pitchedDesc.Format == DXGI_FORMAT_B8G8R8A8_UNORM) {
+        if (width * height * 4 != pitchedDesc.RowPitch * height ||
+            width * height * 4 > byteSize) {
 
-        int channelCount = 3;
-        if (byteSize == width * height * 4) {
-            channelCount = 4;
-        }
+            unsigned char* stream = nullptr;
+            int channelCount = 3;
+            if (byteSize == width * height * 4) {
+                channelCount = 4;
+            }
 
-        auto byteOffsetPitch = rowPitch - width * channelCount;
+            auto byteOffsetPitch = rowPitch - width * channelCount;
 
-        const unsigned char* data = reinterpret_cast<const unsigned char*>(initData);
-        stream = new unsigned char[pitchedDesc.RowPitch * height];
-        for (UINT i = 0; i < height; i++) {
+            const unsigned char* data = reinterpret_cast<const unsigned char*>(initData);
+            stream = new unsigned char[pitchedDesc.RowPitch * height];
+            for (UINT i = 0; i < height; i++) {
 
-            for (UINT j = 0; j < width; j++) {
+                for (UINT j = 0; j < width; j++) {
 
-                for (int k = 0; k < channelCount; k++) {
+                    for (int k = 0; k < channelCount; k++) {
 
-                    stream[i*pitchedDesc.RowPitch + (j * 4) + k] = 
-                        data[(i*width*channelCount) + (j*channelCount) + k + (i*byteOffsetPitch)];
-                }
-                if (channelCount == 3) {
-                    //fill in transparency opaque value
-                    stream[i*pitchedDesc.RowPitch + ((j + 1) * 4) - 1] = '\xff'; 
+                        stream[i*pitchedDesc.RowPitch + (j * 4) + k] =
+                            data[(i*width*channelCount) + (j*channelCount) + k + (i*byteOffsetPitch)];
+                    }
+                    if (channelCount == 3) {
+                        //fill in transparency opaque value
+                        stream[i*pitchedDesc.RowPitch + ((j + 1) * 4) - 1] = '\xff';
+                    }
                 }
             }
+            initData = stream;
+            byteSize = pitchedDesc.RowPitch * height;
         }
-        initData = stream;
-        byteSize = pitchedDesc.RowPitch * height;
+    }
+    else {
+        if (byteSize != pitchedDesc.RowPitch * height) {
+
+            int channelCount = 4;
+
+            float* stream = nullptr;
+            const float* data = reinterpret_cast<const float*>(initData);
+            stream = new float[(pitchedDesc.RowPitch * height) / sizeof(float)];
+            for (UINT i = 0; i < height; i++) {
+
+                for (UINT j = 0; j < width; j++) {
+
+                    for (int k = 0; k < channelCount; k++) {
+
+                        stream[(i*pitchedDesc.RowPitch/sizeof(float))   + (j*channelCount) + k] =
+                            data[(i*width*channelCount) + (j*channelCount) + k];
+                    }
+                }
+            }
+            initData = reinterpret_cast<void*>(stream);
+            byteSize = pitchedDesc.RowPitch * height;
+        }
     }
 
     //Upload texture data to uploadbuffer

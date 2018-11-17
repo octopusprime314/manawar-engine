@@ -1,9 +1,9 @@
 #include "HLSLShader.h"
 #include "Entity.h"
 #include "Light.h"
+#include "EngineManager.h"
 #include <iostream>
 #include <fstream>
-#include "EngineManager.h"
 #include "ShaderBroker.h"
 #include "DXLayer.h"
 #include <vector>
@@ -18,6 +18,15 @@ HLSLShader::HLSLShader(std::string pipelineShaderName, std::string fragmentShade
     _pipelineShaderName = pipelineShaderName;
     //build it
     build(rtvs);
+
+    UINT indexBytes = static_cast<UINT>(3) * sizeof(UINT);
+    int indices[] = { 0,1,2 };
+    _indexBuffer = new ResourceBuffer(indices, indexBytes,
+        DXLayer::instance()->getCmdList(), DXLayer::instance()->getDevice());
+
+    _ibv.BufferLocation = _indexBuffer->getGPUAddress();
+    _ibv.Format = DXGI_FORMAT_R32_UINT;
+    _ibv.SizeInBytes = indexBytes;
 }
 
 HLSLShader::~HLSLShader() {
@@ -45,12 +54,7 @@ void HLSLShader::build(std::vector<DXGI_FORMAT>* rtvs) {
     auto device = DXLayer::instance()->getDevice();
 
     std::string shadersLocation = SHADERS_LOCATION;
-    if (EngineManager::getGraphicsLayer() == GraphicsLayer::OPENGL) {
-        shadersLocation += "glsl/";
-    }
-    else {
-        shadersLocation += "hlsl/";
-    }
+    shadersLocation += "hlsl/";
 
     std::string fileName = shadersLocation + _pipelineShaderName;
     fileName.append(".hlsl");
@@ -419,8 +423,8 @@ void HLSLShader::updateData(std::string dataName,
 }
 
 void HLSLShader::updateData(std::string id,
-    GLuint textureUnit,
-    GLuint textureContext,
+    UINT textureUnit,
+    UINT textureContext,
     ImageData imageInfo) {
 
     //_uniforms->updateUniform(id, textureUnit, textureContext, imageInfo);
@@ -446,10 +450,13 @@ void HLSLShader::bindAttributes(VAO* vao) {
     cmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
     if (vao != nullptr) {
+
         cmdList->IASetIndexBuffer(&(vao->getIndexBuffer()));
         D3D12_VERTEX_BUFFER_VIEW vertexBuffers[] = { vao->getVertexBuffer() };
-
         cmdList->IASetVertexBuffers(0, 1, vertexBuffers);
+    }
+    else {
+        cmdList->IASetIndexBuffer(&_ibv);
     }
 }
 

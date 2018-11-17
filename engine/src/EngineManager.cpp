@@ -79,11 +79,6 @@ EngineManager::EngineManager(int* argc, char** argv, HINSTANCE hInstance, int nC
 
     //_entityList.push_back(new Entity(modelBroker->getModel("werewolf"), _viewManager->getEventWrapper())); //Add a static model to the scene
 
-    _physics = new Physics();
-    _physics->addEntities(_entityList); //Gives physics a pointer to all models which allows access to underlying geometry
-
-    _physics->run(); //Dispatch physics to start kinematics
-
     if (_graphicsLayer == GraphicsLayer::DX12) {
 
         _forwardRenderer = new ForwardRenderer();
@@ -204,8 +199,14 @@ EngineManager::EngineManager(int* argc, char** argv, HINSTANCE hInstance, int nC
         _viewManager->triggerEvents();
         _viewManager->setEntityList(_entityList);
 
-        _glfwContext->run();
     }
+
+    _physics = new Physics();
+    _physics->addEntities(_entityList); //Gives physics a pointer to all models which allows access to underlying geometry
+
+    _physics->run(); //Dispatch physics to start kinematics
+
+    _glfwContext->run();
 }
 
 EngineManager::~EngineManager() {

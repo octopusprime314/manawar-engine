@@ -23,8 +23,7 @@
 #pragma once
 #include <string>
 #include <iostream>
-#include "GLIncludes.h"
-#include "Uniforms.h"
+
 #include <vector>
 
 #include <wrl.h>
@@ -34,6 +33,8 @@
 #include "Shader.h"
 #include "ConstantBuffer.h"
 #include "RenderTexture.h"
+#include "GLIncludes.h"
+#include "Uniforms.h"
 
 using namespace Microsoft::WRL;
 
@@ -59,6 +60,9 @@ protected:
     void                                  _queryShaderResources(ComPtr<ID3DBlob> shaderBlob);
     std::wstring                          _stringToLPCWSTR(const std::string& s);
     std::map<std::string, ConstantBuffer*> _constantBuffers;
+
+    ResourceBuffer*                       _indexBuffer;
+    D3D12_INDEX_BUFFER_VIEW               _ibv;
 public:
     HLSLShader(std::string vertexShaderName, std::string fragmentShaderName = "", 
                std::vector<DXGI_FORMAT>* rtvs = nullptr);
@@ -71,8 +75,8 @@ public:
                                                      int textureUnit,
                                                      Texture* exture);
     void                                  updateData(std::string id,
-                                                     GLuint textureUnit,
-                                                     GLuint textureContext,
+                                                     UINT textureUnit,
+                                                     UINT textureContext,
                                                      ImageData imageInfo);
     void                                  bindAttributes(VAO* vao);
     void                                  unbindAttributes();

@@ -160,7 +160,7 @@ void DeferredShader::runShader(std::vector<Light*>& lights,
     }
     _shader->updateData("skyboxDayTexture",   GL_TEXTURE7, _skyBoxDayTexture);
     _shader->updateData("skyboxNightTexture", GL_TEXTURE8, _skyBoxNightTexture);
-    if (ssao != nullptr) {
+    if (ssao != nullptr && ssao->getBlur() != nullptr && ssao->getBlur()->getTexture() != nullptr) {
         _shader->updateData("ssaoTexture", GL_TEXTURE9, ssao->getBlur()->getTexture());
     }
 

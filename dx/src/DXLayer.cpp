@@ -230,7 +230,8 @@ void DXLayer::_render(DeferredRenderer* deferred,
     _presentTarget->bindTarget(_device, _cmdLists[_cmdListIndex], _cmdListIndex);
     
     auto texture = _deferredFBO->getRenderTexture();
-    presentShader->runShader(texture, nullptr);
+    //presentShader->runShader(texture, nullptr);
+    presentShader->runShader(ssaoPass->getSSAOTexture(), nullptr);
 
     _presentTarget->unbindTarget(_cmdLists[_cmdListIndex], _cmdListIndex);
 

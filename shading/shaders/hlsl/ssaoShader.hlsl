@@ -56,7 +56,7 @@ PixelOut PS(float4 posH : SV_POSITION,
 		float3 normal    = normalTexture.Sample(textureSampler, uv).rgb;
         float3 randomVec = noiseTexture.Sample(textureSampler, uv * noiseScale).xyz;
 
-        float3 tangent   = normalize(randomVec - normal * dot(randomVec, normal));
+        float3 tangent   = normalize(randomVec - (normal * dot(randomVec, normal)));
         float3 bitangent = cross(normal, tangent);
 		float3x3 TBN     = float3x3(tangent, bitangent, normal); 
 
@@ -65,16 +65,17 @@ PixelOut PS(float4 posH : SV_POSITION,
 		{
 			// get sample position
 			float3 sampleValue = mul(kernel[i], TBN); // From tangent to view-space
-            sampleValue = fragPos + sampleValue * radius;
+
+            sampleValue = fragPos + (sampleValue * radius);
 
             float4 offset = float4(sampleValue, 1.0);
 			offset      = mul(offset, projection);    // from view to clip-space
 			offset.xyz /= offset.w;               // perspective divide
 			offset.xyz  = offset.xyz * 0.5 + 0.5; // transform to range 0.0 - 1.0 
-		
+            offset.y = -offset.y;
 			float sampleDepth = decodeLocation(offset.xy).z;
-			float rangeCheck = smoothstep(0.0, 1.0, radius / abs(fragPos.z - sampleDepth));
-			occlusion += (sampleDepth >= sampleValue.z + bias ? 1.0 : 0.0) * rangeCheck;
+            float rangeCheck = smoothstep(0.0, 1.0, radius / abs(fragPos.z - sampleDepth));
+			occlusion += (sampleDepth < sampleValue.z + bias ? 1.0 : 0.0) * rangeCheck;
 		}  
 		occlusion = 1.0 - (occlusion / kernelSize);
         pixel.color.r = occlusion;

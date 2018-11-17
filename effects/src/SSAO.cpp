@@ -119,3 +119,7 @@ std::vector<Vector4>& SSAO::getKernel() {
 SSCompute* SSAO::getBlur() {
     return _upSample;
 }
+
+Texture* SSAO::getSSAOTexture() {
+    return &_renderTexture;
+}

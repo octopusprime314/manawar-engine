@@ -48,6 +48,7 @@ public:
     ~SSAO();
     void                  computeSSAO(MRTFrameBuffer* mrtBuffer, ViewEventDistributor* viewEventDistributor);
     Texture*              getNoiseTexture();
+    Texture*              getSSAOTexture();
     std::vector<Vector4>& getKernel();
     SSCompute*            getBlur();
 };

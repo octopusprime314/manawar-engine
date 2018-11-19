@@ -69,6 +69,7 @@ public:
     HLSLShader(const HLSLShader& shader);
     virtual ~HLSLShader();
     void                                  draw(int offset, int instances, int numTriangles);
+    void                                  dispatch(int x, int y, int z);
     void                                  build(std::vector<DXGI_FORMAT>* rtvs);
     void                                  updateData(std::string id, void* data);
     void                                  updateData(std::string dataName,
@@ -76,7 +77,7 @@ public:
                                                      Texture* exture);
     void                                  updateData(std::string id,
                                                      UINT textureUnit,
-                                                     UINT textureContext,
+                                                     Texture* texture,
                                                      ImageData imageInfo);
     void                                  bindAttributes(VAO* vao);
     void                                  unbindAttributes();

@@ -50,21 +50,10 @@ public:
     GLint        getShaderContext();
     GLint        getLocation(std::string uniformName);
     Uniforms*    getUniforms();
-    ////Updates most mat, vec, etc. data types in glsl
-    //void         _shader->updateData(std::string uniformName, 
-    //                void* data);
-    ////Updates samplers in glsl
-    //void         _shader->updateData(std::string uniformName, 
-    //                GLuint textureUnit, 
-    //                GLuint textureContext);
-    ////Updates images in glsl used primarily in compute shaders
-    //void         _shader->updateData(std::string uniformName,
-    //                GLuint textureUnit,
-    //                GLuint textureContext,
-    //                ImageData imageInfo);
 
     void         updateShader(GLSLShader* shader);
     void         draw(int offset, int instances, int numTriangles);
+    void         dispatch(int x, int y, int z);
     void         build();
     void         updateData(std::string id, void* data);
     void         updateData(std::string dataName,
@@ -72,7 +61,7 @@ public:
                             Texture* texture);
     void         updateData(std::string id,
                             GLuint textureUnit,
-                            GLuint textureContext,
+                            Texture* texture,
                             ImageData imageInfo);
     void         bindAttributes(VAO* vao);
     void         unbindAttributes();

@@ -36,11 +36,17 @@ std::string Texture::getName() {
     return _name;
 }
 
+ResourceBuffer* Texture::getResource() {
+    return _textureBuffer;
+}
+
 void Texture::bindToDXShader(ComPtr<ID3D12GraphicsCommandList>& cmdList, 
     UINT textureBinding,
     std::map<std::string, UINT>& resourceBindings) {
 
-    if (_srvDescriptorHeap != nullptr && _samplerDescriptorHeap != nullptr) {
+    if (_srvDescriptorHeap != nullptr && _samplerDescriptorHeap != nullptr &&
+        resourceBindings.find("textureSampler") != resourceBindings.end()) {
+        
         ID3D12DescriptorHeap* descriptorHeaps[] = { _srvDescriptorHeap.Get(),  _samplerDescriptorHeap.Get() };
         cmdList->SetDescriptorHeaps(2, descriptorHeaps);
 
@@ -49,5 +55,14 @@ void Texture::bindToDXShader(ComPtr<ID3D12GraphicsCommandList>& cmdList,
 
         cmdList->SetGraphicsRootDescriptorTable(resourceBindings["textureSampler"],
             _samplerDescriptorHeap->GetGPUDescriptorHandleForHeapStart());
+        
+    }
+    //No sampler and probably just a compute shader
+    else {
+        ID3D12DescriptorHeap* descriptorHeaps[] = { _srvDescriptorHeap.Get() };
+        cmdList->SetDescriptorHeaps(1, descriptorHeaps);
+
+        cmdList->SetComputeRootDescriptorTable(textureBinding,
+            _srvDescriptorHeap->GetGPUDescriptorHandleForHeapStart());
     }
 }

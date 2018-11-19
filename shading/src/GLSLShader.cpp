@@ -253,10 +253,10 @@ void GLSLShader::updateData(std::string dataName,
 
 void GLSLShader::updateData(std::string id,
     GLuint textureUnit,
-    GLuint textureContext,
+    Texture* texture,
     ImageData imageInfo) {
 
-    _uniforms->updateUniform(id, textureUnit, textureContext, imageInfo);
+    _uniforms->updateUniform(id, textureUnit, texture->getContext(), imageInfo);
 }
 
 void GLSLShader::bindAttributes(VAO* vao) {
@@ -275,6 +275,10 @@ Uniforms* GLSLShader::getUniforms() {
 void GLSLShader::updateShader(GLSLShader* shader) {
     this->_shaderContext = shader->getShaderContext();
     this->_uniforms = shader->getUniforms();
+}
+
+void GLSLShader::dispatch(int x, int y, int z) {
+    glDispatchCompute(x, y, z);
 }
 
 void GLSLShader::draw(int offset, int instances, int numTriangles) {

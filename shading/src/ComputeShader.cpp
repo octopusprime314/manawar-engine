@@ -10,7 +10,9 @@ ComputeShader::ComputeShader(std::string computeShaderName) {
         _shader = new GLSLShader(computeShaderName);
     }
     else {
-        _shader = new HLSLShader(computeShaderName);
+        std::vector<DXGI_FORMAT>* formats = new std::vector<DXGI_FORMAT>();
+        formats->push_back(DXGI_FORMAT_R32_FLOAT);
+        _shader = new HLSLShader(computeShaderName, "", formats);
     }
 }
 
@@ -33,14 +35,14 @@ void ComputeShader::runShader(Texture* writeTexture, Texture* readTexture, Textu
     else if (format == TextureFormat::R_FLOAT || format == TextureFormat::R_UNSIGNED_BYTE) {
         imageInfo.format = GL_R8;
     }
-    _shader->updateData("readTexture", GL_TEXTURE0, readTexture->getContext(), imageInfo);
+    _shader->updateData("readTexture", GL_TEXTURE0, readTexture, imageInfo);
 
     imageInfo.readOnly = false;
-    _shader->updateData("writeTexture", GL_TEXTURE1, writeTexture->getContext(), imageInfo);
+    _shader->updateData("writeTexture", GL_TEXTURE1, writeTexture, imageInfo);
 
     //Dispatch the shader
-    glDispatchCompute(static_cast<GLuint>(ceilf(static_cast<float>(writeTexture->getWidth()) / 16.0f)),
+    _shader->dispatch(static_cast<GLuint>(ceilf(static_cast<float>(writeTexture->getWidth()) / 16.0f)),
         static_cast<GLuint>(ceilf(static_cast<float>(writeTexture->getHeight()) / 16.0f)), 1);
 
-    glUseProgram(0);
+    _shader->unbind();
 }

@@ -82,6 +82,16 @@ void HLSLShader::build(std::vector<DXGI_FORMAT>* rtvs) {
         OutputDebugStringA((char*)errorsPS->GetBufferPointer());
     }
 
+    ComPtr<ID3DBlob> compiledCS;
+    ComPtr<ID3DBlob> errorsCS;
+    HRESULT csResult = D3DCompileFromFile(shaderString.c_str(), 0,
+        D3D_COMPILE_STANDARD_FILE_INCLUDE, "CS", "cs_5_0", 0, 0,
+        compiledCS.GetAddressOf(), errorsCS.GetAddressOf());
+
+    if (csResult) {
+        OutputDebugStringA((char*)errorsCS->GetBufferPointer());
+    }
+
     // Query shaders to properly build root signature
 
     if (vsResult == S_OK) {
@@ -89,6 +99,9 @@ void HLSLShader::build(std::vector<DXGI_FORMAT>* rtvs) {
     }
     if (psResult == S_OK) {
         _queryShaderResources(compiledPS);
+    }
+    if (csResult == S_OK) {
+        _queryShaderResources(compiledCS);
     }
 
     CD3DX12_ROOT_PARAMETER* RP = new CD3DX12_ROOT_PARAMETER[_resourceDescriptorTable.size()];
@@ -135,7 +148,22 @@ void HLSLShader::build(std::vector<DXGI_FORMAT>* rtvs) {
         if (resource.second.Type == D3D_SHADER_INPUT_TYPE::D3D_SIT_TEXTURE) {
             srvTableRange = new CD3DX12_DESCRIPTOR_RANGE();
             srvTableRange->Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, resource.second.uID);
-            RP[resource.second.uID + rootParameterIndex].InitAsDescriptorTable(1, srvTableRange, D3D12_SHADER_VISIBILITY_PIXEL);
+            if (csResult == S_OK) {
+                RP[resource.second.uID + rootParameterIndex].InitAsDescriptorTable(1, srvTableRange);
+            }
+            else {
+                RP[resource.second.uID + rootParameterIndex].InitAsDescriptorTable(1, srvTableRange, D3D12_SHADER_VISIBILITY_PIXEL);
+            }
+            _resourceIndexes[resource.second.Name] = resource.second.uID + rootParameterIndex;
+            i++;
+        }
+    }
+    rootParameterIndex = static_cast<int>(_resourceIndexes.size());
+    for (auto resource : _resourceDescriptorTable) {
+        if (resource.second.Type == D3D_SHADER_INPUT_TYPE::D3D_SIT_UAV_RWTYPED) {
+            srvTableRange = new CD3DX12_DESCRIPTOR_RANGE();
+            srvTableRange->Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, resource.second.uID);
+            RP[resource.second.uID + rootParameterIndex].InitAsDescriptorTable(1, srvTableRange);
             _resourceIndexes[resource.second.Name] = resource.second.uID + rootParameterIndex;
             i++;
         }
@@ -164,88 +192,102 @@ void HLSLShader::build(std::vector<DXGI_FORMAT>* rtvs) {
         pOutBlob->GetBufferSize(),
         IID_PPV_ARGS(_rootSignature.GetAddressOf()));
 
-    _inputLayout.push_back({
-        "POSITION",
-        0,
-        DXGI_FORMAT_R32G32B32_FLOAT,
-        0,
-        0,
-        D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,
-        0
-        });
+    if (csResult != S_OK) {
+        _inputLayout.push_back({
+            "POSITION",
+            0,
+            DXGI_FORMAT_R32G32B32_FLOAT,
+            0,
+            0,
+            D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,
+            0
+            });
 
-    _inputLayout.push_back({
-        "NORMAL",
-        0,
-        DXGI_FORMAT_R32G32B32_FLOAT,
-        0,
-        12,
-        D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,
-        0
-        });
+        _inputLayout.push_back({
+            "NORMAL",
+            0,
+            DXGI_FORMAT_R32G32B32_FLOAT,
+            0,
+            12,
+            D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,
+            0
+            });
 
-    _inputLayout.push_back({
-        "UV",
-        0,
-        DXGI_FORMAT_R32G32_FLOAT,
-        0,
-        24,
-        D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,
-        0
-        });
+        _inputLayout.push_back({
+            "UV",
+            0,
+            DXGI_FORMAT_R32G32_FLOAT,
+            0,
+            24,
+            D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,
+            0
+            });
+        D3D12_GRAPHICS_PIPELINE_STATE_DESC pso;
+        ZeroMemory(&pso, sizeof(D3D12_GRAPHICS_PIPELINE_STATE_DESC));
+        pso.InputLayout = { _inputLayout.data(), static_cast<UINT>(_inputLayout.size()) };
+        pso.pRootSignature = _rootSignature.Get();
+        if (vsResult == S_OK) {
+            pso.VS = {
+                reinterpret_cast<BYTE*>(compiledVS->GetBufferPointer()),
+                compiledVS->GetBufferSize()
+            };
+        }
+        if (psResult == S_OK) {
+            pso.PS = {
+                reinterpret_cast<BYTE*>(compiledPS->GetBufferPointer()),
+                compiledPS->GetBufferSize()
+            };
+        }
+        auto rasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+        rasterizerState.CullMode = D3D12_CULL_MODE_NONE; //disabled culling 
+        pso.RasterizerState = rasterizerState;
+        pso.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
+        pso.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
+        pso.SampleMask = UINT_MAX;
+        pso.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
 
-    D3D12_GRAPHICS_PIPELINE_STATE_DESC pso;
-    ZeroMemory(&pso, sizeof(D3D12_GRAPHICS_PIPELINE_STATE_DESC));
-    pso.InputLayout = { _inputLayout.data(), static_cast<UINT>(_inputLayout.size()) };
-    pso.pRootSignature = _rootSignature.Get();
-    if (vsResult == S_OK) {
-        pso.VS = {
-            reinterpret_cast<BYTE*>(compiledVS->GetBufferPointer()),
-            compiledVS->GetBufferSize()
-        };
-    }
-    if (psResult == S_OK) {
-        pso.PS = {
-            reinterpret_cast<BYTE*>(compiledPS->GetBufferPointer()),
-            compiledPS->GetBufferSize()
-        };
-    }
-    auto rasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
-    rasterizerState.CullMode = D3D12_CULL_MODE_NONE; //disabled culling 
-    pso.RasterizerState = rasterizerState;
-    pso.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
-    pso.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
-    pso.SampleMask = UINT_MAX;
-    pso.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-
-    bool foundDepthStencil = false;
-    if (rtvs != nullptr) {
-        int j = 0;
-        for (auto rtv : *rtvs) {
-            if (rtv == DXGI_FORMAT_D32_FLOAT || rtv == DXGI_FORMAT_R32_TYPELESS) {
-                foundDepthStencil = true;
-            }
-            else {
-                pso.RTVFormats[j++] = rtv;
-                pso.NumRenderTargets++;
+        bool foundDepthStencil = false;
+        if (rtvs != nullptr) {
+            int j = 0;
+            for (auto rtv : *rtvs) {
+                if (rtv == DXGI_FORMAT_D32_FLOAT || rtv == DXGI_FORMAT_R32_TYPELESS) {
+                    foundDepthStencil = true;
+                }
+                else {
+                    pso.RTVFormats[j++] = rtv;
+                    pso.NumRenderTargets++;
+                }
             }
         }
+        else {
+            pso.NumRenderTargets = 0;
+        }
+
+        pso.SampleDesc.Quality = 0;
+        pso.SampleDesc.Count = 1;
+
+        if (foundDepthStencil) {
+            pso.DSVFormat = DXGI_FORMAT_D32_FLOAT;
+        }
+        else {
+            pso.DSVFormat = DXGI_FORMAT_UNKNOWN;
+        }
+
+        HRESULT result = device->CreateGraphicsPipelineState(&pso, IID_PPV_ARGS(&_psoState));
     }
     else {
-        pso.NumRenderTargets = 0;
+        D3D12_COMPUTE_PIPELINE_STATE_DESC pso;
+        ZeroMemory(&pso, sizeof(D3D12_COMPUTE_PIPELINE_STATE_DESC));
+        pso.pRootSignature = _rootSignature.Get();
+        if (csResult == S_OK) {
+            pso.CS = {
+                reinterpret_cast<BYTE*>(compiledCS->GetBufferPointer()),
+                compiledCS->GetBufferSize()
+            };
+        }
+        pso.Flags = D3D12_PIPELINE_STATE_FLAG_NONE;
+        HRESULT result = device->CreateComputePipelineState(&pso, IID_PPV_ARGS(&_psoState));
     }
-
-    pso.SampleDesc.Quality = 0;
-    pso.SampleDesc.Count = 1;
-   
-    if (foundDepthStencil) {
-        pso.DSVFormat = DXGI_FORMAT_D32_FLOAT;
-    }
-    else {
-        pso.DSVFormat = DXGI_FORMAT_UNKNOWN;
-    }
-
-    HRESULT result = device->CreateGraphicsPipelineState(&pso, IID_PPV_ARGS(&_psoState));
 
 }
 
@@ -424,25 +466,26 @@ void HLSLShader::updateData(std::string dataName,
 
 void HLSLShader::updateData(std::string id,
     UINT textureUnit,
-    UINT textureContext,
+    Texture* texture,
     ImageData imageInfo) {
 
-    //_uniforms->updateUniform(id, textureUnit, textureContext, imageInfo);
+    auto cmdList = DXLayer::instance()->getCmdList();
+    texture->bindToDXShader(cmdList, _resourceIndexes[id], _resourceIndexes);
 }
 
 
 void HLSLShader::bind() {
     auto cmdList = DXLayer::instance()->getCmdList();
     cmdList->SetPipelineState(_psoState.Get());
-    cmdList->SetGraphicsRootSignature(_rootSignature.Get());
+    if (_inputLayout.size() > 0) {
+        cmdList->SetGraphicsRootSignature(_rootSignature.Get());
+    }
+    else {
+        cmdList->SetComputeRootSignature(_rootSignature.Get());
+    }
 }
 
 void HLSLShader::unbind() {
-
-    auto cmdList = DXLayer::instance()->getCmdList();
-    auto presentTarget = DXLayer::instance()->getPresentTarget();
-    auto cmdListIndex = DXLayer::instance()->getCmdListIndex();
-    //presentTarget->unbindTarget(cmdList, cmdListIndex);
 }
 
 void HLSLShader::bindAttributes(VAO* vao) {
@@ -461,6 +504,13 @@ void HLSLShader::bindAttributes(VAO* vao) {
 }
 
 void HLSLShader::unbindAttributes() {
+}
+
+void HLSLShader::dispatch(int x, int y, int z) {
+
+    DXLayer::instance()->getCmdList()->Dispatch(1, 1, z);
+
+    //DXLayer::instance()->getCmdList()->Dispatch(x, y, z);
 }
 
 void HLSLShader::draw(int offset, int instances, int numTriangles) {

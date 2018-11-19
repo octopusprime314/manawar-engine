@@ -51,13 +51,14 @@ public:
     Shader(const Shader& shader);
     virtual      ~Shader();
     virtual void draw(int offset, int instances, int numTriangles) = 0;
+    virtual void dispatch(int x, int y, int z) = 0;
     virtual void updateData(std::string id, void* data) = 0;
     virtual void updateData(std::string dataName,
                             int textureUnit,
                             Texture* texture) = 0;
     virtual void updateData(std::string id,
                             GLuint textureUnit,
-                            GLuint textureContext,
+                            Texture* texture,
                             ImageData imageInfo) = 0;
     virtual void bindAttributes(VAO* vao) = 0;
     virtual void unbindAttributes() = 0;

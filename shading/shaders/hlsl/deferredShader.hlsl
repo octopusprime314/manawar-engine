@@ -69,7 +69,8 @@ struct PixelOut
 PixelOut PS(float4 posH : SV_POSITION,
     float2 uv : UVOUT) {
 
-    PixelOut pixel;
+    PixelOut pixel = { float4(0.0, 0.0, 0.0, 0.0), 1.0 };
+
     //extract position from depth texture
     float4 position = float4(decodeLocation(uv), 1.0);
     //extract normal from normal texture

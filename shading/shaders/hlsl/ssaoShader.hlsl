@@ -45,7 +45,7 @@ struct PixelOut
 PixelOut PS(float4 posH : SV_POSITION,
     float2 uv : UVOUT)
 {
-    PixelOut pixel;
+    PixelOut pixel = {float4(0.0, 0.0, 0.0, 0.0)};
 
 	int kernelSize = 64;
 	float radius   = 5.0;

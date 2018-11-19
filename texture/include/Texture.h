@@ -63,6 +63,7 @@ public:
     GLuint      getWidth();
     GLuint      getHeight();
     std::string getName();
+    ResourceBuffer* getResource();
     void        bindToDXShader(ComPtr<ID3D12GraphicsCommandList>& cmdList,
                                UINT textureBinding,
                                std::map<std::string, UINT>& resourceBindings);

@@ -59,10 +59,19 @@ void Texture::bindToDXShader(ComPtr<ID3D12GraphicsCommandList>& cmdList,
     }
     //No sampler and probably just a compute shader
     else {
-        ID3D12DescriptorHeap* descriptorHeaps[] = { _srvDescriptorHeap.Get() };
-        cmdList->SetDescriptorHeaps(1, descriptorHeaps);
+        if (textureBinding == 0) {
+            ID3D12DescriptorHeap* descriptorHeaps[] = { _srvDescriptorHeap.Get() };
+            cmdList->SetDescriptorHeaps(1, descriptorHeaps);
 
-        cmdList->SetComputeRootDescriptorTable(textureBinding,
-            _srvDescriptorHeap->GetGPUDescriptorHandleForHeapStart());
+            cmdList->SetComputeRootDescriptorTable(textureBinding,
+                _srvDescriptorHeap->GetGPUDescriptorHandleForHeapStart());
+        }
+        else if (textureBinding == 1) {
+            ID3D12DescriptorHeap* descriptorHeaps[] = { _uavDescriptorHeap.Get() };
+            cmdList->SetDescriptorHeaps(1, descriptorHeaps);
+
+            cmdList->SetComputeRootDescriptorTable(textureBinding,
+                _uavDescriptorHeap->GetGPUDescriptorHandleForHeapStart());
+        }
     }
 }

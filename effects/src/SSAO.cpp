@@ -12,9 +12,9 @@ SSAO::SSAO() :
     _renderTexture(IOEventDistributor::screenPixelWidth, IOEventDistributor::screenPixelHeight, TextureFormat::R_FLOAT),
     _ssaoShader(static_cast<SSAOShader*>(ShaderBroker::instance()->getShader("ssaoShader"))) {
 
-    //_blur = new SSCompute("blurShader", IOEventDistributor::screenPixelWidth / 4, IOEventDistributor::screenPixelHeight / 4, TextureFormat::R_FLOAT);
+    _blur = new SSCompute("blurShader", IOEventDistributor::screenPixelWidth / 4, IOEventDistributor::screenPixelHeight / 4, TextureFormat::R_FLOAT);
     _downSample = new SSCompute("downsample", IOEventDistributor::screenPixelWidth / 4, IOEventDistributor::screenPixelHeight / 4, TextureFormat::R_FLOAT);
-    //_upSample = new SSCompute("upsample", IOEventDistributor::screenPixelWidth, IOEventDistributor::screenPixelHeight, TextureFormat::R_FLOAT);
+    _upSample = new SSCompute("upsample", IOEventDistributor::screenPixelWidth, IOEventDistributor::screenPixelHeight, TextureFormat::R_FLOAT);
 
     if (EngineManager::getGraphicsLayer() == GraphicsLayer::OPENGL) {
         glGenFramebuffers(1, &_ssaoFBO);
@@ -109,11 +109,20 @@ void SSAO::computeSSAO(MRTFrameBuffer* mrtBuffer, ViewEventDistributor* viewEven
         &CD3DX12_RESOURCE_BARRIER::Transition(_renderTexture.getResource()->getResource().Get(),
             D3D12_RESOURCE_STATE_GENERIC_READ, D3D12_RESOURCE_STATE_COMMON));
 
-    ////Blur in downsampled 
-    //_blur->compute(_downSample->getTexture());
+    DXLayer::instance()->getCmdList()->ResourceBarrier(1,
+        &CD3DX12_RESOURCE_BARRIER::UAV(_downSample->getTexture()->getResource()->getResource().Get()));
 
-    ////upsample back to original
-    //_upSample->compute(_blur->getTexture());
+    //Blur in downsampled 
+    _blur->compute(_downSample->getTexture());
+
+    DXLayer::instance()->getCmdList()->ResourceBarrier(1,
+        &CD3DX12_RESOURCE_BARRIER::UAV(_blur->getTexture()->getResource()->getResource().Get()));
+
+    //upsample back to original
+    _upSample->compute(_blur->getTexture());
+
+    DXLayer::instance()->getCmdList()->ResourceBarrier(1,
+        &CD3DX12_RESOURCE_BARRIER::UAV(_upSample->getTexture()->getResource()->getResource().Get()));
 }
 
 Texture* SSAO::getNoiseTexture() {
@@ -129,5 +138,5 @@ SSCompute* SSAO::getBlur() {
 }
 
 Texture* SSAO::getSSAOTexture() {
-    return _downSample->getTexture();
+    return _upSample->getTexture();
 }

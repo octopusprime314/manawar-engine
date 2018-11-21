@@ -8,14 +8,12 @@ void CS(int3 DTid : SV_DispatchThreadID) {
     
     int2 ID = int2(DTid.xy);
     float result = 0.0;
-
-    //4x4 blocks downsampling
-    int sampleRate = 4;
-    for (int x = 0; x < sampleRate; x++)
+    for (int x = -2; x < 2; ++x)
     {
-        for (int y = 0; y < sampleRate; y++)
+        for (int y = -2; y < 2; ++y)
         {
-            result += readTexture.Load(int3((ID.x * sampleRate) + x, (ID.y * sampleRate) + y, 0)).r;
+            int2 offset = int2(x, y);
+            result += readTexture.Load(int3(ID + offset, 0)).r;
         }
     }
     writeTexture[ID] = result / 16.0;

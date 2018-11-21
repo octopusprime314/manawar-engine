@@ -508,9 +508,7 @@ void HLSLShader::unbindAttributes() {
 
 void HLSLShader::dispatch(int x, int y, int z) {
 
-    DXLayer::instance()->getCmdList()->Dispatch(1, 1, z);
-
-    //DXLayer::instance()->getCmdList()->Dispatch(x, y, z);
+    DXLayer::instance()->getCmdList()->Dispatch(x, y, z);
 }
 
 void HLSLShader::draw(int offset, int instances, int numTriangles) {

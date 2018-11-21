@@ -50,6 +50,7 @@ protected:
     GLuint                       _height;
     std::string                  _name;
     ResourceBuffer*              _textureBuffer;
+    ComPtr<ID3D12DescriptorHeap> _uavDescriptorHeap;
     ComPtr<ID3D12DescriptorHeap> _srvDescriptorHeap;
     ComPtr<ID3D12DescriptorHeap> _samplerDescriptorHeap;
     D3D12_VIEWPORT               _viewPort;

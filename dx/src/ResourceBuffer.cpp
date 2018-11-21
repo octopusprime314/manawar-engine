@@ -320,7 +320,7 @@ ResourceBuffer::ResourceBuffer(D3D12_CLEAR_VALUE clearValue, UINT width, UINT he
                 1,
                 1,
                 0,
-                D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET),
+                D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET | D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS),
             D3D12_RESOURCE_STATE_COMMON,
             &clearValue,
             IID_PPV_ARGS(_defaultBuffer.GetAddressOf())

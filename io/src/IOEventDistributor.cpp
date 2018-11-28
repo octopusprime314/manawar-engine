@@ -1,6 +1,9 @@
 #include "IOEventDistributor.h"
 #include "ViewEvents.h"
 #include "MasterClock.h"
+#include "EngineManager.h"
+#include "DXLayer.h"
+
 
 int         IOEventDistributor::_renderNow = 0;
 std::mutex  IOEventDistributor::_renderLock;
@@ -18,78 +21,84 @@ uint64_t nowMs() {
     return duration_cast<milliseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
 }
 
-IOEventDistributor::IOEventDistributor(int* argc, char** argv) {
+IOEventDistributor::IOEventDistributor(int* argc, char** argv, HINSTANCE hInstance, int nCmdShow) {
 
     char workingDir[1024] = "";
     GetCurrentDirectory(sizeof(workingDir), workingDir);
     std::cout << "Working directory: " << workingDir << std::endl;
 
-    //Initialize glfw for window creation
-    glfwInit();
+    if (EngineManager::getGraphicsLayer() == GraphicsLayer::OPENGL) {
+        //Initialize glfw for window creation
+        glfwInit();
 
-    //Make opengl core profile 4.3
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    glfwWindowHint(GLFW_MAXIMIZED, true);
+        //Make opengl core profile 4.3
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+        glfwWindowHint(GLFW_MAXIMIZED, true);
 
-    glfwSetErrorCallback([](int code, const char* pMsg) {
-        std::cout << "GLFW " << code << " " << pMsg << std::endl;
-    });
+        glfwSetErrorCallback([](int code, const char* pMsg) {
+            std::cout << "GLFW " << code << " " << pMsg << std::endl;
+        });
 
-    const GLFWvidmode * mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
+        const GLFWvidmode * mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
 
-    int monitorResoltuionX = mode->width;
-    int monitorResoltuionY = mode->height;
+        int monitorResoltuionX = mode->width;
+        int monitorResoltuionY = mode->height;
 
-    //WINDOWED MODE
-    _window = glfwCreateWindow(monitorResoltuionX, monitorResoltuionY, "ReBoot", NULL, NULL);
-    //FULLSCREEN MODE
-    //_window = glfwCreateWindow(viewportWidth, viewportHeight, "ReBoot", glfwGetPrimaryMonitor(), NULL);
-    if (!_window) {
-        // Window or OpenGL context creation failed
-        // The error callback above will tell us what happened.
-        std::abort();
+        //WINDOWED MODE
+        _window = glfwCreateWindow(monitorResoltuionX, monitorResoltuionY, "ReBoot", NULL, NULL);
+        //FULLSCREEN MODE
+        //_window = glfwCreateWindow(viewportWidth, viewportHeight, "ReBoot", glfwGetPrimaryMonitor(), NULL);
+        if (!_window) {
+            // Window or OpenGL context creation failed
+            // The error callback above will tell us what happened.
+            std::abort();
+        }
+        glfwMakeContextCurrent(_window); //Make current opengl context current
+
+        int width, height;
+        glfwGetWindowSize(_window, &width, &height);
+
+        IOEventDistributor::screenPixelWidth = width;
+        IOEventDistributor::screenPixelHeight = height;
+
+        //Callbacks
+        glfwSetKeyCallback(_window, &IOEventDistributor::_keyboardUpdate);
+        glfwSetCursorPosCallback(_window, &IOEventDistributor::_mouseUpdate);
+        glfwSetMouseButtonCallback(_window, &IOEventDistributor::_mouseClick);
+
+        //Sets atleast one extra render buffer for double buffering to prevent screen tearing
+        //glfwSwapInterval(1); //Enables 60 hz vsync
+        glfwSwapInterval(0); //Disables 60 hz vsync
+
+        if (gl3wInit()) {
+            std::cout << "failed to initialize OpenGL\n" << std::endl;
+        }
+        if (!gl3wIsSupported(3, 0)) {
+            std::cout << "OpenGL 3.2 not supported\n" << std::endl;
+        }
+        printf("OpenGL: %s\nGLSL: %s\nVendor: %s\n",
+            glGetString(GL_VERSION),
+            glGetString(GL_SHADING_LANGUAGE_VERSION),
+            glGetString(GL_VENDOR));
+
+        //Depth buffer settings
+        glClearDepth(1.0);
+        glEnable(GL_DEPTH_TEST);
+        glDepthFunc(GL_LESS);
+        //Color buffer settings
+        glClearColor(0.0, 0.0, 0.0, 0.0);
+        //Stencil buffer settings
+        glClearStencil(0);
+
+        //Disable mouse cursor view
+        glfwSetInputMode(_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     }
-    glfwMakeContextCurrent(_window); //Make current opengl context current
-
-    int width, height;
-    glfwGetWindowSize(_window, &width, &height);
-
-    IOEventDistributor::screenPixelWidth = width;
-    IOEventDistributor::screenPixelHeight = height;
-
-    //Callbacks
-    glfwSetKeyCallback(_window, &IOEventDistributor::_keyboardUpdate);
-    glfwSetCursorPosCallback(_window, &IOEventDistributor::_mouseUpdate);
-    glfwSetMouseButtonCallback(_window, &IOEventDistributor::_mouseClick);
-
-    //Sets atleast one extra render buffer for double buffering to prevent screen tearing
-    //glfwSwapInterval(1); //Enables 60 hz vsync
-    glfwSwapInterval(0); //Disables 60 hz vsync
-
-    if (gl3wInit()) {
-        std::cout << "failed to initialize OpenGL\n" << std::endl;
+    else {
+        DXLayer::initialize(hInstance, IOEventDistributor::screenPixelWidth, IOEventDistributor::screenPixelHeight, nCmdShow);
+        _dxLayer = DXLayer::instance();
     }
-    if (!gl3wIsSupported(3, 0)) {
-        std::cout << "OpenGL 3.2 not supported\n" << std::endl;
-    }
-    printf("OpenGL: %s\nGLSL: %s\nVendor: %s\n",
-        glGetString(GL_VERSION),
-        glGetString(GL_SHADING_LANGUAGE_VERSION),
-        glGetString(GL_VENDOR));
-
-    //Depth buffer settings
-    glClearDepth(1.0);
-    glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_LESS);
-    //Color buffer settings
-    glClearColor(0.0, 0.0, 0.0, 0.0);
-    //Stencil buffer settings
-    glClearStencil(0);
-
-    //Disable mouse cursor view
-    glfwSetInputMode(_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     MasterClock* masterClock = MasterClock::instance();
     masterClock->setFrameRate(60); //Establishes the frame rate of the draw context

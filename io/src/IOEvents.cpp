@@ -1,5 +1,7 @@
 #include "IOEvents.h"
 #include "GLIncludes.h"
+#include "EngineManager.h"
+#include "ShaderBroker.h"
 
 std::vector<std::function<void(int, int, int)>> IOEvents::_keyboardFuncs;
 std::vector<std::function<void(int, int, int)>> IOEvents::_keyboardReleaseFuncs;
@@ -57,7 +59,7 @@ void IOEvents::updateDraw(GLFWwindow* _window) {
 
     //Call scene manager to go any global operations before drawing
     _preDrawCallback();
-
+    
     for (auto func : _drawFuncs) {
         func(); //Call draw update method
     }
@@ -65,9 +67,11 @@ void IOEvents::updateDraw(GLFWwindow* _window) {
     //Call scene manager to go any global operations after drawing
     _postDrawCallback();
 
-    glfwSwapBuffers(_window); // Double buffering
+    if (EngineManager::getGraphicsLayer() == GraphicsLayer::OPENGL) {
+        glfwSwapBuffers(_window); // Double buffering
 
-    glfwPollEvents(); //Poll for events
+        glfwPollEvents(); //Poll for events
+    }
 }
 
 

@@ -349,7 +349,14 @@ Matrix Matrix::cameraRotationAroundX(float degrees) {
 //Camera Rotation Matrix is opposite
 Matrix Matrix::cameraRotationAroundY(float degrees) {
     float result[16]; //Get underlying matrix memory
-    float theta = -degrees * PI_OVER_180;
+    float theta = 0;
+
+    if (EngineManager::getGraphicsLayer() == GraphicsLayer::OPENGL) {
+        theta = -degrees * PI_OVER_180;
+    }
+    else {
+        theta = (-degrees + 180.0f) * PI_OVER_180;
+    }
 
     result[0] = cos(theta), result[1] = 0.0, result[2] = sin(theta), result[3] = 0.0;
     result[4] = 0.0, result[5] = 1.0, result[6] = 0.0, result[7] = 0.0;

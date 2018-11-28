@@ -60,7 +60,7 @@ DXLayer::DXLayer(HINSTANCE hInstance, DWORD width, DWORD height, int cmdShow) :
     RECT windowRect = { 0, 0, static_cast<LONG>(width), static_cast<LONG>(height) };
     AdjustWindowRect(&windowRect, WS_OVERLAPPEDWINDOW, FALSE);    // adjust the size
 
-                                                                  // create the window and store a handle to it
+    // create the window and store a handle to it
 
     _window = CreateWindowEx(NULL,
         windowClass.lpszClassName,          // name of the window class
@@ -74,8 +74,6 @@ DXLayer::DXLayer(HINSTANCE hInstance, DWORD width, DWORD height, int cmdShow) :
         NULL,       // we aren't using menus, NULL
         hInstance,  // application handle
         NULL);      // used with multiple windows, NULL
-
-
 
     _event = CreateEvent(nullptr, FALSE, FALSE, nullptr);
     // Device
@@ -126,7 +124,8 @@ DXLayer::DXLayer(HINSTANCE hInstance, DWORD width, DWORD height, int cmdShow) :
 
     _presentTarget = new PresentTarget(_device, _rtvFormat, _cmdQueue, height, width, _window);
 
-
+    // show the window
+    ShowWindow(_window, _cmdShow);
 }
 
 void DXLayer::initialize(HINSTANCE hInstance, DWORD width, DWORD height, int cmdShow) {
@@ -232,6 +231,25 @@ void DXLayer::_render(DeferredRenderer* deferred,
     auto texture = _deferredFBO->getRenderTexture();
     //presentShader->runShader(texture, nullptr);
     presentShader->runShader(ssaoPass->getSSAOTexture(), nullptr);
+
+    _presentTarget->unbindTarget(_cmdLists[_cmdListIndex], _cmdListIndex);
+
+    flushCommandList();
+}
+
+void DXLayer::initCmdLists() {
+    // Open command list
+    _cmdAllocator->Reset();
+    _cmdLists[_cmdListIndex]->Reset(_cmdAllocator.Get(), nullptr);
+
+}
+
+void DXLayer::present(Texture* renderTexture) {
+    auto presentShader = static_cast<MergeShader*>(ShaderBroker::instance()->getShader("mergeShader"));
+
+    _presentTarget->bindTarget(_device, _cmdLists[_cmdListIndex], _cmdListIndex);
+
+    presentShader->runShader(renderTexture, nullptr);
 
     _presentTarget->unbindTarget(_cmdLists[_cmdListIndex], _cmdListIndex);
 

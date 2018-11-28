@@ -29,6 +29,8 @@
 #include "IOEvents.h"
 #include <queue>
 
+class DXLayer;
+
 struct TimeEvent {
     typedef void (Callback)();
 
@@ -48,7 +50,7 @@ class IOEventDistributor {
 
 
 public:
-    IOEventDistributor(int* argc, char** argv);
+    IOEventDistributor(int* argc, char** argv, HINSTANCE hInstance, int nCmdShow);
 
     void                                  run(); //Function used to run context
     void                                  subscribeToKeyboard(std::function<void(int, int, int)> func); //Use this call to connect functions up to key updates
@@ -70,6 +72,7 @@ private:
     static std::mutex                     _renderLock;     //Prevents write/write collisions with renderNow on a frame tick trigger
     static GLFWwindow*                    _window;         //Glfw window
     static bool                           _quit;           //Notifies render loop that game is over
+    DXLayer*                              _dxLayer;
 
     //All keyboard input from glfw will be notified here
     static void                           _keyboardUpdate(GLFWwindow* window, int key, int scancode, int action, int mods);

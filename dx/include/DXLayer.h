@@ -51,6 +51,8 @@ public:
     PresentTarget*                    getPresentTarget();
     ComPtr<ID3D12CommandQueue>        getCmdQueue();
     ComPtr<ID3D12CommandAllocator>    getCmdAllocator();
+    void                              present(Texture* renderTexture);
+    void                              initCmdLists();
 
 private:
     DXLayer(HINSTANCE hInstance, DWORD width, DWORD height, int cmdShow);

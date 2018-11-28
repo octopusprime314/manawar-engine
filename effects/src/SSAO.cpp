@@ -93,36 +93,38 @@ void SSAO::computeSSAO(MRTFrameBuffer* mrtBuffer, ViewEventDistributor* viewEven
     if (EngineManager::getGraphicsLayer() == GraphicsLayer::DX12) {
         std::vector<RenderTexture> textures = { _renderTexture };
         HLSLShader::releaseOM(textures);
+
+        DXLayer::instance()->getCmdList()->ResourceBarrier(1,
+            &CD3DX12_RESOURCE_BARRIER::Transition(_renderTexture.getResource()->getResource().Get(),
+                D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_GENERIC_READ));
+
+        //Downsample by a 1/4
+        _downSample->compute(&_renderTexture);
+
+        DXLayer::instance()->getCmdList()->ResourceBarrier(1,
+            &CD3DX12_RESOURCE_BARRIER::Transition(_renderTexture.getResource()->getResource().Get(),
+                D3D12_RESOURCE_STATE_GENERIC_READ, D3D12_RESOURCE_STATE_COMMON));
+
+        DXLayer::instance()->getCmdList()->ResourceBarrier(1,
+            &CD3DX12_RESOURCE_BARRIER::UAV(_downSample->getTexture()->getResource()->getResource().Get()));
+
+        //Blur in downsampled 
+        _blur->compute(_downSample->getTexture());
+
+        DXLayer::instance()->getCmdList()->ResourceBarrier(1,
+            &CD3DX12_RESOURCE_BARRIER::UAV(_blur->getTexture()->getResource()->getResource().Get()));
+
+        //upsample back to original
+        _upSample->compute(_blur->getTexture());
+
+        DXLayer::instance()->getCmdList()->ResourceBarrier(1,
+            &CD3DX12_RESOURCE_BARRIER::UAV(_upSample->getTexture()->getResource()->getResource().Get()));
     }
     else {
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
 
-    DXLayer::instance()->getCmdList()->ResourceBarrier(1, 
-        &CD3DX12_RESOURCE_BARRIER::Transition(_renderTexture.getResource()->getResource().Get(),
-        D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_GENERIC_READ));
-
-    //Downsample by a 1/4
-    _downSample->compute(&_renderTexture);
-
-    DXLayer::instance()->getCmdList()->ResourceBarrier(1,
-        &CD3DX12_RESOURCE_BARRIER::Transition(_renderTexture.getResource()->getResource().Get(),
-            D3D12_RESOURCE_STATE_GENERIC_READ, D3D12_RESOURCE_STATE_COMMON));
-
-    DXLayer::instance()->getCmdList()->ResourceBarrier(1,
-        &CD3DX12_RESOURCE_BARRIER::UAV(_downSample->getTexture()->getResource()->getResource().Get()));
-
-    //Blur in downsampled 
-    _blur->compute(_downSample->getTexture());
-
-    DXLayer::instance()->getCmdList()->ResourceBarrier(1,
-        &CD3DX12_RESOURCE_BARRIER::UAV(_blur->getTexture()->getResource()->getResource().Get()));
-
-    //upsample back to original
-    _upSample->compute(_blur->getTexture());
-
-    DXLayer::instance()->getCmdList()->ResourceBarrier(1,
-        &CD3DX12_RESOURCE_BARRIER::UAV(_upSample->getTexture()->getResource()->getResource().Get()));
+    
 }
 
 Texture* SSAO::getNoiseTexture() {

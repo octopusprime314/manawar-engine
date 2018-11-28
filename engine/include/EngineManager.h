@@ -64,8 +64,7 @@ class EngineManager {
     MergeShader*                 _mergeShader;
     SSCompute*                   _add;
     Terminal*                    _terminal;
-    IOEventDistributor*          _glfwContext;
-    DXLayer*                     _dxLayer;
+    IOEventDistributor*          _inputLayer;
     static GraphicsLayer         _graphicsLayer;
                                  
     void                         _preDraw(); //Prior to drawing objects call this function

@@ -89,7 +89,7 @@ PixelOut PS(float4 posH : SV_POSITION,
     //Directional light calculation
     //NEED to invert light vector other a normal surface pointing up with a light pointing
     //down would result in a negative dot product of the two vecs, inverting gives us positive numbers!
-    float3 normalizedLight = normalize(float3(light.x, -light.y, light.z));
+    float3 normalizedLight = normalize(float3(-light.x, -light.y, -light.z));
     float illumination = dot(normalizedLight, normalizedNormal);
 
     //Convert from camera space vertex to light clip space vertex

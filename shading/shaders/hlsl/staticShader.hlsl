@@ -34,7 +34,7 @@ void VS(float3 iPosL : POSITION,
     float4x4 mv = mul(model, view);
     float4x4 mvp = mul(mv, projection);
 	oPosH = mul(float4(iPosL, 1.0f), mvp);
-	oUV = iUV;
+	oUV = float2(iUV.x, 1.0f - iUV.y);
     oNormal = mul(float4(iNormal, 1.0f), normal).rgb;
 }
 

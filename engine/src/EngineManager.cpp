@@ -44,6 +44,14 @@ EngineManager::EngineManager(int* argc, char** argv, HINSTANCE hInstance, int nC
     _graphicsLayer = GraphicsLayer::DX12;
 
     _inputLayer = new IOEventDistributor(argc, argv, hInstance, nCmdShow);
+
+    if (_graphicsLayer == GraphicsLayer::DX12) {
+        RayTracingPipelineShader* _rayTracingPipeline =
+            new RayTracingPipelineShader("rayTracingUberShader.hlsl",
+                DXLayer::instance()->getDevice(),
+                DXGI_FORMAT_R8G8B8A8_UNORM);
+    }
+
     //Load and compile all shaders for the shader broker
     ShaderBroker::instance()->compileShaders();
 
@@ -53,10 +61,9 @@ EngineManager::EngineManager(int* argc, char** argv, HINSTANCE hInstance, int nC
     
     ModelBroker::setViewManager(_viewManager); //Set the reference to the view model event interface
     _viewManager->setProjection(IOEventDistributor::screenPixelWidth, IOEventDistributor::screenPixelHeight, 0.1f, 5000.0f); //Initializes projection matrix and broadcasts upate to all listeners
-     // This view is carefully chosen to look at a mountain without showing the (lack of) water in the scene.
-    _viewManager->setView(Matrix::cameraTranslation(0.0f, -20.0f, -200.0f),
-        Matrix::cameraRotationAroundY(0.0f),
-        Matrix());
+    _viewManager->setView(Matrix::translation(0.0f, -20.0f, 200.0f),
+            Matrix::rotationAroundY(0.0f),
+            Matrix());
 
     //Load and compile all models for the model broker
     ModelBroker::instance()->buildModels();
@@ -88,17 +95,26 @@ EngineManager::EngineManager(int* argc, char** argv, HINSTANCE hInstance, int nC
         ////_terminal = new Terminal(_deferredRenderer->getGBuffers(), _entityList);
 
         Vector4 sunLocation(0.0f, 0.0f, -300.0f);
-        MVP lightMapMVP;
+        MVP lightMVP;
         
+        lightMVP.setView(Matrix::translation(sunLocation.getx(), sunLocation.gety(), sunLocation.getz())
+            * Matrix::rotationAroundX(-90.0f));
+        
+        lightMVP.setProjection(Matrix::ortho(200.0f, 200.0f, 0.0f, 600.0f));
+        
+        _lightList.push_back(new ShadowedDirectionalLight(_viewManager->getEventWrapper(),
+            lightMVP,
+            EffectType::None,
+            Vector4(1.0, 0.0, 0.0)));
+
+       /* MVP lightMapMVP;
         lightMapMVP.setView(Matrix::translation(sunLocation.getx(), sunLocation.gety(), sunLocation.getz())
-            * Matrix::cameraRotationAroundX(-90.0f));
-        
-        lightMapMVP.setProjection(Matrix::cameraOrtho(200.0f, 200.0f, 0.0f, 600.0f));
-        
+            * Matrix::rotationAroundX(-90.0f));
+        lightMapMVP.setProjection(Matrix::ortho(600.0f, 600.0f, 0.0f, 600.0f));
         _lightList.push_back(new ShadowedDirectionalLight(_viewManager->getEventWrapper(),
             lightMapMVP,
             EffectType::None,
-            Vector4(1.0, 0.0, 0.0)));
+            Vector4(1.0, 0.0, 0.0)));*/
     }
     else {
 
@@ -125,8 +141,8 @@ EngineManager::EngineManager(int* argc, char** argv, HINSTANCE hInstance, int nC
         Vector4 sunLocation(0.0f, 0.0f, -300.0f);
         MVP lightMVP;
         lightMVP.setView(Matrix::translation(sunLocation.getx(), sunLocation.gety(), sunLocation.getz())
-            * Matrix::cameraRotationAroundX(-90.0f));
-        lightMVP.setProjection(Matrix::cameraOrtho(200.0f, 200.0f, 0.0f, 600.0f));
+            * Matrix::rotationAroundX(-90.0f));
+        lightMVP.setProjection(Matrix::ortho(200.0f, 200.0f, 0.0f, 600.0f));
         _lightList.push_back(new ShadowedDirectionalLight(_viewManager->getEventWrapper(),
             lightMVP,
             EffectType::None,
@@ -134,8 +150,8 @@ EngineManager::EngineManager(int* argc, char** argv, HINSTANCE hInstance, int nC
 
         MVP lightMapMVP;
         lightMapMVP.setView(Matrix::translation(sunLocation.getx(), sunLocation.gety(), sunLocation.getz())
-            * Matrix::cameraRotationAroundX(-90.0f));
-        lightMapMVP.setProjection(Matrix::cameraOrtho(600.0f, 600.0f, 0.0f, 600.0f));
+            * Matrix::rotationAroundX(-90.0f));
+        lightMapMVP.setProjection(Matrix::ortho(600.0f, 600.0f, 0.0f, 600.0f));
         _lightList.push_back(new ShadowedDirectionalLight(_viewManager->getEventWrapper(),
             lightMapMVP,
             EffectType::None,
@@ -146,7 +162,7 @@ EngineManager::EngineManager(int* argc, char** argv, HINSTANCE hInstance, int nC
 
         //point light projection has a 90 degree view angle with a 1 aspect ratio for generating square shadow maps
         //with a near z value of 1 and far z value of 100
-        pointLightMVP.setProjection(Matrix::cameraProjection(90.0f, 1.0f, 1.0f, 100.0f));
+        pointLightMVP.setProjection(Matrix::projection(90.0f, 1.0f, 1.0f, 100.0f));
 
         //Placing the lights in equidistant locations for testing
         pointLightMVP.setModel(Matrix::translation(212.14f, 24.68f, 186.46f));

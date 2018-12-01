@@ -72,7 +72,7 @@ void main(){
 	//Directional light calculation
 	//NEED to invert light vector other a normal surface pointing up with a light pointing
 	//down would result in a negative dot product of the two vecs, inverting gives us positive numbers!
-	vec3 normalizedLight = normalize(vec3(light.x, -light.y, light.z));
+	vec3 normalizedLight = normalize(vec3(light.x, light.y, light.z));
 	float illumination = dot(normalizedLight, normalizedNormal);
 	
 	//Convert from camera space vertex to light clip space vertex
@@ -87,9 +87,9 @@ void main(){
 	if(views == 0){
 		//Detects if there is no screen space information and then displays skybox!
 		if(normal.x == 0.0 && normal.y == 0.0 && normal.z == 0.0){
-			vec4 dayColor = texture(skyboxDayTexture, vec3(vsData.vsViewDirection.x, -vsData.vsViewDirection.y, vsData.vsViewDirection.z));
-			vec4 nightColor = texture(skyboxNightTexture, vec3(vsData.vsViewDirection.x, -vsData.vsViewDirection.y, vsData.vsViewDirection.z));
-			fragColor = (((1.0 - light.y)/2.0) * dayColor) + (((1.0 + light.y)/2.0) * nightColor);
+			vec4 dayColor = texture(skyboxDayTexture, vec3(vsData.vsViewDirection.x, vsData.vsViewDirection.y, vsData.vsViewDirection.z));
+			vec4 nightColor = texture(skyboxNightTexture, vec3(vsData.vsViewDirection.x, vsData.vsViewDirection.y, vsData.vsViewDirection.z));
+			fragColor = (((1.0 + light.y)/2.0) * dayColor) + (((1.0 - light.y)/2.0) * nightColor);
 			//skybox depth trick to have it displayed at the depth boundary
 			//precision matters here and must be as close as possible to 1.0
 			//the number of 9s can only go to 7 but no less than 4
@@ -102,7 +102,7 @@ void main(){
 			float pointShadow = 1.0;
 			//illumination is from directional light but we don't want to illuminate when the sun is past the horizon
 			//aka night time
-			if(light.y <= 0.0) {
+			if(light.y >= 0.0) {
 				const float bias = 0.005; //removes shadow acne by adding a small bias
 				//Only shadow in textures space
 				if(shadowTextureCoordinates.x <= 1.0 && shadowTextureCoordinates.x >= 0.0 && shadowTextureCoordinates.y <= 1.0 && shadowTextureCoordinates.y >= 0.0){

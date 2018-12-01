@@ -36,7 +36,7 @@ void CubeMapRenderer::preCubeFaceRender(std::vector<Entity*> entityList, MVP* mv
 
     _transforms.clear();
     float* model = mvp->getModelMatrix().getFlatBuffer();
-    Matrix position = Matrix::cameraTranslation(model[3], model[7], model[11]);
+    Matrix position = Matrix::translation(-model[3], -model[7], -model[11]);
     Matrix proj = mvp->getProjectionMatrix();
 
     //Looking in +x direction

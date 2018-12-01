@@ -3,45 +3,9 @@
 #include "ShaderBroker.h"
 #include "HLSLShader.h"
 #include "Light.h"
+#include "IOEventDistributor.h"
 
 DXLayer* DXLayer::_dxLayer = nullptr;
-
-// init window class
-// this is the main message handler for the program
-LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
-    // sort through and find what code to run for the message given
-    switch (message)
-    {
-    case WM_DESTROY:
-    {
-        PostQuitMessage(0);
-        return 0;
-    } break;
-    case WM_SIZE:
-    {
-        //g_windowWidth = 0xFFFF & lParam;
-        //g_windowHeight = 0xFFFF & (lParam >> 16);
-
-        // If maximizing the window or restoring from the maximized state, a WM_EXITSIZEMOVE
-        // message won't be triggered, so react to the new window size here instead
-        switch (wParam)
-        {
-        case SIZE_RESTORED:
-            break;
-        case SIZE_MAXIMIZED:
-            break;
-        }
-        return 0;
-    } break;
-    case WM_EXITSIZEMOVE:
-    {
-        return 0;
-    } break;
-    }
-
-    // Handle any messages the switch statement didn't
-    return DefWindowProc(hWnd, message, wParam, lParam);
-}
 
 DXLayer::DXLayer(HINSTANCE hInstance, DWORD width, DWORD height, int cmdShow) :
     _cmdShow(cmdShow),
@@ -51,7 +15,7 @@ DXLayer::DXLayer(HINSTANCE hInstance, DWORD width, DWORD height, int cmdShow) :
     ZeroMemory(&windowClass, sizeof(WNDCLASSEX));
     windowClass.cbSize = sizeof(WNDCLASSEX);
     windowClass.style = CS_HREDRAW | CS_VREDRAW;
-    windowClass.lpfnWndProc = WindowProc;
+    windowClass.lpfnWndProc = IOEventDistributor::dxEventLoop;
     windowClass.hInstance = hInstance;
     windowClass.hCursor = LoadCursor(NULL, IDC_ARROW);
     windowClass.lpszClassName = "DX12_HELLO_WORLD";
@@ -66,8 +30,8 @@ DXLayer::DXLayer(HINSTANCE hInstance, DWORD width, DWORD height, int cmdShow) :
         windowClass.lpszClassName,          // name of the window class
         windowClass.lpszClassName,
         WS_OVERLAPPEDWINDOW,
-        300,
-        300,
+        0,
+        0,
         windowRect.right - windowRect.left,
         windowRect.bottom - windowRect.top,
         NULL,       // we have no parent window, NULL
@@ -143,105 +107,10 @@ DXLayer::~DXLayer() {
 
 }
 
-void DXLayer::run(DeferredRenderer* deferred, 
-    std::vector<Entity*> entities, 
-    std::vector<Light*> lightList,
-    ViewEventDistributor* viewEventDistributor,
-    ForwardRenderer* forwardRenderer,
-    SSAO* ssaoPass) {
-
-    _deferredFBO = new DeferredFrameBuffer();
-
-    // show the window
-    ShowWindow(_window, _cmdShow);
-
-    // this struct holds Windows event messages
-    MSG msg = { 0 };
-
-    DWORD dwLastTickCount = GetTickCount();
-
-    // main loop
-    while (TRUE) {
-        // check to see if any messages are waiting in the queue
-        if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
-            // translate keystroke messages into the right format
-            TranslateMessage(&msg);
-
-            // send the message to the WindowProc function
-            DispatchMessage(&msg);
-
-            // check to see if it's time to quit
-            if (msg.message == WM_QUIT)
-                break;
-        }
-        else {
-            _render(deferred, entities, lightList, viewEventDistributor, forwardRenderer, ssaoPass);
-        }
-    }
-}
-
-void DXLayer::_render(DeferredRenderer* deferred, 
-    std::vector<Entity*> entities, 
-    std::vector<Light*> lightList,
-    ViewEventDistributor* viewEventDistributor,
-    ForwardRenderer* forwardRenderer,
-    SSAO* ssaoPass) {
-
-    // Open command list
-    _cmdAllocator->Reset();
-    _cmdLists[_cmdListIndex]->Reset(_cmdAllocator.Get(), nullptr);
-
-    //send all vbo data to point light shadow pre pass
-    for (Light* light : lightList) {
-        light->renderShadow(entities);
-    }
-
-    deferred->bind();
-
-    _staticShader = static_cast<StaticShader*>(ShaderBroker::instance()->getShader("staticShader"));
-
-    for (auto entity : entities) {
-        
-        _staticShader->runShader(entity);
-    }
-
-    deferred->unbind();
-
-    //Only compute ssao for opaque objects
-    ssaoPass->computeSSAO(deferred->getGBuffers(), viewEventDistributor);
-
-    RenderTexture* renderTexture = static_cast<RenderTexture*>(_deferredFBO->getRenderTexture());
-    RenderTexture* depthTexture = static_cast<RenderTexture*>(_deferredFBO->getDepthTexture());
-
-    std::vector<RenderTexture> textures = { *renderTexture, *depthTexture };
-    HLSLShader::setOM(textures,
-        IOEventDistributor::screenPixelWidth, IOEventDistributor::screenPixelHeight);
-    
-    //Pass lights to deferred shading pass
-    deferred->deferredLighting(lightList, viewEventDistributor, nullptr, nullptr);
-
-    forwardRenderer->forwardLighting(entities, viewEventDistributor, lightList);
-
-    HLSLShader::releaseOM(textures);
-
-    auto presentShader = static_cast<MergeShader*>(ShaderBroker::instance()->getShader("mergeShader"));
-    
-    _presentTarget->bindTarget(_device, _cmdLists[_cmdListIndex], _cmdListIndex);
-    
-    auto texture = _deferredFBO->getRenderTexture();
-    //presentShader->runShader(texture, nullptr);
-    presentShader->runShader(ssaoPass->getSSAOTexture(), nullptr);
-
-    _presentTarget->unbindTarget(_cmdLists[_cmdListIndex], _cmdListIndex);
-
-    flushCommandList();
-}
-
 void DXLayer::initCmdLists() {
     // Open command list
     _cmdAllocator->Reset();
     _cmdLists[_cmdListIndex]->Reset(_cmdAllocator.Get(), nullptr);
-
 }
 
 void DXLayer::present(Texture* renderTexture) {
@@ -254,18 +123,6 @@ void DXLayer::present(Texture* renderTexture) {
     _presentTarget->unbindTarget(_cmdLists[_cmdListIndex], _cmdListIndex);
 
     flushCommandList();
-}
-
-int DXLayer::getCmdListIndex() {
-    return _cmdListIndex;
-}
-
-ComPtr<ID3D12CommandQueue> DXLayer::getCmdQueue() {
-    return _cmdQueue;
-}
-
-ComPtr<ID3D12CommandAllocator> DXLayer::getCmdAllocator() {
-    return _cmdAllocator;
 }
 
 void DXLayer::flushCommandList() {
@@ -292,7 +149,4 @@ ComPtr<ID3D12GraphicsCommandList> DXLayer::getCmdList() {
 }
 ComPtr<ID3D12Device> DXLayer::getDevice() {
     return _device;
-}
-PresentTarget* DXLayer::getPresentTarget() {
-    return _presentTarget;
 }

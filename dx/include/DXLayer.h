@@ -18,6 +18,7 @@
 #include "DeferredRenderer.h"
 #include "DeferredFrameBuffer.h"
 #include "ForwardRenderer.h"
+#include "RayTracingPipelineShader.h"
 
 #pragma comment(lib, "D3D12.lib") 
 #pragma comment(lib, "dxgi.lib") 
@@ -35,39 +36,20 @@ public:
     
     ~DXLayer();
 
-    void                              flushCommandList();
-    void                              run(DeferredRenderer* deffered, 
-                                          std::vector<Entity*> entities,
-                                          std::vector<Light*> lightList,
-                                          ViewEventDistributor* viewEventDistributor,
-                                          ForwardRenderer* forwardRenderer,
-                                          SSAO* ssaoPass);
     static DXLayer*                   instance();
     static void                       initialize(HINSTANCE hInstance, DWORD width, DWORD height, int cmdShow);
+    void                              initCmdLists();
+
+    void                              flushCommandList();
+    void                              present(Texture* renderTexture);
 
     ComPtr<ID3D12GraphicsCommandList> getCmdList();
     ComPtr<ID3D12Device>              getDevice();
-    int                               getCmdListIndex();
-    PresentTarget*                    getPresentTarget();
-    ComPtr<ID3D12CommandQueue>        getCmdQueue();
-    ComPtr<ID3D12CommandAllocator>    getCmdAllocator();
-    void                              present(Texture* renderTexture);
-    void                              initCmdLists();
 
 private:
     DXLayer(HINSTANCE hInstance, DWORD width, DWORD height, int cmdShow);
-    void                              _render(DeferredRenderer* deferred,
-                                              std::vector<Entity*> entities,
-                                              std::vector<Light*> lightList,
-                                              ViewEventDistributor* viewEventDistributor,
-                                              ForwardRenderer* forwardRenderer,
-                                              SSAO* ssaoPass);
 
     PresentTarget*                    _presentTarget;
-    StaticShader*                     _staticShader;
-    static DXLayer*                   _dxLayer;
-    DeferredFrameBuffer*              _deferredFBO;
-
     ComPtr<ID3D12Device>              _device;
     ComPtr<ID3D12CommandAllocator>    _cmdAllocator;
     ComPtr<ID3D12GraphicsCommandList> _cmdLists[CMD_LIST_NUM];
@@ -79,6 +61,8 @@ private:
     int                               _cmdListIndex;
     int                               _nextFenceValue;
     int                               _cmdListFenceValues[CMD_LIST_NUM];
+
+    static DXLayer*                   _dxLayer;
     const DXGI_FORMAT                 _rtvFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
 
 };

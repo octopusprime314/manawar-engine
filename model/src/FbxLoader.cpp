@@ -405,7 +405,7 @@ void FbxLoader::addToScene(Model* modelAddedTo, FbxLoader* modelToLoad, Vector4 
     modelName = modelName.substr(0, modelName.find_last_of("."));
 
     auto transformation =
-        Matrix::translation(location.getx(), -location.gety(), location.getz()) * 
+        Matrix::translation(location.getx(), location.gety(), location.getz()) * 
         Matrix::scale(location.getw()) * 
         modelToLoad->getObjectSpaceTransform();
 
@@ -537,7 +537,7 @@ void FbxLoader::addTileToScene(Model* modelAddedTo, FbxLoader* modelToLoad, Vect
     }
     
     auto transformation =
-        Matrix::translation(location.getx(), -location.gety(), location.getz()) *
+        Matrix::translation(location.getx(), location.gety(), location.getz()) *
         Matrix::scale(location.getw()) *
         modelToLoad->getObjectSpaceTransform();
 

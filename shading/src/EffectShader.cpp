@@ -68,8 +68,8 @@ void EffectShader::runShader(Effect* effectObject, float seconds) {
 
         Water* water = static_cast<Water*>(effectObject);
 
-        auto model = Matrix::cameraRotationAroundX(90.0f)
-            * Matrix::translation(20.0f, -40.0f, -1.0f)
+        auto model = Matrix::rotationAroundX(-90.0f)
+            * Matrix::translation(20.0f, -40.0f, 1.0f)
             * Matrix::scale(300.0f); //add to z component of translation to lower water line.
 
         _shader->updateData("model", model.getFlatBuffer());

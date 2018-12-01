@@ -1,8 +1,8 @@
 #include "PipelineShader.h"
-//Forward decls
-std::wstring stringToLPCWSTR(const std::string& s);
 
+PipelineShader::PipelineShader() {
 
+}
 PipelineShader::PipelineShader(std::string shader,
     ComPtr<ID3D12Device> device,
     DXGI_FORMAT format) {
@@ -159,7 +159,7 @@ std::map<std::string, UINT>& PipelineShader::getResourceBindings() {
     return _resourceIndexes;
 }
 
-std::wstring stringToLPCWSTR(const std::string& s) {
+std::wstring PipelineShader::stringToLPCWSTR(const std::string& s) {
     int len;
     int slength = (int)s.length() + 1;
     len = MultiByteToWideChar(CP_ACP, 0, s.c_str(), slength, 0, 0);

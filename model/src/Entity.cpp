@@ -105,9 +105,7 @@ void Entity::_updateKinematics(int milliSeconds) {
     Vector4 position = _state.getLinearPosition();
     Matrix kinematicTransform = Matrix::translation(position.getx(), position.gety(), position.getz());
     auto totalTransform = kinematicTransform * _worldSpaceTransform;
-    Vector4 pos = Vector4(totalTransform.getFlatBuffer()[3],
-        totalTransform.getFlatBuffer()[7],
-        totalTransform.getFlatBuffer()[11]);
+    
     _worldSpaceGeometry.updateTransform(totalTransform);
     _mvp.setModel(totalTransform);
     

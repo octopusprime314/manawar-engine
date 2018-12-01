@@ -29,6 +29,6 @@ void main() {
 	}
 	
 	gl_Position = vec4(vertex.xy, 1.0, 1.0); 
-	vsData.vsViewDirection = mat3(inverseView) * (inverseProjection * gl_Position).xyz;
+	vsData.vsViewDirection = mat3(inverseView) * (inverseProjection * gl_Position * -1.0f).xyz;
 	
 }

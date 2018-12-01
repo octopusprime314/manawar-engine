@@ -1,4 +1,5 @@
 #include "StateVector.h"
+#include "EngineManager.h"
 
 StateVector::StateVector() : 
     _mass(1.0), 
@@ -59,12 +60,17 @@ void StateVector::update(int milliSeconds) {
             1.0f);
         //Add to angular position
         _angularPosition = _angularPosition + deltaAngularPosition;
+
     }
 
 }
 
 Vector4 StateVector::getLinearPosition() {
-    return _linearPosition;
+    Vector4 pos = _linearPosition;
+    if (EngineManager::getGraphicsLayer() == GraphicsLayer::OPENGL) {
+        pos.getFlatBuffer()[2] = -pos.getFlatBuffer()[2];
+    }
+    return pos;
 }
 
 Vector4 StateVector::getAngularPosition() {

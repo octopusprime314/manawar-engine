@@ -16,7 +16,8 @@
 */
 
 /**
-*  Matrix class. Handles matrix transforms
+*  Matrix class. Left Handed Coordinate System from client point of view!
+*  Handles matrix transforms
 */
 
 #pragma once
@@ -29,7 +30,7 @@ const float PI_OVER_180 = PI / 180.0f;
 class Matrix {
 
 
-    //OPENGL Matrix layout
+    // Matrix layout
     //P is a dimensional position vector in x,y,z
     //X coordinate vector
     //Y coordinate vector
@@ -97,12 +98,6 @@ public:
     static Matrix translation(float x, float y, float z); //Build translation matrix
     static Matrix scale(float scalar); //Build a scale matrix
     static Matrix scale(float x, float y, float z); //Build a scale matrix
-
-    //Used specific for view transformations associated with a camera view
-    static Matrix cameraRotationAroundX(float degrees); //Build rotation matrix around the x axis
-    static Matrix cameraRotationAroundY(float degrees); //Build rotation matrix around the y axis
-    static Matrix cameraRotationAroundZ(float degrees); //Build rotation matrix around the z axis
-    static Matrix cameraTranslation(float x, float y, float z); //Build translation matrix
-    static Matrix cameraProjection(float angleOfView, float aspectRatio, float near, float far);
-    static Matrix cameraOrtho(float orthoWidth, float orthoHeight, float n, float f);
+    static Matrix projection(float angleOfView, float aspectRatio, float near, float far);
+    static Matrix ortho(float orthoWidth, float orthoHeight, float n, float f);
 };

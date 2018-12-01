@@ -240,10 +240,18 @@ Matrix Matrix::rotationAroundX(float degrees) {
     float result[16]; //Get underlying matrix memory
     float theta = degrees * PI_OVER_180;
 
-    result[0] = 1.0, result[1] = 0.0, result[2] = 0.0, result[3] = 0.0;
-    result[4] = 0.0, result[5] = cos(theta), result[6] = -sin(theta), result[7] = 0.0;
-    result[8] = 0.0, result[9] = sin(theta), result[10] = cos(theta), result[11] = 0.0;
-    result[12] = 0.0, result[13] = 0.0, result[14] = 0.0, result[15] = 1.0;
+    if (EngineManager::getGraphicsLayer() == GraphicsLayer::OPENGL) {
+        result[0] = 1.0, result[1] = 0.0, result[2] = 0.0, result[3] = 0.0;
+        result[4] = 0.0, result[5] = cos(theta), result[6] = -sin(theta), result[7] = 0.0;
+        result[8] = 0.0, result[9] = sin(theta), result[10] = cos(theta), result[11] = 0.0;
+        result[12] = 0.0, result[13] = 0.0, result[14] = 0.0, result[15] = 1.0;
+    }
+    else {
+        result[0] = 1.0, result[1] = 0.0, result[2] = 0.0, result[3] = 0.0;
+        result[4] = 0.0, result[5] = cos(theta), result[6] = sin(theta), result[7] = 0.0;
+        result[8] = 0.0, result[9] = -sin(theta), result[10] = cos(theta), result[11] = 0.0;
+        result[12] = 0.0, result[13] = 0.0, result[14] = 0.0, result[15] = 1.0;
+    }
 
     return Matrix(result);
 }
@@ -258,10 +266,18 @@ Matrix Matrix::rotationAroundY(float degrees) {
     float result[16]; //Get underlying matrix memory
     float theta = degrees * PI_OVER_180;
 
-    result[0] = cos(theta), result[1] = 0.0, result[2] = sin(theta), result[3] = 0.0;
-    result[4] = 0.0, result[5] = 1.0, result[6] = 0.0, result[7] = 0.0;
-    result[8] = -sin(theta), result[9] = 0.0, result[10] = cos(theta), result[11] = 0.0;
-    result[12] = 0.0, result[13] = 0.0, result[14] = 0.0, result[15] = 1.0;
+    if (EngineManager::getGraphicsLayer() == GraphicsLayer::OPENGL) {
+        result[0] = cos(theta), result[1] = 0.0, result[2] = sin(theta), result[3] = 0.0;
+        result[4] = 0.0, result[5] = 1.0, result[6] = 0.0, result[7] = 0.0;
+        result[8] = -sin(theta), result[9] = 0.0, result[10] = cos(theta), result[11] = 0.0;
+        result[12] = 0.0, result[13] = 0.0, result[14] = 0.0, result[15] = 1.0;
+    }
+    else {
+        result[0] = cos(theta), result[1] = 0.0, result[2] = -sin(theta), result[3] = 0.0;
+        result[4] = 0.0, result[5] = 1.0, result[6] = 0.0, result[7] = 0.0;
+        result[8] = sin(theta), result[9] = 0.0, result[10] = cos(theta), result[11] = 0.0;
+        result[12] = 0.0, result[13] = 0.0, result[14] = 0.0, result[15] = 1.0;
+    }
 
     return Matrix(result);
 }
@@ -276,10 +292,18 @@ Matrix Matrix::rotationAroundZ(float degrees) {
     float result[16]; //Get underlying matrix memory
     float theta = degrees * PI_OVER_180;
 
-    result[0] = cos(theta), result[1] = -sin(theta), result[2] = 0.0, result[3] = 0.0;
-    result[4] = sin(theta), result[5] = cos(theta), result[6] = 0.0, result[7] = 0.0;
-    result[8] = 0.0, result[9] = 0.0, result[10] = 1.0, result[11] = 0.0;
-    result[12] = 0.0, result[13] = 0.0, result[14] = 0.0, result[15] = 1.0;
+    if (EngineManager::getGraphicsLayer() == GraphicsLayer::OPENGL) {
+        result[0] = cos(theta), result[1] = -sin(theta), result[2] = 0.0, result[3] = 0.0;
+        result[4] = sin(theta), result[5] = cos(theta), result[6] = 0.0, result[7] = 0.0;
+        result[8] = 0.0, result[9] = 0.0, result[10] = 1.0, result[11] = 0.0;
+        result[12] = 0.0, result[13] = 0.0, result[14] = 0.0, result[15] = 1.0;
+    }
+    else {
+        result[0] = cos(theta), result[1] = sin(theta), result[2] = 0.0, result[3] = 0.0;
+        result[4] = -sin(theta), result[5] = cos(theta), result[6] = 0.0, result[7] = 0.0;
+        result[8] = 0.0, result[9] = 0.0, result[10] = 1.0, result[11] = 0.0;
+        result[12] = 0.0, result[13] = 0.0, result[14] = 0.0, result[15] = 1.0;
+    }
 
     return Matrix(result);
 }
@@ -292,10 +316,18 @@ Matrix Matrix::rotationAroundZ(float degrees) {
 Matrix Matrix::translation(float x, float y, float z) {
     float result[16]; //Get underlying matrix memory
 
-    result[0] = 1.0, result[1] = 0.0, result[2] = 0.0, result[3] = x;
-    result[4] = 0.0, result[5] = 1.0, result[6] = 0.0, result[7] = y;
-    result[8] = 0.0, result[9] = 0.0, result[10] = 1.0, result[11] = z;
-    result[12] = 0.0, result[13] = 0.0, result[14] = 0.0, result[15] = 1.0;
+    if (EngineManager::getGraphicsLayer() == GraphicsLayer::OPENGL) {
+        result[0] = 1.0, result[1] = 0.0, result[2] = 0.0, result[3] = x;
+        result[4] = 0.0, result[5] = 1.0, result[6] = 0.0, result[7] = y;
+        result[8] = 0.0, result[9] = 0.0, result[10] = 1.0, result[11] = -z;
+        result[12] = 0.0, result[13] = 0.0, result[14] = 0.0, result[15] = 1.0;
+    }
+    else {
+        result[0] = 1.0, result[1] = 0.0, result[2] = 0.0, result[3] = x;
+        result[4] = 0.0, result[5] = 1.0, result[6] = 0.0, result[7] = y;
+        result[8] = 0.0, result[9] = 0.0, result[10] = 1.0, result[11] = z;
+        result[12] = 0.0, result[13] = 0.0, result[14] = 0.0, result[15] = 1.0;
+    }
 
     return Matrix(result);
 }
@@ -332,77 +364,18 @@ Matrix Matrix::scale(float x, float y, float z) {
     return Matrix(result);
 }
 
-//Camera Rotation Matrix is opposite
-Matrix Matrix::cameraRotationAroundX(float degrees) {
-    float result[16]; //Get underlying matrix memory
-    float theta = -degrees * PI_OVER_180;
-
-    result[0] = 1.0, result[1] = 0.0, result[2] = 0.0, result[3] = 0.0;
-    result[4] = 0.0, result[5] = cos(theta), result[6] = -sin(theta), result[7] = 0.0;
-    result[8] = 0.0, result[9] = sin(theta), result[10] = cos(theta), result[11] = 0.0;
-    result[12] = 0.0, result[13] = 0.0, result[14] = 0.0, result[15] = 1.0;
-
-    return Matrix(result);
-}
-
-
-//Camera Rotation Matrix is opposite
-Matrix Matrix::cameraRotationAroundY(float degrees) {
-    float result[16]; //Get underlying matrix memory
-    float theta = 0;
-
-    if (EngineManager::getGraphicsLayer() == GraphicsLayer::OPENGL) {
-        theta = -degrees * PI_OVER_180;
-    }
-    else {
-        theta = (-degrees + 180.0f) * PI_OVER_180;
-    }
-
-    result[0] = cos(theta), result[1] = 0.0, result[2] = sin(theta), result[3] = 0.0;
-    result[4] = 0.0, result[5] = 1.0, result[6] = 0.0, result[7] = 0.0;
-    result[8] = -sin(theta), result[9] = 0.0, result[10] = cos(theta), result[11] = 0.0;
-    result[12] = 0.0, result[13] = 0.0, result[14] = 0.0, result[15] = 1.0;
-
-    return Matrix(result);
-}
-
-//Camera Rotation Matrix is opposite
-Matrix Matrix::cameraRotationAroundZ(float degrees) {
-    float result[16]; //Get underlying matrix memory
-    float theta = -degrees * PI_OVER_180;
-
-    result[0] = cos(theta), result[1] = -sin(theta), result[2] = 0.0, result[3] = 0.0;
-    result[4] = sin(theta), result[5] = cos(theta), result[6] = 0.0, result[7] = 0.0;
-    result[8] = 0.0, result[9] = 0.0, result[10] = 1.0, result[11] = 0.0;
-    result[12] = 0.0, result[13] = 0.0, result[14] = 0.0, result[15] = 1.0;
-
-    return Matrix(result);
-}
-
-//Camera Translation Matrix is opposite
-Matrix Matrix::cameraTranslation(float x, float y, float z) {
-    float result[16]; //Get underlying matrix memory
-
-    result[0] = 1.0, result[1] = 0.0, result[2] = 0.0, result[3] = -x;
-    result[4] = 0.0, result[5] = 1.0, result[6] = 0.0, result[7] = -y;
-    result[8] = 0.0, result[9] = 0.0, result[10] = 1.0, result[11] = -z;
-    result[12] = 0.0, result[13] = 0.0, result[14] = 0.0, result[15] = 1.0;
-
-    return Matrix(result);
-}
-
-Matrix Matrix::cameraProjection(float angleOfView, float imageAspectRatio, float n, float f) {
+Matrix Matrix::projection(float angleOfView, float imageAspectRatio, float n, float f) {
 
     float result[16];
 
-    //Setup components of projection
-    float scale = static_cast<float>(tan(angleOfView * 0.5 * PI_OVER_180)) * n; //scale
-    float r = imageAspectRatio * scale; //Right
-    float l = -r; //Left
-    float t = scale; //scale again
-    float b = -t; //negative scale
-
     if (EngineManager::getGraphicsLayer() == GraphicsLayer::OPENGL) {
+        //n = -n;
+        //f = -f;
+        float scale = static_cast<float>(tan(angleOfView * 0.5 * PI_OVER_180)) * n; //scale
+        float r = imageAspectRatio * scale; //Right
+        float l = -r; //Left
+        float t = scale; //scale again
+        float b = -t; //negative scale
 
         // Perspective Matrix
         result[0] = 2 * n / (r - l), result[1] = 0, result[2] = (r + l) / (r - l), result[3] = 0;
@@ -411,6 +384,12 @@ Matrix Matrix::cameraProjection(float angleOfView, float imageAspectRatio, float
         result[12] = 0, result[13] = 0, result[14] = -1, result[15] = 0;
     }
     else {
+        float scale = static_cast<float>(tan(angleOfView * 0.5 * PI_OVER_180)) * n; //scale
+        float r = imageAspectRatio * scale; //Right
+        float l = -r; //Left
+        float t = scale; //scale again
+        float b = -t; //negative scale
+
         // Perspective Matrix
         result[0] = 2 * n / (r - l), result[1] = 0, result[2] = -(r + l) / (r - l), result[3] = 0;
         result[4] = 0, result[5] = 2 * n / (t - b), result[6] = -(t + b) / (t - b), result[7] = 0;
@@ -421,7 +400,7 @@ Matrix Matrix::cameraProjection(float angleOfView, float imageAspectRatio, float
     return Matrix(result);
 }
 
-Matrix Matrix::cameraOrtho(float orthoWidth, float orthoHeight, float n, float f) {
+Matrix Matrix::ortho(float orthoWidth, float orthoHeight, float n, float f) {
 
     float result[16];
 
@@ -432,6 +411,8 @@ Matrix Matrix::cameraOrtho(float orthoWidth, float orthoHeight, float n, float f
     float b = -t;                  //Bottom
 
     if (EngineManager::getGraphicsLayer() == GraphicsLayer::OPENGL) {
+        n = -n;
+        f = -f;
         // Clip space in z is -1 to 1 in opengl
         // Ortho Matrix
         result[0] = 2.0f / (r - l), result[1] = 0.0f, result[2] = 0.0f, result[3] = -((r + l) / (r - l));
@@ -440,7 +421,7 @@ Matrix Matrix::cameraOrtho(float orthoWidth, float orthoHeight, float n, float f
         result[12] = 0.0f, result[13] = 0.0f, result[14] = 0.0f, result[15] = 1.0f;
     }
     else {
-        // Clip space in z is 0 to 1 in directx
+        // Clip space in z is 0 to 1 in directx so invert near and far plane
         // Ortho Matrix
         result[0] = 2.0f / (r - l), result[1] = 0.0f, result[2] = 0.0f, result[3] = -((r + l) / (r - l));
         result[4] = 0.0f, result[5] = 2.0f / (t - b), result[6] = 0.0f, result[7] = -((t + b) / (t - b));

@@ -138,14 +138,53 @@ void IOEventDistributor::updateGameState(EngineStateFlags state) {
     IOEvents::updateGameState(state);
 }
 
+LRESULT CALLBACK IOEventDistributor::dxEventLoop(HWND hWnd,
+    UINT message, WPARAM wParam, LPARAM lParam) {
+
+    switch (message)
+    {
+        case WM_KEYDOWN:
+        {
+            _keyboardUpdate(nullptr, wParam, 0, 1, 0);
+            break;
+        }
+        case WM_KEYUP:
+        {
+            _keyboardUpdate(nullptr, wParam, 0, 0, 0);
+            break;
+        }
+        case WM_MOUSEMOVE:
+        {
+            _keyboardUpdate(nullptr, wParam, 0, 0, 0);
+            break;
+        }
+        case WM_DESTROY:
+        {
+            PostQuitMessage(0);
+            break;
+        }
+        default:
+            break;
+    }
+
+    // Handle any messages the switch statement didn't.
+    return DefWindowProc(hWnd, message, wParam, lParam);
+}
+
 //All keyboard input from glfw will be notified here
 void IOEventDistributor::_keyboardUpdate(GLFWwindow* window, int key, int scancode, int action, int mods) {
 
     if (action == GLFW_PRESS) {
 
-        if (key == GLFW_KEY_ESCAPE) { //Escape key pressed, hard exit no cleanup, TODO FIX THIS!!!!
-            glfwDestroyWindow(_window);
-            glfwTerminate();
+        if (key == GLFW_KEY_ESCAPE || key == 27) { //Escape key pressed, hard exit no cleanup, TODO FIX THIS!!!!
+            
+            if (EngineManager::getGraphicsLayer() == GraphicsLayer::OPENGL) {
+                glfwDestroyWindow(_window);
+                glfwTerminate();
+            }
+            else {
+
+            }
             _quit = true;
             exit(0);
         }
@@ -180,29 +219,55 @@ void IOEventDistributor::_keyboardUpdate(GLFWwindow* window, int key, int scanco
 
 //One frame draw update call
 void IOEventDistributor::_drawUpdate() {
-    while (!_quit) {
-        if (_timeEvents.size()) {
-            uint64_t now = nowMs();
-            TimeEvent event = _timeEvents.top();
-            if (event.time < now) {
-                _timeEvents.pop();
-                event.pfnCallback();
+
+    if (EngineManager::getGraphicsLayer() == GraphicsLayer::OPENGL)
+    {
+        while (!_quit) {
+            if (_timeEvents.size()) {
+                uint64_t now = nowMs();
+                TimeEvent event = _timeEvents.top();
+                if (event.time < now) {
+                    _timeEvents.pop();
+                    event.pfnCallback();
+                }
+            }
+
+            /*//Only draw when a framerate trigger event has been received from the master clock
+            if (_renderNow > 0) {
+                _renderLock.lock();
+
+                do {
+                    IOEvents::updateDraw(_window);
+                    //Decrement trigger
+                    _renderNow--;
+                } while (_renderNow > 0);
+                _renderLock.unlock();
+            }*/
+
+            IOEvents::updateDraw(_window);
+        }
+    }
+    else {
+
+        // this struct holds Windows event messages
+        MSG msg = { 0 };
+        // main loop
+        while (true) {
+            // check to see if any messages are waiting in the queue
+            if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
+                // translate keystroke messages into the right format
+                TranslateMessage(&msg);
+                DispatchMessage(&msg);
+                // check to see if it's time to quit
+                if (msg.message == WM_QUIT)
+                    break;
+            }
+            else {
+                IOEvents::updateDraw(_window);
             }
         }
-
-        //Only draw when a framerate trigger event has been received from the master clock
-        //if(_renderNow > 0){
-            //_renderLock.lock();
-
-            //do {
-        IOEvents::updateDraw(_window);
-        //Decrement trigger
-        //_renderNow--;
-    //} while(_renderNow > 0);
-
-    //_renderLock.unlock();
-//}
     }
+
 }
 
 //All mouse input will be notified here

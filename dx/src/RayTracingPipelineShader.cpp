@@ -188,6 +188,21 @@ RayTracingPipelineShader::RayTracingPipelineShader(std::string shader,
     pipelineConfig->Config(maxRecursionDepth);
 
     _dxrDevice->CreateStateObject(raytracingPipeline, IID_PPV_ARGS(&_dxrStateObject));
+
+    //DESCRIPTOR HEAP!!!!
+    D3D12_DESCRIPTOR_HEAP_DESC descriptorHeapDesc = {};
+    // Allocate a heap for 5 descriptors:
+    // 2 - vertex and index buffer SRVs
+    // 1 - raytracing output texture SRV
+    // 2 - bottom and top level acceleration structure fallback wrapped pointer UAVs
+    descriptorHeapDesc.NumDescriptors = 5;
+    descriptorHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+    descriptorHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+    descriptorHeapDesc.NodeMask = 0;
+    device->CreateDescriptorHeap(&descriptorHeapDesc, IID_PPV_ARGS(&_descriptorHeap));
+    
+    _descriptorSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+
 }
 
 void RayTracingPipelineShader::_queryShaderResources(ComPtr<ID3DBlob> shaderBlob) {
@@ -203,4 +218,46 @@ void RayTracingPipelineShader::_queryShaderResources(ComPtr<ID3DBlob> shaderBlob
     PipelineShader::_queryShaderResources(shaderBlob);
     
     //Now do raytracing specific shit
+}
+// Allocate a descriptor and return its index. 
+// If the passed descriptorIndexToUse is valid, it will be used instead of allocating a new one.
+UINT RayTracingPipelineShader::_allocateDescriptor(D3D12_CPU_DESCRIPTOR_HANDLE* cpuDescriptor, UINT descriptorIndexToUse)
+{
+    auto descriptorHeapCpuBase = _descriptorHeap->GetCPUDescriptorHandleForHeapStart();
+    if (descriptorIndexToUse >= _descriptorHeap->GetDesc().NumDescriptors)
+    {
+        descriptorIndexToUse = _descriptorsAllocated++;
+    }
+    *cpuDescriptor = CD3DX12_CPU_DESCRIPTOR_HANDLE(descriptorHeapCpuBase, descriptorIndexToUse, _descriptorSize);
+    return descriptorIndexToUse;
+}
+
+
+// Create SRV for a buffer.
+UINT RayTracingPipelineShader::_createBufferSRV(VAO* buffer, UINT numElements, UINT elementSize) {
+   
+    auto device = DXLayer::instance()->getDevice();
+
+    // SRV
+    D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+    srvDesc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
+    srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+    srvDesc.Buffer.NumElements = numElements;
+    if (elementSize == 0)
+    {
+        srvDesc.Format = DXGI_FORMAT_R32_TYPELESS;
+        srvDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_RAW;
+        srvDesc.Buffer.StructureByteStride = 0;
+    }
+    else
+    {
+        srvDesc.Format = DXGI_FORMAT_UNKNOWN;
+        srvDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
+        srvDesc.Buffer.StructureByteStride = elementSize;
+    }
+    CD3DX12_CPU_DESCRIPTOR_HANDLE* cpuHandle = nullptr;
+    UINT descriptorIndex = _allocateDescriptor(cpuHandle);
+    //device->CreateShaderResourceView(buffer->getVertexBuffer(), &srvDesc, *cpuHandle);
+    CD3DX12_GPU_DESCRIPTOR_HANDLE gpuDescriptorHandle = CD3DX12_GPU_DESCRIPTOR_HANDLE(_descriptorHeap->GetGPUDescriptorHandleForHeapStart(), descriptorIndex, _descriptorSize);
+    return descriptorIndex;
 }

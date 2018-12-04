@@ -36,14 +36,19 @@ void ShadowStaticShader::runShader(Entity* entity, Light* light) {
         _shader->bindAttributes(vaoInstance);
 
         MVP* mvp = entity->getMVP();
-        //glUniform mat4 combined model and world matrix, GL_TRUE is telling GL we are passing in the matrix as row major
-        _shader->updateData("model", mvp->getModelBuffer());
 
-        //glUniform mat4 view matrix, GL_TRUE is telling GL we are passing in the matrix as row major
-        _shader->updateData("view", lightMVP.getViewBuffer());
+        if (EngineManager::getGraphicsLayer() == GraphicsLayer::OPENGL) {
+            _shader->updateData("model", mvp->getModelBuffer());
 
-        //glUniform mat4 projection matrix, GL_TRUE is telling GL we are passing in the matrix as row major
-        _shader->updateData("projection", lightMVP.getProjectionBuffer());
+            _shader->updateData("view", lightMVP.getViewBuffer());
+
+            _shader->updateData("projection", lightMVP.getProjectionBuffer());
+        }
+        else {
+            //auto mvpPreMultiplied = mvp->getModelMatrix() * lightMVP.getViewMatrix() * lightMVP.getProjectionMatrix();
+            auto mvpPreMultiplied = lightMVP.getProjectionMatrix() * lightMVP.getViewMatrix() * mvp->getModelMatrix();
+            _shader->updateData("model", mvpPreMultiplied.getFlatBuffer());
+        }
 
         auto textureStrides = vaoInstance->getTextureStrides();
         unsigned int verticesSize = 0;

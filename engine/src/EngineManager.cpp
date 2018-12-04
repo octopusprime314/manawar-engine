@@ -45,12 +45,12 @@ EngineManager::EngineManager(int* argc, char** argv, HINSTANCE hInstance, int nC
 
     _inputLayer = new IOEventDistributor(argc, argv, hInstance, nCmdShow);
 
-    if (_graphicsLayer == GraphicsLayer::DX12) {
+    /*if (_graphicsLayer == GraphicsLayer::DX12) {
         RayTracingPipelineShader* _rayTracingPipeline =
             new RayTracingPipelineShader("rayTracingUberShader.hlsl",
                 DXLayer::instance()->getDevice(),
                 DXGI_FORMAT_R8G8B8A8_UNORM);
-    }
+    }*/
 
     //Load and compile all shaders for the shader broker
     ShaderBroker::instance()->compileShaders();
@@ -61,7 +61,7 @@ EngineManager::EngineManager(int* argc, char** argv, HINSTANCE hInstance, int nC
     
     ModelBroker::setViewManager(_viewManager); //Set the reference to the view model event interface
     _viewManager->setProjection(IOEventDistributor::screenPixelWidth, IOEventDistributor::screenPixelHeight, 0.1f, 5000.0f); //Initializes projection matrix and broadcasts upate to all listeners
-    _viewManager->setView(Matrix::translation(0.0f, -20.0f, 200.0f),
+    _viewManager->setView(Matrix::translation(0.0f, -20.0f, 0.0f),
             Matrix::rotationAroundY(0.0f),
             Matrix());
 
@@ -107,14 +107,14 @@ EngineManager::EngineManager(int* argc, char** argv, HINSTANCE hInstance, int nC
             EffectType::None,
             Vector4(1.0, 0.0, 0.0)));
 
-       /* MVP lightMapMVP;
+        MVP lightMapMVP;
         lightMapMVP.setView(Matrix::translation(sunLocation.getx(), sunLocation.gety(), sunLocation.getz())
             * Matrix::rotationAroundX(-90.0f));
         lightMapMVP.setProjection(Matrix::ortho(600.0f, 600.0f, 0.0f, 600.0f));
         _lightList.push_back(new ShadowedDirectionalLight(_viewManager->getEventWrapper(),
             lightMapMVP,
             EffectType::None,
-            Vector4(1.0, 0.0, 0.0)));*/
+            Vector4(1.0, 0.0, 0.0)));
     }
     else {
 

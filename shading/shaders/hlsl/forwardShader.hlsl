@@ -77,8 +77,8 @@ PixelOut PS(float4 posH : SV_POSITION,
     //Directional light calculation
     //NEED to invert light vector other a normal surface pointing up with a light pointing
     //down would result in a negative dot product of the two vecs, inverting gives us positive numbers!
-    float3 normalizedLight = normalize(float3(light.x, -light.y, light.z));
-    float illumination = dot(normalizedLight, normal);
+    float3 normalizedLight = normalize(float3(-light.x, -light.y, -light.z));
+    float illumination = dot(normalizedLight, normalize(normal.xyz));
 
     //Convert from camera space vertex to light clip space vertex
     float4 shadowMapping = mul(float4(posH.xyz, 1.0), lightViewMatrix);
@@ -108,16 +108,12 @@ PixelOut PS(float4 posH : SV_POSITION,
                 directionalShadow = shadowEffect;
             }
         }
-        /*else if (shadowTextureCoordinatesMap.x <= 1.0 && shadowTextureCoordinatesMap.x >= 0.0 && shadowTextureCoordinatesMap.y <= 1.0 && shadowTextureCoordinatesMap.y >= 0.0) {
-            float4 shadowMappingMap = mul(float4(position.xyz, 1.0), lightMapViewMatrix);
-            shadowMappingMap = shadowMappingMap / shadowMappingMap.w;
-            float2 shadowTextureCoordinatesMap = shadowMappingMap.xy * float2(0.5,0.5) + float2(0.5,0.5);
-
-            if (mapDepthTexture.Sample(textureSampler, shadowTextureCoordinatesMap).x < (shadowMappingMap.z * 0.5 + 0.5) - bias) {
+        else if (shadowTextureCoordinatesMap.x <= 1.0 && shadowTextureCoordinatesMap.x >= 0.0 && shadowTextureCoordinatesMap.y <= 1.0 && shadowTextureCoordinatesMap.y >= 0.0) {
+            float2 invertedYCoord = float2(shadowTextureCoordinatesMap.x, -shadowTextureCoordinatesMap.y); //TODO: need to fix cpu
+            if (mapDepthTexture.Sample(textureSampler, invertedYCoord).r < shadowMappingMap.z - bias) {
                 directionalShadow = shadowEffect;
             }
-        }*/
-
+        }
     }
     else {
         illumination = 0.0;

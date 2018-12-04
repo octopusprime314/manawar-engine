@@ -10,6 +10,7 @@
 #include "PipelineShader.h"
 #include "dxc/dxcapi.h"
 #include "dxc/dxcapi.use.h"
+#include "VAO.h"
 
 using namespace Microsoft::WRL;
 
@@ -49,7 +50,10 @@ struct RayGenConstantBuffer
 class RayTracingPipelineShader : public PipelineShader {
     
     virtual void                       _queryShaderResources(ComPtr<ID3DBlob> shaderBlob);
-
+    UINT                               _createBufferSRV(VAO* buffer,
+                                        UINT numElements, UINT elementSize);
+    UINT                               _allocateDescriptor(D3D12_CPU_DESCRIPTOR_HANDLE* cpuDescriptor, 
+                                        UINT descriptorIndexToUse = UINT_MAX);
     // DirectX Raytracing (DXR) attributes
     ComPtr<ID3D12Device5>              _dxrDevice;
     ComPtr<ID3D12GraphicsCommandList4> _dxrCommandList;
@@ -61,6 +65,10 @@ class RayTracingPipelineShader : public PipelineShader {
 
     // Raytracing scene
     RayGenConstantBuffer               _cubeCB;
+
+    ComPtr<ID3D12DescriptorHeap>       _descriptorHeap;
+    UINT                               _descriptorSize;
+    UINT                               _descriptorsAllocated;
 
     dxc::DxcDllSupport                 _dllSupport;
 

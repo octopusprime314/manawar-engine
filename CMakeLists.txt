@@ -177,6 +177,7 @@ add_executable(ReBoot
 target_compile_features(ReBoot PRIVATE cxx_range_for)
 
 if (MSVC)
+	add_definitions(-D_CRT_SECURE_NO_WARNINGS)
     add_definitions("/MP")
 	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SUBSYSTEM:WINDOWS")
 endif()

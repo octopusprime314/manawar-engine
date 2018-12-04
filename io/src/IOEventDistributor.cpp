@@ -140,22 +140,22 @@ void IOEventDistributor::updateGameState(EngineStateFlags state) {
 
 LRESULT CALLBACK IOEventDistributor::dxEventLoop(HWND hWnd,
     UINT message, WPARAM wParam, LPARAM lParam) {
-
+    int key = static_cast<int>(wParam);
     switch (message)
     {
         case WM_KEYDOWN:
         {
-            _keyboardUpdate(nullptr, wParam, 0, 1, 0);
+            _keyboardUpdate(nullptr, key, 0, 1, 0);
             break;
         }
         case WM_KEYUP:
         {
-            _keyboardUpdate(nullptr, wParam, 0, 0, 0);
+            _keyboardUpdate(nullptr, key, 0, 0, 0);
             break;
         }
         case WM_MOUSEMOVE:
         {
-            _keyboardUpdate(nullptr, wParam, 0, 0, 0);
+            _keyboardUpdate(nullptr, key, 0, 0, 0);
             break;
         }
         case WM_DESTROY:

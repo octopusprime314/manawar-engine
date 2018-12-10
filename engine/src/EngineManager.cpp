@@ -45,13 +45,6 @@ EngineManager::EngineManager(int* argc, char** argv, HINSTANCE hInstance, int nC
 
     _inputLayer = new IOEventDistributor(argc, argv, hInstance, nCmdShow);
 
-    /*if (_graphicsLayer == GraphicsLayer::DX12) {
-        RayTracingPipelineShader* _rayTracingPipeline =
-            new RayTracingPipelineShader("rayTracingUberShader.hlsl",
-                DXLayer::instance()->getDevice(),
-                DXGI_FORMAT_R8G8B8A8_UNORM);
-    }*/
-
     //Load and compile all shaders for the shader broker
     ShaderBroker::instance()->compileShaders();
 
@@ -73,6 +66,15 @@ EngineManager::EngineManager(int* argc, char** argv, HINSTANCE hInstance, int nC
     IOEvents::setPostDrawCallback(std::bind(&EngineManager::_postDraw, this));
 
     auto modelBroker = ModelBroker::instance();
+
+    if (_graphicsLayer == GraphicsLayer::DX12) {
+         _rayTracingPipeline =
+            new RayTracingPipelineShader("rayTracingUberShader.hlsl",
+                DXLayer::instance()->getDevice(),
+                DXGI_FORMAT_R8G8B8A8_UNORM, _entityList[4]);
+
+        //_rayTracingPipeline->DoRayTracing(_entityList[4]);
+    }
 
     //_entityList.push_back(new Entity(modelBroker->getModel("werewolf"), _viewManager->getEventWrapper())); //Add a static model to the scene
 
@@ -360,6 +362,8 @@ void EngineManager::_postDraw() {
         _forwardRenderer->forwardLighting(_entityList, _viewManager, _lightList);
 
         HLSLShader::releaseOM(textures);
+
+        _rayTracingPipeline->DoRayTracing(_entityList[4]);
 
         //DXLayer::instance()->present(_ssaoPass->getSSAOTexture());
         DXLayer::instance()->present(_deferredFBO->getRenderTexture());

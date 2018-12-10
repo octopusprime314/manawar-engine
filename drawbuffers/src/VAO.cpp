@@ -59,6 +59,13 @@ D3D12_VERTEX_BUFFER_VIEW VAO::getVertexBuffer() {
     return _vbv;
 }
 
+ResourceBuffer* VAO::getIndexResource() {
+    return _indexBuffer;
+}
+ResourceBuffer* VAO::getVertexResource() {
+    return _vertexBuffer;
+}
+
 void VAO::createVAO(std::vector<Cube>* cubes, GeometryConstruction geometryType) {
     
     float* flattenVerts = GeometryBuilder::buildCubes(cubes, _vertexLength, geometryType);

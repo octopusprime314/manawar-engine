@@ -41,9 +41,13 @@ public:
     void                              initCmdLists();
 
     void                              flushCommandList();
+    void                              fenceCommandList();
     void                              present(Texture* renderTexture);
-
+    
+    ComPtr<ID3D12CommandAllocator>    getCmdAllocator();
+    ComPtr<ID3D12CommandQueue>        getCmdQueue();
     ComPtr<ID3D12GraphicsCommandList> getCmdList();
+    UINT                              getCmdListIndex();
     ComPtr<ID3D12Device>              getDevice();
 
 private:

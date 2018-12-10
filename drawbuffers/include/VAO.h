@@ -72,6 +72,8 @@ public:
     TextureMetaData getTextureStrides();
     D3D12_INDEX_BUFFER_VIEW getIndexBuffer();
     D3D12_VERTEX_BUFFER_VIEW getVertexBuffer();
+    ResourceBuffer* getIndexResource();
+    ResourceBuffer* getVertexResource();
     void            setVertexContext(GLuint context);
     void            setNormalContext(GLuint context);
     void            setTextureContext(GLuint context);

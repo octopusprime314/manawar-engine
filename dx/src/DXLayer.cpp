@@ -144,9 +144,29 @@ void DXLayer::flushCommandList() {
     _cmdListIndex = ++_cmdListIndex % NUM_SWAP_CHAIN_BUFFERS;
 }
 
+void DXLayer::fenceCommandList() {
+
+    _cmdQueue->Signal(_cmdListFence.Get(), _nextFenceValue);
+    _cmdListFence->GetCompletedValue();
+    _cmdListFenceValues[_cmdListIndex] = _nextFenceValue++;
+
+    // Wait for just-submitted command list to finish
+    _cmdListFence->SetEventOnCompletion(_cmdListFenceValues[_cmdListIndex], _event);
+    WaitForSingleObject(_event, INFINITE);
+}
+
 ComPtr<ID3D12GraphicsCommandList> DXLayer::getCmdList() {
     return _cmdLists[_cmdListIndex];
 }
 ComPtr<ID3D12Device> DXLayer::getDevice() {
     return _device;
+}
+ComPtr<ID3D12CommandAllocator> DXLayer::getCmdAllocator() {
+    return _cmdAllocator;
+}
+ComPtr<ID3D12CommandQueue> DXLayer::getCmdQueue() {
+    return _cmdQueue;
+}
+UINT DXLayer::getCmdListIndex() {
+    return _cmdListIndex;
 }

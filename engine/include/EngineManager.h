@@ -42,6 +42,7 @@ class Terminal;
 class Entity;
 class IOEventDistributor;
 class DXLayer;
+class RayTracingPipelineShader;
 
 enum class GraphicsLayer {
     DX12,
@@ -66,6 +67,7 @@ class EngineManager {
     Terminal*                    _terminal;
     IOEventDistributor*          _inputLayer;
     static GraphicsLayer         _graphicsLayer;
+    RayTracingPipelineShader*    _rayTracingPipeline;
                                  
     void                         _preDraw(); //Prior to drawing objects call this function
     void                         _postDraw(); //Post of drawing objects call this function

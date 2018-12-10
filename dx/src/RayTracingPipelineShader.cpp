@@ -2,6 +2,7 @@
 #include "DXLayer.h"
 #include "D3D12RaytracingHelpers.hpp"
 #include "EngineManager.h"
+#include "ShaderTable.h"
 
 const wchar_t* c_hitGroupName = L"MyHitGroup";
 const wchar_t* c_raygenShaderName = L"MyRaygenShader";
@@ -16,7 +17,7 @@ inline std::string BlobToUtf8(_In_ IDxcBlob *pBlob) {
 
 RayTracingPipelineShader::RayTracingPipelineShader(std::string shader,
     ComPtr<ID3D12Device> device,
-    DXGI_FORMAT format) {
+    DXGI_FORMAT format, Entity* entity) {
 
     auto commandList = DXLayer::instance()->getCmdList();
 
@@ -84,7 +85,7 @@ RayTracingPipelineShader::RayTracingPipelineShader(std::string shader,
     CComPtr<IDxcBlobEncoding> pSource;
     CComPtr<IDxcLibrary> pLibrary;
 
-    
+
     HRESULT initDLL = S_FALSE;
     if (!_dllSupport.IsEnabled()) {
         initDLL = _dllSupport.Initialize();
@@ -120,9 +121,9 @@ RayTracingPipelineShader::RayTracingPipelineShader(std::string shader,
 
     CComPtr<IDxcBlob> pProgram;
     dxcResult->GetResult(&pProgram);
-   /* if (opts.IsRootSignatureProfile()) {
-        return;
-    }*/
+    /* if (opts.IsRootSignatureProfile()) {
+         return;
+     }*/
 
     CComPtr<IDxcBlobEncoding> pDisassembleBlob;
     dxcCompiler->Disassemble(pProgram, &pDisassembleBlob);
@@ -160,9 +161,9 @@ RayTracingPipelineShader::RayTracingPipelineShader(std::string shader,
     UINT attributeSize = 2 * sizeof(float); // float2 barycentrics
     shaderConfig->Config(payloadSize, attributeSize);
 
-     // Ray gen and miss shaders in this sample are not using a local root signature and thus one is not associated with them.
+    // Ray gen and miss shaders in this sample are not using a local root signature and thus one is not associated with them.
 
-    // Local root signature to be used in a hit group.
+   // Local root signature to be used in a hit group.
     auto localRootSignature = raytracingPipeline.CreateSubobject<CD3D12_LOCAL_ROOT_SIGNATURE_SUBOBJECT>();
     localRootSignature->SetRootSignature(_raytracingLocalRootSignature.Get());
     // Define explicit shader association for the local root signature. 
@@ -200,9 +201,252 @@ RayTracingPipelineShader::RayTracingPipelineShader(std::string shader,
     descriptorHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
     descriptorHeapDesc.NodeMask = 0;
     device->CreateDescriptorHeap(&descriptorHeapDesc, IID_PPV_ARGS(&_descriptorHeap));
-    
+
     _descriptorSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
+    auto indexGPUAddress = (*entity->getFrustumVAO())[0]->getIndexResource()->getResource()->GetGPUVirtualAddress();
+    auto vertexGPUAddress = (*entity->getFrustumVAO())[0]->getVertexResource()->getResource()->GetGPUVirtualAddress();
+
+    auto indexDesc = (*entity->getFrustumVAO())[0]->getIndexResource()->getResource()->GetDesc();
+    auto vertexDesc = (*entity->getFrustumVAO())[0]->getVertexResource()->getResource()->GetDesc();
+
+    struct Vertex {
+        float pos[3];
+        float normal[3];
+        float uv[2];
+    };
+
+    D3D12_RAYTRACING_GEOMETRY_DESC geometryDesc = {};
+    geometryDesc.Type = D3D12_RAYTRACING_GEOMETRY_TYPE_TRIANGLES;
+    geometryDesc.Triangles.IndexBuffer = indexGPUAddress;
+    geometryDesc.Triangles.IndexCount = static_cast<UINT>(indexDesc.Width) / sizeof(uint32_t);
+    geometryDesc.Triangles.IndexFormat = DXGI_FORMAT_R32_UINT;
+    geometryDesc.Triangles.Transform3x4 = 0;
+    geometryDesc.Triangles.VertexFormat = DXGI_FORMAT_R32G32B32_FLOAT;
+    geometryDesc.Triangles.VertexCount = static_cast<UINT>(vertexDesc.Width) / sizeof(Vertex);
+    geometryDesc.Triangles.VertexBuffer.StartAddress = vertexGPUAddress;
+    geometryDesc.Triangles.VertexBuffer.StrideInBytes = sizeof(Vertex);
+
+    // Mark the geometry as opaque. 
+   // PERFORMANCE TIP: mark geometry as opaque whenever applicable as it can enable important ray processing optimizations.
+   // Note: When rays encounter opaque geometry an any hit shader will not be executed whether it is present or not.
+    geometryDesc.Flags = D3D12_RAYTRACING_GEOMETRY_FLAG_OPAQUE;
+
+    // Get required sizes for an acceleration structure.
+    D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAGS buildFlags = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_PREFER_FAST_TRACE;
+
+    D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_DESC bottomLevelBuildDesc = {};
+    D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_INPUTS &bottomLevelInputs = bottomLevelBuildDesc.Inputs;
+    bottomLevelInputs.DescsLayout = D3D12_ELEMENTS_LAYOUT_ARRAY;
+    bottomLevelInputs.Flags = buildFlags;
+    bottomLevelInputs.NumDescs = 1;
+    bottomLevelInputs.Type = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL;
+    bottomLevelInputs.pGeometryDescs = &geometryDesc;
+
+    D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_DESC topLevelBuildDesc = bottomLevelBuildDesc;
+    D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_INPUTS &topLevelInputs = topLevelBuildDesc.Inputs;
+    topLevelInputs.DescsLayout = D3D12_ELEMENTS_LAYOUT_ARRAY;
+    topLevelInputs.Flags = buildFlags;
+    topLevelInputs.NumDescs = 1;
+    topLevelInputs.pGeometryDescs = nullptr;
+    topLevelInputs.Type = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL;
+
+    D3D12_RAYTRACING_ACCELERATION_STRUCTURE_PREBUILD_INFO topLevelPrebuildInfo = {};
+
+    _dxrDevice->GetRaytracingAccelerationStructurePrebuildInfo(&topLevelInputs, &topLevelPrebuildInfo);
+
+    D3D12_RAYTRACING_ACCELERATION_STRUCTURE_PREBUILD_INFO bottomLevelPrebuildInfo = {};
+    _dxrDevice->GetRaytracingAccelerationStructurePrebuildInfo(&bottomLevelInputs, &bottomLevelPrebuildInfo);
+
+    ComPtr<ID3D12Resource> scratchResource;
+    auto sizeBuildInfo = max(topLevelPrebuildInfo.ScratchDataSizeInBytes, bottomLevelPrebuildInfo.ScratchDataSizeInBytes);
+    auto uploadHeapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
+    auto bufferDesc = CD3DX12_RESOURCE_DESC::Buffer(sizeBuildInfo, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
+    device->CreateCommittedResource(
+        &uploadHeapProperties,
+        D3D12_HEAP_FLAG_NONE,
+        &bufferDesc,
+        D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
+        nullptr,
+        IID_PPV_ARGS(&scratchResource));
+
+    // Allocate resources for acceleration structures.
+    // Acceleration structures can only be placed in resources that are created in the default heap (or custom heap equivalent). 
+    // Default heap is OK since the application doesn’t need CPU read/write access to them. 
+    // The resources that will contain acceleration structures must be created in the state D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE, 
+    // and must have resource flag D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS. The ALLOW_UNORDERED_ACCESS requirement simply acknowledges both: 
+    //  - the system will be doing this type of access in its implementation of acceleration structure builds behind the scenes.
+    //  - from the app point of view, synchronization of writes/reads to acceleration structures is accomplished using UAV barriers.
+    {
+        D3D12_RESOURCE_STATES initialResourceState = D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE;
+        auto sizeBuildInfo = bottomLevelPrebuildInfo.ResultDataMaxSizeInBytes;
+        auto uploadHeapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
+        auto bufferDesc = CD3DX12_RESOURCE_DESC::Buffer(sizeBuildInfo, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
+        device->CreateCommittedResource(
+            &uploadHeapProperties,
+            D3D12_HEAP_FLAG_NONE,
+            &bufferDesc,
+            initialResourceState,
+            nullptr,
+            IID_PPV_ARGS(&_bottomLevelAccelerationStructure));
+
+    }
+
+    {
+        D3D12_RESOURCE_STATES initialResourceState = D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE;
+        auto sizeBuildInfo = topLevelPrebuildInfo.ResultDataMaxSizeInBytes;
+        auto uploadHeapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
+        auto bufferDesc = CD3DX12_RESOURCE_DESC::Buffer(sizeBuildInfo, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
+        device->CreateCommittedResource(
+            &uploadHeapProperties,
+            D3D12_HEAP_FLAG_NONE,
+            &bufferDesc,
+            initialResourceState,
+            nullptr,
+            IID_PPV_ARGS(&_topLevelAccelerationStructure));
+    }
+    // Create an instance desc for the bottom-level acceleration structure.
+    ComPtr<ID3D12Resource> instanceDescs;
+    D3D12_RAYTRACING_INSTANCE_DESC instanceDesc = {};
+    instanceDesc.Transform[0][0] = instanceDesc.Transform[1][1] = instanceDesc.Transform[2][2] = 1;
+    instanceDesc.InstanceMask = 1;
+    instanceDesc.AccelerationStructure = _bottomLevelAccelerationStructure->GetGPUVirtualAddress();
+    {
+        D3D12_RESOURCE_STATES initialResourceState = D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE;
+        auto sizeBuildInfo = sizeof(instanceDesc);
+        auto uploadHeapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
+        auto bufferDesc = CD3DX12_RESOURCE_DESC::Buffer(sizeBuildInfo, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
+        device->CreateCommittedResource(
+            &uploadHeapProperties,
+            D3D12_HEAP_FLAG_NONE,
+            &bufferDesc,
+            D3D12_RESOURCE_STATE_GENERIC_READ,
+            nullptr,
+            IID_PPV_ARGS(&instanceDescs));
+
+    }
+
+    // Bottom Level Acceleration Structure desc
+    {
+        bottomLevelBuildDesc.ScratchAccelerationStructureData = scratchResource->GetGPUVirtualAddress();
+        bottomLevelBuildDesc.DestAccelerationStructureData = _bottomLevelAccelerationStructure->GetGPUVirtualAddress();
+    }
+
+    // Top Level Acceleration Structure desc
+    {
+        topLevelBuildDesc.DestAccelerationStructureData = _topLevelAccelerationStructure->GetGPUVirtualAddress();
+        topLevelBuildDesc.ScratchAccelerationStructureData = scratchResource->GetGPUVirtualAddress();
+        topLevelBuildDesc.Inputs.InstanceDescs = instanceDescs->GetGPUVirtualAddress();
+    }
+
+    auto BuildAccelerationStructure = [&](auto* raytracingCommandList)
+    {
+        raytracingCommandList->BuildRaytracingAccelerationStructure(&bottomLevelBuildDesc, 0, nullptr);
+        commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(_bottomLevelAccelerationStructure.Get()));
+        raytracingCommandList->BuildRaytracingAccelerationStructure(&topLevelBuildDesc, 0, nullptr);
+    };
+
+    BuildAccelerationStructure(_dxrCommandList.Get());
+
+    commandList->Close();
+    ID3D12CommandList *commandLists[] = { commandList.Get() };
+    auto cmdQueue = DXLayer::instance()->getCmdQueue();
+    cmdQueue->ExecuteCommandLists(ARRAYSIZE(commandLists), commandLists);
+
+    DXLayer::instance()->fenceCommandList();
+
+    // Allocate one constant buffer per frame, since it gets updated every frame.
+    size_t cbSize = 2 * sizeof(AlignedSceneConstantBuffer);
+    const D3D12_RESOURCE_DESC constantBufferDesc = CD3DX12_RESOURCE_DESC::Buffer(cbSize);
+    auto uploadHeapProps = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
+
+   device->CreateCommittedResource(
+        &uploadHeapProps,
+        D3D12_HEAP_FLAG_NONE,
+        &constantBufferDesc,
+        D3D12_RESOURCE_STATE_GENERIC_READ,
+        nullptr,
+        IID_PPV_ARGS(&_perFrameConstants));
+
+    // Map the constant buffer and cache its heap pointers.
+    // We don't unmap this until the app closes. Keeping buffer mapped for the lifetime of the resource is okay.
+    CD3DX12_RANGE readRange(0, 0);        // We do not intend to read from this resource on the CPU.
+    _perFrameConstants->Map(0, nullptr, reinterpret_cast<void**>(&_mappedConstantData));
+
+    void* rayGenShaderIdentifier;
+    void* missShaderIdentifier;
+    void* hitGroupShaderIdentifier;
+
+    auto GetShaderIdentifiers = [&](auto* stateObjectProperties)
+    {
+        rayGenShaderIdentifier = stateObjectProperties->GetShaderIdentifier(c_raygenShaderName);
+        missShaderIdentifier = stateObjectProperties->GetShaderIdentifier(c_missShaderName);
+        hitGroupShaderIdentifier = stateObjectProperties->GetShaderIdentifier(c_hitGroupName);
+    };
+
+    // Get shader identifiers.
+    UINT shaderIdentifierSize;
+    ComPtr<ID3D12StateObjectPropertiesPrototype> stateObjectProperties;
+    _dxrStateObject.As(&stateObjectProperties);
+    GetShaderIdentifiers(stateObjectProperties.Get());
+    shaderIdentifierSize = D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES;
+    
+
+    // Ray gen shader table
+    {
+        UINT numShaderRecords = 1;
+        UINT shaderRecordSize = shaderIdentifierSize;
+        ShaderTable rayGenShaderTable(device.Get(), numShaderRecords, shaderRecordSize, L"RayGenShaderTable");
+        rayGenShaderTable.push_back(ShaderRecord(rayGenShaderIdentifier, shaderIdentifierSize));
+        _rayGenShaderTable = rayGenShaderTable.GetResource();
+    }
+
+    // Miss shader table
+    {
+        UINT numShaderRecords = 1;
+        UINT shaderRecordSize = shaderIdentifierSize;
+        ShaderTable missShaderTable(device.Get(), numShaderRecords, shaderRecordSize, L"MissShaderTable");
+        missShaderTable.push_back(ShaderRecord(missShaderIdentifier, shaderIdentifierSize));
+        _missShaderTable = missShaderTable.GetResource();
+    }
+
+    // Hit group shader table
+    {
+        struct RootArguments {
+            CubeConstantBuffer cb;
+        } rootArguments;
+        rootArguments.cb = _cubeCB;
+
+        UINT numShaderRecords = 1;
+        UINT shaderRecordSize = shaderIdentifierSize + sizeof(rootArguments);
+        ShaderTable hitGroupShaderTable(device.Get(), numShaderRecords, shaderRecordSize, L"HitGroupShaderTable");
+        hitGroupShaderTable.push_back(ShaderRecord(hitGroupShaderIdentifier, shaderIdentifierSize, &rootArguments, sizeof(rootArguments)));
+        _hitGroupShaderTable = hitGroupShaderTable.GetResource();
+    }
+
+    // Create the output resource. The dimensions and format should match the swap-chain.
+    auto uavDesc = CD3DX12_RESOURCE_DESC::Tex2D(format, 1920, 1080, 1, 1, 1, 0, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
+
+    auto defaultHeapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
+    device->CreateCommittedResource(
+        &defaultHeapProperties, D3D12_HEAP_FLAG_NONE, &uavDesc, D3D12_RESOURCE_STATE_UNORDERED_ACCESS, nullptr, IID_PPV_ARGS(&_raytracingOutput));
+
+    _raytracingOutputResourceUAVDescriptorHeapIndex = 1;
+    D3D12_CPU_DESCRIPTOR_HANDLE uavDescriptorHandle = CD3DX12_CPU_DESCRIPTOR_HANDLE(
+        _descriptorHeap->GetCPUDescriptorHandleForHeapStart(),
+        _raytracingOutputResourceUAVDescriptorHeapIndex,
+        _descriptorSize);
+
+    D3D12_UNORDERED_ACCESS_VIEW_DESC UAVDesc = {};
+    UAVDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2D;
+    device->CreateUnorderedAccessView(_raytracingOutput.Get(), nullptr, &UAVDesc, uavDescriptorHandle);
+    
+    _raytracingOutputResourceUAVGpuDescriptor = 
+        CD3DX12_GPU_DESCRIPTOR_HANDLE(_descriptorHeap->GetGPUDescriptorHandleForHeapStart(), 
+            _raytracingOutputResourceUAVDescriptorHeapIndex, 
+            _descriptorSize);
+
+    DXLayer::instance()->initCmdLists();
 }
 
 void RayTracingPipelineShader::_queryShaderResources(ComPtr<ID3DBlob> shaderBlob) {
@@ -219,45 +463,55 @@ void RayTracingPipelineShader::_queryShaderResources(ComPtr<ID3DBlob> shaderBlob
     
     //Now do raytracing specific shit
 }
-// Allocate a descriptor and return its index. 
-// If the passed descriptorIndexToUse is valid, it will be used instead of allocating a new one.
-UINT RayTracingPipelineShader::_allocateDescriptor(D3D12_CPU_DESCRIPTOR_HANDLE* cpuDescriptor, UINT descriptorIndexToUse)
+
+void RayTracingPipelineShader::DoRayTracing(Entity* entity)
 {
-    auto descriptorHeapCpuBase = _descriptorHeap->GetCPUDescriptorHandleForHeapStart();
-    if (descriptorIndexToUse >= _descriptorHeap->GetDesc().NumDescriptors)
+    auto commandList = DXLayer::instance()->getCmdList();
+    auto frameIndex = DXLayer::instance()->getCmdListIndex();
+
+    auto DispatchRays = [&](auto* commandList, auto* stateObject, auto* dispatchDesc)
     {
-        descriptorIndexToUse = _descriptorsAllocated++;
-    }
-    *cpuDescriptor = CD3DX12_CPU_DESCRIPTOR_HANDLE(descriptorHeapCpuBase, descriptorIndexToUse, _descriptorSize);
-    return descriptorIndexToUse;
-}
+        // Since each shader table has only one shader record, the stride is same as the size.
+        dispatchDesc->HitGroupTable.StartAddress = _hitGroupShaderTable->GetGPUVirtualAddress();
+        dispatchDesc->HitGroupTable.SizeInBytes = _hitGroupShaderTable->GetDesc().Width;
+        dispatchDesc->HitGroupTable.StrideInBytes = dispatchDesc->HitGroupTable.SizeInBytes;
+        dispatchDesc->MissShaderTable.StartAddress = _missShaderTable->GetGPUVirtualAddress();
+        dispatchDesc->MissShaderTable.SizeInBytes = _missShaderTable->GetDesc().Width;
+        dispatchDesc->MissShaderTable.StrideInBytes = dispatchDesc->MissShaderTable.SizeInBytes;
+        dispatchDesc->RayGenerationShaderRecord.StartAddress = _rayGenShaderTable->GetGPUVirtualAddress();
+        dispatchDesc->RayGenerationShaderRecord.SizeInBytes = _rayGenShaderTable->GetDesc().Width;
+        dispatchDesc->Width = 1920;
+        dispatchDesc->Height = 1080;
+        dispatchDesc->Depth = 1;
+        commandList->SetPipelineState1(stateObject);
+        commandList->DispatchRays(dispatchDesc);
+    };
 
+    auto SetCommonPipelineState = [&](ComPtr<ID3D12GraphicsCommandList> descriptorSetCommandList)
+    {
 
-// Create SRV for a buffer.
-UINT RayTracingPipelineShader::_createBufferSRV(VAO* buffer, UINT numElements, UINT elementSize) {
+        auto gpuHandle = 
+            CD3DX12_GPU_DESCRIPTOR_HANDLE(_descriptorHeap->GetGPUDescriptorHandleForHeapStart(), 0, _descriptorSize);
+
+        descriptorSetCommandList->SetDescriptorHeaps(1, _descriptorHeap.GetAddressOf());
+        // Set index and successive vertex buffer decriptor tables
+        commandList->SetComputeRootDescriptorTable(GlobalRootSignatureParams::VertexBuffersSlot, gpuHandle);
+        commandList->SetComputeRootDescriptorTable(GlobalRootSignatureParams::OutputViewSlot, _raytracingOutputResourceUAVGpuDescriptor);
+    };
+
+    commandList->SetComputeRootSignature(_raytracingGlobalRootSignature.Get());
+
+    // Copy the updated scene constant buffer to GPU.
+    memcpy(&_mappedConstantData[frameIndex].constants, &_sceneCB[frameIndex], sizeof(_sceneCB[frameIndex]));
+    auto cbGpuAddress = _perFrameConstants->GetGPUVirtualAddress() + frameIndex * sizeof(_mappedConstantData[0]);
+    commandList->SetComputeRootConstantBufferView(GlobalRootSignatureParams::SceneConstantSlot, cbGpuAddress);
+
+    // Bind the heaps, acceleration structure and dispatch rays.
+    D3D12_DISPATCH_RAYS_DESC dispatchDesc = {};
    
-    auto device = DXLayer::instance()->getDevice();
-
-    // SRV
-    D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-    srvDesc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
-    srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-    srvDesc.Buffer.NumElements = numElements;
-    if (elementSize == 0)
-    {
-        srvDesc.Format = DXGI_FORMAT_R32_TYPELESS;
-        srvDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_RAW;
-        srvDesc.Buffer.StructureByteStride = 0;
-    }
-    else
-    {
-        srvDesc.Format = DXGI_FORMAT_UNKNOWN;
-        srvDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
-        srvDesc.Buffer.StructureByteStride = elementSize;
-    }
-    CD3DX12_CPU_DESCRIPTOR_HANDLE* cpuHandle = nullptr;
-    UINT descriptorIndex = _allocateDescriptor(cpuHandle);
-    //device->CreateShaderResourceView(buffer->getVertexBuffer(), &srvDesc, *cpuHandle);
-    CD3DX12_GPU_DESCRIPTOR_HANDLE gpuDescriptorHandle = CD3DX12_GPU_DESCRIPTOR_HANDLE(_descriptorHeap->GetGPUDescriptorHandleForHeapStart(), descriptorIndex, _descriptorSize);
-    return descriptorIndex;
+    SetCommonPipelineState(commandList);
+    commandList->SetComputeRootShaderResourceView(GlobalRootSignatureParams::AccelerationStructureSlot, _topLevelAccelerationStructure->GetGPUVirtualAddress());
+    
+    DispatchRays(_dxrCommandList.Get(), _dxrStateObject.Get(), &dispatchDesc);
+    
 }

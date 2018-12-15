@@ -72,31 +72,24 @@
 //    payload.color = float4(0, 0, 0, 1);
 //}
 
-typedef float3 XMFLOAT3;
-typedef float4 XMFLOAT4;
-typedef float4 XMVECTOR;
-typedef float4x4 XMMATRIX;
-typedef uint UINT;
-
-
 struct SceneConstantBuffer
 {
-    XMMATRIX projectionToWorld;
-    XMVECTOR cameraPosition;
-    XMVECTOR lightPosition;
-    XMVECTOR lightAmbientColor;
-    XMVECTOR lightDiffuseColor;
+    float4x4 projectionToWorld;
+    float4 cameraPosition;
+    float4 lightPosition;
+    float4 lightAmbientColor;
+    float4 lightDiffuseColor;
 };
 
 struct CubeConstantBuffer
 {
-    XMFLOAT4 albedo;
+    float4 albedo;
 };
 
 struct Vertex
 {
-    XMFLOAT3 position;
-    XMFLOAT3 normal;
+    float3 position;
+    float3 normal;
 };
 
 
@@ -208,15 +201,26 @@ void MyRaygenShader()
     float3 rayDir;
     float3 origin;
 
-    // Generate a ray for a camera pixel corresponding to an index from the dispatched 2D grid.
-    GenerateCameraRay(DispatchRaysIndex().xy, origin, rayDir);
+    float2 xy = DispatchRaysIndex().xy + 0.5f; // center in the middle of the pixel.
+    float2 screenPos = xy / DispatchRaysDimensions().xy * 2.0 - 1.0;
+
+    // Invert Y for DirectX-style coordinates.
+    screenPos.y = -screenPos.y;
+
+    // Unproject the pixel coordinate into a ray.
+    float4 world = mul(float4(screenPos, 0, 1), g_sceneCB.projectionToWorld);
+
+    world.xyz /= world.w;
+    origin = g_sceneCB.cameraPosition.xyz;
+    rayDir = normalize(world.xyz - origin);
 
     // Trace the ray.
     // Set the ray's extents.
     RayDesc ray;
     ray.Origin = origin;
     ray.Direction = rayDir;
-    // Set TMin to a non-zero small value to avoid aliasing issues due to floating - point errors.
+
+    // Set TMin to a non-zero small val(ue to avoid aliasing issues due to floating - point errors.
     // TMin should be kept small to prevent missing geometry at close contact areas.
     ray.TMin = 0.001;
     ray.TMax = 10000.0;
@@ -230,38 +234,51 @@ void MyRaygenShader()
 [shader("closesthit")]
 void MyClosestHitShader(inout RayPayload payload, in MyAttributes attr)
 {
-    float3 hitPosition = HitWorldPosition();
+    float3 rayDir;
+    float3 origin;
 
-    // Get the base index of the triangle's first 16 bit index.
-    uint indexSizeInBytes = 2;
-    uint indicesPerTriangle = 3;
-    uint triangleIndexStride = indicesPerTriangle * indexSizeInBytes;
-    uint baseIndex = PrimitiveIndex() * triangleIndexStride;
+    float2 xy = DispatchRaysIndex().xy + 0.5f; // center in the middle of the pixel.
+    float2 screenPos = xy / DispatchRaysDimensions().xy * 2.0 - 1.0;
 
-    // Load up 3 16 bit indices for the triangle.
-    const uint3 indices = Load3x16BitIndices(baseIndex);
+    // Invert Y for DirectX-style coordinates.
+    screenPos.y = -screenPos.y;
 
-    // Retrieve corresponding vertex normals for the triangle vertices.
-    float3 vertexNormals[3] = {
-        Vertices[indices[0]].normal,
-        Vertices[indices[1]].normal,
-        Vertices[indices[2]].normal
-    };
+    // Unproject the pixel coordinate into a ray.
+    float4 world = mul(float4(screenPos, 0, 1), g_sceneCB.projectionToWorld);
 
-    // Compute the triangle's normal.
-    // This is redundant and done for illustration purposes 
-    // as all the per-vertex normals are the same and match triangle's normal in this sample. 
-    float3 triangleNormal = HitAttribute(vertexNormals, attr);
+    world.xyz /= world.w;
 
-    float4 diffuseColor = CalculateDiffuseLighting(hitPosition, triangleNormal);
-    float4 color = g_sceneCB.lightAmbientColor + diffuseColor;
+    //ray.Origin = float4(0.0, 1.0, 0.0, 1.0);
+    payload.color = float4(world.zzz, 1.0f);
+    //payload.color = float4(abs(rayDir.zzz), 1.0f);
+    //payload.color = float4(abs(screenPos), 0.0, 1.0f);
 
-    payload.color = color;
 }
 
 [shader("miss")]
 void MyMissShader(inout RayPayload payload)
 {
-    float4 background = float4(0.0f, 0.2f, 0.4f, 1.0f);
+
+    float3 rayDir;
+    float3 origin;
+
+    float4 background = float4(1.0f, 0.0f, 0.0f, 1.0f);
     payload.color = background;
+    //payload.color = float4(normalize(rayDir), 1.0);
+    
+    
+    //float2 xy = DispatchRaysIndex().xy + 0.5f; // center in the middle of the pixel.
+    //float2 screenPos = xy / DispatchRaysDimensions().xy * 2.0 - 1.0;
+
+    //// Invert Y for DirectX-style coordinates.
+    //screenPos.y = -screenPos.y;
+
+    //// Unproject the pixel coordinate into a ray.
+    //float4 world = mul(float4(screenPos, 0, 1), g_sceneCB.projectionToWorld);
+
+    //world.xyz /= world.w;
+    //origin = g_sceneCB.cameraPosition.xyz;
+    //float3 direction = normalize(world.xyz - origin);
+    //payload.color = float4(abs(direction), 1.0);
+
 }

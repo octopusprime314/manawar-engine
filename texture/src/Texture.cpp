@@ -39,6 +39,10 @@ std::string Texture::getName() {
 ResourceBuffer* Texture::getResource() {
     return _textureBuffer;
 }
+ComPtr<ID3D12DescriptorHeap> Texture::getUAVDescriptor() {
+    return _uavDescriptorHeap;
+}
+
 
 void Texture::bindToDXShader(ComPtr<ID3D12GraphicsCommandList>& cmdList, 
     UINT textureBinding,

@@ -68,6 +68,7 @@ class EngineManager {
     IOEventDistributor*          _inputLayer;
     static GraphicsLayer         _graphicsLayer;
     RayTracingPipelineShader*    _rayTracingPipeline;
+    UINT                         _rayTracingEntityIndex;
                                  
     void                         _preDraw(); //Prior to drawing objects call this function
     void                         _postDraw(); //Post of drawing objects call this function

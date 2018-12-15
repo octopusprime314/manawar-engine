@@ -15,9 +15,34 @@ inline std::string BlobToUtf8(_In_ IDxcBlob *pBlob) {
     return std::string((char *)pBlob->GetBufferPointer(), pBlob->GetBufferSize());
 }
 
+inline void AllocateUploadBuffer(ID3D12Device* pDevice, void *pData, UINT64 datasize, ID3D12Resource **ppResource, const wchar_t* resourceName = nullptr)
+{
+    auto uploadHeapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
+    auto bufferDesc = CD3DX12_RESOURCE_DESC::Buffer(datasize);
+    pDevice->CreateCommittedResource(
+        &uploadHeapProperties,
+        D3D12_HEAP_FLAG_NONE,
+        &bufferDesc,
+        D3D12_RESOURCE_STATE_GENERIC_READ,
+        nullptr,
+        IID_PPV_ARGS(ppResource));
+    if (resourceName)
+    {
+        (*ppResource)->SetName(resourceName);
+    }
+    void *pMappedData;
+    (*ppResource)->Map(0, nullptr, &pMappedData);
+    memcpy(pMappedData, pData, datasize);
+    (*ppResource)->Unmap(0, nullptr);
+}
+
 RayTracingPipelineShader::RayTracingPipelineShader(std::string shader,
     ComPtr<ID3D12Device> device,
     DXGI_FORMAT format, Entity* entity) {
+
+    _descriptorsAllocated = 0;
+    _raytracingOutput = new RenderTexture(1920, 1080, TextureFormat::RGBA_FLOAT);
+
 
     auto commandList = DXLayer::instance()->getCmdList();
 
@@ -30,15 +55,19 @@ RayTracingPipelineShader::RayTracingPipelineShader(std::string shader,
     // Global Root Signature
     // This is a root signature that is shared across all raytracing shaders invoked during a DispatchRays() call.
     {
-        CD3DX12_DESCRIPTOR_RANGE ranges[2]; // Perfomance TIP: Order from most frequent to least frequent.
+        ComPtr<ID3DBlob> blob;
+        ComPtr<ID3DBlob> error;
+        CD3DX12_DESCRIPTOR_RANGE ranges[3]; // Perfomance TIP: Order from most frequent to least frequent.
         ranges[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 0);  // 1 output texture
-        ranges[1].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 2, 1);  // 2 static index and vertex buffers.
+        ranges[1].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 1);  // 1 static index buffers.
+        ranges[2].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 2);  // 1 static vertex buffers.
 
         CD3DX12_ROOT_PARAMETER rootParameters[GlobalRootSignatureParams::Count];
         rootParameters[GlobalRootSignatureParams::OutputViewSlot].InitAsDescriptorTable(1, &ranges[0]);
         rootParameters[GlobalRootSignatureParams::AccelerationStructureSlot].InitAsShaderResourceView(0);
         rootParameters[GlobalRootSignatureParams::SceneConstantSlot].InitAsConstantBufferView(0);
-        rootParameters[GlobalRootSignatureParams::VertexBuffersSlot].InitAsDescriptorTable(1, &ranges[1]);
+        rootParameters[GlobalRootSignatureParams::IndexBuffersSlot].InitAsDescriptorTable(1, &ranges[1]);
+        rootParameters[GlobalRootSignatureParams::VertexBuffersSlot].InitAsDescriptorTable(1, &ranges[2]);
         CD3DX12_ROOT_SIGNATURE_DESC globalRootSignatureDesc(ARRAYSIZE(rootParameters), rootParameters);
         D3D12SerializeRootSignature(&globalRootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1, &blob, &error);
         device->CreateRootSignature(1, blob->GetBufferPointer(), blob->GetBufferSize(), IID_PPV_ARGS(&(_raytracingGlobalRootSignature)));
@@ -47,6 +76,8 @@ RayTracingPipelineShader::RayTracingPipelineShader(std::string shader,
     // Local Root Signature
     // This is a root signature that enables a shader to have unique arguments that come from shader tables.
     {
+        ComPtr<ID3DBlob> blob;
+        ComPtr<ID3DBlob> error;
         CD3DX12_ROOT_PARAMETER rootParameters[LocalRootSignatureParams::Count];
         rootParameters[LocalRootSignatureParams::CubeConstantSlot].InitAsConstants(SizeOfInUint32(_cubeCB), 1);
         CD3DX12_ROOT_SIGNATURE_DESC localRootSignatureDesc(ARRAYSIZE(rootParameters), rootParameters);
@@ -121,9 +152,6 @@ RayTracingPipelineShader::RayTracingPipelineShader(std::string shader,
 
     CComPtr<IDxcBlob> pProgram;
     dxcResult->GetResult(&pProgram);
-    /* if (opts.IsRootSignatureProfile()) {
-         return;
-     }*/
 
     CComPtr<IDxcBlobEncoding> pDisassembleBlob;
     dxcCompiler->Disassemble(pProgram, &pDisassembleBlob);
@@ -227,9 +255,18 @@ RayTracingPipelineShader::RayTracingPipelineShader(std::string shader,
     geometryDesc.Triangles.VertexBuffer.StartAddress = vertexGPUAddress;
     geometryDesc.Triangles.VertexBuffer.StrideInBytes = sizeof(Vertex);
 
+    _indexBuffer.resource = (*entity->getFrustumVAO())[0]->getIndexResource()->getResource();
+    _vertexBuffer.resource = (*entity->getFrustumVAO())[0]->getVertexResource()->getResource();
+    // Vertex buffer is passed to the shader along with index buffer as a descriptor table.
+    // Vertex buffer descriptor must follow index buffer descriptor in the descriptor heap.
+    UINT descriptorIndexIB = _createBufferSRV(&_indexBuffer, geometryDesc.Triangles.IndexCount, 0);
+    UINT descriptorIndexVB = _createBufferSRV(&_vertexBuffer, 
+        geometryDesc.Triangles.VertexCount, 
+        static_cast<UINT>(geometryDesc.Triangles.VertexBuffer.StrideInBytes));
+
     // Mark the geometry as opaque. 
-   // PERFORMANCE TIP: mark geometry as opaque whenever applicable as it can enable important ray processing optimizations.
-   // Note: When rays encounter opaque geometry an any hit shader will not be executed whether it is present or not.
+    // PERFORMANCE TIP: mark geometry as opaque whenever applicable as it can enable important ray processing optimizations.
+    // Note: When rays encounter opaque geometry an any hit shader will not be executed whether it is present or not.
     geometryDesc.Flags = D3D12_RAYTRACING_GEOMETRY_FLAG_OPAQUE;
 
     // Get required sizes for an acceleration structure.
@@ -258,7 +295,6 @@ RayTracingPipelineShader::RayTracingPipelineShader(std::string shader,
     D3D12_RAYTRACING_ACCELERATION_STRUCTURE_PREBUILD_INFO bottomLevelPrebuildInfo = {};
     _dxrDevice->GetRaytracingAccelerationStructurePrebuildInfo(&bottomLevelInputs, &bottomLevelPrebuildInfo);
 
-    ComPtr<ID3D12Resource> scratchResource;
     auto sizeBuildInfo = max(topLevelPrebuildInfo.ScratchDataSizeInBytes, bottomLevelPrebuildInfo.ScratchDataSizeInBytes);
     auto uploadHeapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
     auto bufferDesc = CD3DX12_RESOURCE_DESC::Buffer(sizeBuildInfo, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
@@ -268,7 +304,7 @@ RayTracingPipelineShader::RayTracingPipelineShader(std::string shader,
         &bufferDesc,
         D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
         nullptr,
-        IID_PPV_ARGS(&scratchResource));
+        IID_PPV_ARGS(&_scratchResource));
 
     // Allocate resources for acceleration structures.
     // Acceleration structures can only be placed in resources that are created in the default heap (or custom heap equivalent). 
@@ -306,54 +342,37 @@ RayTracingPipelineShader::RayTracingPipelineShader(std::string shader,
             IID_PPV_ARGS(&_topLevelAccelerationStructure));
     }
     // Create an instance desc for the bottom-level acceleration structure.
-    ComPtr<ID3D12Resource> instanceDescs;
     D3D12_RAYTRACING_INSTANCE_DESC instanceDesc = {};
     instanceDesc.Transform[0][0] = instanceDesc.Transform[1][1] = instanceDesc.Transform[2][2] = 1;
     instanceDesc.InstanceMask = 1;
     instanceDesc.AccelerationStructure = _bottomLevelAccelerationStructure->GetGPUVirtualAddress();
-    {
-        D3D12_RESOURCE_STATES initialResourceState = D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE;
-        auto sizeBuildInfo = sizeof(instanceDesc);
-        auto uploadHeapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
-        auto bufferDesc = CD3DX12_RESOURCE_DESC::Buffer(sizeBuildInfo, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
-        device->CreateCommittedResource(
-            &uploadHeapProperties,
-            D3D12_HEAP_FLAG_NONE,
-            &bufferDesc,
-            D3D12_RESOURCE_STATE_GENERIC_READ,
-            nullptr,
-            IID_PPV_ARGS(&instanceDescs));
-
-    }
-
+    AllocateUploadBuffer(device.Get(), &instanceDesc, sizeof(instanceDesc), &_instanceDescs, L"InstanceDescs");
+    
     // Bottom Level Acceleration Structure desc
     {
-        bottomLevelBuildDesc.ScratchAccelerationStructureData = scratchResource->GetGPUVirtualAddress();
+        bottomLevelBuildDesc.ScratchAccelerationStructureData = _scratchResource->GetGPUVirtualAddress();
         bottomLevelBuildDesc.DestAccelerationStructureData = _bottomLevelAccelerationStructure->GetGPUVirtualAddress();
     }
 
     // Top Level Acceleration Structure desc
     {
         topLevelBuildDesc.DestAccelerationStructureData = _topLevelAccelerationStructure->GetGPUVirtualAddress();
-        topLevelBuildDesc.ScratchAccelerationStructureData = scratchResource->GetGPUVirtualAddress();
-        topLevelBuildDesc.Inputs.InstanceDescs = instanceDescs->GetGPUVirtualAddress();
+        topLevelBuildDesc.ScratchAccelerationStructureData = _scratchResource->GetGPUVirtualAddress();
+        topLevelBuildDesc.Inputs.InstanceDescs = _instanceDescs->GetGPUVirtualAddress();
     }
 
-    auto BuildAccelerationStructure = [&](auto* raytracingCommandList)
-    {
-        raytracingCommandList->BuildRaytracingAccelerationStructure(&bottomLevelBuildDesc, 0, nullptr);
-        commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(_bottomLevelAccelerationStructure.Get()));
-        raytracingCommandList->BuildRaytracingAccelerationStructure(&topLevelBuildDesc, 0, nullptr);
-    };
+    _dxrCommandList->BuildRaytracingAccelerationStructure(&bottomLevelBuildDesc, 0, nullptr);
+    commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(_bottomLevelAccelerationStructure.Get()));
+   
+    auto dxLayer = DXLayer::instance();
+    dxLayer->fenceCommandList();
+    dxLayer->initCmdLists();
 
-    BuildAccelerationStructure(_dxrCommandList.Get());
+    _dxrCommandList->BuildRaytracingAccelerationStructure(&topLevelBuildDesc, 0, nullptr);
+    commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(_topLevelAccelerationStructure.Get()));
 
-    commandList->Close();
-    ID3D12CommandList *commandLists[] = { commandList.Get() };
-    auto cmdQueue = DXLayer::instance()->getCmdQueue();
-    cmdQueue->ExecuteCommandLists(ARRAYSIZE(commandLists), commandLists);
-
-    DXLayer::instance()->fenceCommandList();
+    dxLayer->fenceCommandList();
+    dxLayer->initCmdLists();
 
     // Allocate one constant buffer per frame, since it gets updated every frame.
     size_t cbSize = 2 * sizeof(AlignedSceneConstantBuffer);
@@ -423,30 +442,6 @@ RayTracingPipelineShader::RayTracingPipelineShader(std::string shader,
         hitGroupShaderTable.push_back(ShaderRecord(hitGroupShaderIdentifier, shaderIdentifierSize, &rootArguments, sizeof(rootArguments)));
         _hitGroupShaderTable = hitGroupShaderTable.GetResource();
     }
-
-    // Create the output resource. The dimensions and format should match the swap-chain.
-    auto uavDesc = CD3DX12_RESOURCE_DESC::Tex2D(format, 1920, 1080, 1, 1, 1, 0, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
-
-    auto defaultHeapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
-    device->CreateCommittedResource(
-        &defaultHeapProperties, D3D12_HEAP_FLAG_NONE, &uavDesc, D3D12_RESOURCE_STATE_UNORDERED_ACCESS, nullptr, IID_PPV_ARGS(&_raytracingOutput));
-
-    _raytracingOutputResourceUAVDescriptorHeapIndex = 1;
-    D3D12_CPU_DESCRIPTOR_HANDLE uavDescriptorHandle = CD3DX12_CPU_DESCRIPTOR_HANDLE(
-        _descriptorHeap->GetCPUDescriptorHandleForHeapStart(),
-        _raytracingOutputResourceUAVDescriptorHeapIndex,
-        _descriptorSize);
-
-    D3D12_UNORDERED_ACCESS_VIEW_DESC UAVDesc = {};
-    UAVDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2D;
-    device->CreateUnorderedAccessView(_raytracingOutput.Get(), nullptr, &UAVDesc, uavDescriptorHandle);
-    
-    _raytracingOutputResourceUAVGpuDescriptor = 
-        CD3DX12_GPU_DESCRIPTOR_HANDLE(_descriptorHeap->GetGPUDescriptorHandleForHeapStart(), 
-            _raytracingOutputResourceUAVDescriptorHeapIndex, 
-            _descriptorSize);
-
-    DXLayer::instance()->initCmdLists();
 }
 
 void RayTracingPipelineShader::_queryShaderResources(ComPtr<ID3DBlob> shaderBlob) {
@@ -464,12 +459,53 @@ void RayTracingPipelineShader::_queryShaderResources(ComPtr<ID3DBlob> shaderBlob
     //Now do raytracing specific shit
 }
 
-void RayTracingPipelineShader::DoRayTracing(Entity* entity)
+void RayTracingPipelineShader::doRayTracing(Entity* entity)
 {
     auto commandList = DXLayer::instance()->getCmdList();
-    auto frameIndex = DXLayer::instance()->getCmdListIndex();
 
-    auto DispatchRays = [&](auto* commandList, auto* stateObject, auto* dispatchDesc)
+    {
+    D3D12_RESOURCE_BARRIER barrierDesc;
+    ZeroMemory(&barrierDesc, sizeof(barrierDesc));
+
+    barrierDesc.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+    barrierDesc.Transition.pResource = _raytracingOutput->getResource()->getResource().Get();
+    barrierDesc.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+    barrierDesc.Transition.StateBefore = D3D12_RESOURCE_STATE_COMMON;
+    barrierDesc.Transition.StateAfter = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+
+    commandList->ResourceBarrier(1, &barrierDesc);
+    }
+
+    auto inverseProj = (entity->getMVP()->getProjectionMatrix() *
+        entity->getMVP()->getViewMatrix() *
+        entity->getMVP()->getModelMatrix()).inverse();
+
+    auto inverseView = (entity->getMVP()->getViewMatrix() * 
+        entity->getMVP()->getModelMatrix()).inverse();
+
+    memcpy(&(_sceneCB[0]), inverseProj.getFlatBuffer(), sizeof(float) * 16);
+    _sceneCB[0].cameraPosition[0] = inverseView.getFlatBuffer()[3];
+    _sceneCB[0].cameraPosition[1] = inverseView.getFlatBuffer()[7];
+    _sceneCB[0].cameraPosition[2] = inverseView.getFlatBuffer()[11];
+    _sceneCB[0].cameraPosition[3] = 1.0;
+
+    _sceneCB[0].lightPosition[0] = 2.2260f;
+    _sceneCB[0].lightPosition[1] = 1.8f;
+    _sceneCB[0].lightPosition[2] = -2.01113f;
+    _sceneCB[0].lightPosition[3] = 1.0f;
+
+    _sceneCB[0].lightAmbientColor[0] = 0.5f;
+    _sceneCB[0].lightAmbientColor[1] = 0.5f;
+    _sceneCB[0].lightAmbientColor[2] = 0.5f;
+    _sceneCB[0].lightAmbientColor[3] = 1.0f;
+
+    _sceneCB[0].lightDiffuseColor[0] = 0.5f;
+    _sceneCB[0].lightDiffuseColor[1] = 0.0f;
+    _sceneCB[0].lightDiffuseColor[2] = 0.0f;
+    _sceneCB[0].lightDiffuseColor[3] = 1.0f;
+
+
+    auto DispatchRays = [&](auto* commanderList, auto* stateObject, auto* dispatchDesc)
     {
         // Since each shader table has only one shader record, the stride is same as the size.
         dispatchDesc->HitGroupTable.StartAddress = _hitGroupShaderTable->GetGPUVirtualAddress();
@@ -483,35 +519,92 @@ void RayTracingPipelineShader::DoRayTracing(Entity* entity)
         dispatchDesc->Width = 1920;
         dispatchDesc->Height = 1080;
         dispatchDesc->Depth = 1;
-        commandList->SetPipelineState1(stateObject);
-        commandList->DispatchRays(dispatchDesc);
+        commanderList->SetPipelineState1(stateObject);
+        commanderList->DispatchRays(dispatchDesc);
     };
-
-    auto SetCommonPipelineState = [&](ComPtr<ID3D12GraphicsCommandList> descriptorSetCommandList)
-    {
-
-        auto gpuHandle = 
-            CD3DX12_GPU_DESCRIPTOR_HANDLE(_descriptorHeap->GetGPUDescriptorHandleForHeapStart(), 0, _descriptorSize);
-
-        descriptorSetCommandList->SetDescriptorHeaps(1, _descriptorHeap.GetAddressOf());
-        // Set index and successive vertex buffer decriptor tables
-        commandList->SetComputeRootDescriptorTable(GlobalRootSignatureParams::VertexBuffersSlot, gpuHandle);
-        commandList->SetComputeRootDescriptorTable(GlobalRootSignatureParams::OutputViewSlot, _raytracingOutputResourceUAVGpuDescriptor);
-    };
-
     commandList->SetComputeRootSignature(_raytracingGlobalRootSignature.Get());
 
+    commandList->SetDescriptorHeaps(1, _descriptorHeap.GetAddressOf());
+    // Set index and successive vertex buffer decriptor tables
+    commandList->SetComputeRootDescriptorTable(GlobalRootSignatureParams::IndexBuffersSlot, _indexBuffer.gpuDescriptorHandle);
+    commandList->SetComputeRootDescriptorTable(GlobalRootSignatureParams::VertexBuffersSlot, _vertexBuffer.gpuDescriptorHandle);
+        
+    auto uavDescriptor = _raytracingOutput->getUAVDescriptor();
+    ID3D12DescriptorHeap* descriptorHeaps[] = { uavDescriptor.Get() };
+    commandList->SetDescriptorHeaps(1, descriptorHeaps);
+
+    commandList->SetComputeRootDescriptorTable(GlobalRootSignatureParams::OutputViewSlot,
+        uavDescriptor->GetGPUDescriptorHandleForHeapStart());
+   
     // Copy the updated scene constant buffer to GPU.
-    memcpy(&_mappedConstantData[frameIndex].constants, &_sceneCB[frameIndex], sizeof(_sceneCB[frameIndex]));
-    auto cbGpuAddress = _perFrameConstants->GetGPUVirtualAddress() + frameIndex * sizeof(_mappedConstantData[0]);
+    memcpy(&_mappedConstantData[0].constants, &_sceneCB[0], sizeof(_sceneCB[0]));
+    auto cbGpuAddress = _perFrameConstants->GetGPUVirtualAddress() + 0 * sizeof(_mappedConstantData[0]);
     commandList->SetComputeRootConstantBufferView(GlobalRootSignatureParams::SceneConstantSlot, cbGpuAddress);
 
     // Bind the heaps, acceleration structure and dispatch rays.
     D3D12_DISPATCH_RAYS_DESC dispatchDesc = {};
    
-    SetCommonPipelineState(commandList);
+    //SetCommonPipelineState(commandList);
     commandList->SetComputeRootShaderResourceView(GlobalRootSignatureParams::AccelerationStructureSlot, _topLevelAccelerationStructure->GetGPUVirtualAddress());
     
+    commandList->QueryInterface(IID_PPV_ARGS(&_dxrCommandList));
     DispatchRays(_dxrCommandList.Get(), _dxrStateObject.Get(), &dispatchDesc);
-    
+
+    {
+    D3D12_RESOURCE_BARRIER barrierDesc;
+    ZeroMemory(&barrierDesc, sizeof(barrierDesc));
+
+    barrierDesc.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+    barrierDesc.Transition.pResource = _raytracingOutput->getResource()->getResource().Get();
+    barrierDesc.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+    barrierDesc.Transition.StateBefore = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+    barrierDesc.Transition.StateAfter = D3D12_RESOURCE_STATE_COMMON;
+
+    commandList->ResourceBarrier(1, &barrierDesc);
+    }
 }
+
+// Allocate a descriptor and return its index. 
+// If the passed descriptorIndexToUse is valid, it will be used instead of allocating a new one.
+UINT RayTracingPipelineShader::_allocateDescriptor(D3D12_CPU_DESCRIPTOR_HANDLE* cpuDescriptor, UINT descriptorIndexToUse)
+{
+    auto descriptorHeapCpuBase = _descriptorHeap->GetCPUDescriptorHandleForHeapStart();
+    if (descriptorIndexToUse >= _descriptorHeap->GetDesc().NumDescriptors)
+    {
+        descriptorIndexToUse = _descriptorsAllocated++;
+    }
+    *cpuDescriptor = CD3DX12_CPU_DESCRIPTOR_HANDLE(descriptorHeapCpuBase, descriptorIndexToUse, _descriptorSize);
+    return descriptorIndexToUse;
+}
+// Create SRV for a buffer.
+UINT RayTracingPipelineShader::_createBufferSRV(D3DBuffer* buffer, UINT numElements, UINT elementSize)
+{
+    auto device = DXLayer::instance()->getDevice();
+
+    // SRV
+    D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+    srvDesc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
+    srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+    srvDesc.Buffer.NumElements = numElements;
+    if (elementSize == 0)
+    {
+        srvDesc.Format = DXGI_FORMAT_R32_TYPELESS;
+        srvDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_RAW;
+        srvDesc.Buffer.StructureByteStride = 0;
+    }
+    else
+    {
+        srvDesc.Format = DXGI_FORMAT_UNKNOWN;
+        srvDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
+        srvDesc.Buffer.StructureByteStride = elementSize;
+    }
+    UINT descriptorIndex = _allocateDescriptor(&buffer->cpuDescriptorHandle);
+    device->CreateShaderResourceView(buffer->resource.Get(), &srvDesc, buffer->cpuDescriptorHandle);
+    buffer->gpuDescriptorHandle = CD3DX12_GPU_DESCRIPTOR_HANDLE(_descriptorHeap->GetGPUDescriptorHandleForHeapStart(), descriptorIndex, _descriptorSize);
+    return descriptorIndex;
+}
+
+RenderTexture* RayTracingPipelineShader::getRayTracingTarget() {
+    return _raytracingOutput;
+}
+

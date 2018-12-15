@@ -11,6 +11,7 @@
 #include "dxc/dxcapi.h"
 #include "dxc/dxcapi.use.h"
 #include "Entity.h"
+#include "RenderTexture.h"
 
 using namespace Microsoft::WRL;
 
@@ -19,6 +20,7 @@ namespace GlobalRootSignatureParams {
         OutputViewSlot = 0,
         AccelerationStructureSlot,
         SceneConstantSlot,
+        IndexBuffersSlot,
         VertexBuffersSlot,
         Count
     };
@@ -72,6 +74,10 @@ union AlignedSceneConstantBuffer
 class RayTracingPipelineShader : public PipelineShader {
     
     virtual void                       _queryShaderResources(ComPtr<ID3DBlob> shaderBlob);
+    UINT                               _allocateDescriptor(D3D12_CPU_DESCRIPTOR_HANDLE* cpuDescriptor, 
+                                                            UINT descriptorIndexToUse = UINT_MAX);
+    UINT                               _createBufferSRV(D3DBuffer* buffer,
+                                                    UINT numElements, UINT elementSize);
     // DirectX Raytracing (DXR) attributes
     ComPtr<ID3D12Device5>              _dxrDevice;
     ComPtr<ID3D12GraphicsCommandList4> _dxrCommandList;
@@ -101,15 +107,20 @@ class RayTracingPipelineShader : public PipelineShader {
     ComPtr<ID3D12Resource>             _rayGenShaderTable;
 
     // Raytracing output
-    ComPtr<ID3D12Resource>             _raytracingOutput;
-    D3D12_GPU_DESCRIPTOR_HANDLE        _raytracingOutputResourceUAVGpuDescriptor;
-    UINT                               _raytracingOutputResourceUAVDescriptorHeapIndex;
+    RenderTexture*                     _raytracingOutput;
 
+    D3DBuffer                          _indexBuffer;
+    D3DBuffer                          _vertexBuffer;
+
+    ComPtr<ID3D12Resource>             _scratchResource;
+    ComPtr<ID3D12Resource>             _instanceDescs;
 public:
     RayTracingPipelineShader(std::string shader,
                    ComPtr<ID3D12Device> device,
                    DXGI_FORMAT format, Entity* entity);
 
-    void DoRayTracing(Entity* entity);
+    void doRayTracing(Entity* entity);
+
+    RenderTexture* getRayTracingTarget();
 
 };

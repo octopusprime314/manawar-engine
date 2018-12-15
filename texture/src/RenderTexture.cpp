@@ -123,6 +123,22 @@ RenderTexture::RenderTexture(GLuint width, GLuint height, TextureFormat format) 
             srvDesc.Texture2D.ResourceMinLODClamp = 0;
             device->CreateShaderResourceView(_textureBuffer->getResource().Get(), &srvDesc, hDescriptor);
 
+            //Create descriptor heap
+            D3D12_DESCRIPTOR_HEAP_DESC uavHeapDesc;
+            ZeroMemory(&uavHeapDesc, sizeof(uavHeapDesc));
+            uavHeapDesc.NumDescriptors = 1; //1 2D texture
+            uavHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+            uavHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+            device->CreateDescriptorHeap(&uavHeapDesc, IID_PPV_ARGS(_uavDescriptorHeap.GetAddressOf()));
+
+            //Create view of UAV for shader access
+            CD3DX12_CPU_DESCRIPTOR_HANDLE hUAVDescriptor(_uavDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
+            D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
+            uavDesc.Format = textureDescriptor.Format;
+            uavDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2D;
+            uavDesc.Texture2D.MipSlice = 0;
+            device->CreateUnorderedAccessView(_textureBuffer->getResource().Get(), nullptr, &uavDesc, hUAVDescriptor);
+
             // create sampler descriptor heap
             D3D12_DESCRIPTOR_HEAP_DESC descHeapSampler = {};
             descHeapSampler.NumDescriptors = 1;

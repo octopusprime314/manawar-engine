@@ -65,6 +65,7 @@ public:
     GLuint      getHeight();
     std::string getName();
     ResourceBuffer* getResource();
+    ComPtr<ID3D12DescriptorHeap> getUAVDescriptor();
     void        bindToDXShader(ComPtr<ID3D12GraphicsCommandList>& cmdList,
                                UINT textureBinding,
                                std::map<std::string, UINT>& resourceBindings);

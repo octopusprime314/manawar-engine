@@ -12,6 +12,9 @@ DXLayer::DXLayer(HINSTANCE hInstance, DWORD width, DWORD height, int cmdShow) :
     _cmdListIndex(0) {
     WNDCLASSEX windowClass;
 
+    _nextFenceValue = 1;
+    _cmdListFenceValues[0] = _cmdListFenceValues[1] = 0;
+
     ZeroMemory(&windowClass, sizeof(WNDCLASSEX));
     windowClass.cbSize = sizeof(WNDCLASSEX);
     windowClass.style = CS_HREDRAW | CS_VREDRAW;
@@ -74,8 +77,14 @@ DXLayer::DXLayer(HINSTANCE hInstance, DWORD width, DWORD height, int cmdShow) :
 
 
     _cmdAllocator->Reset();
-    _cmdLists[_cmdListIndex]->Reset(_cmdAllocator.Get(), nullptr);
+    _cmdLists[0]->Reset(_cmdAllocator.Get(), nullptr);
+    _cmdLists[0]->Close();
+    _cmdAllocator->Reset();
+    _cmdLists[1]->Reset(_cmdAllocator.Get(), nullptr);
+    _cmdLists[1]->Close();
 
+    _cmdAllocator->Reset();
+    _cmdLists[0]->Reset(_cmdAllocator.Get(), nullptr);
     // Fence
 
     _device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(_cmdListFence.GetAddressOf()));
@@ -145,6 +154,10 @@ void DXLayer::flushCommandList() {
 }
 
 void DXLayer::fenceCommandList() {
+
+    // Submit the current command list
+    _cmdLists[_cmdListIndex]->Close();
+    _cmdQueue->ExecuteCommandLists(1, CommandListCast(_cmdLists[_cmdListIndex].GetAddressOf()));
 
     _cmdQueue->Signal(_cmdListFence.Get(), _nextFenceValue);
     _cmdListFence->GetCompletedValue();

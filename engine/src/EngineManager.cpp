@@ -41,7 +41,8 @@ GraphicsLayer EngineManager::_graphicsLayer;
 
 EngineManager::EngineManager(int* argc, char** argv, HINSTANCE hInstance, int nCmdShow) {
 
-    _graphicsLayer = GraphicsLayer::DX12;
+    _useRaytracing = false;
+    _graphicsLayer = GraphicsLayer::OPENGL;
 
     _inputLayer = new IOEventDistributor(argc, argv, hInstance, nCmdShow);
 
@@ -54,7 +55,7 @@ EngineManager::EngineManager(int* argc, char** argv, HINSTANCE hInstance, int nC
     
     ModelBroker::setViewManager(_viewManager); //Set the reference to the view model event interface
     _viewManager->setProjection(IOEventDistributor::screenPixelWidth, IOEventDistributor::screenPixelHeight, 0.1f, 5000.0f); //Initializes projection matrix and broadcasts upate to all listeners
-    _viewManager->setView(Matrix::translation(0.0f, 2.0f, 10.0f),
+    _viewManager->setView(Matrix::translation(0.0f, -40.0f, 450.0f),
             Matrix::rotationAroundY(0.0f),
             Matrix());
 
@@ -66,19 +67,18 @@ EngineManager::EngineManager(int* argc, char** argv, HINSTANCE hInstance, int nC
     IOEvents::setPostDrawCallback(std::bind(&EngineManager::_postDraw, this));
 
     auto modelBroker = ModelBroker::instance();
+   
+    if (_graphicsLayer == GraphicsLayer::DX12 && DXLayer::instance()->supportsRayTracing() &&
+        _useRaytracing) {
 
-    if (_graphicsLayer == GraphicsLayer::DX12) {
-
-        //DXLayer::instance()->fenceCommandList();
-
-        //DXLayer::instance()->initCmdLists();
         _rayTracingEntityIndex = 39;
          _rayTracingPipeline =
             new RayTracingPipelineShader("rayTracingUberShader.hlsl",
                 DXLayer::instance()->getDevice(),
                 DXGI_FORMAT_R8G8B8A8_UNORM, _entityList[_rayTracingEntityIndex]);
-
-         //DXLayer::instance()->initCmdLists();
+    }
+    else {
+        _useRaytracing = false;
     }
 
     //_entityList.push_back(new Entity(modelBroker->getModel("werewolf"), _viewManager->getEventWrapper())); //Add a static model to the scene
@@ -87,9 +87,6 @@ EngineManager::EngineManager(int* argc, char** argv, HINSTANCE hInstance, int nC
 
         _forwardRenderer = new ForwardRenderer();
         _ssaoPass = new SSAO();
-
-        //auto dxLayer = DXLayer::instance();
-        //dxLayer->flushCommandList();
 
         _deferredFBO = new DeferredFrameBuffer();
 
@@ -371,11 +368,14 @@ void EngineManager::_postDraw() {
 
         HLSLShader::releaseOM(textures);
 
-        _rayTracingPipeline->doRayTracing(_entityList[_rayTracingEntityIndex]);
-
-        //DXLayer::instance()->present(_ssaoPass->getSSAOTexture());
-        //DXLayer::instance()->present(_deferredFBO->getRenderTexture());
-        DXLayer::instance()->present(_rayTracingPipeline->getRayTracingTarget());
+        if (_useRaytracing) {
+            _rayTracingPipeline->doRayTracing(_entityList[_rayTracingEntityIndex]);
+            DXLayer::instance()->present(_rayTracingPipeline->getRayTracingTarget());
+        }
+        else {
+            //DXLayer::instance()->present(_ssaoPass->getSSAOTexture());
+            DXLayer::instance()->present(_deferredFBO->getRenderTexture());
+        }
 
     }
 }

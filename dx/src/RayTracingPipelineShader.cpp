@@ -36,6 +36,58 @@ inline void AllocateUploadBuffer(ID3D12Device* pDevice, void *pData, UINT64 data
     (*ppResource)->Unmap(0, nullptr);
 }
 
+void RayTracingPipelineShader::_populateDefaultHeap(GpuToCpuBuffers& resources, UINT64 byteSize) {
+    // The output buffer (created below) is on a default heap, so only the GPU can access it.
+
+    D3D12_HEAP_PROPERTIES defaultHeapProperties{ CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT) };
+    D3D12_RESOURCE_DESC outputBufferDesc{ CD3DX12_RESOURCE_DESC::Buffer(byteSize, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS) };
+    _dxrDevice->CreateCommittedResource(
+        &defaultHeapProperties,
+        D3D12_HEAP_FLAG_NONE,
+        &outputBufferDesc,
+        D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
+        nullptr,
+        IID_PPV_ARGS(&resources.outputBuffer));
+
+
+}
+
+void RayTracingPipelineShader::_gpuToCpuTransfer(GpuToCpuBuffers& resources, UINT64 byteSize) {
+    // The readback buffer (created below) is on a readback heap, so that the CPU can access it.
+
+    D3D12_HEAP_PROPERTIES readbackHeapProperties{ CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_READBACK) };
+    D3D12_RESOURCE_DESC readbackBufferDesc{ CD3DX12_RESOURCE_DESC::Buffer(byteSize) };
+    _dxrDevice->CreateCommittedResource(
+        &readbackHeapProperties,
+        D3D12_HEAP_FLAG_NONE,
+        &readbackBufferDesc,
+        D3D12_RESOURCE_STATE_COPY_DEST,
+        nullptr,
+        IID_PPV_ARGS(&resources.readbackBuffer));
+
+    {
+        D3D12_RESOURCE_BARRIER outputBufferResourceBarrier
+        {
+            CD3DX12_RESOURCE_BARRIER::Transition(
+                resources.outputBuffer.Get(),
+                D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
+                D3D12_RESOURCE_STATE_COPY_SOURCE)
+        };
+        _dxrCommandList->ResourceBarrier(1, &outputBufferResourceBarrier);
+    }
+
+    _dxrCommandList->CopyResource(resources.readbackBuffer.Get(), resources.outputBuffer.Get());
+}
+
+void RayTracingPipelineShader::_readBackOnCpu(GpuToCpuBuffers& buffers, UINT64 byteSize) {
+    buffers.cpuSideData = new unsigned char[byteSize];
+    D3D12_RANGE readbackBufferRange{ 0, byteSize };
+    buffers.readbackBuffer->Map(0, &readbackBufferRange, (void**)&buffers.cpuSideData);
+    UINT sizeOfAS = 0;
+    memcpy(&sizeOfAS, &(static_cast<unsigned char*>(buffers.cpuSideData))[0], 4);
+    OutputDebugString(("Readback on cpu buffer value: " + std::to_string(sizeOfAS)).c_str());
+}
+
 RayTracingPipelineShader::RayTracingPipelineShader(std::string shader,
     ComPtr<ID3D12Device> device,
     DXGI_FORMAT format, Entity* entity) {
@@ -45,6 +97,7 @@ RayTracingPipelineShader::RayTracingPipelineShader(std::string shader,
 
 
     auto commandList = DXLayer::instance()->getCmdList();
+    auto dxLayer = DXLayer::instance();
 
     device->QueryInterface(IID_PPV_ARGS(&_dxrDevice));
     commandList->QueryInterface(IID_PPV_ARGS(&_dxrCommandList));
@@ -260,8 +313,8 @@ RayTracingPipelineShader::RayTracingPipelineShader(std::string shader,
     // Vertex buffer is passed to the shader along with index buffer as a descriptor table.
     // Vertex buffer descriptor must follow index buffer descriptor in the descriptor heap.
     UINT descriptorIndexIB = _createBufferSRV(&_indexBuffer, geometryDesc.Triangles.IndexCount, 0);
-    UINT descriptorIndexVB = _createBufferSRV(&_vertexBuffer, 
-        geometryDesc.Triangles.VertexCount, 
+    UINT descriptorIndexVB = _createBufferSRV(&_vertexBuffer,
+        geometryDesc.Triangles.VertexCount,
         static_cast<UINT>(geometryDesc.Triangles.VertexBuffer.StrideInBytes));
 
     // Mark the geometry as opaque. 
@@ -341,13 +394,42 @@ RayTracingPipelineShader::RayTracingPipelineShader(std::string shader,
             nullptr,
             IID_PPV_ARGS(&_topLevelAccelerationStructure));
     }
+
+    {
+        D3D12_RESOURCE_STATES initialResourceState = D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE;
+        auto sizeBuildInfo = topLevelPrebuildInfo.ResultDataMaxSizeInBytes;
+        auto uploadHeapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
+        auto bufferDesc = CD3DX12_RESOURCE_DESC::Buffer(sizeBuildInfo, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
+        device->CreateCommittedResource(
+            &uploadHeapProperties,
+            D3D12_HEAP_FLAG_NONE,
+            &bufferDesc,
+            initialResourceState,
+            nullptr,
+            IID_PPV_ARGS(&_copiedTopLevelAccelerationStructure));
+    }
+
+    {
+        D3D12_RESOURCE_STATES initialResourceState = D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE;
+        auto sizeBuildInfo = bottomLevelPrebuildInfo.ResultDataMaxSizeInBytes;
+        auto uploadHeapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
+        auto bufferDesc = CD3DX12_RESOURCE_DESC::Buffer(sizeBuildInfo, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
+        device->CreateCommittedResource(
+            &uploadHeapProperties,
+            D3D12_HEAP_FLAG_NONE,
+            &bufferDesc,
+            initialResourceState,
+            nullptr,
+            IID_PPV_ARGS(&_copiedBottomLevelAccelerationStructure));
+    }
+
     // Create an instance desc for the bottom-level acceleration structure.
     D3D12_RAYTRACING_INSTANCE_DESC instanceDesc = {};
     instanceDesc.Transform[0][0] = instanceDesc.Transform[1][1] = instanceDesc.Transform[2][2] = 1;
     instanceDesc.InstanceMask = 1;
     instanceDesc.AccelerationStructure = _bottomLevelAccelerationStructure->GetGPUVirtualAddress();
     AllocateUploadBuffer(device.Get(), &instanceDesc, sizeof(instanceDesc), &_instanceDescs, L"InstanceDescs");
-    
+
     // Bottom Level Acceleration Structure desc
     {
         bottomLevelBuildDesc.ScratchAccelerationStructureData = _scratchResource->GetGPUVirtualAddress();
@@ -361,25 +443,215 @@ RayTracingPipelineShader::RayTracingPipelineShader(std::string shader,
         topLevelBuildDesc.Inputs.InstanceDescs = _instanceDescs->GetGPUVirtualAddress();
     }
 
-    _dxrCommandList->BuildRaytracingAccelerationStructure(&bottomLevelBuildDesc, 0, nullptr);
-    commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(_bottomLevelAccelerationStructure.Get()));
-   
-    auto dxLayer = DXLayer::instance();
-    dxLayer->fenceCommandList();
-    dxLayer->initCmdLists();
+    GpuToCpuBuffers bottomLevelSerializedAS;
+    GpuToCpuBuffers topLevelSerializedAS;
+    {
+        UINT64 bottomLevelCurrentSize = 0;
+        GpuToCpuBuffers bottomLevelBuffers;
+        {
+            _populateDefaultHeap(bottomLevelBuffers);
+            D3D12_RAYTRACING_ACCELERATION_STRUCTURE_POSTBUILD_INFO_DESC postBuildInfo = {};
+            postBuildInfo.InfoType = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_POSTBUILD_INFO_CURRENT_SIZE;
+            postBuildInfo.DestBuffer = bottomLevelBuffers.outputBuffer->GetGPUVirtualAddress();
+            _dxrCommandList->BuildRaytracingAccelerationStructure(&bottomLevelBuildDesc, 1, &postBuildInfo);
+            _gpuToCpuTransfer(bottomLevelBuffers);
+            dxLayer->fenceCommandList();
+            dxLayer->initCmdLists();
+            _readBackOnCpu(bottomLevelBuffers);
+        }
 
-    _dxrCommandList->BuildRaytracingAccelerationStructure(&topLevelBuildDesc, 0, nullptr);
-    commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(_topLevelAccelerationStructure.Get()));
+        GpuToCpuBuffers bottomLevelSerializeDesc;
+        auto emitDescriptorSize = 16;
 
-    dxLayer->fenceCommandList();
-    dxLayer->initCmdLists();
+        _populateDefaultHeap(bottomLevelSerializeDesc, emitDescriptorSize);
+        D3D12_RAYTRACING_ACCELERATION_STRUCTURE_POSTBUILD_INFO_DESC postBuildInfo = {};
+        postBuildInfo.InfoType = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_POSTBUILD_INFO_SERIALIZATION;
+        postBuildInfo.DestBuffer = bottomLevelSerializeDesc.outputBuffer->GetGPUVirtualAddress();
+        D3D12_GPU_VIRTUAL_ADDRESS gpuAddress = _bottomLevelAccelerationStructure->GetGPUVirtualAddress();
+        _dxrCommandList->EmitRaytracingAccelerationStructurePostbuildInfo(&postBuildInfo, 1, &gpuAddress);
+        _gpuToCpuTransfer(bottomLevelSerializeDesc, emitDescriptorSize);
+        dxLayer->fenceCommandList();
+        dxLayer->initCmdLists();
+        _readBackOnCpu(bottomLevelSerializeDesc, emitDescriptorSize);
+
+        UINT64 size = 0;
+        memcpy(&size, bottomLevelSerializeDesc.cpuSideData, 8);
+        OutputDebugString(("Size of top serialized: " + std::to_string(size) + "\n").c_str());
+        _populateDefaultHeap(bottomLevelSerializedAS, size);
+        auto mode = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_COPY_MODE_SERIALIZE;
+        auto destinationBuffer = bottomLevelSerializedAS.outputBuffer->GetGPUVirtualAddress();
+        auto sourceBuffer = _bottomLevelAccelerationStructure->GetGPUVirtualAddress();
+        _dxrCommandList->CopyRaytracingAccelerationStructure(destinationBuffer, sourceBuffer, mode);
+        _gpuToCpuTransfer(bottomLevelSerializedAS, size);
+        dxLayer->fenceCommandList();
+        dxLayer->initCmdLists();
+        _readBackOnCpu(bottomLevelSerializedAS);
+
+        ResourceBuffer uploadHeap((void*)bottomLevelSerializedAS.cpuSideData, static_cast<UINT>(size), commandList, device);
+        {
+            D3D12_RESOURCE_BARRIER outputBufferResourceBarrier
+            {
+                CD3DX12_RESOURCE_BARRIER::Transition(
+                    uploadHeap.getResource().Get(),
+                    D3D12_RESOURCE_STATE_GENERIC_READ,
+                    D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE)
+            };
+            _dxrCommandList->ResourceBarrier(1, &outputBufferResourceBarrier);
+        }
+
+        //Deserialize bottom first to patch GPU VAs in the top level header
+        mode = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_COPY_MODE_DESERIALIZE;
+        sourceBuffer = uploadHeap.getResource()->GetGPUVirtualAddress();
+        destinationBuffer = _copiedBottomLevelAccelerationStructure->GetGPUVirtualAddress();
+        _dxrCommandList->CopyRaytracingAccelerationStructure(destinationBuffer, sourceBuffer, mode);
+        dxLayer->fenceCommandList();
+        dxLayer->initCmdLists();
+    }
+
+    {
+        UINT64 topLevelCurrentSize = 0;
+        GpuToCpuBuffers topLevelBuffers;
+        {
+            _populateDefaultHeap(topLevelBuffers);
+            D3D12_RAYTRACING_ACCELERATION_STRUCTURE_POSTBUILD_INFO_DESC postBuildInfo = {};
+            postBuildInfo.InfoType = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_POSTBUILD_INFO_CURRENT_SIZE;
+            postBuildInfo.DestBuffer = topLevelBuffers.outputBuffer->GetGPUVirtualAddress();
+            _dxrCommandList->BuildRaytracingAccelerationStructure(&topLevelBuildDesc, 1, &postBuildInfo);
+            _gpuToCpuTransfer(topLevelBuffers);
+            dxLayer->fenceCommandList();
+            dxLayer->initCmdLists();
+            _readBackOnCpu(topLevelBuffers);
+        }
+
+        //Simple clone test that works!
+       /* auto mode = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_COPY_MODE_CLONE;
+        auto sourceBuffer = _topLevelAccelerationStructure->GetGPUVirtualAddress();
+        auto destinationBuffer = _copiedTopLevelAccelerationStructure->GetGPUVirtualAddress();
+        _dxrCommandList->CopyRaytracingAccelerationStructure(destinationBuffer, sourceBuffer, mode);
+
+        dxLayer->fenceCommandList();
+        dxLayer->initCmdLists();*/
+
+        GpuToCpuBuffers topLevelSerializeDesc;
+        auto emitDescriptorSize = 16;
+
+        _populateDefaultHeap(topLevelSerializeDesc, emitDescriptorSize);
+        D3D12_RAYTRACING_ACCELERATION_STRUCTURE_POSTBUILD_INFO_DESC postBuildInfo = {};
+        postBuildInfo.InfoType = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_POSTBUILD_INFO_SERIALIZATION;
+        postBuildInfo.DestBuffer = topLevelSerializeDesc.outputBuffer->GetGPUVirtualAddress();
+        D3D12_GPU_VIRTUAL_ADDRESS gpuAddress = _topLevelAccelerationStructure->GetGPUVirtualAddress();
+        _dxrCommandList->EmitRaytracingAccelerationStructurePostbuildInfo(&postBuildInfo, 1, &gpuAddress);
+        _gpuToCpuTransfer(topLevelSerializeDesc, emitDescriptorSize);
+        dxLayer->fenceCommandList();
+        dxLayer->initCmdLists();
+        _readBackOnCpu(topLevelSerializeDesc, emitDescriptorSize);
+
+        UINT64 size = 0;
+        memcpy(&size, topLevelSerializeDesc.cpuSideData, 8);
+        OutputDebugString(("Size of top serialized: " + std::to_string(size) + "\n").c_str());
+        _populateDefaultHeap(topLevelSerializedAS, size);
+        auto mode = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_COPY_MODE_SERIALIZE;
+        auto destinationBuffer = topLevelSerializedAS.outputBuffer->GetGPUVirtualAddress();
+        auto sourceBuffer = _topLevelAccelerationStructure->GetGPUVirtualAddress();
+        _dxrCommandList->CopyRaytracingAccelerationStructure(destinationBuffer, sourceBuffer, mode);
+        _gpuToCpuTransfer(topLevelSerializedAS, size);
+        dxLayer->fenceCommandList();
+        dxLayer->initCmdLists();
+        _readBackOnCpu(topLevelSerializedAS);
+
+        //Patch in new copied bottom level GPU VA
+        gpuAddress = _copiedBottomLevelAccelerationStructure->GetGPUVirtualAddress();
+        memcpy(topLevelSerializedAS.cpuSideData + 56, &gpuAddress, sizeof(D3D12_GPU_VIRTUAL_ADDRESS));
+
+        ResourceBuffer uploadHeap((void*)topLevelSerializedAS.cpuSideData, static_cast<UINT>(size), commandList, device);
+        {
+            D3D12_RESOURCE_BARRIER outputBufferResourceBarrier
+            {
+                CD3DX12_RESOURCE_BARRIER::Transition(
+                    uploadHeap.getResource().Get(),
+                    D3D12_RESOURCE_STATE_GENERIC_READ,
+                    D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE)
+            };
+            _dxrCommandList->ResourceBarrier(1, &outputBufferResourceBarrier);
+        }
+
+        //Deserialize
+        mode = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_COPY_MODE_DESERIALIZE;
+        sourceBuffer = uploadHeap.getResource()->GetGPUVirtualAddress();
+        destinationBuffer = _copiedTopLevelAccelerationStructure->GetGPUVirtualAddress();
+        _dxrCommandList->CopyRaytracingAccelerationStructure(destinationBuffer, sourceBuffer, mode);
+        dxLayer->fenceCommandList();
+        dxLayer->initCmdLists();
+    }
+
+
+    {
+        //Get Visual tools size after deserializing
+        UINT64 topLevelToolsSize = 0;
+        GpuToCpuBuffers topLevelDeserializedBuffers;
+        {
+            _populateDefaultHeap(topLevelDeserializedBuffers);
+            D3D12_RAYTRACING_ACCELERATION_STRUCTURE_POSTBUILD_INFO_DESC postBuildInfo = {};
+            postBuildInfo.InfoType = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_POSTBUILD_INFO_TOOLS_VISUALIZATION;
+            postBuildInfo.DestBuffer = topLevelDeserializedBuffers.outputBuffer->GetGPUVirtualAddress();
+            auto gpuAddress = _copiedTopLevelAccelerationStructure->GetGPUVirtualAddress();
+            _dxrCommandList->EmitRaytracingAccelerationStructurePostbuildInfo(&postBuildInfo, 1, &gpuAddress);
+            _gpuToCpuTransfer(topLevelDeserializedBuffers);
+            dxLayer->fenceCommandList();
+            dxLayer->initCmdLists();
+            _readBackOnCpu(topLevelDeserializedBuffers);
+            memcpy(&topLevelToolsSize, topLevelDeserializedBuffers.cpuSideData, 8);
+        }
+
+        //Tools
+        GpuToCpuBuffers topLevelVisToolsBuffers;
+        _populateDefaultHeap(topLevelVisToolsBuffers, topLevelToolsSize);
+        auto mode = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_COPY_MODE_VISUALIZATION_DECODE_FOR_TOOLS;
+        auto sourceBuffer = _copiedTopLevelAccelerationStructure->GetGPUVirtualAddress();
+        auto destinationBuffer = topLevelVisToolsBuffers.outputBuffer->GetGPUVirtualAddress();
+        _dxrCommandList->CopyRaytracingAccelerationStructure(destinationBuffer, sourceBuffer, mode);
+        _gpuToCpuTransfer(topLevelVisToolsBuffers, topLevelToolsSize);
+        dxLayer->fenceCommandList();
+        dxLayer->initCmdLists();
+        _readBackOnCpu(topLevelVisToolsBuffers, topLevelToolsSize);
+
+        //Get Visual tools size after deserializing
+        UINT64 bottomLevelToolsSize = 0;
+        GpuToCpuBuffers bottomLevelDeserializedBuffers;
+        {
+            _populateDefaultHeap(bottomLevelDeserializedBuffers);
+            D3D12_RAYTRACING_ACCELERATION_STRUCTURE_POSTBUILD_INFO_DESC postBuildInfo = {};
+            postBuildInfo.InfoType = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_POSTBUILD_INFO_TOOLS_VISUALIZATION;
+            postBuildInfo.DestBuffer = bottomLevelDeserializedBuffers.outputBuffer->GetGPUVirtualAddress();
+            auto gpuAddress = _copiedBottomLevelAccelerationStructure->GetGPUVirtualAddress();
+            _dxrCommandList->EmitRaytracingAccelerationStructurePostbuildInfo(&postBuildInfo, 1, &gpuAddress);
+            _gpuToCpuTransfer(bottomLevelDeserializedBuffers);
+            dxLayer->fenceCommandList();
+            dxLayer->initCmdLists();
+            _readBackOnCpu(bottomLevelDeserializedBuffers);
+            memcpy(&bottomLevelToolsSize, bottomLevelDeserializedBuffers.cpuSideData, 8);
+        }
+
+        //Tools
+        GpuToCpuBuffers bottomLevelVisToolsBuffers;
+        _populateDefaultHeap(bottomLevelVisToolsBuffers, bottomLevelToolsSize);
+        mode = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_COPY_MODE_VISUALIZATION_DECODE_FOR_TOOLS;
+        sourceBuffer = _copiedBottomLevelAccelerationStructure->GetGPUVirtualAddress();
+        destinationBuffer = bottomLevelVisToolsBuffers.outputBuffer->GetGPUVirtualAddress();
+        _dxrCommandList->CopyRaytracingAccelerationStructure(destinationBuffer, sourceBuffer, mode);
+        _gpuToCpuTransfer(bottomLevelVisToolsBuffers, bottomLevelToolsSize);
+        dxLayer->fenceCommandList();
+        dxLayer->initCmdLists();
+        _readBackOnCpu(bottomLevelVisToolsBuffers, bottomLevelToolsSize);
+    }
+
 
     // Allocate one constant buffer per frame, since it gets updated every frame.
     size_t cbSize = 2 * sizeof(AlignedSceneConstantBuffer);
     const D3D12_RESOURCE_DESC constantBufferDesc = CD3DX12_RESOURCE_DESC::Buffer(cbSize);
     auto uploadHeapProps = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
 
-   device->CreateCommittedResource(
+    device->CreateCommittedResource(
         &uploadHeapProps,
         D3D12_HEAP_FLAG_NONE,
         &constantBufferDesc,
@@ -409,7 +681,7 @@ RayTracingPipelineShader::RayTracingPipelineShader(std::string shader,
     _dxrStateObject.As(&stateObjectProperties);
     GetShaderIdentifiers(stateObjectProperties.Get());
     shaderIdentifierSize = D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES;
-    
+
 
     // Ray gen shader table
     {
@@ -445,17 +717,17 @@ RayTracingPipelineShader::RayTracingPipelineShader(std::string shader,
 }
 
 void RayTracingPipelineShader::_queryShaderResources(ComPtr<ID3DBlob> shaderBlob) {
-    
+
     ID3D12ShaderReflection* reflectionInterface;
-    D3DReflect(shaderBlob->GetBufferPointer(), 
-        shaderBlob->GetBufferSize(), 
-        IID_ID3D12ShaderReflection, 
+    D3DReflect(shaderBlob->GetBufferPointer(),
+        shaderBlob->GetBufferSize(),
+        IID_ID3D12ShaderReflection,
         (void**)&reflectionInterface);
 
     HRESULT result = S_OK;
 
     PipelineShader::_queryShaderResources(shaderBlob);
-    
+
     //Now do raytracing specific shit
 }
 
@@ -464,23 +736,23 @@ void RayTracingPipelineShader::doRayTracing(Entity* entity)
     auto commandList = DXLayer::instance()->getCmdList();
 
     {
-    D3D12_RESOURCE_BARRIER barrierDesc;
-    ZeroMemory(&barrierDesc, sizeof(barrierDesc));
+        D3D12_RESOURCE_BARRIER barrierDesc;
+        ZeroMemory(&barrierDesc, sizeof(barrierDesc));
 
-    barrierDesc.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-    barrierDesc.Transition.pResource = _raytracingOutput->getResource()->getResource().Get();
-    barrierDesc.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
-    barrierDesc.Transition.StateBefore = D3D12_RESOURCE_STATE_COMMON;
-    barrierDesc.Transition.StateAfter = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+        barrierDesc.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+        barrierDesc.Transition.pResource = _raytracingOutput->getResource()->getResource().Get();
+        barrierDesc.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+        barrierDesc.Transition.StateBefore = D3D12_RESOURCE_STATE_COMMON;
+        barrierDesc.Transition.StateAfter = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
 
-    commandList->ResourceBarrier(1, &barrierDesc);
+        commandList->ResourceBarrier(1, &barrierDesc);
     }
 
     auto inverseProj = (entity->getMVP()->getProjectionMatrix() *
         entity->getMVP()->getViewMatrix() *
         entity->getMVP()->getModelMatrix()).inverse();
 
-    auto inverseView = (entity->getMVP()->getViewMatrix() * 
+    auto inverseView = (entity->getMVP()->getViewMatrix() *
         entity->getMVP()->getModelMatrix()).inverse();
 
     memcpy(&(_sceneCB[0]), inverseProj.getFlatBuffer(), sizeof(float) * 16);
@@ -528,14 +800,14 @@ void RayTracingPipelineShader::doRayTracing(Entity* entity)
     // Set index and successive vertex buffer decriptor tables
     commandList->SetComputeRootDescriptorTable(GlobalRootSignatureParams::IndexBuffersSlot, _indexBuffer.gpuDescriptorHandle);
     commandList->SetComputeRootDescriptorTable(GlobalRootSignatureParams::VertexBuffersSlot, _vertexBuffer.gpuDescriptorHandle);
-        
+
     auto uavDescriptor = _raytracingOutput->getUAVDescriptor();
     ID3D12DescriptorHeap* descriptorHeaps[] = { uavDescriptor.Get() };
     commandList->SetDescriptorHeaps(1, descriptorHeaps);
 
     commandList->SetComputeRootDescriptorTable(GlobalRootSignatureParams::OutputViewSlot,
         uavDescriptor->GetGPUDescriptorHandleForHeapStart());
-   
+
     // Copy the updated scene constant buffer to GPU.
     memcpy(&_mappedConstantData[0].constants, &_sceneCB[0], sizeof(_sceneCB[0]));
     auto cbGpuAddress = _perFrameConstants->GetGPUVirtualAddress() + 0 * sizeof(_mappedConstantData[0]);
@@ -543,24 +815,25 @@ void RayTracingPipelineShader::doRayTracing(Entity* entity)
 
     // Bind the heaps, acceleration structure and dispatch rays.
     D3D12_DISPATCH_RAYS_DESC dispatchDesc = {};
-   
+
     //SetCommonPipelineState(commandList);
-    commandList->SetComputeRootShaderResourceView(GlobalRootSignatureParams::AccelerationStructureSlot, _topLevelAccelerationStructure->GetGPUVirtualAddress());
-    
+    commandList->SetComputeRootShaderResourceView(GlobalRootSignatureParams::AccelerationStructureSlot,
+        _copiedTopLevelAccelerationStructure->GetGPUVirtualAddress());
+
     commandList->QueryInterface(IID_PPV_ARGS(&_dxrCommandList));
     DispatchRays(_dxrCommandList.Get(), _dxrStateObject.Get(), &dispatchDesc);
 
     {
-    D3D12_RESOURCE_BARRIER barrierDesc;
-    ZeroMemory(&barrierDesc, sizeof(barrierDesc));
+        D3D12_RESOURCE_BARRIER barrierDesc;
+        ZeroMemory(&barrierDesc, sizeof(barrierDesc));
 
-    barrierDesc.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-    barrierDesc.Transition.pResource = _raytracingOutput->getResource()->getResource().Get();
-    barrierDesc.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
-    barrierDesc.Transition.StateBefore = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
-    barrierDesc.Transition.StateAfter = D3D12_RESOURCE_STATE_COMMON;
+        barrierDesc.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+        barrierDesc.Transition.pResource = _raytracingOutput->getResource()->getResource().Get();
+        barrierDesc.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+        barrierDesc.Transition.StateBefore = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+        barrierDesc.Transition.StateAfter = D3D12_RESOURCE_STATE_COMMON;
 
-    commandList->ResourceBarrier(1, &barrierDesc);
+        commandList->ResourceBarrier(1, &barrierDesc);
     }
 }
 

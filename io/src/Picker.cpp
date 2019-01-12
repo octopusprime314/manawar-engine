@@ -80,7 +80,7 @@ void Picker::_mouseClick(int button, int action, int x, int y) {
         for (auto entity : entityList) {
             if (entity->isID(entityID)) {
                 entity->setSelected(true);
-                if (entity->getRenderBuffers()->size() > 0) {
+                if (entity->getModel()->getRenderBuffers() != nullptr) {
 
                     if(entity->getLayeredTexture() != nullptr) {
 
@@ -113,7 +113,7 @@ void Picker::_mouseClick(int button, int action, int x, int y) {
                                     float zOffset = height / 2.0f;
 
                                     float xCentroid = ((A.getx() + B.getx() + C.getx()) / 3.0f);
-                                    float zCentroid = ((A.getz() + B.getz() + C.getz()) / 3.0f);
+                                    float zCentroid = -((A.getz() + B.getz() + C.getz()) / 3.0f);
 
                                     if (xCentroid < xOffset) {
                                         float multiplier = ceilf(fabs(xCentroid) / width);
@@ -126,9 +126,10 @@ void Picker::_mouseClick(int button, int action, int x, int y) {
                                     }
 
                                     int xPosition = static_cast<int>(xCentroid + xOffset) % static_cast<int>(width);
-                                    int zPosition = static_cast<int>(zCentroid + zOffset) % static_cast<int>(height);
+                                    int zPosition = -(static_cast<int>(zCentroid + zOffset) % static_cast<int>(height));
 
                                     std::cout << xPosition << " " << zPosition << std::endl;
+                                    A.getFlatBuffer()[2] = -A.getz();
                                     _mouseCallback(A);
 
                                     alphaMapEditor.editTextureData(xPosition, zPosition, _pixelEditValue, _pickingRadius);

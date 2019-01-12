@@ -69,6 +69,12 @@ union AlignedSceneConstantBuffer
     uint8_t alignmentPadding[D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT];
 };
 
+struct GpuToCpuBuffers {
+    ComPtr<ID3D12Resource> outputBuffer;
+    ComPtr<ID3D12Resource> readbackBuffer;
+    unsigned char*         cpuSideData;
+};
+
 #define SizeOfInUint32(obj) ((sizeof(obj) - 1) / sizeof(UINT32) + 1)
 
 class RayTracingPipelineShader : public PipelineShader {
@@ -78,6 +84,9 @@ class RayTracingPipelineShader : public PipelineShader {
                                                             UINT descriptorIndexToUse = UINT_MAX);
     UINT                               _createBufferSRV(D3DBuffer* buffer,
                                                     UINT numElements, UINT elementSize);
+    void                               _populateDefaultHeap(GpuToCpuBuffers& resources, UINT64 byteSize = 8);
+    void                               _gpuToCpuTransfer(GpuToCpuBuffers& resources, UINT64 byteSize = 8);
+    void                               _readBackOnCpu(GpuToCpuBuffers& buffers, UINT64 byteSize = 8);
     // DirectX Raytracing (DXR) attributes
     ComPtr<ID3D12Device5>              _dxrDevice;
     ComPtr<ID3D12GraphicsCommandList4> _dxrCommandList;
@@ -97,6 +106,9 @@ class RayTracingPipelineShader : public PipelineShader {
     // Acceleration structure
     ComPtr<ID3D12Resource>             _bottomLevelAccelerationStructure;
     ComPtr<ID3D12Resource>             _topLevelAccelerationStructure;
+    ComPtr<ID3D12Resource>             _copiedBottomLevelAccelerationStructure;
+    ComPtr<ID3D12Resource>             _copiedTopLevelAccelerationStructure;
+    ComPtr<ID3D12Resource>             _copiedAS;
     AlignedSceneConstantBuffer*        _mappedConstantData;
     ComPtr<ID3D12Resource>             _perFrameConstants;
     dxc::DxcDllSupport                 _dllSupport;

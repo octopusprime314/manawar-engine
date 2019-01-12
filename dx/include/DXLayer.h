@@ -49,6 +49,7 @@ public:
     ComPtr<ID3D12GraphicsCommandList> getCmdList();
     UINT                              getCmdListIndex();
     ComPtr<ID3D12Device>              getDevice();
+    bool                              supportsRayTracing();
 
 private:
     DXLayer(HINSTANCE hInstance, DWORD width, DWORD height, int cmdShow);
@@ -65,6 +66,7 @@ private:
     int                               _cmdListIndex;
     int                               _nextFenceValue;
     int                               _cmdListFenceValues[CMD_LIST_NUM];
+    bool                              _rayTracingEnabled;
 
     static DXLayer*                   _dxLayer;
     const DXGI_FORMAT                 _rtvFormat = DXGI_FORMAT_R8G8B8A8_UNORM;

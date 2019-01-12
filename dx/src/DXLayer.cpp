@@ -12,6 +12,7 @@ DXLayer::DXLayer(HINSTANCE hInstance, DWORD width, DWORD height, int cmdShow) :
     _cmdListIndex(0) {
     WNDCLASSEX windowClass;
 
+    _rayTracingEnabled = false;
     _nextFenceValue = 1;
     _cmdListFenceValues[0] = _cmdListFenceValues[1] = 0;
 
@@ -97,6 +98,14 @@ DXLayer::DXLayer(HINSTANCE hInstance, DWORD width, DWORD height, int cmdShow) :
 
     _presentTarget = new PresentTarget(_device, _rtvFormat, _cmdQueue, height, width, _window);
 
+    //Test DXR support
+    ComPtr<ID3D12Device5>              dxrDevice;
+    ComPtr<ID3D12GraphicsCommandList4> dxrCommandList;
+    if (_device->QueryInterface(IID_PPV_ARGS(&dxrDevice)) == S_OK &&
+        _cmdLists[0]->QueryInterface(IID_PPV_ARGS(&dxrCommandList)) == S_OK) {
+        _rayTracingEnabled = true;
+    }
+
     // show the window
     ShowWindow(_window, _cmdShow);
 }
@@ -115,6 +124,11 @@ DXLayer* DXLayer::instance() {
 DXLayer::~DXLayer() {
 
 }
+
+bool DXLayer::supportsRayTracing() {
+    return _rayTracingEnabled;
+}
+
 
 void DXLayer::initCmdLists() {
     // Open command list

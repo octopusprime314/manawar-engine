@@ -300,7 +300,7 @@ void EngineManager::_postDraw() {
             _forwardRenderer->forwardLighting(_entityList, _viewManager, _lightList);
 
             // Lights - including the fire point lights
-            for (auto light : _lightList) {
+            for (Light* light : _lightList) {
                 light->render();
             }
 

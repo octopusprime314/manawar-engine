@@ -126,8 +126,9 @@ void Picker::_mouseClick(int button, int action, int x, int y) {
                                     }
 
                                     int xPosition = static_cast<int>(xCentroid + xOffset) % static_cast<int>(width);
-                                    int zPosition = -(static_cast<int>(zCentroid + zOffset) % static_cast<int>(height));
-
+                                    int zPosition = (static_cast<int>(zCentroid + zOffset) % static_cast<int>(height));
+                                    zPosition = static_cast<int>(height) - zPosition;
+                                    
                                     std::cout << xPosition << " " << zPosition << std::endl;
                                     A.getFlatBuffer()[2] = -A.getz();
                                     _mouseCallback(A);

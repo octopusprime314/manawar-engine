@@ -59,6 +59,7 @@ struct SceneConstantBuffer
     float projectionToWorld[16];
     float cameraPosition[4];
     float lightPosition[4];
+    float lightDirection[4];
     float lightAmbientColor[4];
     float lightDiffuseColor[4];
 };
@@ -104,7 +105,7 @@ class RayTracingPipelineShader : public PipelineShader {
     UINT                               _descriptorsAllocated;
 
     // Acceleration structure
-    ComPtr<ID3D12Resource>             _bottomLevelAccelerationStructure;
+    std::vector<ComPtr<ID3D12Resource>> _bottomLevelAccelerationStructure;
     ComPtr<ID3D12Resource>             _topLevelAccelerationStructure;
     ComPtr<ID3D12Resource>             _copiedBottomLevelAccelerationStructure;
     ComPtr<ID3D12Resource>             _copiedTopLevelAccelerationStructure;
@@ -129,9 +130,9 @@ class RayTracingPipelineShader : public PipelineShader {
 public:
     RayTracingPipelineShader(std::string shader,
                    ComPtr<ID3D12Device> device,
-                   DXGI_FORMAT format, Entity* entity);
+                   DXGI_FORMAT format, std::vector<Entity*>& entityList);
 
-    void doRayTracing(Entity* entity);
+    void doRayTracing(Entity* entity, Light* light);
 
     RenderTexture* getRayTracingTarget();
 

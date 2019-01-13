@@ -3,6 +3,7 @@ struct SceneConstantBuffer
     float4x4 projectionToWorld;
     float4 cameraPosition;
     float4 lightPosition;
+    float4 lightDirection;
     float4 lightAmbientColor;
     float4 lightDiffuseColor;
 };
@@ -75,8 +76,15 @@ inline void GenerateCameraRay(uint2 index, out float3 origin, out float3 directi
     float4 world = mul(float4(screenPos, 0, 1), g_sceneCB.projectionToWorld);
 
     world.xyz /= world.w;
-    origin = g_sceneCB.cameraPosition.xyz;
-    direction = normalize(world.xyz - origin);
+    //Projection matrix
+    //origin = g_sceneCB.cameraPosition.xyz;
+    //direction = normalize(world.xyz - origin);
+
+    //Orthographic matrix
+    origin = world.xyz;
+    direction = g_sceneCB.lightDirection.xyz;
+
+
 }
 
 // Diffuse lighting calculation.

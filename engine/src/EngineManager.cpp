@@ -41,8 +41,8 @@ GraphicsLayer EngineManager::_graphicsLayer;
 
 EngineManager::EngineManager(int* argc, char** argv, HINSTANCE hInstance, int nCmdShow) {
 
-    _useRaytracing = false;
-    _graphicsLayer = GraphicsLayer::OPENGL;
+    _useRaytracing = true;
+    _graphicsLayer = GraphicsLayer::DX12;
 
     _inputLayer = new IOEventDistributor(argc, argv, hInstance, nCmdShow);
 
@@ -54,7 +54,8 @@ EngineManager::EngineManager(int* argc, char** argv, HINSTANCE hInstance, int nC
     _viewManager = new ViewEventDistributor(argc, argv, IOEventDistributor::screenPixelWidth, IOEventDistributor::screenPixelHeight);
     
     ModelBroker::setViewManager(_viewManager); //Set the reference to the view model event interface
-    _viewManager->setProjection(IOEventDistributor::screenPixelWidth, IOEventDistributor::screenPixelHeight, 0.1f, 5000.0f); //Initializes projection matrix and broadcasts upate to all listeners
+    //Initializes projection matrix and broadcasts upate to all listeners
+    _viewManager->setProjection(IOEventDistributor::screenPixelWidth, IOEventDistributor::screenPixelHeight, 0.1f, 5000.0f); 
     _viewManager->setView(Matrix::translation(0.0f, -40.0f, 450.0f),
             Matrix::rotationAroundY(0.0f),
             Matrix());
@@ -75,7 +76,7 @@ EngineManager::EngineManager(int* argc, char** argv, HINSTANCE hInstance, int nC
          _rayTracingPipeline =
             new RayTracingPipelineShader("rayTracingUberShader.hlsl",
                 DXLayer::instance()->getDevice(),
-                DXGI_FORMAT_R8G8B8A8_UNORM, _entityList[_rayTracingEntityIndex]);
+                DXGI_FORMAT_R8G8B8A8_UNORM, _entityList);
     }
     else {
         _useRaytracing = false;
@@ -369,7 +370,7 @@ void EngineManager::_postDraw() {
         HLSLShader::releaseOM(textures);
 
         if (_useRaytracing) {
-            _rayTracingPipeline->doRayTracing(_entityList[_rayTracingEntityIndex]);
+            _rayTracingPipeline->doRayTracing(_entityList[_rayTracingEntityIndex], _lightList[1]);
             DXLayer::instance()->present(_rayTracingPipeline->getRayTracingTarget());
         }
         else {

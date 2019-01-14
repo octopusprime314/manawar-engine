@@ -4,8 +4,7 @@ struct SceneConstantBuffer
     float4 cameraPosition;
     float4 lightPosition;
     float4 lightDirection;
-    float4 lightAmbientColor;
-    float4 lightDiffuseColor;
+    float4x4 projection;
 };
 
 struct CubeConstantBuffer
@@ -87,17 +86,6 @@ inline void GenerateCameraRay(uint2 index, out float3 origin, out float3 directi
 
 }
 
-// Diffuse lighting calculation.
-float4 CalculateDiffuseLighting(float3 hitPosition, float3 normal)
-{
-    float3 pixelToLight = normalize(g_sceneCB.lightPosition.xyz - hitPosition);
-
-    // Diffuse contribution.
-    float fNDotL = max(0.0f, dot(pixelToLight, normal));
-
-    return g_cubeCB.albedo * g_sceneCB.lightDiffuseColor * fNDotL;
-}
-
 [shader("raygeneration")]
 void MyRaygenShader()
 {
@@ -144,14 +132,18 @@ void MyClosestHitShader(inout RayPayload payload, in MyAttributes attr)
     //payload.color = float4(abs(rayDir.zzz), 1.0f);
     //payload.color = float4(abs(screenPos), 0.0, 1.0f);
 
-    payload.color = float4(0.0, 0.0, 0.0, 1);
+    //float3 hitPosition = HitWorldPosition();
+    //float4 clipSpace = mul(float4(hitPosition, 1), g_sceneCB.projection);
+    //float distance = length(clipSpace.xyz);
+    //payload.color = float4(-hitPosition.z / 600.0, -hitPosition.z/ 600.0, -hitPosition.z / 600.0, 1.0);
+    payload.color = float4(0.0, 1.0, 0.0, 1.0);
 
 }
 
 [shader("miss")]
 void MyMissShader(inout RayPayload payload)
 {
-    float4 background = float4(1.0f, 0.0f, 0.0f, 1.0f);
+    float4 background = float4(1.0f, 0.0f, 0.0f, 0.0f);
     payload.color = background;
 
 }

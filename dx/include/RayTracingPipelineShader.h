@@ -60,8 +60,7 @@ struct SceneConstantBuffer
     float cameraPosition[4];
     float lightPosition[4];
     float lightDirection[4];
-    float lightAmbientColor[4];
-    float lightDiffuseColor[4];
+    float projection[16];
 };
 
 union AlignedSceneConstantBuffer

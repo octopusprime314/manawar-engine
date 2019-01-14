@@ -191,17 +191,17 @@ RayTracingPipelineShader::RayTracingPipelineShader(std::string shader,
     ComPtr<IDxcBlob> pResultBlob;
     dxcResult->GetResult(&pResultBlob);
 
-    if (pResultBlob) {
+    /*if (pResultBlob) {
         OutputDebugStringA((char*)pResultBlob->GetBufferPointer());
-    }
+    }*/
 
     HRESULT result;
     dxcResult->GetStatus(&result);
-    if (FAILED(result)) {
+    /*if (FAILED(result)) {
         CComPtr<IDxcBlobEncoding> pErr;
         dxcResult->GetErrorBuffer(&pErr);
         OutputDebugStringA((char*)pErr->GetBufferPointer());
-    }
+    }*/
 
     CComPtr<IDxcBlob> pProgram;
     dxcResult->GetResult(&pProgram);
@@ -210,7 +210,7 @@ RayTracingPipelineShader::RayTracingPipelineShader(std::string shader,
     dxcCompiler->Disassemble(pProgram, &pDisassembleBlob);
 
     std::string disassembleString((const char *)pDisassembleBlob->GetBufferPointer());
-    OutputDebugStringA((char*)disassembleString.c_str());
+    //OutputDebugStringA((char*)disassembleString.c_str());
 
 
     //// This contains the shaders and their entrypoints for the state object.
@@ -271,30 +271,33 @@ RayTracingPipelineShader::RayTracingPipelineShader(std::string shader,
 
     _dxrDevice->CreateStateObject(raytracingPipeline, IID_PPV_ARGS(&_dxrStateObject));
 
+    std::map<std::string, std::vector<Entity*>> bottomLevelInstances;
+    std::map<std::string, Entity*> bottomLevelModels;
+    for (auto entity : entityList) {
+        std::string name = entity->getModel()->getName();
+        if (name.find("terraintile"/*"deadtree"*/) == std::string::npos) {
+            bottomLevelInstances[name].push_back(entity);
+            bottomLevelModels[name] = entity;
+        }
+    }
+    UINT instanceCount = 0;
+    for (auto instances : bottomLevelInstances) {
+        instanceCount += instances.second.size();
+    }
+
     //DESCRIPTOR HEAP!!!!
     D3D12_DESCRIPTOR_HEAP_DESC descriptorHeapDesc = {};
     // Allocate a heap for 5 descriptors:
     // 2 - vertex and index buffer SRVs
     // 1 - raytracing output texture SRV
     // 2 - bottom and top level acceleration structure fallback wrapped pointer UAVs
-    descriptorHeapDesc.NumDescriptors = 5;
+    descriptorHeapDesc.NumDescriptors = 5;/*3 + bottomLevelModels.size() + instanceCount;*/
     descriptorHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
     descriptorHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
     descriptorHeapDesc.NodeMask = 0;
     device->CreateDescriptorHeap(&descriptorHeapDesc, IID_PPV_ARGS(&_descriptorHeap));
 
     _descriptorSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-
-
-    std::map<std::string, std::vector<Entity*>> bottomLevelInstances;
-    std::map<std::string, Entity*> bottomLevelModels;
-    for (auto entity : entityList) {
-        std::string name = entity->getModel()->getName();
-        if (name.find(/*"terraintile"*/"deadtree") == std::string::npos) {
-            bottomLevelInstances[name].push_back(entity);
-            bottomLevelModels[name] = entity;
-        }
-    }
 
     D3D12_RAYTRACING_GEOMETRY_DESC* geometryDesc = new D3D12_RAYTRACING_GEOMETRY_DESC[bottomLevelModels.size()];
     UINT modelIndex = 0;
@@ -346,7 +349,7 @@ RayTracingPipelineShader::RayTracingPipelineShader(std::string shader,
     D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_INPUTS &bottomLevelInputs = bottomLevelBuildDesc.Inputs;
     bottomLevelInputs.DescsLayout = D3D12_ELEMENTS_LAYOUT_ARRAY;
     bottomLevelInputs.Flags = buildFlags;
-    bottomLevelInputs.NumDescs = bottomLevelModels.size();
+    bottomLevelInputs.NumDescs = static_cast<UINT>(bottomLevelModels.size());
     bottomLevelInputs.Type = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL;
     bottomLevelInputs.pGeometryDescs = geometryDesc;
 
@@ -354,7 +357,7 @@ RayTracingPipelineShader::RayTracingPipelineShader(std::string shader,
     D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_INPUTS &topLevelInputs = topLevelBuildDesc.Inputs;
     topLevelInputs.DescsLayout = D3D12_ELEMENTS_LAYOUT_ARRAY;
     topLevelInputs.Flags = buildFlags;
-    topLevelInputs.NumDescs = entityList.size();
+    topLevelInputs.NumDescs = static_cast<UINT>(instanceCount);
     topLevelInputs.pGeometryDescs = nullptr;
     topLevelInputs.Type = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL;
 
@@ -446,13 +449,14 @@ RayTracingPipelineShader::RayTracingPipelineShader(std::string shader,
     //}
 
     // Create an instance desc for the bottom-level acceleration structure.
-    D3D12_RAYTRACING_INSTANCE_DESC* instanceDesc = new D3D12_RAYTRACING_INSTANCE_DESC[entityList.size()];
+    D3D12_RAYTRACING_INSTANCE_DESC* instanceDesc = new D3D12_RAYTRACING_INSTANCE_DESC[instanceCount];
     //instanceDesc.Transform[0][0] = instanceDesc.Transform[1][1] = instanceDesc.Transform[2][2] = 1;
     UINT bottomLevelIndex = 0;
     for (auto instanceTransform : bottomLevelInstances) {
         UINT i = 0;
         for (auto instance : instanceTransform.second) {
             memcpy(&instanceDesc[i].Transform, instance->getWorldSpaceTransform().getFlatBuffer(), sizeof(float) * 12);
+            //instanceDesc[i].InstanceID = i+1;
             instanceDesc[i].InstanceMask = 1;
             instanceDesc[i].AccelerationStructure = 
                 _bottomLevelAccelerationStructure[bottomLevelIndex]->GetGPUVirtualAddress();
@@ -461,10 +465,9 @@ RayTracingPipelineShader::RayTracingPipelineShader(std::string shader,
         bottomLevelIndex++;
     }
 
-    AllocateUploadBuffer(device.Get(), instanceDesc, sizeof(instanceDesc) * entityList.size(),
+    AllocateUploadBuffer(device.Get(), instanceDesc, sizeof(D3D12_RAYTRACING_INSTANCE_DESC) * instanceCount,
         &_instanceDescs, L"InstanceDescs");
 
-   
 
     // Top Level Acceleration Structure desc
     {
@@ -786,7 +789,7 @@ void RayTracingPipelineShader::doRayTracing(Entity* entity, Light* light)
 {
     auto commandList = DXLayer::instance()->getCmdList();
 
-    {
+    /*{
         D3D12_RESOURCE_BARRIER barrierDesc;
         ZeroMemory(&barrierDesc, sizeof(barrierDesc));
 
@@ -797,7 +800,7 @@ void RayTracingPipelineShader::doRayTracing(Entity* entity, Light* light)
         barrierDesc.Transition.StateAfter = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
 
         commandList->ResourceBarrier(1, &barrierDesc);
-    }
+    }*/
 
     auto inverseProj = (light->getLightMVP().getProjectionMatrix() *
         light->getLightMVP().getViewMatrix() *
@@ -830,15 +833,8 @@ void RayTracingPipelineShader::doRayTracing(Entity* entity, Light* light)
     _sceneCB[0].lightDirection[2] = lightDir.getz();
     _sceneCB[0].lightDirection[3] = 1.0f;
 
-    _sceneCB[0].lightAmbientColor[0] = 0.5f;
-    _sceneCB[0].lightAmbientColor[1] = 0.5f;
-    _sceneCB[0].lightAmbientColor[2] = 0.5f;
-    _sceneCB[0].lightAmbientColor[3] = 1.0f;
-
-    _sceneCB[0].lightDiffuseColor[0] = 0.5f;
-    _sceneCB[0].lightDiffuseColor[1] = 0.0f;
-    _sceneCB[0].lightDiffuseColor[2] = 0.0f;
-    _sceneCB[0].lightDiffuseColor[3] = 1.0f;
+    auto projection = light->getLightMVP().getProjectionMatrix().getFlatBuffer();
+    memcpy(&(_sceneCB[0].projection), projection, sizeof(float) * 16);
 
 
     auto DispatchRays = [&](auto* commanderList, auto* stateObject, auto* dispatchDesc)
@@ -884,10 +880,24 @@ void RayTracingPipelineShader::doRayTracing(Entity* entity, Light* light)
     commandList->SetComputeRootShaderResourceView(GlobalRootSignatureParams::AccelerationStructureSlot,
         /*_copiedTopLevelAccelerationStructure*/_topLevelAccelerationStructure->GetGPUVirtualAddress());
 
+    float color[] = { 0.0, 0.0,1.0,1.0 };
+    commandList->ClearUnorderedAccessViewFloat(uavDescriptor->GetGPUDescriptorHandleForHeapStart(),
+        uavDescriptor->GetCPUDescriptorHandleForHeapStart(),
+        _raytracingOutput->getResource()->getResource().Get(),
+        color, 0, nullptr);
+
+    D3D12_RESOURCE_BARRIER  barrierDesc;
+    ZeroMemory(&barrierDesc, sizeof(barrierDesc));
+    barrierDesc.UAV.pResource = _raytracingOutput->getResource()->getResource().Get();
+    barrierDesc.Type = D3D12_RESOURCE_BARRIER_TYPE_UAV;
+    commandList->ResourceBarrier(1, &barrierDesc);
+
     commandList->QueryInterface(IID_PPV_ARGS(&_dxrCommandList));
     DispatchRays(_dxrCommandList.Get(), _dxrStateObject.Get(), &dispatchDesc);
 
-    {
+    commandList->ResourceBarrier(1, &barrierDesc);
+    
+    /*{
         D3D12_RESOURCE_BARRIER barrierDesc;
         ZeroMemory(&barrierDesc, sizeof(barrierDesc));
 
@@ -898,7 +908,8 @@ void RayTracingPipelineShader::doRayTracing(Entity* entity, Light* light)
         barrierDesc.Transition.StateAfter = D3D12_RESOURCE_STATE_COMMON;
 
         commandList->ResourceBarrier(1, &barrierDesc);
-    }
+    }*/
+
 }
 
 // Allocate a descriptor and return its index. 

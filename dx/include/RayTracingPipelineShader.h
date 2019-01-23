@@ -41,11 +41,6 @@ struct Viewport
     float bottom;
 };
 
-struct CubeConstantBuffer
-{
-    float albedo[4];
-};
-
 // Geometry
 struct D3DBuffer
 {
@@ -61,6 +56,7 @@ struct SceneConstantBuffer
     float lightPosition[4];
     float lightDirection[4];
     float projection[16];
+    float lightView[16];
 };
 
 union AlignedSceneConstantBuffer
@@ -97,7 +93,6 @@ class RayTracingPipelineShader : public PipelineShader {
     ComPtr<ID3D12RootSignature>        _raytracingLocalRootSignature;
 
     // Raytracing scene
-    CubeConstantBuffer                 _cubeCB;
     SceneConstantBuffer                _sceneCB[2];
     ComPtr<ID3D12DescriptorHeap>       _descriptorHeap;
     UINT                               _descriptorSize;
@@ -121,11 +116,19 @@ class RayTracingPipelineShader : public PipelineShader {
     // Raytracing output
     RenderTexture*                     _raytracingOutput;
 
-    D3DBuffer                          _indexBuffer;
-    D3DBuffer                          _vertexBuffer;
+    std::vector<D3DBuffer>             _indexBuffer;
+    std::vector<D3DBuffer>             _vertexBuffer;
 
     ComPtr<ID3D12Resource>             _scratchResource;
     ComPtr<ID3D12Resource>             _instanceDescs;
+
+    // Effort to fix hang
+    D3D12_DISPATCH_RAYS_DESC           _dispatchDesc;
+    D3D12_DESCRIPTOR_HEAP_DESC         _descriptorHeapDesc;
+    D3D12_RAYTRACING_GEOMETRY_DESC*    _geometryDesc;
+    D3D12_RAYTRACING_INSTANCE_DESC*    _instanceDesc;
+    CD3DX12_CPU_DESCRIPTOR_HANDLE*     _hUAVDescriptor;
+    D3D12_UNORDERED_ACCESS_VIEW_DESC   _uavDesc;
 public:
     RayTracingPipelineShader(std::string shader,
                    ComPtr<ID3D12Device> device,

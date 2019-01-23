@@ -5,12 +5,9 @@ struct SceneConstantBuffer
     float4 lightPosition;
     float4 lightDirection;
     float4x4 projection;
+    float4x4 lightView;
 };
 
-struct CubeConstantBuffer
-{
-    float4 albedo;
-};
 
 struct Vertex
 {
@@ -39,8 +36,6 @@ ByteAddressBuffer Indices : register(t1, space0);
 StructuredBuffer<Vertex> Vertices : register(t2, space0);
 
 ConstantBuffer<SceneConstantBuffer> g_sceneCB : register(b0);
-ConstantBuffer<CubeConstantBuffer> g_cubeCB : register(b1);
-
 
 typedef BuiltInTriangleIntersectionAttributes MyAttributes;
 struct RayPayload
@@ -132,11 +127,14 @@ void MyClosestHitShader(inout RayPayload payload, in MyAttributes attr)
     //payload.color = float4(abs(rayDir.zzz), 1.0f);
     //payload.color = float4(abs(screenPos), 0.0, 1.0f);
 
-    //float3 hitPosition = HitWorldPosition();
+    float3 hitPosition = HitWorldPosition();
+    float4x4 lightViewProj = mul(g_sceneCB.lightView, g_sceneCB.projection);
+    float4 clipSpace = mul(float4(hitPosition, 1), lightViewProj);
     //float4 clipSpace = mul(float4(hitPosition, 1), g_sceneCB.projection);
     //float distance = length(clipSpace.xyz);
-    //payload.color = float4(-hitPosition.z / 600.0, -hitPosition.z/ 600.0, -hitPosition.z / 600.0, 1.0);
-    payload.color = float4(0.0, 1.0, 0.0, 1.0);
+    payload.color = float4(clipSpace.z, clipSpace.z, clipSpace.z, 1.0);
+    
+    //payload.color = float4(0.0, 1.0, 0.0, 1.0);
 
 }
 

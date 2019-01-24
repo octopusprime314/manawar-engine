@@ -27,6 +27,7 @@
 #include "Picker.h"
 #include "DXLayer.h"
 #include "HLSLShader.h"
+#include "BlitDepthShader.h"
 #include <chrono>
 
 using namespace std::chrono;
@@ -68,19 +69,6 @@ EngineManager::EngineManager(int* argc, char** argv, HINSTANCE hInstance, int nC
     IOEvents::setPostDrawCallback(std::bind(&EngineManager::_postDraw, this));
 
     auto modelBroker = ModelBroker::instance();
-   
-    if (_graphicsLayer == GraphicsLayer::DX12 && DXLayer::instance()->supportsRayTracing() &&
-        _useRaytracing) {
-
-        _rayTracingEntityIndex = 39;
-         _rayTracingPipeline =
-            new RayTracingPipelineShader("rayTracingUberShader.hlsl",
-                DXLayer::instance()->getDevice(),
-                DXGI_FORMAT_R8G8B8A8_UNORM, _entityList);
-    }
-    else {
-        _useRaytracing = false;
-    }
 
     //_entityList.push_back(new Entity(modelBroker->getModel("werewolf"), _viewManager->getEventWrapper())); //Add a static model to the scene
 
@@ -123,6 +111,23 @@ EngineManager::EngineManager(int* argc, char** argv, HINSTANCE hInstance, int nC
 
         auto dxLayer = DXLayer::instance();
         dxLayer->fenceCommandList();
+
+        if (_graphicsLayer == GraphicsLayer::DX12 && DXLayer::instance()->supportsRayTracing() &&
+            _useRaytracing) {
+
+            dxLayer->initCmdLists();
+
+            _rayTracingPipeline =
+                new RayTracingPipelineShader("rayTracingUberShader.hlsl",
+                    DXLayer::instance()->getDevice(),
+                    DXGI_FORMAT_R8G8B8A8_UNORM, _entityList);
+
+            dxLayer->fenceCommandList();
+
+        }
+        else {
+            _useRaytracing = false;
+        }
     }
     else {
 
@@ -260,15 +265,32 @@ void EngineManager::_preDraw() {
        
         //send all vbo data to point light shadow pre pass
         for (Light* light : _lightList) {
-            light->renderShadow(_entityList);
+            //ray trace the second direcional light
+            if (light != _lightList[1]) {
+                light->renderShadow(_entityList);
+            }
         }
     }
 
-    //Disable environment mapping onto a texture cube atm
-    //MVP mvp;
-    //mvp.setView(_viewManager->getView());
-    //mvp.setProjection(_viewManager->getProjection());
-    //_environmentMap->render(_modelList, &mvp);
+    if (_graphicsLayer == GraphicsLayer::DX12) {
+
+        if (_useRaytracing) {
+            _rayTracingPipeline->doRayTracing(_entityList[0], _lightList[1]);
+            //DXLayer::instance()->present(_rayTracingPipeline->getRayTracingTarget());
+        }
+
+        auto depthTexture = static_cast<RenderTexture*>((static_cast<ShadowedDirectionalLight*>(_lightList[1]))->getDepthTexture());
+        std::vector<RenderTexture> textures = { *depthTexture };
+        HLSLShader::setOM(textures,
+            depthTexture->getWidth(), depthTexture->getHeight());
+
+        auto depthBlit = static_cast<BlitDepthShader*>(ShaderBroker::instance()->getShader("blitDepthShader"));
+
+        depthBlit->runShader(_rayTracingPipeline->getRayTracingTarget(), depthTexture);
+
+
+        HLSLShader::releaseOM(textures);
+    }
 
     //Establish an offscreen Frame Buffer Object to generate G buffers for deferred shading
     _deferredRenderer->bind();
@@ -369,14 +391,7 @@ void EngineManager::_postDraw() {
 
         HLSLShader::releaseOM(textures);
 
-        if (_useRaytracing) {
-            _rayTracingPipeline->doRayTracing(_entityList[_rayTracingEntityIndex], _lightList[1]);
-            DXLayer::instance()->present(_rayTracingPipeline->getRayTracingTarget());
-        }
-        else {
-            //DXLayer::instance()->present(_ssaoPass->getSSAOTexture());
-            DXLayer::instance()->present(_deferredFBO->getRenderTexture());
-        }
+        DXLayer::instance()->present(_deferredFBO->getRenderTexture());
 
     }
 }

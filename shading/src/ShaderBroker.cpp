@@ -13,6 +13,7 @@
 #include "DeferredShader.h"
 #include "FontShader.h"
 #include "ComputeShader.h"
+#include "BlitDepthShader.h"
 #include <algorithm>
 #include <cctype>
 #include "Logger.h"
@@ -149,6 +150,9 @@ void ShaderBroker::_gatherShaderNames()
                     }
                     else if (mapName == "debugShader") {
                         _shaders[upperCaseMapName] = new DebugShader(mapName);
+                    }
+                    else if (mapName == "blitDepthShader") {
+                        _shaders[upperCaseMapName] = new BlitDepthShader();
                     }
                     else {
                         std::cout << "Shader class " << mapName << " not registered!" << std::endl;

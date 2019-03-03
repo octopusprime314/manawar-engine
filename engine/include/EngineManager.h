@@ -50,25 +50,34 @@ enum class GraphicsLayer {
 };
 
 class EngineManager {
-    ViewEventDistributor*        _viewManager; //manages the view/camera matrix from the user's perspective
-    static std::vector<Entity*>  _entityList; //Contains models active in scene
-    std::vector<Light*>          _lightList; //Contains all lights in a scene
-    Physics*                     _physics; //Manages physical interactions between models
-    DeferredRenderer*            _deferredRenderer; //Manages deferred shading g buffers
-    ForwardRenderer*             _forwardRenderer; //Manages forward shading transparent objects
-    AudioManager*                _audioManager;  // Manages audio playback
-    SSAO*                        _ssaoPass;
-    EnvironmentMap*              _environmentMap;
-    Water*                       _water;
-    DeferredFrameBuffer*         _deferredFBO;
-    Bloom*                       _bloom;
-    MergeShader*                 _mergeShader;
-    SSCompute*                   _add;
-    Terminal*                    _terminal;
-    IOEventDistributor*          _inputLayer;
-    static GraphicsLayer         _graphicsLayer;
+
     RayTracingPipelineShader*    _rayTracingPipeline;
+    //Manages deferred shading g buffers
+    DeferredRenderer*            _deferredRenderer;
+    //Manages forward shading transparent objects
+    ForwardRenderer*             _forwardRenderer;
+    EnvironmentMap*              _environmentMap;
+    static GraphicsLayer         _graphicsLayer;
     bool                         _useRaytracing;
+    // Manages audio playback
+    AudioManager*                _audioManager;
+    //manages the view/camera matrix from the user's perspective
+    ViewEventDistributor*        _viewManager;
+    DeferredFrameBuffer*         _deferredFBO;
+    MergeShader*                 _mergeShader;
+    //Contains models active in scene
+    static std::vector<Entity*>  _entityList;
+    IOEventDistributor*          _inputLayer;
+    //Contains all lights in a scene
+    std::vector<Light*>          _lightList;
+    Terminal*                    _terminal;
+    SSAO*                        _ssaoPass;
+    //Manages physical interactions between models
+    Physics*                     _physics;
+    Water*                       _water;
+    Bloom*                       _bloom;
+    SSCompute*                   _add;
+
                                  
     void                         _preDraw(); //Prior to drawing objects call this function
     void                         _postDraw(); //Post of drawing objects call this function

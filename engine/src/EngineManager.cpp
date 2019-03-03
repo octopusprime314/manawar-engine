@@ -391,6 +391,10 @@ void EngineManager::_postDraw() {
 
         HLSLShader::releaseOM(textures);
 
+        /*auto textureBroker = TextureBroker::instance();
+        auto texture = textureBroker->getTexture("../assets/textures/firtree/FirTrunk_Df.tga");
+        texture->getResource()->buildMipLevels(texture);*/
+
         DXLayer::instance()->present(_deferredFBO->getRenderTexture());
 
     }

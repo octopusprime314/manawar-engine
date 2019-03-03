@@ -37,6 +37,7 @@ class AssetTexture : public Texture{
     void                         _buildCubeMapTextureDX(std::string skyboxName,
                                                  ComPtr<ID3D12GraphicsCommandList>& cmdList,
                                                  ComPtr<ID3D12Device>& device);
+    void                         _buildMipLevels();
     bool                         _getTextureData(std::string textureName);
     void                         _decodeTexture(std::string textureName, unsigned int textureType);
   
@@ -56,7 +57,7 @@ public:
                  ComPtr<ID3D12Device>& device);
     AssetTexture(void* data, UINT width, UINT height);
     ~AssetTexture();
-
+    void  buildMipLevels();
     bool  getTransparency();
     BYTE* getBits();
 };

@@ -142,7 +142,8 @@ void ShaderBroker::_gatherShaderNames()
                         mapName == "highLuminanceFilter" ||
                         mapName == "motionBlur" ||
                         mapName == "upsample" ||
-                        mapName == "upsampleRGB") {
+                        mapName == "upsampleRGB" ||
+                        mapName == "mipGen") {
                         _shaders[upperCaseMapName] = new ComputeShader(mapName);
                     }
                     else if (mapName == "fontShader") {

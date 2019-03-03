@@ -9,7 +9,8 @@
 DeferredRenderer::DeferredRenderer() : 
     _mrtFBO(), 
     _deferredShader(static_cast<DeferredShader*>(ShaderBroker::instance()->getShader("deferredShader"))) {
-
+    
+    _deferredShader->initCubeMaps();
 }
 
 DeferredRenderer::~DeferredRenderer() {

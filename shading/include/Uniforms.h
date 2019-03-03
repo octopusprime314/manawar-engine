@@ -27,6 +27,7 @@
 struct ImageData {
     GLuint readOnly;
     GLuint format;
+    GLuint mipLevel;
 };
 
 class Uniforms {

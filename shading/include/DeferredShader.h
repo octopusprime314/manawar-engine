@@ -46,4 +46,5 @@ public:
                    MRTFrameBuffer& mrtFBO,
                    SSAO* ssao,
                    EnvironmentMap* environmentMap);
+    void initCubeMaps();
 };

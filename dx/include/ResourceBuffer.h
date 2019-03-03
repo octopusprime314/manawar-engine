@@ -5,6 +5,7 @@
 #include "d3dx12.h"
 
 using namespace Microsoft::WRL;
+class Texture;
 
 class ResourceBuffer {
 
@@ -37,8 +38,10 @@ public :
         UINT width, UINT height,
         ComPtr<ID3D12GraphicsCommandList>& cmdList,
         ComPtr<ID3D12Device>& device);
+
     D3D12_GPU_VIRTUAL_ADDRESS getGPUAddress();
     D3D12_RESOURCE_DESC       getDescriptor();
     ComPtr<ID3D12Resource>    getResource();
+    void                      buildMipLevels(Texture* texture);
 
 };

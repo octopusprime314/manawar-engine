@@ -17,6 +17,13 @@ DeferredShader::DeferredShader(std::string shaderName) {
         formats->push_back(DXGI_FORMAT_D32_FLOAT);
         _shader = new HLSLShader(shaderName, "", formats);
     }
+}
+
+DeferredShader::~DeferredShader() {
+
+}
+
+void DeferredShader::initCubeMaps() {
 
     //Get skybox texture
     TextureBroker* textureManager = TextureBroker::instance();
@@ -27,10 +34,6 @@ DeferredShader::DeferredShader(std::string shaderName) {
     //Night sky box
     textureManager->addCubeTexture(TEXTURE_LOCATION + "skybox-night");
     _skyBoxNightTexture = textureManager->getTexture(TEXTURE_LOCATION + "skybox-night");
-}
-
-DeferredShader::~DeferredShader() {
-
 }
 
 void DeferredShader::runShader(std::vector<Light*>& lights,

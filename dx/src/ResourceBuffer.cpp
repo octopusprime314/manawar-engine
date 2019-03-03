@@ -2,6 +2,11 @@
 #include <iostream>
 #include <string>
 #include "Logger.h"
+#include "ShaderBroker.h"
+#include "DXLayer.h"
+#include "Texture.h"
+
+#define MIP_LEVELS 8
 
 ResourceBuffer::ResourceBuffer(const void* initData,
     UINT byteSize,
@@ -145,7 +150,8 @@ ResourceBuffer::ResourceBuffer(const void* initData,
     device->CreateCommittedResource(
         &CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
         D3D12_HEAP_FLAG_NONE,
-        &CD3DX12_RESOURCE_DESC::Tex2D(pitchedDesc.Format, width, height, 1, 1), //only 1 mip level for now
+        &CD3DX12_RESOURCE_DESC::Tex2D(pitchedDesc.Format, width, height, 1, MIP_LEVELS, 
+            1, 0 , D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS), //default to 8 mip levels for now
         D3D12_RESOURCE_STATE_COMMON,
         nullptr,
         IID_PPV_ARGS(&_defaultBuffer));
@@ -340,5 +346,92 @@ ComPtr<ID3D12Resource> ResourceBuffer::getResource() {
     return _defaultBuffer;
 }
 
+void ResourceBuffer::buildMipLevels(Texture* texture) {
 
+    if (texture->getResource()->getResource()->GetDesc().Format != DXGI_FORMAT_B8G8R8A8_UNORM) {
+        return;
+    }
+
+    auto device = DXLayer::instance()->getDevice();
+    auto cmdList = DXLayer::instance()->getCmdList();
+    //Mip level generation
+    auto mipGenShader = ShaderBroker::instance()->getShader("mipGen")->getShader();
+
+    //LOAD IN SHADER
+    mipGenShader->bind();
+
+    //Bind read textures
+    ImageData imageInfo = {};
+    imageInfo.readOnly = true;
+    imageInfo.format = GL_RGBA8;
+
+    //Prepare the shader resource view description for the source texture
+    D3D12_SHADER_RESOURCE_VIEW_DESC srcTextureSRVDesc = {};
+    srcTextureSRVDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+    srcTextureSRVDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+
+    //Prepare the unordered access view description for the destination texture
+    D3D12_UNORDERED_ACCESS_VIEW_DESC destTextureUAVDesc = {};
+    destTextureUAVDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2D;
+
+    //Create the descriptor heap with layout: source texture - destination texture
+    D3D12_DESCRIPTOR_HEAP_DESC heapDesc = {};
+    heapDesc.NumDescriptors = 2 * MIP_LEVELS;
+    heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+    heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+    ID3D12DescriptorHeap *descriptorHeap;
+    device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&descriptorHeap));
+    UINT descriptorSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+
+    cmdList->SetDescriptorHeaps(1, &descriptorHeap);
+
+    //CPU handle for the first descriptor on the descriptor heap, used to fill the heap
+    CD3DX12_CPU_DESCRIPTOR_HANDLE currentCPUHandle(descriptorHeap->GetCPUDescriptorHandleForHeapStart(), 0, descriptorSize);
+
+    //GPU handle for the first descriptor on the descriptor heap, used to initialize the descriptor tables
+    CD3DX12_GPU_DESCRIPTOR_HANDLE currentGPUHandle(descriptorHeap->GetGPUDescriptorHandleForHeapStart(), 0, descriptorSize);
+
+    for (int i = 0; i < MIP_LEVELS - 1; i++) {
+
+        uint32_t dstWidth = max(texture->getWidth() >> (i + 1), 1);
+        uint32_t dstHeight = max(texture->getHeight() >> (i + 1), 1);
+
+        float weights[] = { 1.0f / static_cast<float>(dstWidth), 1.0f / static_cast<float>(dstHeight)};
+        cmdList->SetComputeRoot32BitConstants(0, 2, weights, 0);
+
+        //Create shader resource view for the source texture in the descriptor heap
+        srcTextureSRVDesc.Format = texture->getResource()->getResource()->GetDesc().Format;
+        srcTextureSRVDesc.Texture2D.MipLevels = 1;
+        srcTextureSRVDesc.Texture2D.MostDetailedMip = i;
+        device->CreateShaderResourceView(texture->getResource()->getResource().Get(), 
+            &srcTextureSRVDesc, 
+            currentCPUHandle);
+
+        currentCPUHandle.Offset(1, descriptorSize);
+
+        //Create unordered access view for the destination texture in the descriptor heap
+        destTextureUAVDesc.Format = texture->getResource()->getResource()->GetDesc().Format;
+        destTextureUAVDesc.Texture2D.MipSlice = i + 1;
+        device->CreateUnorderedAccessView(texture->getResource()->getResource().Get(),
+            nullptr, 
+            &destTextureUAVDesc, 
+            currentCPUHandle);
+
+        currentCPUHandle.Offset(1, descriptorSize);
+
+        //Pass the source and destination texture views to the shader via descriptor tables
+        cmdList->SetComputeRootDescriptorTable(1, currentGPUHandle);
+                                               currentGPUHandle.Offset(1, descriptorSize);
+        cmdList->SetComputeRootDescriptorTable(2, currentGPUHandle);
+                                               currentGPUHandle.Offset(1, descriptorSize);
+
+        //Dispatch the shader
+        mipGenShader->dispatch(static_cast<GLuint>(ceilf(static_cast<float>(dstWidth) / 8.0f)),
+            static_cast<GLuint>(ceilf(static_cast<float>(dstHeight) / 8.0f)), 1);
+
+        cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(texture->getResource()->getResource().Get()));
+    }
+
+    mipGenShader->unbind();
+}
 

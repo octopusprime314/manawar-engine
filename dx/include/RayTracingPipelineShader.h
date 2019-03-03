@@ -33,8 +33,7 @@ namespace LocalRootSignatureParams {
     };
 }
 
-struct Viewport
-{
+struct Viewport {
     float left;
     float top;
     float right;
@@ -42,15 +41,13 @@ struct Viewport
 };
 
 // Geometry
-struct D3DBuffer
-{
+struct D3DBuffer {
     ComPtr<ID3D12Resource> resource;
     D3D12_CPU_DESCRIPTOR_HANDLE cpuDescriptorHandle;
     D3D12_GPU_DESCRIPTOR_HANDLE gpuDescriptorHandle;
 };
 
-struct SceneConstantBuffer
-{
+struct SceneConstantBuffer {
     float projectionToWorld[16];
     float cameraPosition[4];
     float lightPosition[4];
@@ -59,8 +56,7 @@ struct SceneConstantBuffer
     float lightView[16];
 };
 
-union AlignedSceneConstantBuffer
-{
+union AlignedSceneConstantBuffer {
     SceneConstantBuffer constants;
     uint8_t alignmentPadding[D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT];
 };

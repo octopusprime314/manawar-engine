@@ -33,11 +33,13 @@ AssetTexture::AssetTexture(std::string textureName,
                 _alphaValues = false;
             }
             _build2DTextureDX(_name, cmdList, device);
+            buildMipLevels();
         }
     }
     else {
         
         _buildCubeMapTextureDX(_name, cmdList, device);
+        //buildMipLevels();
     }
 }
 
@@ -48,6 +50,7 @@ AssetTexture::AssetTexture(void* data, UINT width, UINT height,
     _alphaValues(false) {
 
     _build2DTextureDX(data, width, height, cmdList, device);
+    buildMipLevels();
 }
 
 AssetTexture::AssetTexture(void* data, UINT width, UINT height) :
@@ -206,6 +209,10 @@ void AssetTexture::_build2DTextureDX(std::string textureName,
     samplerDesc.ComparisonFunc = D3D12_COMPARISON_FUNC_ALWAYS;
     device->CreateSampler(&samplerDesc,
         _samplerDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
+}
+
+void AssetTexture::buildMipLevels() {
+    _textureBuffer->buildMipLevels(this);
 }
 
 BYTE* AssetTexture::getBits() {

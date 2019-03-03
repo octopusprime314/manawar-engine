@@ -105,8 +105,8 @@ void HLSLShader::build(std::vector<DXGI_FORMAT>* rtvs) {
     }
 
     CD3DX12_ROOT_PARAMETER* RP = new CD3DX12_ROOT_PARAMETER[_resourceDescriptorTable.size()];
-    CD3DX12_DESCRIPTOR_RANGE* srvTableRange; //reuse
-    CD3DX12_DESCRIPTOR_RANGE* samplerTableRange; //reuse
+    CD3DX12_DESCRIPTOR_RANGE* srvTableRange = nullptr; //reuse
+    CD3DX12_DESCRIPTOR_RANGE* samplerTableRange = nullptr; //reuse
 
     int i = 0;
     int rootParameterIndex = 0;
@@ -135,7 +135,7 @@ void HLSLShader::build(std::vector<DXGI_FORMAT>* rtvs) {
     }
     rootParameterIndex = static_cast<int>(_resourceIndexes.size());
     for (auto resource : _resourceDescriptorTable) {
-        if (resource.second.Type == D3D_SHADER_INPUT_TYPE::D3D_SIT_SAMPLER) {
+        if (resource.second.Type == D3D_SHADER_INPUT_TYPE::D3D_SIT_SAMPLER && csResult != S_OK) {
             samplerTableRange = new CD3DX12_DESCRIPTOR_RANGE();
             samplerTableRange->Init(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, 1, 0);
             RP[resource.second.uID + rootParameterIndex].InitAsDescriptorTable(1, samplerTableRange, D3D12_SHADER_VISIBILITY_PIXEL);
@@ -171,11 +171,52 @@ void HLSLShader::build(std::vector<DXGI_FORMAT>* rtvs) {
 
     ComPtr<ID3DBlob> pOutBlob, pErrorBlob;
     CD3DX12_ROOT_SIGNATURE_DESC descRootSignature;
-    descRootSignature.Init(static_cast<UINT>(_resourceIndexes.size()),
-        &RP[0],
-        0,
-        nullptr,
-        D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+    if (csResult == S_OK) {
+
+        bool foundStaticSampler = false;
+        for (auto resource : _resourceDescriptorTable) {
+            if (resource.second.Type == D3D_SHADER_INPUT_TYPE::D3D_SIT_SAMPLER) {
+                foundStaticSampler = true;
+            }
+        }
+
+        if (foundStaticSampler) {
+            D3D12_STATIC_SAMPLER_DESC samplerDesc = {};
+            samplerDesc.Filter = D3D12_FILTER_MIN_MAG_LINEAR_MIP_POINT;
+            samplerDesc.AddressU = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
+            samplerDesc.AddressV = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
+            samplerDesc.AddressW = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
+            samplerDesc.MipLODBias = 0.0f;
+            samplerDesc.ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER;
+            samplerDesc.MinLOD = 0.0f;
+            samplerDesc.MaxLOD = D3D12_FLOAT32_MAX;
+            samplerDesc.MaxAnisotropy = 0;
+            samplerDesc.BorderColor = D3D12_STATIC_BORDER_COLOR_OPAQUE_BLACK;
+            samplerDesc.ShaderRegister = 0;
+            samplerDesc.RegisterSpace = 0;
+            samplerDesc.ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
+
+            descRootSignature.Init(static_cast<UINT>(_resourceIndexes.size()),
+                &RP[0],
+                1,
+                &samplerDesc,
+                D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+        }
+        else {
+            descRootSignature.Init(static_cast<UINT>(_resourceIndexes.size()),
+                &RP[0],
+                0,
+                nullptr,
+                D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+        }
+    }
+    else {
+        descRootSignature.Init(static_cast<UINT>(_resourceIndexes.size()),
+            &RP[0],
+            0,
+            nullptr,
+            D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+    }
 
     D3D12SerializeRootSignature(&descRootSignature,
         D3D_ROOT_SIGNATURE_VERSION_1,

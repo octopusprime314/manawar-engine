@@ -171,6 +171,7 @@ void HLSLShader::build(std::vector<DXGI_FORMAT>* rtvs) {
 
     ComPtr<ID3DBlob> pOutBlob, pErrorBlob;
     CD3DX12_ROOT_SIGNATURE_DESC descRootSignature;
+    D3D12_STATIC_SAMPLER_DESC samplerDesc = {};
     if (csResult == S_OK) {
 
         bool foundStaticSampler = false;
@@ -181,7 +182,7 @@ void HLSLShader::build(std::vector<DXGI_FORMAT>* rtvs) {
         }
 
         if (foundStaticSampler) {
-            D3D12_STATIC_SAMPLER_DESC samplerDesc = {};
+            
             samplerDesc.Filter = D3D12_FILTER_MIN_MAG_LINEAR_MIP_POINT;
             samplerDesc.AddressU = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
             samplerDesc.AddressV = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;

@@ -10,11 +10,14 @@ EffectShader::EffectShader(std::string shaderName) {
     
     if (EngineManager::getGraphicsLayer() == GraphicsLayer::OPENGL) {
         _shader = new GLSLShader(shaderName);
+        glGenVertexArrays(1, &_vaoContext);
     }
     else {
-        _shader = new HLSLShader(shaderName);
+        std::vector<DXGI_FORMAT>* formats = new std::vector<DXGI_FORMAT>();
+        formats->push_back(DXGI_FORMAT_R8G8B8A8_UNORM);
+        formats->push_back(DXGI_FORMAT_D32_FLOAT);
+        _shader = new HLSLShader(shaderName, "", formats);
     }
-    glGenVertexArrays(1, &_vaoContext);
 }
 
 EffectShader::~EffectShader() {
@@ -25,7 +28,13 @@ void EffectShader::runShader(Effect* effectObject, float seconds) {
 
     //LOAD IN SHADER
     _shader->bind();
-    glBindVertexArray(_vaoContext);
+
+    if (EngineManager::getGraphicsLayer() == GraphicsLayer::OPENGL) {
+        glBindVertexArray(_vaoContext);
+    }
+    else {
+        _shader->bindAttributes(nullptr);
+    }
     
     auto cameraMVP = effectObject->getCameraMVP();
 
@@ -83,8 +92,14 @@ void EffectShader::runShader(Effect* effectObject, float seconds) {
     //Pass game time to shader
     _shader->updateData("time", &seconds);
 
-    //screen space quad
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, (GLsizei)4);
-    glBindVertexArray(0);
-    glUseProgram(0);//end using this shader
+    if (EngineManager::getGraphicsLayer() == GraphicsLayer::OPENGL) {
+        glDrawArrays(GL_TRIANGLE_STRIP, 0, (GLsizei)4);
+    }
+    else {
+        _shader->draw(0, 1, 4);
+    }
+
+    _shader->unbindAttributes();
+
+    _shader->unbind();
 }

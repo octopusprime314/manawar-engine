@@ -19,8 +19,8 @@ HLSLShader::HLSLShader(std::string pipelineShaderName, std::string fragmentShade
     //build it
     build(rtvs);
 
-    UINT indexBytes = static_cast<UINT>(3) * sizeof(UINT);
-    int indices[] = { 0,1,2 };
+    UINT indexBytes = static_cast<UINT>(4) * sizeof(UINT);
+    int indices[] = { 0,1,2,3 };
     _indexBuffer = new ResourceBuffer(indices, indexBytes,
         DXLayer::instance()->getCmdList(), DXLayer::instance()->getDevice());
 
@@ -115,7 +115,7 @@ void HLSLShader::build(std::vector<DXGI_FORMAT>* rtvs) {
 
             UINT bytes = 0;
             for (auto shaderInput : _constBuffDescriptorTable[resource.second.Name]) {
-                bytes += shaderInput.Size;
+                bytes = max(bytes, shaderInput.StartOffset + shaderInput.Size);
             }
 
             if (std::string(resource.second.Name).compare("objectData") == 0) { //use root constants for per model objects
@@ -532,15 +532,16 @@ void HLSLShader::unbind() {
 
 void HLSLShader::bindAttributes(VAO* vao) {
     auto cmdList = DXLayer::instance()->getCmdList();
-    cmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
     if (vao != nullptr) {
-
+        cmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
         cmdList->IASetIndexBuffer(&(vao->getIndexBuffer()));
         D3D12_VERTEX_BUFFER_VIEW vertexBuffers[] = { vao->getVertexBuffer() };
         cmdList->IASetVertexBuffers(0, 1, vertexBuffers);
     }
     else {
+
+        cmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
         cmdList->IASetIndexBuffer(&_ibv);
     }
 }

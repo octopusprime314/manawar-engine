@@ -109,10 +109,46 @@ EngineManager::EngineManager(int* argc, char** argv, HINSTANCE hInstance, int nC
             EffectType::None,
             Vector4(1.0, 0.0, 0.0)));
 
+        //Model view projection matrix for point light additions
+        MVP pointLightMVP;
+
+        //point light projection has a 90 degree view angle with a 1 aspect ratio for generating square shadow maps
+        //with a near z value of 1 and far z value of 100
+        pointLightMVP.setProjection(Matrix::projection(90.0f, 1.0f, 1.0f, 100.0f));
+
+        //Placing the lights in equidistant locations for testing
+        /*pointLightMVP.setModel(Matrix::translation(212.14f, 24.68f, 186.46f));
+        _lightList.push_back(new ShadowedPointLight(_viewManager->getEventWrapper(),
+            pointLightMVP,
+            EffectType::Fire,
+            Vector4(1.0f, 0.8f, 0.3f, 1.0f)));*/
+
+        pointLightMVP.setModel(Matrix::translation(198.45f, 24.68f, 186.71f));
+        _lightList.push_back(new Light(_viewManager->getEventWrapper(),
+            pointLightMVP,
+            LightType::POINT,
+            EffectType::Fire,
+            Vector4(1.0f, 0.8f, 0.3f, 1.0f)));
+
+        pointLightMVP.setModel(Matrix::translation(178.45f, 143.59f, 240.71f));
+        _lightList.push_back(new Light(_viewManager->getEventWrapper(),
+            pointLightMVP,
+            LightType::POINT,
+            EffectType::Smoke,
+            Vector4(0.4f, 0.4f, 0.4f, 1.0f)));
+
+        pointLightMVP.setModel(Matrix::translation(0.0f, 10.0f, 0.0f));
+        _lightList.push_back(new Light(_viewManager->getEventWrapper(),
+            pointLightMVP,
+            LightType::POINT,
+            EffectType::Fire,
+            Vector4(1.0f, 0.8f, 0.3f, 1.0f)));
+
         auto dxLayer = DXLayer::instance();
         dxLayer->fenceCommandList();
 
-        if (_graphicsLayer == GraphicsLayer::DX12 && DXLayer::instance()->supportsRayTracing() &&
+        if (_graphicsLayer == GraphicsLayer::DX12 && 
+            DXLayer::instance()->supportsRayTracing() &&
             _useRaytracing) {
 
             dxLayer->initCmdLists();
@@ -266,7 +302,7 @@ void EngineManager::_preDraw() {
         //send all vbo data to point light shadow pre pass
         for (Light* light : _lightList) {
             //ray trace the second direcional light
-            if (light != _lightList[1]) {
+            if (light != _lightList[1] || _useRaytracing == false) {
                 light->renderShadow(_entityList);
             }
         }
@@ -277,19 +313,18 @@ void EngineManager::_preDraw() {
         if (_useRaytracing) {
             _rayTracingPipeline->doRayTracing(_entityList[0], _lightList[1]);
             //DXLayer::instance()->present(_rayTracingPipeline->getRayTracingTarget());
+
+            auto depthTexture = static_cast<RenderTexture*>((static_cast<ShadowedDirectionalLight*>(_lightList[1]))->getDepthTexture());
+            std::vector<RenderTexture> textures = { *depthTexture };
+            HLSLShader::setOM(textures,
+                depthTexture->getWidth(), depthTexture->getHeight());
+
+            auto depthBlit = static_cast<BlitDepthShader*>(ShaderBroker::instance()->getShader("blitDepthShader"));
+
+            depthBlit->runShader(_rayTracingPipeline->getRayTracingTarget(), depthTexture);
+
+            HLSLShader::releaseOM(textures);
         }
-
-        auto depthTexture = static_cast<RenderTexture*>((static_cast<ShadowedDirectionalLight*>(_lightList[1]))->getDepthTexture());
-        std::vector<RenderTexture> textures = { *depthTexture };
-        HLSLShader::setOM(textures,
-            depthTexture->getWidth(), depthTexture->getHeight());
-
-        auto depthBlit = static_cast<BlitDepthShader*>(ShaderBroker::instance()->getShader("blitDepthShader"));
-
-        depthBlit->runShader(_rayTracingPipeline->getRayTracingTarget(), depthTexture);
-
-
-        HLSLShader::releaseOM(textures);
     }
 
     //Establish an offscreen Frame Buffer Object to generate G buffers for deferred shading
@@ -389,11 +424,12 @@ void EngineManager::_postDraw() {
 
         _forwardRenderer->forwardLighting(_entityList, _viewManager, _lightList);
 
-        HLSLShader::releaseOM(textures);
+        // Lights - including the fire point lights
+        for (Light* light : _lightList) {
+            light->render();
+        }
 
-        /*auto textureBroker = TextureBroker::instance();
-        auto texture = textureBroker->getTexture("../assets/textures/firtree/FirTrunk_Df.tga");
-        texture->getResource()->buildMipLevels(texture);*/
+        HLSLShader::releaseOM(textures);
 
         DXLayer::instance()->present(_deferredFBO->getRenderTexture());
 

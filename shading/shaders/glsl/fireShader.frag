@@ -48,8 +48,6 @@ in VsData
 uniform float time;
 uniform vec3 fireColor;
 
-uniform float weight[5] = float[] (0.227027, 0.1945946, 0.1216216, 0.054054, 0.016216);
-
 void main(){
     
 	vec2 uv = vsData.texCoordOut;

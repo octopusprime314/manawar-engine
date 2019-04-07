@@ -35,4 +35,5 @@ public:
     Texture*       getTexture();
     void           compute(Texture* readTexture);
     void           compute(Texture* readTexture, Texture* writeTexture);
+    void           uavBarrier();
 };

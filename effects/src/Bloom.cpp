@@ -33,18 +33,26 @@ void Bloom::compute(Texture* deferredFBOTexture) {
 
     //Luminance threshold test
     _luminanceFilter->compute(deferredFBOTexture);
+    _luminanceFilter->uavBarrier();
 
     _downSample->compute(_luminanceFilter->getTexture());
+    _downSample->uavBarrier();
 
     //Do a horizontal and then a vertical blur pass!
     _horizontalBlur->compute(_downSample->getTexture());
+    _horizontalBlur->uavBarrier();
 
     //Blur 4 more times!
     for (int i = 0; i < 4; i++) {
         _verticalBlur->compute(_horizontalBlur->getTexture());
+        _verticalBlur->uavBarrier();
         _horizontalBlur->compute(_verticalBlur->getTexture());
+        _horizontalBlur->uavBarrier();
     }
     _verticalBlur->compute(_horizontalBlur->getTexture());
+    _verticalBlur->uavBarrier();
 
     _upSample->compute(_verticalBlur->getTexture());
+    _upSample->uavBarrier();
 }
+

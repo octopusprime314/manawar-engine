@@ -406,6 +406,9 @@ void EngineManager::_postDraw() {
     }
     else {
 
+
+        auto cmdList = DXLayer::instance()->getCmdList();
+
         //unbind fbo
         _deferredRenderer->unbind();
 
@@ -431,7 +434,21 @@ void EngineManager::_postDraw() {
 
         HLSLShader::releaseOM(textures);
 
-        DXLayer::instance()->present(_deferredFBO->getRenderTexture());
+        //Compute bloom from deferred fbo texture
+        _bloom->compute(_deferredFBO->getRenderTexture());
 
+        //If adding a second texture then all writes are to this texture second param
+        _add->compute(_deferredFBO->getRenderTexture(), _bloom->getTexture());
+        _add->uavBarrier();
+
+        HLSLShader::setOM(textures,
+            IOEventDistributor::screenPixelWidth, IOEventDistributor::screenPixelHeight);
+
+        Texture* velocityTexture = &_deferredRenderer->getGBuffers()->getTextures()[2];
+        _mergeShader->runShader(_bloom->getTexture(), velocityTexture);
+
+        HLSLShader::releaseOM(textures);
+
+        DXLayer::instance()->present(_deferredFBO->getRenderTexture());
     }
 }

@@ -42,8 +42,8 @@ GraphicsLayer EngineManager::_graphicsLayer;
 
 EngineManager::EngineManager(int* argc, char** argv, HINSTANCE hInstance, int nCmdShow) {
 
-    _useRaytracing = true;
-    _graphicsLayer = GraphicsLayer::DX12;
+    _graphicsLayer = GraphicsLayer::OPENGL;
+    _useRaytracing = _graphicsLayer == GraphicsLayer::DX12 ? true : false;
 
     _inputLayer = new IOEventDistributor(argc, argv, hInstance, nCmdShow);
 

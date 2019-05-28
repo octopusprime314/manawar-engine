@@ -121,6 +121,13 @@ void SSAO::computeSSAO(MRTFrameBuffer* mrtBuffer, ViewEventDistributor* viewEven
             &CD3DX12_RESOURCE_BARRIER::UAV(_upSample->getTexture()->getResource()->getResource().Get()));
     }
     else {
+        //Downsample by a 1/4
+        _downSample->compute(&_renderTexture);
+        //Blur in downsampled 
+        _blur->compute(_downSample->getTexture());
+        //upsample back to original
+        _upSample->compute(_blur->getTexture());
+
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
 

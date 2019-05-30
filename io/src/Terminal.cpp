@@ -127,7 +127,7 @@ void Terminal::display() {
     }
 }
 
-void Terminal::_mousePosition(Vector4 position) {
+bool Terminal::_mousePosition(Vector4 position) {
 
     if (_commandHistory.size() > 0) {
 
@@ -145,8 +145,10 @@ void Terminal::_mousePosition(Vector4 position) {
             position.getFlatBuffer()[3] = static_cast<float>(atof(scale.c_str()));
 
             _modelManager->addModel(modelName, modelToAdd, position);
+            return true;
         }
     }
+    return false;
 }
 
 void Terminal::_updateKeyboard(int key, int x, int y) { //Do stuff based on keyboard update

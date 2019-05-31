@@ -119,6 +119,7 @@ void Terminal::display() {
             std::string modelName = _commandToProcess.substr(0, _commandToProcess.find(' '));
             modelName.pop_back();
             _modelManager->saveModel(modelName);
+            _picker->saveMutableTextures();
         }
         else if (command == "CLEAR") {
             _commandToProcess = _commandToProcess.substr(_commandToProcess.find(' ') + 1);

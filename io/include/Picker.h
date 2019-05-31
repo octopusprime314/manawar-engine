@@ -45,5 +45,6 @@ class Picker {
 public:
     Picker(MRTFrameBuffer* mrt, std::function<bool(Vector4,bool)> terminalCallback);
     void updateIdBuffer();
+    void saveMutableTextures();
     ~Picker();
 };

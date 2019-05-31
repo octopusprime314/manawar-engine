@@ -50,6 +50,14 @@ void Picker::_keyboardPress(int key, int x, int y) {
     }
 }
 
+void Picker::saveMutableTextures() {
+
+    for (auto mutableTexture : _mutableTextureCache) {
+        mutableTexture.second->saveToDisk();
+    }
+}
+
+
 void Picker::_editData(int x, int y, bool mouseDrag, bool mouseClick) {
 
     if (_idBufferCache == nullptr) {

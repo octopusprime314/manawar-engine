@@ -6,28 +6,30 @@ MutableTexture::MutableTexture() {
 }
 
 MutableTexture::MutableTexture(std::string textureName, int width, int height) :
-    Texture(TEXTURE_LOCATION + textureName + ".tif", width, height) {
+    Texture(TEXTURE_LOCATION + textureName + ".tif", width, height),
+    _bitmapToWrite(nullptr) {
     _createTextureData();
 }
 
 MutableTexture::MutableTexture(std::string originalTexture, std::string clonedTexture) :
     Texture(originalTexture,
         TextureBroker::instance()->getAssetTextureFromLayered(originalTexture)->getWidth(),
-        TextureBroker::instance()->getAssetTextureFromLayered(originalTexture)->getHeight()) {
+        TextureBroker::instance()->getAssetTextureFromLayered(originalTexture)->getHeight()),
+    _bitmapToWrite(nullptr) {
     _cloneTexture(TEXTURE_LOCATION + clonedTexture + ".tif");
 }
 
 MutableTexture::MutableTexture(std::string textureName) : 
     Texture(textureName, 
             TextureBroker::instance()->getAssetTextureFromLayered(textureName)->getWidth(),
-            TextureBroker::instance()->getAssetTextureFromLayered(textureName)->getHeight()) {
+            TextureBroker::instance()->getAssetTextureFromLayered(textureName)->getHeight()),
+    _bitmapToWrite(nullptr) {
 
 }
 
 MutableTexture::~MutableTexture() {
 
 }
-
 
 void MutableTexture::_cloneTexture(std::string newName) {
 
@@ -91,6 +93,16 @@ void MutableTexture::_createTextureData() {
     }
 }
 
+void MutableTexture::saveToDisk() {
+    //image format tiff
+    FREE_IMAGE_FORMAT fif = FIF_TIFF;
+    bool success = FreeImage_Save(fif, _bitmapToWrite, (_name).c_str(), TIFF_DEFAULT);
+    FreeImage_Unload(_bitmapToWrite);
+    if (!success) {
+        std::cout << "Texture creation failed: " << _name << std::endl;
+    }
+}
+
 void MutableTexture::editTextureData(int xPosition, int yPosition, Vector4 texturePixel, int radius) {
 
     auto texture = TextureBroker::instance()->getAssetTextureFromLayered(_name);
@@ -100,12 +112,14 @@ void MutableTexture::editTextureData(int xPosition, int yPosition, Vector4 textu
     if (xPosition >= 0 && xPosition < textureWidth && yPosition >= 0 && yPosition < textureHeight) {
         auto bitmapToRead = texture->getBits();
 
-        auto bitmapToWrite = FreeImage_Allocate(textureWidth, textureHeight, 32, 8, 8, 8);
+        if (_bitmapToWrite == nullptr) {
+            _bitmapToWrite = FreeImage_Allocate(textureWidth, textureHeight, 32, 8, 8, 8);
+        }
         //image format bmp for now
         FREE_IMAGE_FORMAT fif = FIF_TIFF;
 
         for (int y = textureHeight - 1; y >= 0; y--) {
-            BYTE *bits = FreeImage_GetScanLine(bitmapToWrite, textureHeight - 1 - y);
+            BYTE *bits = FreeImage_GetScanLine(_bitmapToWrite, textureHeight - 1 - y);
             for (int x = 0; x < textureWidth; x++) {
                 if (x >= xPosition - radius && x <= xPosition + radius
                     && y >= yPosition - radius && y <= yPosition + radius) {
@@ -146,12 +160,6 @@ void MutableTexture::editTextureData(int xPosition, int yPosition, Vector4 textu
                 bitmapToRead += 4;
             }
         }
-        TextureBroker::instance()->updateTextureToLayered(_name, static_cast<void*>(FreeImage_GetBits(bitmapToWrite)));
-
-        bool success = FreeImage_Save(fif, bitmapToWrite, (texture->getName()).c_str(), TIFF_DEFAULT);
-        FreeImage_Unload(bitmapToWrite);
-        if (!success) {
-            std::cout << "Texture creation failed: " << _name << std::endl;
-        }
+        TextureBroker::instance()->updateTextureToLayered(_name, static_cast<void*>(FreeImage_GetBits(_bitmapToWrite)));
     }
 }

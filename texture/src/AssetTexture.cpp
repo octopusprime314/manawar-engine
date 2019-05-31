@@ -66,7 +66,26 @@ AssetTexture::~AssetTexture() {
 
 void AssetTexture::updateTexture(void* data) {
     memcpy(_bits, data, _sizeInBytes);
-    _build2DTextureGL(_name);
+    
+    //Bind the generated reference context to load texture data
+    glBindTexture(GL_TEXTURE_2D, _textureContext);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+
+    //Enable anisotropic filtering which prevent bluring of low res mip map textures
+    //Preserves high texture resolution regardless
+    float aniso = 0.0f;
+    glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY, &aniso);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY, aniso);
+
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, _width, _height, 0, GL_BGRA, GL_UNSIGNED_BYTE, _bits);
+    glGenerateMipmap(GL_TEXTURE_2D); //Allocate mipmaps
+
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    //_build2DTextureGL(_name);
 }
 
 void AssetTexture::_build2DTextureGL(void* data, UINT width, UINT height) {

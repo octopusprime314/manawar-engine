@@ -64,6 +64,11 @@ AssetTexture::~AssetTexture() {
 
 }
 
+void AssetTexture::updateTexture(void* data) {
+    memcpy(_bits, data, _sizeInBytes);
+    _build2DTextureGL(_name);
+}
+
 void AssetTexture::_build2DTextureGL(void* data, UINT width, UINT height) {
     
     glGenTextures(1, &_textureContext);
@@ -394,10 +399,10 @@ bool AssetTexture::_getTextureData(std::string textureName) {
         return false;
     }
 
-    unsigned int imageSize = FreeImage_GetMemorySize(_dib);
+    _sizeInBytes = FreeImage_GetMemorySize(_dib);
     _imageBufferSize = _width * _height * 4;
 
-    if (imageSize >= _imageBufferSize) {
+    if (_sizeInBytes >= _imageBufferSize) {
         _alphaValues = true;
     }
     else {

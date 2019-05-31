@@ -41,12 +41,12 @@ private:
     std::string              _commandToProcess;
     std::vector<std::string> _commandHistory;
     size_t                   _commandHistoryIndex;
+    MRTFrameBuffer*          _gBuffers;
     void                     _updateKeyboard(int key, int x, int y);
     void                     _updateReleaseKeyboard(int key, int x, int y);
     void                     _updateGameState(EngineStateFlags state);
     bool                     _mousePosition(Vector4 position);
     int                      _getCursorIndex();
-
     static ShaderBroker*     _shaderManager; 
     static ModelBroker*      _modelManager;
     EngineStateFlags         _gameState;

@@ -24,9 +24,10 @@
 #include "MRTFrameBuffer.h"
 #include "MutableTexture.h"
 #include <functional>
+#include <unordered_map>
+using MutableTextures = std::unordered_map<std::string, MutableTexture*>;
 
 class Picker {
-
     MRTFrameBuffer*              _mrt;
     void                         _mouseClick(int button, int action, int x, int y);
     void                         _mouseMove(double x, double y);
@@ -39,7 +40,10 @@ class Picker {
     int                          _pickingRadius;
     std::function<bool(Vector4)> _mouseCallback;
     bool                         _leftMousePressed;
+    MutableTextures              _mutableTextureCache;
+    float*                       _idBufferCache;
 public:
     Picker(MRTFrameBuffer* mrt, std::function<bool(Vector4)> terminalCallback);
+    void updateIdBuffer();
     ~Picker();
 };

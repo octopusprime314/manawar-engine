@@ -254,62 +254,64 @@ void ViewEventDistributor::_updateMouse(double x, double y) { //Do stuff based o
 
     static const double mouseSensitivity = 1.5f;
 
-    //Filter out large changes because that causes view twitching
-    if (x != _prevMouseX) {
-    
-        FunctionState* ptr = nullptr;
-        //Use special value 200 to indicate mouse is moving
-        if (_keyboardState.find(200) != _keyboardState.end()) {
-            ptr = _keyboardState[200];
-        }
+    if (_gameState.gameModeEnabled) {
 
-        double diffX = _prevMouseX - x;
-           
-        Vector4 newRot;
-        if (diffX > 0) { //rotate left around y axis
-            newRot = Vector4(0.0, static_cast<float>(-mouseSensitivity * diffX), 0.0);
-        }
-        else if (diffX < 0) { //rotate right around y axis
-            newRot = Vector4(0.0, static_cast<float>(-mouseSensitivity * diffX), 0.0);
-        }
+        //Filter out large changes because that causes view twitching
+        if (x != _prevMouseX) {
 
-        Vector4 rot;
-        if (ptr != nullptr) {
-            rot = ptr->getVectorState();
-        }
-
-        //Define lambda equation
-        auto lamdaEq = [rot, newRot](float t) -> Vector4 {
-            if (t > 0.05f) {
-                return Vector4(0.0,0.0,0.0);
-                //return ((static_cast<Vector4>(newRot)/* + static_cast<Vector4>(rot)*/) * exp(-10.0f*t));
+            FunctionState* ptr = nullptr;
+            //Use special value 200 to indicate mouse is moving
+            if (_keyboardState.find(200) != _keyboardState.end()) {
+                ptr = _keyboardState[200];
             }
-            else {
-                return static_cast<Vector4>(newRot) + static_cast<Vector4>(rot);
+
+            double diffX = _prevMouseX - x;
+
+            Vector4 newRot;
+            if (diffX > 0) { //rotate left around y axis
+                newRot = Vector4(0.0, static_cast<float>(-mouseSensitivity * diffX), 0.0);
             }
-        };
+            else if (diffX < 0) { //rotate right around y axis
+                newRot = Vector4(0.0, static_cast<float>(-mouseSensitivity * diffX), 0.0);
+            }
 
-        //lambda function container that manages force model
-        //Last forever in intervals of 5 milliseconds
-        FunctionState* func = new FunctionState(std::bind(&StateVector::setTorque, _currCamera->getState(), std::placeholders::_1),
-            lamdaEq,
-            5);
+            Vector4 rot;
+            if (ptr != nullptr) {
+                rot = ptr->getVectorState();
+            }
 
-        delete _keyboardState[200];
-        _keyboardState.erase(200);
-        _keyboardState[200] = func;
+            //Define lambda equation
+            auto lamdaEq = [rot, newRot](float t) -> Vector4 {
+                if (t > 0.05f) {
+                    return Vector4(0.0, 0.0, 0.0);
+                    //return ((static_cast<Vector4>(newRot)/* + static_cast<Vector4>(rot)*/) * exp(-10.0f*t));
+                }
+                else {
+                    return static_cast<Vector4>(newRot) + static_cast<Vector4>(rot);
+                }
+            };
 
-        //If not in god camera view mode then push view changes to the model for full control of a model's movements
-        if (!_godState) {
-            _currCamera->setViewMatrix(_thirdPersonTranslation * _currCamera->getView());
+            //lambda function container that manages force model
+            //Last forever in intervals of 5 milliseconds
+            FunctionState* func = new FunctionState(std::bind(&StateVector::setTorque, _currCamera->getState(), std::placeholders::_1),
+                lamdaEq,
+                5);
+
+            delete _keyboardState[200];
+            _keyboardState.erase(200);
+            _keyboardState[200] = func;
+
+            //If not in god camera view mode then push view changes to the model for full control of a model's movements
+            if (!_godState) {
+                _currCamera->setViewMatrix(_thirdPersonTranslation * _currCamera->getView());
+            }
+            _currCamera->getState()->setActive(true);
         }
-        _currCamera->getState()->setActive(true);
-    }
 
-    if (y != _prevMouseY) {
-        double diffY = _prevMouseY - y;
+        if (y != _prevMouseY) {
+            double diffY = _prevMouseY - y;
+        }
     }
-
     _prevMouseX = x;
     _prevMouseY = y;
 }

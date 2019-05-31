@@ -32,3 +32,14 @@ void LayeredTexture::setTexture(AssetTexture* texture) {
         }
     }
 }
+
+void LayeredTexture::updateTexture(std::string textureName, void* pixelData) {
+    
+    for (int i = 0; i < _textures.size(); i++) {
+        auto textureLayer = _textures[i];
+        if (textureLayer->getName().find(textureName) != std::string::npos) {
+            _textures[i]->updateTexture(pixelData);
+        }
+    }
+}
+

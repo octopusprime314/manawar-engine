@@ -86,18 +86,24 @@ AssetTexture* TextureBroker::getAssetTextureFromLayered(std::string textureName)
     return nullptr;
 }
 
-void TextureBroker::updateTextureToLayered(std::string textureName) {
+void TextureBroker::updateTextureToLayered(std::string textureName, void* pixelData) {
     
     for (auto& layeredTexture : _layeredTextures) {
 
         auto& assetTextures = layeredTexture.second->getTextures();
+        
+        for (auto& assetTexture : assetTextures) {
 
-        if (EngineManager::getGraphicsLayer() == GraphicsLayer::OPENGL) {
-            layeredTexture.second->setTexture(new AssetTexture(textureName));
-        }
-        else if (EngineManager::getGraphicsLayer() == GraphicsLayer::DX12) {
-            layeredTexture.second->setTexture(new AssetTexture(textureName,
-                DXLayer::instance()->getCmdList(), DXLayer::instance()->getDevice()));
+            if (assetTexture->getName().compare(textureName) == 0) {
+
+                if (EngineManager::getGraphicsLayer() == GraphicsLayer::OPENGL) {
+                    layeredTexture.second->updateTexture(textureName, pixelData);
+                }
+                else if (EngineManager::getGraphicsLayer() == GraphicsLayer::DX12) {
+                    layeredTexture.second->setTexture(new AssetTexture(textureName,
+                        DXLayer::instance()->getCmdList(), DXLayer::instance()->getDevice()));
+                }
+            }
         }
     }
 }

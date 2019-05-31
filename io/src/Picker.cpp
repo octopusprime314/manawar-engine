@@ -7,13 +7,34 @@ Picker::Picker(MRTFrameBuffer* mrt, std::function<bool(Vector4)> terminalCallbac
     _textureSelection(0),
     _mouseCallback(terminalCallback),
     _pickingRadius(0),
-    _leftMousePressed(false) {
+    _leftMousePressed(false),
+    _idBufferCache(nullptr) {
     IOEvents::subscribeToMouseClick(std::bind(&Picker::_mouseClick, this, _1, _2, _3, _4));
     IOEvents::subscribeToMouse(std::bind(&Picker::_mouseMove, this, _1, _2));
     IOEvents::subscribeToKeyboard(std::bind(&Picker::_keyboardPress, this, _1, _2, _3));
 }
 
 Picker::~Picker() {
+
+}
+
+void Picker::updateIdBuffer() {
+
+    glBindTexture(GL_TEXTURE_2D, _mrt->getTextureContexts()[2]);
+    int packAlignment;
+    glGetIntegerv(GL_PACK_ALIGNMENT, &packAlignment);
+
+    int w;
+    int h;
+    glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &w);
+    glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &h);
+
+    unsigned int size = w * h * packAlignment;
+
+    if (_idBufferCache == nullptr) {
+        _idBufferCache = new float[size];
+    }
+    glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_FLOAT, reinterpret_cast<void*>(_idBufferCache));
 
 }
 
@@ -30,6 +51,7 @@ void Picker::_keyboardPress(int key, int x, int y) {
 }
 
 void Picker::_editData(int x, int y, bool mouseDrag) {
+
     glBindTexture(GL_TEXTURE_2D, _mrt->getTextureContexts()[2]);
     int packAlignment;
     glGetIntegerv(GL_PACK_ALIGNMENT, &packAlignment);
@@ -39,13 +61,13 @@ void Picker::_editData(int x, int y, bool mouseDrag) {
     glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &w);
     glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &h);
 
-    unsigned int size = w * h * packAlignment;
+    //invert y mouse position
+    y = h - y;
+
+    /*unsigned int size = w * h * packAlignment;
     float *pixels = new float[size];
 
     glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_FLOAT, reinterpret_cast<void*>(pixels));
-
-    //invert y mouse position
-    y = h - y;
 
     unsigned int entityID = static_cast<unsigned int>(
         pixels[((x * packAlignment) + (y * w * packAlignment)) + 2] * 16777216.0f);
@@ -53,9 +75,34 @@ void Picker::_editData(int x, int y, bool mouseDrag) {
     unsigned int triangleID = static_cast<unsigned int>(
         pixels[((x * packAlignment) + (y * w * packAlignment)) + 3] * 16777216.0f);
 
-    std::cout << "Entity ID " << entityID << " Triangle ID " << triangleID << std::endl;
+    delete[] pixels;*/
 
-    delete[] pixels;
+    /*float entityTriangleIds[4];
+    glGetTextureSubImage(_mrt->getTextureContexts()[2],
+        0,
+        x,
+        y,
+        0,
+        1,
+        1,
+        1,
+        GL_RGBA,
+        GL_FLOAT,
+        sizeof(entityTriangleIds),
+        &entityTriangleIds);
+    
+    unsigned int entityID = entityTriangleIds[2] * 16777216.0f;
+
+    unsigned int triangleID = entityTriangleIds[3] * 16777216.0f;*/
+
+    //std::cout << "Entity ID " << entityID << " Triangle ID " << triangleID << std::endl;
+
+
+    unsigned int entityID = static_cast<unsigned int>(
+        _idBufferCache[((x * packAlignment) + (y * w * packAlignment)) + 2] * 16777216.0f);
+
+    unsigned int triangleID = static_cast<unsigned int>(
+        _idBufferCache[((x * packAlignment) + (y * w * packAlignment)) + 3] * 16777216.0f);
 
     auto entityList = *EngineManager::getEntityList();
     for (auto entity : entityList) {
@@ -77,23 +124,30 @@ void Picker::_editData(int x, int y, bool mouseDrag) {
                     Vector4 A = entity->getWorldSpaceTransform() * (*vertices)[triangleID * 3];
                     Vector4 B = entity->getWorldSpaceTransform() * (*vertices)[(triangleID * 3) + 1];
                     Vector4 C = entity->getWorldSpaceTransform() * (*vertices)[(triangleID * 3) + 2];
-                    A.display();
-                    B.display();
-                    C.display();
+                    //A.display();
+                    //B.display();
+                    //C.display();
 
                     auto texture = TextureBroker::instance()->getLayeredTexture(layeredTextureName);
                     if (texture != nullptr) {
                         auto layeredTextures = texture->getTextures();
                         for (auto texture : layeredTextures) {
                             if (texture->getName().find("alphamap") != std::string::npos) {
-                                MutableTexture alphaMapEditor(texture->getName());
-                                float width = static_cast<float>(alphaMapEditor.getWidth());
-                                float height = static_cast<float>(alphaMapEditor.getHeight());
+                                MutableTexture* alphaMapEditor = nullptr;
+                                if (_mutableTextureCache.find(texture->getName()) != _mutableTextureCache.end()) {
+                                    alphaMapEditor = _mutableTextureCache.find(texture->getName())->second;
+                                }
+                                else {
+                                    alphaMapEditor = new MutableTexture(texture->getName());
+                                    _mutableTextureCache.insert(std::pair<std::string, MutableTexture*>(texture->getName(), alphaMapEditor));
+                                }
+                                float width = static_cast<float>(alphaMapEditor->getWidth());
+                                float height = static_cast<float>(alphaMapEditor->getHeight());
 
                                 float xOffset = width / 2.0f;
                                 float zOffset = height / 2.0f;
 
-                                float xCentroid = ((A.getx() + B.getx() + C.getx()) / 3.0f);
+                                float xCentroid =  ((A.getx() + B.getx() + C.getx()) / 3.0f);
                                 float zCentroid = -((A.getz() + B.getz() + C.getz()) / 3.0f);
 
                                 if (xCentroid < xOffset) {
@@ -110,7 +164,7 @@ void Picker::_editData(int x, int y, bool mouseDrag) {
                                 int zPosition = (static_cast<int>(zCentroid + zOffset) % static_cast<int>(height));
                                 zPosition = static_cast<int>(height) - zPosition;
 
-                                std::cout << xPosition << " " << zPosition << std::endl;
+                                //std::cout << xPosition << " " << zPosition << std::endl;
                                 A.getFlatBuffer()[2] = -A.getz();
 
                                 bool modelUpdate = false;
@@ -118,7 +172,7 @@ void Picker::_editData(int x, int y, bool mouseDrag) {
                                     modelUpdate = _mouseCallback(A);
                                 }
                                 if (modelUpdate == false) {
-                                    alphaMapEditor.editTextureData(xPosition, zPosition, _pixelEditValue, _pickingRadius);
+                                    alphaMapEditor->editTextureData(xPosition, zPosition, _pixelEditValue, _pickingRadius);
                                 }
                             }
                         }

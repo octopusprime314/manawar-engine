@@ -11,7 +11,8 @@ Terminal::Terminal(MRTFrameBuffer* gBuffers, std::vector<Entity*> entityList) :
     _fontRenderer("ubuntu_mono_regular.fnt"),
     _gameState(EngineState::getEngineState()),
     _commandString("|"),
-    _commandHistoryIndex(0) {
+    _commandHistoryIndex(0),
+    _gBuffers(gBuffers){
     
     //Added global history for quick debugging of model creator
     _commandHistory.push_back("ADDTILE SANDBOX TERRAINTILE 0 0 0 1 SNOW.JPG DIRT.JPG ROCKS.JPG GRASS.JPG|");
@@ -240,6 +241,12 @@ void Terminal::_updateReleaseKeyboard(int key, int x, int y) { //Do stuff based 
 }
 
 void Terminal::_updateGameState(EngineStateFlags state) {
+    
+    //If we go into terminal mode cache the frame buffer's entity and triangle ids for picking efficiency
+    if (state.worldEditorModeEnabled == true && _gameState.worldEditorModeEnabled != state.worldEditorModeEnabled)
+    {
+        _picker->updateIdBuffer();
+    }
     _gameState = state;
 }
 

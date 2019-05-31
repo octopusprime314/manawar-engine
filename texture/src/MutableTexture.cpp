@@ -107,7 +107,6 @@ void MutableTexture::editTextureData(int xPosition, int yPosition, Vector4 textu
         for (int y = textureHeight - 1; y >= 0; y--) {
             BYTE *bits = FreeImage_GetScanLine(bitmapToWrite, textureHeight - 1 - y);
             for (int x = 0; x < textureWidth; x++) {
-
                 if (x >= xPosition - radius && x <= xPosition + radius
                     && y >= yPosition - radius && y <= yPosition + radius) {
 
@@ -147,11 +146,9 @@ void MutableTexture::editTextureData(int xPosition, int yPosition, Vector4 textu
                 bitmapToRead += 4;
             }
         }
-
         bool success = FreeImage_Save(fif, bitmapToWrite, (texture->getName()).c_str(), TIFF_DEFAULT);
         FreeImage_Unload(bitmapToWrite);
-
-        TextureBroker::instance()->updateTextureToLayered(_name);
+        TextureBroker::instance()->updateTextureToLayered(_name, static_cast<void*>(FreeImage_GetBits(bitmapToWrite)));
 
         if (!success) {
             std::cout << "Texture creation failed: " << _name << std::endl;

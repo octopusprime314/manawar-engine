@@ -2,7 +2,7 @@
 #include "IOEvents.h"
 #include "EngineManager.h"
 
-Picker::Picker(MRTFrameBuffer* mrt, std::function<bool(Vector4)> terminalCallback) :
+Picker::Picker(MRTFrameBuffer* mrt, std::function<bool(Vector4,bool)> terminalCallback) :
     _mrt(mrt),
     _textureSelection(0),
     _mouseCallback(terminalCallback),
@@ -50,8 +50,11 @@ void Picker::_keyboardPress(int key, int x, int y) {
     }
 }
 
-void Picker::_editData(int x, int y, bool mouseDrag) {
+void Picker::_editData(int x, int y, bool mouseDrag, bool mouseClick) {
 
+    if (_idBufferCache == nullptr) {
+        return;
+    }
     glBindTexture(GL_TEXTURE_2D, _mrt->getTextureContexts()[2]);
     int packAlignment;
     glGetIntegerv(GL_PACK_ALIGNMENT, &packAlignment);
@@ -168,10 +171,10 @@ void Picker::_editData(int x, int y, bool mouseDrag) {
                                 A.getFlatBuffer()[2] = -A.getz();
 
                                 bool modelUpdate = false;
-                                if (mouseDrag == false) {
-                                    modelUpdate = _mouseCallback(A);
-                                }
-                                if (modelUpdate == false) {
+                                //if (mouseDrag == false && mouseClick == true) {
+                                    modelUpdate = _mouseCallback(A, mouseClick);
+                                //}
+                                if (mouseClick == true) {
                                     alphaMapEditor->editTextureData(xPosition, zPosition, _pixelEditValue, _pickingRadius);
                                 }
                             }
@@ -191,7 +194,10 @@ void Picker::_editData(int x, int y, bool mouseDrag) {
 void Picker::_mouseMove(double x, double y) {
     
     if (_leftMousePressed) {
-        _editData(static_cast<int>(x), static_cast<int>(y), true);
+        _editData(static_cast<int>(x), static_cast<int>(y), true, true);
+    }
+    if (_leftMousePressed == false) {
+        _editData(static_cast<int>(x), static_cast<int>(y), true, false);
     }
 }
 
@@ -232,6 +238,6 @@ void Picker::_mouseClick(int button, int action, int x, int y) {
              x >= 0                           &&
              y >= 0) {
 
-        _editData(x, y, false);
+        _editData(x, y, false, true);
     }
 }

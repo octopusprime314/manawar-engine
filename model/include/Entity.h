@@ -60,6 +60,7 @@ public:
     Geometry*                   getGeometry();
     LayeredTexture*             getLayeredTexture();
     void                        setLayeredTexture(LayeredTexture* layeredTexture);
+    void                        setMVP(MVP mvp);
 protected:
 
     VAOMap                      _frustumVAOMapping;

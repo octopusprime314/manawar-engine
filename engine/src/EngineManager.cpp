@@ -38,7 +38,9 @@ uint64_t nowMs();
 volatile bool g_AssertOnBadOpenGlCall = false;
 
 std::vector<Entity*> EngineManager::_entityList;
-GraphicsLayer EngineManager::_graphicsLayer;
+std::mutex           EngineManager::_entityListLock;
+GraphicsLayer        EngineManager::_graphicsLayer;
+Entity*              EngineManager::_shadowEntity = nullptr;
 
 EngineManager::EngineManager(int* argc, char** argv, HINSTANCE hInstance, int nCmdShow) {
 
@@ -268,14 +270,36 @@ EngineManager::~EngineManager() {
     delete _forwardRenderer;
 }
 
-Entity* EngineManager::addEntity(Model* model, Matrix transform) {
+Entity* EngineManager::addEntity(Model* model, Matrix transform, bool temporaryModel) {
     auto viewManager = ModelBroker::getViewManager();
     auto viewWrapper = viewManager->getEventWrapper();
     MVP mvp;
     mvp.setModel(transform);
     mvp.setView(viewManager->getView());
     mvp.setProjection(viewManager->getProjection());
-    _entityList.push_back(new Entity(model, viewWrapper, mvp)); //Add a static model to the scene
+
+    if (temporaryModel) {
+
+        if (_shadowEntity == nullptr) {
+            _shadowEntity = new Entity(model, viewWrapper, mvp);
+
+            _entityListLock.lock();
+            _entityList.push_back(_shadowEntity); //Add a static model to the scene
+            _entityListLock.unlock();
+        }
+        else {
+            for (auto entity : _entityList) {
+                if (entity == _shadowEntity) {
+                    entity->setMVP(mvp);
+                }
+            }
+        }
+    }
+    else {
+        _entityListLock.lock();
+        _entityList.push_back(new Entity(model, viewWrapper, mvp)); //Add a static model to the scene
+        _entityListLock.unlock();
+    }
     return _entityList.back();
 }
 

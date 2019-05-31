@@ -68,7 +68,7 @@ FbxLoader::FbxLoader(std::string name) :
             std::string modelName = transform.first.substr(0, transform.first.find_first_of("_"));
             Model* modelToInstance = modelBroker->getModel(modelName);
             if (modelToInstance != nullptr) {
-                auto entity = EngineManager::addEntity(modelToInstance, transform.second);
+                auto entity = EngineManager::addEntity(modelToInstance, transform.second, false);
                 if (modelToInstance->getName().find("tile") != std::string::npos) {
                     auto textureBroker = TextureBroker::instance();
                     std::string layeredTextureName = "Layered";
@@ -409,7 +409,7 @@ void FbxLoader::addToScene(Model* modelAddedTo, FbxLoader* modelToLoad, Vector4 
         Matrix::scale(location.getw()) * 
         modelToLoad->getObjectSpaceTransform();
 
-    EngineManager::addEntity(ModelBroker::instance()->getModel(modelName), transformation);
+    EngineManager::addEntity(ModelBroker::instance()->getModel(modelName), transformation, false);
 }
 
 Matrix FbxLoader::getObjectSpaceTransform() {
@@ -541,7 +541,7 @@ void FbxLoader::addTileToScene(Model* modelAddedTo, FbxLoader* modelToLoad, Vect
         Matrix::scale(location.getw()) *
         modelToLoad->getObjectSpaceTransform();
 
-    auto entity = EngineManager::addEntity(ModelBroker::instance()->getModel(modelName), transformation);
+    auto entity = EngineManager::addEntity(ModelBroker::instance()->getModel(modelName), transformation, false);
 
     auto textureBroker = TextureBroker::instance();
     std::string layeredTextureName = "Layered";

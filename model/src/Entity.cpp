@@ -122,6 +122,11 @@ VAOMap Entity::getVAOMapping() {
 MVP* Entity::getMVP() {
     return &_mvp;
 }
+void Entity::setMVP(MVP transforms) {
+    _worldSpaceTransform = transforms.getModelMatrix();
+    _mvp.setProjection(transforms.getProjectionMatrix());
+    _mvp.setView(transforms.getViewMatrix());
+}
 MVP* Entity::getPrevMVP() {
     return &_prevMVP;
 }

@@ -45,7 +45,7 @@ private:
     void                     _updateKeyboard(int key, int x, int y);
     void                     _updateReleaseKeyboard(int key, int x, int y);
     void                     _updateGameState(EngineStateFlags state);
-    bool                     _mousePosition(Vector4 position);
+    bool                     _mousePosition(Vector4 position, bool mouseClick);
     int                      _getCursorIndex();
     static ShaderBroker*     _shaderManager; 
     static ModelBroker*      _modelManager;

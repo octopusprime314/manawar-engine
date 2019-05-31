@@ -1,6 +1,7 @@
 #include "Terminal.h"
 #include "IOEvents.h"
 #include "Picker.h"
+#include "EngineManager.h"
 
 ShaderBroker* Terminal::_shaderManager = ShaderBroker::instance();
 ModelBroker*  Terminal::_modelManager  = ModelBroker::instance();
@@ -19,7 +20,7 @@ Terminal::Terminal(MRTFrameBuffer* gBuffers, std::vector<Entity*> entityList) :
     _commandHistory.push_back("MOUSEADD SANDBOX DEADTREE 0.025|");
     _commandHistory.push_back("SAVE SANDBOX|");
 
-    _picker = new Picker(gBuffers, std::bind(&Terminal::_mousePosition, this, _1));
+    _picker = new Picker(gBuffers, std::bind(&Terminal::_mousePosition, this, _1, _2));
 
     IOEvents::subscribeToKeyboard(std::bind(&Terminal::_updateKeyboard, this, _1, _2, _3));
     IOEvents::subscribeToReleaseKeyboard(std::bind(&Terminal::_updateReleaseKeyboard, this, _1, _2, _3));
@@ -39,6 +40,10 @@ void Terminal::display() {
     }
 
     if (_commandToProcess.size() > 0) {
+
+        //If a command comes in that could potentially change the geometry in the scene
+        //then we need to update the id gbuffer
+        //_picker->updateIdBuffer();
 
         auto location = _commandToProcess.find(' ');
         std::string command = _commandToProcess.substr(0, location);
@@ -128,7 +133,7 @@ void Terminal::display() {
     }
 }
 
-bool Terminal::_mousePosition(Vector4 position) {
+bool Terminal::_mousePosition(Vector4 position, bool mouseClick) {
 
     if (_commandHistory.size() > 0) {
 
@@ -145,7 +150,20 @@ bool Terminal::_mousePosition(Vector4 position) {
             std::string scale = commandString.substr(0, commandString.find(' '));
             position.getFlatBuffer()[3] = static_cast<float>(atof(scale.c_str()));
 
-            _modelManager->addModel(modelName, modelToAdd, position);
+            if (mouseClick) {
+                _modelManager->addModel(modelName, modelToAdd, position);
+            }
+            else {
+                if (_modelManager->getModel(modelToAdd) != nullptr) {
+
+                    auto transformation =
+                        Matrix::translation(position.getx(), position.gety(), position.getz()) *
+                        Matrix::scale(position.getw()) *
+                        _modelManager->getModel(modelToAdd)->getFbxLoader()->getObjectSpaceTransform();
+
+                    EngineManager::addEntity(ModelBroker::instance()->getModel(modelToAdd), transformation, true);
+                }
+            }
             return true;
         }
     }

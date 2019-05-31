@@ -77,14 +77,15 @@ class EngineManager {
     Water*                       _water;
     Bloom*                       _bloom;
     SSCompute*                   _add;
-
+    static std::mutex            _entityListLock;
+    static Entity*               _shadowEntity;
                                  
     void                         _preDraw(); //Prior to drawing objects call this function
     void                         _postDraw(); //Post of drawing objects call this function
 public:
     EngineManager(int* argc, char** argv, HINSTANCE hInstance, int nCmdShow);
     ~EngineManager();
-    static Entity*               addEntity(Model* model, Matrix transform);
+    static Entity*               addEntity(Model* model, Matrix transform, bool temporaryModel);
     static std::vector<Entity*>* getEntityList();
     static GraphicsLayer         getGraphicsLayer();
 };

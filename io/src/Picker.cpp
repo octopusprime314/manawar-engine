@@ -67,40 +67,6 @@ void Picker::_editData(int x, int y, bool mouseDrag, bool mouseClick) {
     //invert y mouse position
     y = h - y;
 
-    /*unsigned int size = w * h * packAlignment;
-    float *pixels = new float[size];
-
-    glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_FLOAT, reinterpret_cast<void*>(pixels));
-
-    unsigned int entityID = static_cast<unsigned int>(
-        pixels[((x * packAlignment) + (y * w * packAlignment)) + 2] * 16777216.0f);
-
-    unsigned int triangleID = static_cast<unsigned int>(
-        pixels[((x * packAlignment) + (y * w * packAlignment)) + 3] * 16777216.0f);
-
-    delete[] pixels;*/
-
-    /*float entityTriangleIds[4];
-    glGetTextureSubImage(_mrt->getTextureContexts()[2],
-        0,
-        x,
-        y,
-        0,
-        1,
-        1,
-        1,
-        GL_RGBA,
-        GL_FLOAT,
-        sizeof(entityTriangleIds),
-        &entityTriangleIds);
-    
-    unsigned int entityID = entityTriangleIds[2] * 16777216.0f;
-
-    unsigned int triangleID = entityTriangleIds[3] * 16777216.0f;*/
-
-    //std::cout << "Entity ID " << entityID << " Triangle ID " << triangleID << std::endl;
-
-
     unsigned int entityID = static_cast<unsigned int>(
         _idBufferCache[((x * packAlignment) + (y * w * packAlignment)) + 2] * 16777216.0f);
 
@@ -123,14 +89,6 @@ void Picker::_editData(int x, int y, bool mouseDrag, bool mouseClick) {
                         layeredTextureName += texture->getName();
                     }
 
-                    auto vertices = renderBuffers->getVertices();
-                    Vector4 A = entity->getWorldSpaceTransform() * (*vertices)[triangleID * 3];
-                    Vector4 B = entity->getWorldSpaceTransform() * (*vertices)[(triangleID * 3) + 1];
-                    Vector4 C = entity->getWorldSpaceTransform() * (*vertices)[(triangleID * 3) + 2];
-                    //A.display();
-                    //B.display();
-                    //C.display();
-
                     auto texture = TextureBroker::instance()->getLayeredTexture(layeredTextureName);
                     if (texture != nullptr) {
                         auto layeredTextures = texture->getTextures();
@@ -149,6 +107,11 @@ void Picker::_editData(int x, int y, bool mouseDrag, bool mouseClick) {
 
                                 float xOffset = width / 2.0f;
                                 float zOffset = height / 2.0f;
+
+                                auto vertices = renderBuffers->getVertices();
+                                Vector4 A = entity->getWorldSpaceTransform() * (*vertices)[triangleID * 3];
+                                Vector4 B = entity->getWorldSpaceTransform() * (*vertices)[(triangleID * 3) + 1];
+                                Vector4 C = entity->getWorldSpaceTransform() * (*vertices)[(triangleID * 3) + 2];
 
                                 float xCentroid =  ((A.getx() + B.getx() + C.getx()) / 3.0f);
                                 float zCentroid = -((A.getz() + B.getz() + C.getz()) / 3.0f);
@@ -174,7 +137,7 @@ void Picker::_editData(int x, int y, bool mouseDrag, bool mouseClick) {
                                 //if (mouseDrag == false && mouseClick == true) {
                                     modelUpdate = _mouseCallback(A, mouseClick);
                                 //}
-                                if (mouseClick == true) {
+                                if (mouseClick == true && modelUpdate == false) {
                                     alphaMapEditor->editTextureData(xPosition, zPosition, _pixelEditValue, _pickingRadius);
                                 }
                             }

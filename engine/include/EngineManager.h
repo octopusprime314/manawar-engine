@@ -78,7 +78,7 @@ class EngineManager {
     Bloom*                       _bloom;
     SSCompute*                   _add;
     static std::mutex            _entityListLock;
-    static Entity*               _shadowEntity;
+    static Entity*               _tempEntity;
                                  
     void                         _preDraw(); //Prior to drawing objects call this function
     void                         _postDraw(); //Post of drawing objects call this function

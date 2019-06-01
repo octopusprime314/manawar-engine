@@ -145,8 +145,12 @@ void Picker::_editData(int x, int y, bool mouseDrag, bool mouseClick) {
                                 //if (mouseDrag == false && mouseClick == true) {
                                     modelUpdate = _mouseCallback(A, mouseClick);
                                 //}
-                                if (mouseClick == true && modelUpdate == false) {
-                                    alphaMapEditor->editTextureData(xPosition, zPosition, _pixelEditValue, _pickingRadius);
+                                if (/*mouseClick == true && */modelUpdate == false) {
+                                    alphaMapEditor->editTextureData(xPosition,
+                                                                    zPosition,
+                                                                    _pixelEditValue,
+                                                                    (mouseDrag == true && mouseClick == false),
+                                                                    _pickingRadius);
                                 }
                             }
                         }

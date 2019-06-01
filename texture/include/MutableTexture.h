@@ -30,11 +30,12 @@ class MutableTexture : public Texture{
     void      _createTextureData();
     void      _cloneTexture(std::string newName);
     FIBITMAP* _bitmapToWrite;
+    BYTE*     _originalData;
 public:
     MutableTexture(std::string textureName); //texture already exists!
     MutableTexture(std::string originalTexture, std::string clonedTexture);
     MutableTexture(std::string textureName, int width, int height); 
     ~MutableTexture();
-    void editTextureData(int x, int y, Vector4 texturePixel, int radius = 0);
+    void editTextureData(int x, int y, Vector4 texturePixel, bool tempChange, int radius = 0);
     void saveToDisk();
 };

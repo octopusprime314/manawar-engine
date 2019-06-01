@@ -42,7 +42,6 @@ class AssetTexture : public Texture{
     void                         _decodeTexture(std::string textureName, unsigned int textureType);
   
     unsigned int                 _imageBufferSize;
-    unsigned int                 _sizeInBytes;
     BYTE*                        _bits;
     bool                         _alphaValues;
     FIBITMAP*                    _dib;

@@ -36,6 +36,10 @@ std::string Texture::getName() {
     return _name;
 }
 
+uint32_t Texture::getSizeInBytes() {
+    return _sizeInBytes;
+}
+
 ResourceBuffer* Texture::getResource() {
     return _textureBuffer;
 }

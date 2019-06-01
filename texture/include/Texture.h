@@ -49,6 +49,7 @@ protected:
     GLuint                       _width;
     GLuint                       _height;
     std::string                  _name;
+    uint32_t                     _sizeInBytes;
     ResourceBuffer*              _textureBuffer;
     ComPtr<ID3D12DescriptorHeap> _uavDescriptorHeap;
     ComPtr<ID3D12DescriptorHeap> _srvDescriptorHeap;
@@ -64,6 +65,7 @@ public:
     GLuint      getWidth();
     GLuint      getHeight();
     std::string getName();
+    uint32_t    getSizeInBytes();
     ResourceBuffer* getResource();
     ComPtr<ID3D12DescriptorHeap> getUAVDescriptor();
     void        bindToDXShader(ComPtr<ID3D12GraphicsCommandList>& cmdList,

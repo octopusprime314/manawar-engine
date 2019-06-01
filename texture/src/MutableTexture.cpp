@@ -7,7 +7,8 @@ MutableTexture::MutableTexture() {
 
 MutableTexture::MutableTexture(std::string textureName, int width, int height) :
     Texture(TEXTURE_LOCATION + textureName + ".tif", width, height),
-    _bitmapToWrite(nullptr) {
+    _bitmapToWrite(nullptr),
+    _originalData(nullptr) {
     _createTextureData();
 }
 
@@ -15,7 +16,8 @@ MutableTexture::MutableTexture(std::string originalTexture, std::string clonedTe
     Texture(originalTexture,
         TextureBroker::instance()->getAssetTextureFromLayered(originalTexture)->getWidth(),
         TextureBroker::instance()->getAssetTextureFromLayered(originalTexture)->getHeight()),
-    _bitmapToWrite(nullptr) {
+    _bitmapToWrite(nullptr),
+    _originalData(nullptr) {
     _cloneTexture(TEXTURE_LOCATION + clonedTexture + ".tif");
 }
 
@@ -23,7 +25,8 @@ MutableTexture::MutableTexture(std::string textureName) :
     Texture(textureName, 
             TextureBroker::instance()->getAssetTextureFromLayered(textureName)->getWidth(),
             TextureBroker::instance()->getAssetTextureFromLayered(textureName)->getHeight()),
-    _bitmapToWrite(nullptr) {
+    _bitmapToWrite(nullptr),
+    _originalData(nullptr) {
 
 }
 
@@ -103,18 +106,32 @@ void MutableTexture::saveToDisk() {
     }
 }
 
-void MutableTexture::editTextureData(int xPosition, int yPosition, Vector4 texturePixel, int radius) {
+void MutableTexture::editTextureData(int xPosition, int yPosition, Vector4 texturePixel, bool tempChange, int radius) {
 
     auto texture = TextureBroker::instance()->getAssetTextureFromLayered(_name);
     int textureWidth = texture->getWidth();
     int textureHeight = texture->getHeight();
 
     if (xPosition >= 0 && xPosition < textureWidth && yPosition >= 0 && yPosition < textureHeight) {
-        auto bitmapToRead = texture->getBits();
-
+        
+        FIBITMAP* bitmap = nullptr;
+        if (_originalData == nullptr) {
+            auto size = texture->getSizeInBytes();
+            _originalData = new BYTE[size];
+            memcpy(_originalData, texture->getBits(), size);
+        }
         if (_bitmapToWrite == nullptr) {
             _bitmapToWrite = FreeImage_Allocate(textureWidth, textureHeight, 32, 8, 8, 8);
         }
+
+        BYTE* bitmapToRead = nullptr;
+        if (tempChange) {
+            bitmapToRead = _originalData;
+        }
+        else {
+            bitmapToRead = texture->getBits();
+        }
+
         //image format bmp for now
         FREE_IMAGE_FORMAT fif = FIF_TIFF;
 
@@ -159,6 +176,10 @@ void MutableTexture::editTextureData(int xPosition, int yPosition, Vector4 textu
                 bits += 4; //pointer math
                 bitmapToRead += 4;
             }
+        }
+        if (_originalData != nullptr && tempChange == false) {
+            auto size = texture->getSizeInBytes();
+            memcpy(_originalData, FreeImage_GetBits(_bitmapToWrite), size);
         }
         TextureBroker::instance()->updateTextureToLayered(_name, static_cast<void*>(FreeImage_GetBits(_bitmapToWrite)));
     }

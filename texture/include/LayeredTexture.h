@@ -35,5 +35,5 @@ public:
     ~LayeredTexture();
     std::vector<AssetTexture*> getTextures();
     void                       setTexture(AssetTexture* texture);
-    void                       updateTexture(std::string textureName, void* pixelData);
+    void                       updateTexture(std::string textureName, FIBITMAP* pixelData);
 };

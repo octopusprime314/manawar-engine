@@ -49,6 +49,7 @@ private:
     int                      _getCursorIndex();
     static ShaderBroker*     _shaderManager; 
     static ModelBroker*      _modelManager;
+    int                      _modelNameIndex;
     EngineStateFlags         _gameState;
     Picker*                  _picker;
     bool                     _shiftKeyPressed;

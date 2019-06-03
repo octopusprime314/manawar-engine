@@ -55,6 +55,10 @@ Model* ModelBroker::getModel(std::string modelName) {
     return _models[upperCaseMapName];
 }
 
+std::vector<std::string> ModelBroker::getModelNames() {
+    return _modelNames;
+}
+
 void ModelBroker::clearChanges(std::string modelName) {
 
     std::string upperCaseMapName = _strToUpper(modelName);
@@ -167,6 +171,7 @@ void ModelBroker::_gatherModelNames() {
 
                     std::string mapName = fileName + "/" + fileName + ".fbx";
                     _models[_strToUpper(fileName)] = new Model(STATIC_MESH_LOCATION + mapName);
+                    _modelNames.push_back(_strToUpper(fileName));
                 }
             }
         }
@@ -191,6 +196,7 @@ void ModelBroker::_gatherModelNames() {
 
                     std::string mapName = fileName + "/" + fileName + ".fbx";
                     _models[_strToUpper(fileName)] = static_cast<Model*>(new AnimatedModel(ANIMATED_MESH_LOCATION + mapName));
+                    _modelNames.push_back(_strToUpper(fileName));
                 }
             }
         }

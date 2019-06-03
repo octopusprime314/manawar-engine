@@ -33,8 +33,8 @@ void LayeredTexture::setTexture(AssetTexture* texture) {
     }
 }
 
-void LayeredTexture::updateTexture(std::string textureName, void* pixelData) {
-    
+void LayeredTexture::updateTexture(std::string textureName, FIBITMAP* pixelData) {
+
     for (int i = 0; i < _textures.size(); i++) {
         auto textureLayer = _textures[i];
         if (textureLayer->getName().find(textureName) != std::string::npos) {

@@ -4,7 +4,7 @@
 #include "FrustumCuller.h"
 #include "GeometryMath.h"
 
-unsigned int Entity::_idGenerator = 0;
+unsigned int Entity::_idGenerator = 1;
 
 Entity::Entity(Model* model, ViewEvents* eventWrapper, MVP transforms) :
     EventSubscriber(eventWrapper),

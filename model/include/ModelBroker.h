@@ -32,6 +32,7 @@ using ModelMap = std::map<std::string, Model*>;
 class ModelBroker {
     ModelBroker();
     ModelMap                     _models;
+    std::vector<std::string>     _modelNames;
     static ModelBroker*          _broker;
     void                         _gatherModelNames();
     std::string                  _strToUpper(std::string s);
@@ -42,6 +43,7 @@ public:
     static ModelBroker*          instance();
     ~ModelBroker();
     Model*                       getModel(std::string modelName);
+    std::vector<std::string>     getModelNames();
     void                         buildModels();
     void                         clearChanges(std::string modelName);
     void                         updateModel(std::string modelName);

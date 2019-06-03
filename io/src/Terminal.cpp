@@ -13,7 +13,8 @@ Terminal::Terminal(MRTFrameBuffer* gBuffers, std::vector<Entity*> entityList) :
     _gameState(EngineState::getEngineState()),
     _commandString("|"),
     _commandHistoryIndex(0),
-    _gBuffers(gBuffers){
+    _gBuffers(gBuffers),
+    _modelNameIndex(0) {
     
     //Added global history for quick debugging of model creator
     _commandHistory.push_back("ADDTILE SANDBOX TERRAINTILE 0 0 0 1 SNOW.JPG DIRT.JPG ROCKS.JPG GRASS.JPG|");
@@ -40,10 +41,6 @@ void Terminal::display() {
     }
 
     if (_commandToProcess.size() > 0) {
-
-        //If a command comes in that could potentially change the geometry in the scene
-        //then we need to update the id gbuffer
-        //_picker->updateIdBuffer();
 
         auto location = _commandToProcess.find(' ');
         std::string command = _commandToProcess.substr(0, location);
@@ -112,7 +109,11 @@ void Terminal::display() {
             std::string modelName = _commandToProcess.substr(0, _commandToProcess.find(' '));
             _commandToProcess = _commandToProcess.substr(_commandToProcess.find(' ') + 1);
             std::string modelToAdd = _commandToProcess.substr(0, _commandToProcess.find(' '));
-            modelToAdd.pop_back();
+            if (modelToAdd == "*") {
+                auto modelCount = _modelManager->getModelNames().size();
+                _modelNameIndex++;
+                _modelNameIndex = _modelNameIndex % modelCount;
+            }
         }
         else if (command == "SAVE") {
             _commandToProcess = _commandToProcess.substr(_commandToProcess.find(' ') + 1);
@@ -147,6 +148,10 @@ bool Terminal::_mousePosition(Vector4 position, bool mouseClick) {
             std::string modelName = commandString.substr(0, commandString.find(' '));
             commandString = commandString.substr(commandString.find(' ') + 1);
             std::string modelToAdd = commandString.substr(0, commandString.find(' '));
+            if (modelToAdd == "*") {
+                auto modelNamesList = _modelManager->getModelNames();
+                modelToAdd = modelNamesList[_modelNameIndex];
+            }
             commandString = commandString.substr(commandString.find(' ') + 1);
             std::string scale = commandString.substr(0, commandString.find(' '));
             position.getFlatBuffer()[3] = static_cast<float>(atof(scale.c_str()));
@@ -236,6 +241,9 @@ void Terminal::_updateKeyboard(int key, int x, int y) { //Do stuff based on keyb
         else {
             int i = _getCursorIndex();
             if (i != _commandString.size() - 1 && _commandString.size() > 1) {
+                if (_shiftKeyPressed && key == 56) { //key stroke * or wildcard
+                    key = 42;
+                }
                 _commandString = _commandString.substr(0, i) + char(key) + '|' + _commandString.substr(i + 1);
             }
             else {
@@ -248,6 +256,11 @@ void Terminal::_updateKeyboard(int key, int x, int y) { //Do stuff based on keyb
 
 void Terminal::_updateReleaseKeyboard(int key, int x, int y) { //Do stuff based on keyboard release update
 
+    //update id buffer hopefully after a frame update is made
+    if (_gameState.worldEditorModeEnabled == true)
+    {
+        _picker->updateIdBuffer();
+    }
 
     if (_gameState.worldEditorModeEnabled &&
         key != GLFW_KEY_GRAVE_ACCENT &&

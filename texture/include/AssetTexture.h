@@ -59,6 +59,6 @@ public:
     ~AssetTexture();
     void  buildMipLevels();
     bool  getTransparency();
-    void  updateTexture(void* data);
+    void  updateTexture(FIBITMAP* data);
     BYTE* getBits();
 };

@@ -141,11 +141,9 @@ void Picker::_editData(int x, int y, bool mouseDrag, bool mouseClick) {
                                 //std::cout << xPosition << " " << zPosition << std::endl;
                                 A.getFlatBuffer()[2] = -A.getz();
 
-                                bool modelUpdate = false;
-                                //if (mouseDrag == false && mouseClick == true) {
-                                    modelUpdate = _mouseCallback(A, mouseClick);
-                                //}
-                                if (/*mouseClick == true && */modelUpdate == false) {
+                                bool modelUpdate = _mouseCallback(A, mouseClick);
+
+                                if (modelUpdate == false) {
                                     alphaMapEditor->editTextureData(xPosition,
                                                                     zPosition,
                                                                     _pixelEditValue,
@@ -182,7 +180,7 @@ void Picker::_mouseClick(int button, int action, int x, int y) {
     if (button == GLFW_MOUSE_BUTTON_LEFT &&
         x >= 0                           &&
         y >= 0) {
-        
+
         if (action == GLFW_PRESS) {
             _leftMousePressed = true;
         }
@@ -192,7 +190,7 @@ void Picker::_mouseClick(int button, int action, int x, int y) {
     }
 
     if (button == GLFW_MOUSE_BUTTON_MIDDLE && action == GLFW_PRESS) {
-        
+
         if (_textureSelection == 0) {
             _pixelEditValue = Vector4(255, 0, 0, 255);
         }
@@ -205,6 +203,7 @@ void Picker::_mouseClick(int button, int action, int x, int y) {
         else if (_textureSelection == 3) {
             _pixelEditValue = Vector4(0, 0, 0, 0); //inverse for alpha value
         }
+        _editData(x, y, true, false);
         _textureSelection++;
         _textureSelection %= 4;
     }
@@ -212,7 +211,6 @@ void Picker::_mouseClick(int button, int action, int x, int y) {
              action == GLFW_PRESS             &&
              x >= 0                           &&
              y >= 0) {
-
         _editData(x, y, false, true);
     }
 }

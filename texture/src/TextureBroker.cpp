@@ -86,7 +86,7 @@ AssetTexture* TextureBroker::getAssetTextureFromLayered(std::string textureName)
     return nullptr;
 }
 
-void TextureBroker::updateTextureToLayered(std::string textureName, void* pixelData) {
+void TextureBroker::updateTextureToLayered(std::string textureName, FIBITMAP* pixelData) {
     
     for (auto& layeredTexture : _layeredTextures) {
 

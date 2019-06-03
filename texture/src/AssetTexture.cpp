@@ -64,8 +64,13 @@ AssetTexture::~AssetTexture() {
 
 }
 
-void AssetTexture::updateTexture(void* data) {
-    memcpy(_bits, data, _sizeInBytes);
+void AssetTexture::updateTexture(FIBITMAP* data) {
+    unsigned int bytesToWrite = FreeImage_GetMemorySize(data);
+    void* pixelData = static_cast<void*>(FreeImage_GetBits(data));
+    if (bytesToWrite != _sizeInBytes) {
+        _bits = new BYTE[bytesToWrite];
+    }
+    memcpy(_bits, pixelData, bytesToWrite);
     
     //Bind the generated reference context to load texture data
     glBindTexture(GL_TEXTURE_2D, _textureContext);
@@ -84,8 +89,6 @@ void AssetTexture::updateTexture(void* data) {
     glGenerateMipmap(GL_TEXTURE_2D); //Allocate mipmaps
 
     glBindTexture(GL_TEXTURE_2D, 0);
-
-    //_build2DTextureGL(_name);
 }
 
 void AssetTexture::_build2DTextureGL(void* data, UINT width, UINT height) {

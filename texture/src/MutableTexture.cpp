@@ -97,12 +97,14 @@ void MutableTexture::_createTextureData() {
 }
 
 void MutableTexture::saveToDisk() {
-    //image format tiff
-    FREE_IMAGE_FORMAT fif = FIF_TIFF;
-    bool success = FreeImage_Save(fif, _bitmapToWrite, (_name).c_str(), TIFF_DEFAULT);
-    //FreeImage_Unload(_bitmapToWrite);
-    if (!success) {
-        std::cout << "Texture creation failed: " << _name << std::endl;
+    if (_bitmapToWrite != nullptr) {
+        //image format tiff
+        FREE_IMAGE_FORMAT fif = FIF_TIFF;
+        bool success = FreeImage_Save(fif, _bitmapToWrite, (_name).c_str(), TIFF_DEFAULT);
+        //FreeImage_Unload(_bitmapToWrite);
+        if (!success) {
+            std::cout << "Texture creation failed: " << _name << std::endl;
+        }
     }
 }
 
@@ -112,7 +114,7 @@ void MutableTexture::editTextureData(int xPosition, int yPosition, Vector4 textu
     int textureWidth = texture->getWidth();
     int textureHeight = texture->getHeight();
 
-    if (xPosition >= 0 && xPosition < textureWidth && yPosition >= 0 && yPosition < textureHeight) {
+    if (xPosition >= 0 && xPosition < (textureWidth + radius) && yPosition >= 0 && yPosition < (textureHeight + radius)) {
         
         FIBITMAP* bitmap = nullptr;
         if (_originalData == nullptr) {

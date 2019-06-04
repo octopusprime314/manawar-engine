@@ -360,7 +360,7 @@ void EngineManager::_postDraw() {
 
         glCheck();
         //Render the water around the island
-        _water->render();
+        //_water->render();
 
         //unbind fbo
         _deferredRenderer->unbind();

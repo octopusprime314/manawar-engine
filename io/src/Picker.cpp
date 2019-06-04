@@ -75,81 +75,127 @@ void Picker::_editData(int x, int y, bool mouseDrag, bool mouseClick) {
     //invert y mouse position
     y = h - y;
 
+    /*std::set<std::pair<UINT, UINT>> rangeOfEntityIds;
+    
+    for (int i = -_pickingRadius; i < _pickingRadius; i+= _pickingRadius) {
+        for (int j = -_pickingRadius; j < _pickingRadius; j+= _pickingRadius) {
+            unsigned int entityID = static_cast<unsigned int>(
+                _idBufferCache[(((x + i) * packAlignment) + ((y + j) * w * packAlignment)) + 2] * 16777216.0f);
+
+            unsigned int triangleID = static_cast<unsigned int>(
+                _idBufferCache[(((x + i) * packAlignment) + ((y + j) * w * packAlignment)) + 3] * 16777216.0f);
+
+            rangeOfEntityIds.insert(std::pair<UINT, UINT>(entityID, triangleID));
+        }
+    }
+
+    auto entityList = *EngineManager::getEntityList();
+    std::set<std::pair<Entity*, UINT>> entitiesToEdit;
+    for (auto idPair : rangeOfEntityIds) {
+        for (auto entity : entityList) {
+            if (entity->getID() == idPair.first) {
+                entitiesToEdit.insert(std::pair<Entity*, UINT>(entity, idPair.second));
+            }
+        }
+    }*/
+
     unsigned int entityID = static_cast<unsigned int>(
         _idBufferCache[((x * packAlignment) + (y * w * packAlignment)) + 2] * 16777216.0f);
 
     unsigned int triangleID = static_cast<unsigned int>(
         _idBufferCache[((x * packAlignment) + (y * w * packAlignment)) + 3] * 16777216.0f);
 
-    auto entityList = *EngineManager::getEntityList();
-    for (auto entity : entityList) {
-        if (entity->isID(entityID)) {
-            entity->setSelected(true);
-            if (entity->getModel()->getRenderBuffers() != nullptr) {
+    for (auto entity : *EngineManager::getEntityList()) {
+        entity->setSelected(true);
+        if (entity->getID() == entityID &&
+            entity->getModel()->getRenderBuffers() != nullptr && 
+            entity->getLayeredTexture() != nullptr) {
 
-                if (entity->getLayeredTexture() != nullptr) {
+            auto layeredTexture = entity->getLayeredTexture()->getTextures();
+            //used to retrieve triangle in entity
+            auto renderBuffers = entity->getModel()->getRenderBuffers();
+            std::string layeredTextureName = "Layered";
+            for (auto& texture : layeredTexture) {
+                layeredTextureName += texture->getName();
+            }
 
-                    auto layeredTexture = entity->getLayeredTexture()->getTextures();
-                    //used to retrieve triangle in entity
-                    auto renderBuffers = entity->getModel()->getRenderBuffers();
-                    std::string layeredTextureName = "Layered";
-                    for (auto& texture : layeredTexture) {
-                        layeredTextureName += texture->getName();
-                    }
+            auto texture = TextureBroker::instance()->getLayeredTexture(layeredTextureName);
+            if (texture != nullptr) {
+                auto layeredTextures = texture->getTextures();
+                for (auto texture : layeredTextures) {
+                    if (texture->getName().find("alphamap") != std::string::npos) {
+                        Vector4 tileExtents;
+                        std::string extentsInString = texture->getName().substr(texture->getName().find("clone") + 5);
+                        int xPosOfTile = std::atoi(extentsInString.substr(0, extentsInString.find("_")).c_str());
+                        extentsInString = extentsInString.substr(extentsInString.find("_") + 1);
+                        int yPosOfTile = std::atoi(extentsInString.substr(0, extentsInString.find("_")).c_str());
+                        extentsInString = extentsInString.substr(extentsInString.find("_") + 1);
+                        int zPosOfTile = std::atoi(extentsInString.substr(0, extentsInString.find(".")).c_str());
 
-                    auto texture = TextureBroker::instance()->getLayeredTexture(layeredTextureName);
-                    if (texture != nullptr) {
-                        auto layeredTextures = texture->getTextures();
-                        for (auto texture : layeredTextures) {
-                            if (texture->getName().find("alphamap") != std::string::npos) {
-                                MutableTexture* alphaMapEditor = nullptr;
-                                if (_mutableTextureCache.find(texture->getName()) != _mutableTextureCache.end()) {
-                                    alphaMapEditor = _mutableTextureCache.find(texture->getName())->second;
-                                }
-                                else {
-                                    alphaMapEditor = new MutableTexture(texture->getName());
-                                    _mutableTextureCache.insert(std::pair<std::string, MutableTexture*>(texture->getName(), alphaMapEditor));
-                                }
-                                float width = static_cast<float>(alphaMapEditor->getWidth());
-                                float height = static_cast<float>(alphaMapEditor->getHeight());
+                        auto vertices = renderBuffers->getVertices();
+                        Vector4 A = entity->getWorldSpaceTransform() * (*vertices)[triangleID * 3];
+                        Vector4 B = entity->getWorldSpaceTransform() * (*vertices)[(triangleID * 3) + 1];
+                        Vector4 C = entity->getWorldSpaceTransform() * (*vertices)[(triangleID * 3) + 2];
 
-                                float xOffset = width / 2.0f;
-                                float zOffset = height / 2.0f;
+                        MutableTexture* alphaMapEditor = nullptr;
+                        if (_mutableTextureCache.find(texture->getName()) != _mutableTextureCache.end()) {
+                            alphaMapEditor = _mutableTextureCache.find(texture->getName())->second;
+                        }
+                        else {
+                            alphaMapEditor = new MutableTexture(texture->getName());
+                            _mutableTextureCache.insert(std::pair<std::string, MutableTexture*>(texture->getName(), alphaMapEditor));
+                        }
+                        float width = static_cast<float>(alphaMapEditor->getWidth());
+                        float height = static_cast<float>(alphaMapEditor->getHeight());
 
-                                auto vertices = renderBuffers->getVertices();
-                                Vector4 A = entity->getWorldSpaceTransform() * (*vertices)[triangleID * 3];
-                                Vector4 B = entity->getWorldSpaceTransform() * (*vertices)[(triangleID * 3) + 1];
-                                Vector4 C = entity->getWorldSpaceTransform() * (*vertices)[(triangleID * 3) + 2];
+                        float xOffset = width / 2.0f;
+                        float zOffset = height / 2.0f;
 
-                                float xCentroid =  ((A.getx() + B.getx() + C.getx()) / 3.0f);
-                                float zCentroid = -((A.getz() + B.getz() + C.getz()) / 3.0f);
+                        float xCentroid = ((A.getx() + B.getx() + C.getx()) / 3.0f);
+                        float zCentroid = -((A.getz() + B.getz() + C.getz()) / 3.0f);
+                        float totalRadius = (width / 2) + _pickingRadius;
 
-                                if (xCentroid < xOffset) {
-                                    float multiplier = ceilf(fabs(xCentroid) / width);
-                                    xCentroid += multiplier * width;
-                                }
+                        if (xCentroid >= xPosOfTile - totalRadius && xCentroid <= xPosOfTile + totalRadius &&
+                            zCentroid >= zPosOfTile - totalRadius && zCentroid <= zPosOfTile + totalRadius) {
 
-                                if (zCentroid < zOffset) {
-                                    float multiplier = ceilf(fabs(zCentroid) / height);
-                                    zCentroid += multiplier * height;
-                                }
+                            if (xCentroid < xOffset) {
+                                float multiplier = ceilf(fabs(xCentroid) / width);
+                                xCentroid += multiplier * width;
+                            }
 
-                                int xPosition = static_cast<int>(xCentroid + xOffset) % static_cast<int>(width);
-                                int zPosition = (static_cast<int>(zCentroid + zOffset) % static_cast<int>(height));
-                                zPosition = static_cast<int>(height) - zPosition;
+                            if (zCentroid < zOffset) {
+                                float multiplier = ceilf(fabs(zCentroid) / height);
+                                zCentroid += multiplier * height;
+                            }
 
-                                //std::cout << xPosition << " " << zPosition << std::endl;
-                                A.getFlatBuffer()[2] = -A.getz();
+                            int xPosition = static_cast<int>(xCentroid + xOffset) % static_cast<int>(width);
+                            int zPosition = (static_cast<int>(zCentroid + zOffset) % static_cast<int>(height));
+                            zPosition = static_cast<int>(height) - zPosition;
+                            
+                            bool isMouseClickedTile = false;
 
-                                bool modelUpdate = _mouseCallback(A, mouseClick);
+                            float xTilePoint = ((A.getx() + B.getx() + C.getx()) / 3.0f);
+                            float zTilePoint = -((A.getz() + B.getz() + C.getz()) / 3.0f);
 
-                                if (modelUpdate == false) {
-                                    alphaMapEditor->editTextureData(xPosition,
-                                                                    zPosition,
-                                                                    _pixelEditValue,
-                                                                    (mouseDrag == true && mouseClick == false),
-                                                                    _pickingRadius);
-                                }
+                            if (xTilePoint >= (xPosOfTile - xOffset) && xTilePoint <= (xPosOfTile + xOffset) &&
+                                zTilePoint >= (zPosOfTile - zOffset) && zTilePoint <= (zPosOfTile + zOffset)) {
+                                isMouseClickedTile = true;
+                            }
+
+                            if (isMouseClickedTile == false) {
+                                xPosition = static_cast<int>(xPosition + width) % static_cast<int>(width + _pickingRadius);
+                            }
+                            //std::cout << xPosition << " " << zPosition << std::endl;
+                            A.getFlatBuffer()[2] = -A.getz();
+
+                            bool modelUpdate = _mouseCallback(A, mouseClick);
+
+                            if (modelUpdate == false) {
+                                alphaMapEditor->editTextureData(xPosition,
+                                    zPosition,
+                                    _pixelEditValue,
+                                    (mouseDrag == true && mouseClick == false),
+                                    _pickingRadius);
                             }
                         }
                     }

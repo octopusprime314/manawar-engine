@@ -11,6 +11,7 @@
 #include "MutableTexture.h"
 #include "EngineManager.h"
 #include <cctype>
+using namespace fbxsdk;
 
 FbxLoader::FbxLoader(std::string name) : 
     _fileName(name),
@@ -174,7 +175,8 @@ void FbxLoader::_parseTags(FbxNode* node) {
                 }
 
                 int materialCount = childNode->GetSrcObjectCount<FbxSurfaceMaterial>();
-                for (int i = 0; i < materialCount; i++) {
+                //There should only be one material for tiles but something is broken which adds one
+                for (int i = 0; i < 1; i++) { 
 
                     FbxSurfaceMaterial* material = (FbxSurfaceMaterial*)childNode->GetSrcObject<FbxSurfaceMaterial>(i);
 
@@ -477,12 +479,18 @@ void FbxLoader::addTileToScene(Model* modelAddedTo, FbxLoader* modelToLoad, Vect
                 // Check if it's layeredtextures
                 int layeredTextureCount = propDiffuse.GetSrcObjectCount<FbxLayeredTexture>();
 
+                std::vector< FbxFileTexture*> toRemove;
+                std::vector< FbxFileTexture*> toAdd;
+                FbxLayeredTexture* layeredTextureToEdit = nullptr;
+
                 if (layeredTextureCount > 0) {
                     for (int j = 0; j < layeredTextureCount; j++) {
                         FbxLayeredTexture* layeredTexture = FbxCast<FbxLayeredTexture>(propDiffuse.GetSrcObject<FbxLayeredTexture>(j));
+                        layeredTextureToEdit = layeredTexture;
                         if (layeredTexture != nullptr) {
 
                             int textureCount = layeredTexture->GetSrcObjectCount<FbxTexture>();
+                            int diffuseTextureCounter = 0;
                             for (int textureIndex = 0; textureIndex < textureCount; textureIndex++) {
 
                                 //Fetch the diffuse texture
@@ -501,18 +509,58 @@ void FbxLoader::addTileToScene(Model* modelAddedTo, FbxLoader* modelToLoad, Vect
                                         //Finds second to last position of string and use that for file access name
                                         std::string filePrefix = texture.substr(texture.substr(0, texture.find_last_of("/\\")).find_last_of("/\\"));
                                         filePrefix = filePrefix.substr(0, filePrefix.find_last_of("/\\") + 1);
-                                        textureFbx->SetFileName((TEXTURE_LOCATION + "/" + alphaMapName + ".tif").c_str());
+
+                                        FbxFileTexture* gTexture = FbxFileTexture::Create(_fbxManager, "");
+                                        // Set texture properties.
+                                        gTexture->SetFileName((TEXTURE_LOCATION + "/" + alphaMapName + ".tif").c_str());
+                                        gTexture->SetTextureUse(FbxFileTexture::eStandard);
+                                        gTexture->SetMappingType(FbxFileTexture::eUV);
+                                        gTexture->SetMaterialUse(FbxFileTexture::eModelMaterial);
+                                        gTexture->SetSwapUV(false);
+                                        gTexture->SetTranslation(0.0, 0.0);
+                                        gTexture->SetScale(1.0, 1.0);
+                                        gTexture->SetRotation(0.0, 0.0);
+
+                                        toAdd.push_back(gTexture);
+                                        toRemove.push_back(textureFbx);
                                     }
                                     else {
+
                                         // Then, you can get all the properties of the texture, including its name
                                         std::string texture = textureFbx->GetFileName();
                                         //Finds second to last position of string and use that for file access name
                                         std::string filePrefix = texture.substr(texture.substr(0, texture.find_last_of("/\\")).find_last_of("/\\"));
                                         filePrefix = filePrefix.substr(0, filePrefix.find_last_of("/\\") + 1);
-                                        textureFbx->SetFileName((TEXTURE_LOCATION + modelName + "/" + textures[textureIndex]).c_str());
+
+                                        FbxFileTexture* gTexture = FbxFileTexture::Create(_fbxManager, "");
+                                        // Set texture properties.
+                                        gTexture->SetFileName((TEXTURE_LOCATION + modelName + "/" + textures[textureIndex]).c_str());
+                                        gTexture->SetTextureUse(FbxFileTexture::eStandard);
+                                        gTexture->SetMappingType(FbxFileTexture::eUV);
+                                        gTexture->SetMaterialUse(FbxFileTexture::eModelMaterial);
+                                        gTexture->SetSwapUV(false);
+                                        gTexture->SetTranslation(0.0, 0.0);
+                                        gTexture->SetScale(1.0, 1.0);
+                                        gTexture->SetRotation(0.0, 0.0);
+
+                                        toAdd.push_back(gTexture);
+                                        toRemove.push_back(textureFbx);
                                     }
                                 }
                             }
+                        }
+                        layeredTextureToEdit->WipeAllConnections();
+                        for (int z = 0; z < toRemove.size(); z++) {
+                            layeredTextureToEdit->DisconnectSrcObject(toRemove[z]);
+                            layeredTextureToEdit->DisconnectDstObject(toRemove[z]);
+                            toRemove[z]->DisconnectAllDstObject(); 
+                            toRemove[z]->DisconnectAllSrcObject();
+                        }
+
+                        for (int z = 0; z < toAdd.size(); z++) {
+                            OutputDebugString(toAdd[z]->GetFileName());
+                            OutputDebugStringW(L"\n");
+                            layeredTextureToEdit->ConnectSrcObject(toAdd[z]);
                         }
                     }
                 }

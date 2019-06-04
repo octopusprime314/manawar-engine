@@ -42,7 +42,9 @@ void IOEvents::setPostDrawCallback(std::function<void()> func) {
 void IOEvents::updateKeyboard(int key, int x, int y) {
 
     for (auto func : _keyboardFuncs) {
-        func(key, x, y); //Call keyboard update
+        if (func != nullptr) {
+            func(key, x, y); //Call keyboard update
+        }
     }
 }
 
@@ -50,7 +52,9 @@ void IOEvents::updateKeyboard(int key, int x, int y) {
 void IOEvents::releaseKeyboard(int key, int x, int y) {
 
     for (auto func : _keyboardReleaseFuncs) {
-        func(key, x, y); //Call keyboard release update
+        if (func != nullptr) {
+            func(key, x, y); //Call keyboard release update
+        }
     }
 }
 
@@ -61,7 +65,9 @@ void IOEvents::updateDraw(GLFWwindow* _window) {
     _preDrawCallback();
     
     for (auto func : _drawFuncs) {
-        func(); //Call draw update method
+        if (func != nullptr) {
+            func(); //Call draw update method
+        }
     }
 
     //Call scene manager to go any global operations after drawing
@@ -78,7 +84,9 @@ void IOEvents::updateDraw(GLFWwindow* _window) {
 //All mouse movement input will be notified here
 void IOEvents::updateMouse(double x, double y) {
     for (auto func : _mouseFuncs) {
-        func(x, y); //Call mouse movement update
+        if (func != nullptr) {
+            func(x, y); //Call mouse movement update
+        }
     }
 }
 
@@ -86,7 +94,9 @@ void IOEvents::updateMouse(double x, double y) {
 void IOEvents::updateMouseClick(int button, int action, int x, int y) {
 
     for (auto func : _mouseButtonFuncs) {
-        func(button, action, x, y); //Call mouse movement update
+        if (func != nullptr) {
+            func(button, action, x, y); //Call mouse movement update
+        }
     }
 }
 
@@ -94,6 +104,8 @@ void IOEvents::updateGameState(EngineStateFlags state) {
     //first update static game state
     EngineState::setEngineState(state);
     for (auto func : _gameStateFuncs) {
-        func(state); //Call game state update
+        if (func != nullptr) {
+            func(state); //Call game state update
+        }
     }
 }

@@ -1,6 +1,7 @@
 #include "Picker.h"
 #include "IOEvents.h"
 #include "EngineManager.h"
+#include "IOEventDistributor.h"
 
 Picker::Picker(MRTFrameBuffer* mrt, std::function<bool(Vector4,bool)> terminalCallback) :
     _mrt(mrt),
@@ -75,6 +76,11 @@ void Picker::_editData(int x, int y, bool mouseDrag, bool mouseClick) {
     //invert y mouse position
     y = h - y;
 
+    if (x <= 0 || x >= IOEventDistributor::screenPixelWidth ||
+        y <= 0 || y >= IOEventDistributor::screenPixelHeight) {
+        return;
+    }
+
     /*std::set<std::pair<UINT, UINT>> rangeOfEntityIds;
     
     for (int i = -_pickingRadius; i < _pickingRadius; i+= _pickingRadius) {
@@ -98,6 +104,8 @@ void Picker::_editData(int x, int y, bool mouseDrag, bool mouseClick) {
             }
         }
     }*/
+
+
 
     unsigned int entityID = static_cast<unsigned int>(
         _idBufferCache[((x * packAlignment) + (y * w * packAlignment)) + 2] * 16777216.0f);

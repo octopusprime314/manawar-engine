@@ -70,8 +70,6 @@ void main(){
 	gl_FragDepth = texture(depthTexture, vsData.texCoordOut.xy).r;
 	
 	//Directional light calculation
-	//NEED to invert light vector other a normal surface pointing up with a light pointing
-	//down would result in a negative dot product of the two vecs, inverting gives us positive numbers!
 	vec3 normalizedLight = normalize(vec3(light.x, light.y, light.z));
 	float illumination = dot(normalizedLight, normalizedNormal);
 	

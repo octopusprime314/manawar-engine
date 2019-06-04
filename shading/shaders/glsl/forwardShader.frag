@@ -38,9 +38,7 @@ void main(){
 	else {
 		
 		//Directional light calculation
-		//NEED to invert light vector other a normal surface pointing up with a light pointing
-		//down would result in a negative dot product of the two vecs, inverting gives us positive numbers!
-		vec3 normalizedLight = normalize(-light);
+		vec3 normalizedLight = normalize(vec3(light.x, light.y, light.z));
 		float illumination = dot(normalizedLight, vsData.normalOut);
 		
 		//Convert from camera space vertex to light clip space vertex
@@ -59,7 +57,7 @@ void main(){
 		float pointShadow = 1.0;
 		//illumination is from directional light but we don't want to illuminate when the sun is past the horizon
 		//aka night time
-		if(light.y <= 0.0) {
+		if(light.y >= 0.0) {
 			const float bias = 0.005; //removes shadow acne by adding a small bias
 			//Only shadow in textures space
 			if(shadowTextureCoordinates.x <= 1.0 && shadowTextureCoordinates.x >= 0.0 && shadowTextureCoordinates.y <= 1.0 && shadowTextureCoordinates.y >= 0.0){
@@ -100,7 +98,7 @@ void main(){
 				float bias = 0.05; 
 				if(cubeDepth + bias < distance){
 					//pointShadow -= ((1.0 - pointLightShadowEffect)/numLights)*(1.0 - (distance/cubeDepth));
-					pointShadow -= ((1.0 - shadowEffect)/numLights);			
+					pointShadow -= (1.0 - shadowEffect);			
 				}	
 				
 			}
@@ -110,15 +108,15 @@ void main(){
 	
 		//If all light components add up to more than one, then normalize
 		//light components other than ambient
-		if(illumination + totalPointLightEffect + ambient > 1.0){
-			vec2 lightNormalized = normalize(vec2(illumination, totalPointLightEffect));
-			illumination = lightNormalized.x - (ambient / 2);
-			pointLighting = (pointLighting * lightNormalized.y) - (ambient / 2);
-		}
+		//if(illumination + totalPointLightEffect + ambient > 1.0){
+		//	vec2 lightNormalized = normalize(vec2(illumination, totalPointLightEffect));
+		//	illumination = lightNormalized.x - (ambient / 2);
+		//	pointLighting = (pointLighting * lightNormalized.y) - (ambient / 2);
+		//}
 
-		vec3 lightComponentIllumination = (illumination  * diffuse.rgb) + 
-										  (pointLighting * diffuse.rgb);
+		vec3 lightComponentIllumination = (illumination  * diffuse.rgb * directionalShadow) + 
+									      (pointLighting * diffuse.rgb * pointShadow);
 		
-		fragColor = vec4((lightComponentIllumination * totalShadow) + (ambient * diffuse.rgb), 1.0);
+		fragColor = vec4((lightComponentIllumination) + (ambient * diffuse.rgb), 1.0);
 	}
 }

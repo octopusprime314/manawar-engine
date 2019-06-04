@@ -288,10 +288,26 @@ Entity* EngineManager::addEntity(Model* model, Matrix transform, bool temporaryM
             _entityListLock.unlock();
         }
         else {
-            for (auto entity : _entityList) {
-                if (entity == _shadowEntity) {
-                    entity->setMVP(mvp);
+            if (model->getName() == _shadowEntity->getModel()->getName()) {
+                for (auto entity : _entityList) {
+                    if (entity == _shadowEntity) {
+                        entity->setMVP(mvp);
+                    }
                 }
+            }
+            else {
+                _entityListLock.lock();
+                int i = 0;
+                for (auto entity : _entityList) {
+                    if (entity == _shadowEntity) {
+                        delete _entityList[i];
+                        _entityList[i] = new Entity(model, viewWrapper, mvp);
+                        break;
+                    }
+                    i++;
+                }
+                _entityListLock.unlock();
+                _shadowEntity = _entityList[i];
             }
         }
     }

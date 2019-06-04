@@ -21,7 +21,7 @@
 
 #pragma once
 #include "Texture.h"
-
+ 
 class AssetTexture : public Texture{
 
     AssetTexture(); //Make the default constructor private which forces coder to allocate a Texture with a string name
@@ -37,7 +37,6 @@ class AssetTexture : public Texture{
     void                         _buildCubeMapTextureDX(std::string skyboxName,
                                                  ComPtr<ID3D12GraphicsCommandList>& cmdList,
                                                  ComPtr<ID3D12Device>& device);
-    void                         _buildMipLevels();
     bool                         _getTextureData(std::string textureName);
     void                         _decodeTexture(std::string textureName, unsigned int textureType);
   

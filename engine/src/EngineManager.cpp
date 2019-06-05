@@ -300,7 +300,8 @@ Entity* EngineManager::addEntity(Model* model, Matrix transform, bool temporaryM
                 int i = 0;
                 for (auto entity : _entityList) {
                     if (entity == _shadowEntity) {
-                        delete _entityList[i];
+                        // Deleting causes a crash with function call backs...fix later
+                        //delete _entityList[i]; 
                         _entityList[i] = new Entity(model, viewWrapper, mvp);
                         break;
                     }

@@ -441,7 +441,11 @@ void AssetTexture::_decodeTexture(std::string textureName, unsigned int textureT
         glTexImage2D(textureType, 0, GL_RGBA8, _width, _height, 0, GL_BGRA, GL_UNSIGNED_BYTE, _bits);
         glGenerateMipmap(textureType); //Allocate mipmaps
         //If alpha value is opaque then do not count as a transparent texture
-        if (_bits[3] == 255) {
+        //test all 4 corners
+        if (_bits[3] == 255 &&
+            _bits[(4 * _width) - 1] == 255 &&
+            _bits[((4 * _width)*(_height - 1)) + 3] == 255 &&
+            _bits[(4 * _width * _height) - 1] == 255) {
             _alphaValues = false;
         }
     }
@@ -453,7 +457,11 @@ void AssetTexture::_decodeTexture(std::string textureName, unsigned int textureT
         glTexImage2D(textureType, 0, GL_RGBA8, _width, _height, 0, GL_BGRA, GL_UNSIGNED_BYTE, _bits);
         glGenerateMipmap(textureType); //Allocate mipmaps
         //If alpha value is opaque then do not count as a transparent texture
-        if (_bits[3] == 255) {
+        //test all 4 corners
+        if (_bits[3] == 255                                && 
+            _bits[(4 * _width) - 1]                 == 255 &&
+            _bits[((4 * _width)*(_height - 1)) + 3] == 255 &&
+            _bits[(4 * _width * _height) - 1]       == 255) {
             _alphaValues = false;
         }
     }

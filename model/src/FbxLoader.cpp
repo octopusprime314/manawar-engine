@@ -282,6 +282,62 @@ std::string FbxLoader::getModelName() {
     return _fileName;
 }
 
+void FbxLoader::_searchAndEditNode(FbxNode* rootNode, FbxNode* childNode, std::string modelName, Vector4 location) {
+
+    int numChildren = childNode->GetChildCount();
+    if (numChildren == 0) {
+        return;
+    }
+    FbxNode* tempChild = nullptr;
+    for (int i = 0; i < numChildren; i++) {
+        auto childToEdit = rootNode->FindChild(childNode->GetName());
+        if (childToEdit != nullptr) {
+            childToEdit->LclScaling.Set(FbxDouble3(location.getw(), location.getw(), location.getw()));
+            childToEdit->LclTranslation.Set(FbxDouble3(location.getx(), location.gety(), location.getz()));
+            childToEdit->SetName((modelName + "_0_"
+                + std::string(childToEdit->GetName())).c_str());
+        }
+        _searchAndEditNode(rootNode, childNode->GetChild(i), modelName, location);
+    }
+}
+
+void FbxLoader::_searchAndEditMesh(FbxNode* childNode, std::string modelName, Vector4 location) {
+    
+    int childrenCount = childNode->GetChildCount();
+    if (childrenCount == 0) {
+        return;
+    }
+
+    for (auto i = 0; i < childrenCount; i++) {
+
+        FbxMesh* mesh = childNode->GetMesh();
+        if (mesh != nullptr) {
+            std::string nodeName = std::string(childNode->GetName());
+            OutputDebugString(nodeName.c_str());
+            nodeName.insert(nodeName.find_first_of("_"), "_" + std::to_string(_clonedInstances[modelName]));
+            FbxNode* lNode = FbxNode::Create(_export.scene,
+                (nodeName +
+                    "instance" + std::to_string(_export.scene->GetRootNode()->GetChildCount())).c_str());
+            lNode->SetNodeAttribute(mesh);
+            lNode->LclScaling.Set(FbxDouble3(location.getw(), location.getw(), location.getw()));
+            lNode->LclTranslation.Set(FbxDouble3(location.getx(), location.gety(), location.getz()));
+            lNode->LclRotation.Set(childNode->LclRotation.Get());
+
+            int materialCount = childNode->GetSrcObjectCount<FbxSurfaceMaterial>();
+
+            for (int i = 0; i < materialCount; i++) {
+                FbxSurfaceMaterial* material = (FbxSurfaceMaterial*)childNode->GetSrcObject<FbxSurfaceMaterial>(i);
+                lNode->AddMaterial(material);
+            }
+            // Add node to the scene
+            _export.scene->GetRootNode()->AddChild(lNode);
+
+            
+        }
+        _searchAndEditMesh(childNode->GetChild(i), modelName, location);
+    }
+}
+
 void FbxLoader::_cloneFbxNode(Model* modelAddedTo, FbxLoader* fbxLoader, Vector4 location) {
    
     // Determine the number of children there are
@@ -293,27 +349,36 @@ void FbxLoader::_cloneFbxNode(Model* modelAddedTo, FbxLoader* fbxLoader, Vector4
     modelName = modelName.substr(modelName.find_last_of("/") + 1);
     modelName = modelName.substr(0, modelName.find_last_of("."));
 
-    int numChildren = node->GetChildCount();
-    FbxNode* childNode = nullptr;
-    for (int i = 0; i < numChildren; i++) {
-        childNode = node->GetChild(i);
-        auto childToEdit = rootNode->FindChild(childNode->GetName());
-        if (childToEdit != nullptr) {
-            childToEdit->LclScaling.Set(FbxDouble3(location.getw(), location.getw(), location.getw()));
-            childToEdit->LclTranslation.Set(FbxDouble3(location.getx(), location.gety(), location.getz()));
-            childToEdit->SetName((modelName + "_0_" 
-                + std::string(childToEdit->GetName())).c_str());
+    //_searchAndEditNode(rootNode, node, modelName, location);
+
+    FbxNode* childNode = node;
+    while (true) {
+        int numChildren = childNode->GetChildCount();
+        if (numChildren == 0) {
+            break;
         }
+        FbxNode* tempChild = nullptr;
+        for (int i = 0; i < numChildren; i++) {
+            tempChild = childNode->GetChild(i);
+            auto childToEdit = rootNode->FindChild(tempChild->GetName());
+            if (childToEdit != nullptr) {
+                childToEdit->LclScaling.Set(FbxDouble3(location.getw(), location.getw(), location.getw()));
+                childToEdit->LclTranslation.Set(FbxDouble3(location.getx(), location.gety(), location.getz()));
+                childToEdit->SetName((modelName + "_0_"
+                    + std::string(childToEdit->GetName())).c_str());
+            }
+        }
+        childNode = childNode->GetChild(0);
     }
 
     //Remove the root node. is always copied over but is bad for the fbx stability
     int numCopiedChildren = rootNode->GetChildCount();
     std::vector<FbxNode*> childrenToRemove;
     for (int i = 0; i < numCopiedChildren; i++) {
-        childNode = rootNode->GetChild(i);
+        node = rootNode->GetChild(i);
         //Prevent root nodes from being saved!
-        if (std::string(childNode->GetName()).find("RootNode") != std::string::npos) {
-            childrenToRemove.push_back(childNode);
+        if (std::string(node->GetName()).find("RootNode") != std::string::npos) {
+            childrenToRemove.push_back(node);
         }
     }
     for (auto node : childrenToRemove) {
@@ -398,6 +463,43 @@ void FbxLoader::addToScene(Model* modelAddedTo, FbxLoader* modelToLoad, Vector4 
                 }
                 // Add node to the scene
                 _export.scene->GetRootNode()->AddChild(lNode);
+            }
+            else {
+
+                //_searchAndEditMesh(childNode, modelName, location);
+                //If we can't find a mesh in the first node then search as if a linked list
+                while (true) {
+                    auto childrenCount = childNode->GetChildCount();
+                    if (childrenCount == 0) {
+                        break;
+                    }
+                    for (auto i = 0; i < childrenCount; i++) {
+
+                        childNode = childNode->GetChild(i);
+                        FbxMesh* mesh = childNode->GetMesh();
+                        if (mesh != nullptr) {
+                            std::string nodeName = std::string(childNode->GetName());
+                            OutputDebugString(nodeName.c_str());
+                            nodeName.insert(nodeName.find_first_of("_"), "_" + std::to_string(_clonedInstances[modelName]));
+                            FbxNode* lNode = FbxNode::Create(_export.scene,
+                                (nodeName +
+                                    "instance" + std::to_string(_export.scene->GetRootNode()->GetChildCount())).c_str());
+                            lNode->SetNodeAttribute(mesh);
+                            lNode->LclScaling.Set(FbxDouble3(location.getw(), location.getw(), location.getw()));
+                            lNode->LclTranslation.Set(FbxDouble3(location.getx(), location.gety(), location.getz()));
+                            lNode->LclRotation.Set(childNode->LclRotation.Get());
+
+                            int materialCount = childNode->GetSrcObjectCount<FbxSurfaceMaterial>();
+
+                            for (int i = 0; i < materialCount; i++) {
+                                FbxSurfaceMaterial* material = (FbxSurfaceMaterial*)childNode->GetSrcObject<FbxSurfaceMaterial>(i);
+                                lNode->AddMaterial(material);
+                            }
+                            // Add node to the scene
+                            _export.scene->GetRootNode()->AddChild(lNode);
+                        }
+                    }
+                }
             }
         }
     }
@@ -1193,10 +1295,22 @@ void FbxLoader::_loadTextures(Model* model, FbxMesh* meshNode, FbxNode* childNod
             for (int j = 0; j < layeredTextureCount; j++) {
                 FbxLayeredTexture* layered_texture = FbxCast<FbxLayeredTexture>(propDiffuse.GetSrcObject<FbxLayeredTexture>(j));
                 if (layered_texture != nullptr) {
-
-                    if (_loadLayeredTexture(model, stride.second, layered_texture)) {
+                    int textureCount = layered_texture->GetSrcObjectCount<FbxTexture>();
+                    if (textureCount == 5 &&
+                        _loadLayeredTexture(model, stride.second, layered_texture)) {
                         if (textureStrideIndex < strides.size() - 1) {
                             textureStrideIndex++;
+                        }
+                    }
+                    else {
+                        for (int textureIndex = 0; textureIndex < textureCount; textureIndex++) {
+                            //Fetch the diffuse texture
+                            FbxFileTexture* textureFbx = FbxCast<FbxFileTexture >(layered_texture->GetSrcObject<FbxFileTexture >(textureIndex));
+                            if (_loadTexture(model, stride.second, textureFbx)) {
+                                if (textureStrideIndex < strides.size() - 1) {
+                                    textureStrideIndex++;
+                                }
+                            }
                         }
                     }
                 }

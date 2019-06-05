@@ -67,6 +67,8 @@ class FbxLoader {
     void            _cloneFbxNode(Model* modelAddedTo, FbxLoader* fbxToAdd, Vector4 location);
     int             _getASCIIFormatIndex(FbxManager* fbxManager);
     void            _parseTags(FbxNode* node);
+    void            _searchAndEditNode(FbxNode* rootNode, FbxNode* childNode, std::string modelName, Vector4 location);
+    void            _searchAndEditMesh(FbxNode* childNode, std::string modelName, Vector4 location);
     Matrix          _objectSpaceTransform;
     ClonedCount     _clonedInstances;
     ClonedMatrices  _clonedWorldTransforms;

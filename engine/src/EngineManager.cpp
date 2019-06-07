@@ -350,7 +350,7 @@ void EngineManager::_preDraw() {
         //send all vbo data to point light shadow pre pass
         for (Light* light : _lightList) {
             //ray trace the second direcional light
-            if (light != _lightList[1] || _useRaytracing == false) {
+            if (_useRaytracing == false || light != _lightList[1]) {
                 light->renderShadow(_entityList);
             }
         }

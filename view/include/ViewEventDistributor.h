@@ -61,6 +61,7 @@ private:
     bool                 _godState; //indicates whether the view is in god or model view point mode
     FuncMap              _keyboardState;
     double               _prevMouseX, _prevMouseY;
+    double               _currMouseX, _currMouseY;
     void                 _updateKinematics(int milliSeconds);
     Camera               _viewCamera;
     Camera               _godCamera;

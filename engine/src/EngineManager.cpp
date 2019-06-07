@@ -190,14 +190,14 @@ EngineManager::EngineManager(int* argc, char** argv, HINSTANCE hInstance, int nC
         _terminal = new Terminal(_deferredRenderer->getGBuffers(), _entityList);
 
         Vector4 sunLocation(0.0f, 0.0f, -300.0f);
-        MVP lightMVP;
+        /*MVP lightMVP;
         lightMVP.setView(Matrix::translation(sunLocation.getx(), sunLocation.gety(), sunLocation.getz())
             * Matrix::rotationAroundX(-90.0f));
         lightMVP.setProjection(Matrix::ortho(200.0f, 200.0f, 0.0f, 600.0f));
         _lightList.push_back(new ShadowedDirectionalLight(_viewManager->getEventWrapper(),
             lightMVP,
             EffectType::None,
-            Vector4(1.0, 0.0, 0.0)));
+            Vector4(1.0, 0.0, 0.0)));*/
 
         MVP lightMapMVP;
         lightMapMVP.setView(Matrix::translation(sunLocation.getx(), sunLocation.gety(), sunLocation.getz())
@@ -209,14 +209,14 @@ EngineManager::EngineManager(int* argc, char** argv, HINSTANCE hInstance, int nC
             Vector4(1.0, 0.0, 0.0)));
 
         //Model view projection matrix for point light additions
-        MVP pointLightMVP;
+        //MVP pointLightMVP;
 
         //point light projection has a 90 degree view angle with a 1 aspect ratio for generating square shadow maps
         //with a near z value of 1 and far z value of 100
-        pointLightMVP.setProjection(Matrix::projection(90.0f, 1.0f, 1.0f, 100.0f));
+        //pointLightMVP.setProjection(Matrix::projection(90.0f, 1.0f, 1.0f, 100.0f));
 
         //Placing the lights in equidistant locations for testing
-        pointLightMVP.setModel(Matrix::translation(212.14f, 24.68f, 186.46f));
+        /*pointLightMVP.setModel(Matrix::translation(212.14f, 24.68f, 186.46f));
         _lightList.push_back(new ShadowedPointLight(_viewManager->getEventWrapper(),
             pointLightMVP,
             EffectType::Fire,
@@ -241,7 +241,7 @@ EngineManager::EngineManager(int* argc, char** argv, HINSTANCE hInstance, int nC
             pointLightMVP,
             LightType::POINT,
             EffectType::Fire,
-            Vector4(1.0f, 0.8f, 0.3f, 1.0f)));
+            Vector4(1.0f, 0.8f, 0.3f, 1.0f)));*/
 
         _audioManager->startAll();
 

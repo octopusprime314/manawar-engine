@@ -44,7 +44,7 @@ void DeferredShader::runShader(std::vector<Light*>& lights,
 
     //Take the generated texture data and do deferred shading
     //LOAD IN SHADER
-     _shader->bind(); //use context for loaded shader
+    _shader->bind(); //use context for loaded shader
 
     if (EngineManager::getGraphicsLayer() == GraphicsLayer::OPENGL) {
         glBindVertexArray(_vaoContext);

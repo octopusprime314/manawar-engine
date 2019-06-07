@@ -252,54 +252,24 @@ void ViewEventDistributor::_updateGameState(EngineStateFlags state) {
 
 void ViewEventDistributor::_updateMouse(double x, double y) { //Do stuff based on mouse update
 
-    static const double mouseSensitivity = 1.5f;
+    static const double mouseSensitivity = 15.5f;
 
     if (_gameState.gameModeEnabled) {
+
+        Vector4 newRot = Vector4(0.0, 0.0, 0.0);
 
         //Filter out large changes because that causes view twitching
         if (x != _prevMouseX) {
 
-            FunctionState* ptr = nullptr;
-            //Use special value 200 to indicate mouse is moving
-            if (_keyboardState.find(200) != _keyboardState.end()) {
-                ptr = _keyboardState[200];
-            }
-
             double diffX = _prevMouseX - x;
 
-            Vector4 newRot;
             if (diffX > 0) { //rotate left around y axis
-                newRot = Vector4(0.0, static_cast<float>(-mouseSensitivity * diffX), 0.0);
+                newRot = newRot + Vector4(0.0, static_cast<float>(-mouseSensitivity * diffX), 0.0);
             }
             else if (diffX < 0) { //rotate right around y axis
-                newRot = Vector4(0.0, static_cast<float>(-mouseSensitivity * diffX), 0.0);
+                newRot = newRot + Vector4(0.0, static_cast<float>(-mouseSensitivity * diffX), 0.0);
             }
-
-            Vector4 rot;
-            if (ptr != nullptr) {
-                rot = ptr->getVectorState();
-            }
-
-            //Define lambda equation
-            auto lamdaEq = [rot, newRot](float t) -> Vector4 {
-                if (t > 0.05f) {
-                    return Vector4(0.0, 0.0, 0.0);
-                    //return ((static_cast<Vector4>(newRot)/* + static_cast<Vector4>(rot)*/) * exp(-10.0f*t));
-                }
-                else {
-                    return static_cast<Vector4>(newRot) + static_cast<Vector4>(rot);
-                }
-            };
-
-            //lambda function container that manages force model
-            //Last forever in intervals of 5 milliseconds
-            FunctionState* func = new FunctionState(std::bind(&StateVector::setTorque, _currCamera->getState(), std::placeholders::_1),
-                lamdaEq,
-                5);
-
-            delete _keyboardState[200];
-            _keyboardState.erase(200);
-            _keyboardState[200] = func;
+            _currCamera->getState()->setTorque(newRot);
 
             //If not in god camera view mode then push view changes to the model for full control of a model's movements
             if (!_godState) {
@@ -309,7 +279,22 @@ void ViewEventDistributor::_updateMouse(double x, double y) { //Do stuff based o
         }
 
         if (y != _prevMouseY) {
+
             double diffY = _prevMouseY - y;
+
+            if (diffY > 0) { //rotate left around y axis
+                newRot = newRot + Vector4(static_cast<float>(-mouseSensitivity * diffY), 0.0, 0.0);
+            }
+            else if (diffY < 0) { //rotate right around y axis
+                newRot = newRot + Vector4(static_cast<float>(-mouseSensitivity * diffY), 0.0, 0.0);
+            }
+            _currCamera->getState()->setTorque(newRot);
+
+            //If not in god camera view mode then push view changes to the model for full control of a model's movements
+            if (!_godState) {
+                _currCamera->setViewMatrix(_thirdPersonTranslation * _currCamera->getView());
+            }
+            _currCamera->getState()->setActive(true);
         }
     }
     _prevMouseX = x;
@@ -338,10 +323,19 @@ void ViewEventDistributor::_updateDraw() { //Do draw stuff
         float* pos = _currCamera->getState()->getLinearPosition().getFlatBuffer();
         float* rot = _currCamera->getState()->getAngularPosition().getFlatBuffer();
         _translation = Matrix::translation(pos[0], pos[1], pos[2]); //Update the translation state matrix
-        _rotation = Matrix::rotationAroundY(rot[1]); //Update the rotation state matrix
+        _rotation = Matrix::rotationAroundX(rot[0]) * Matrix::rotationAroundY(rot[1]); //Update the rotation state matrix
         _inverseRotation = Matrix::rotationAroundY(-rot[1]);
         
         _currCamera->setViewMatrix(_rotation * _translation); //translate then rotate around point
         _viewEvents->updateView(_currCamera->getView()); //Send out event to all listeners to offset locations essentially
     }
+
+    //Turn off camera rotation effects if there hasn't been a change in mouse
+    if (_currMouseX == _prevMouseX &&
+        _currMouseY == _prevMouseY) {
+
+        _currCamera->getState()->setTorque(Vector4(0.0, 0.0, 0.0));
+    }
+    _currMouseX = _prevMouseX;
+    _currMouseY = _prevMouseY;
 }

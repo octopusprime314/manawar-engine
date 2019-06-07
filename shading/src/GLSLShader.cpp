@@ -141,7 +141,8 @@ void GLSLShader::_link(unsigned int vertexSH, unsigned int fragmentSH,
         std::cout << actualErrorLogLength << std::endl;
 
         // Display errors.
-        std::cout << errorLogText << std::endl;
+        OutputDebugString(errorLogText);
+        OutputDebugString("\n");
 
         // Free the buffer malloced earlier
         free(errorLogText);
@@ -215,7 +216,8 @@ unsigned int GLSLShader::_compile(char* filename, unsigned int type)
         glGetShaderInfoLog(handle, errorLoglength, &actualErrorLogLength, errorLogText);
 
         // Display errors.
-        printf("%s\n", errorLogText);
+        OutputDebugString(errorLogText);
+        OutputDebugString("\n");
 
         // Free the buffer malloced earlier
         free(errorLogText);

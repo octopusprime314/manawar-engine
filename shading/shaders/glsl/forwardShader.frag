@@ -2,17 +2,17 @@
 
 uniform sampler2D   textureMap;   //Texture data array
 uniform sampler2D   cameraDepthTexture;   //depth texture data array with values 1.0 to 0.0, with 0.0 being closer
-uniform sampler2D   mapDepthTexture;      //depth texture data array with values 1.0 to 0.0, with 0.0 being closer
-uniform samplerCube depthMap;		//cube depth map for point light shadows
+//uniform sampler2D   mapDepthTexture;      //depth texture data array with values 1.0 to 0.0, with 0.0 being closer
+//uniform samplerCube depthMap;		//cube depth map for point light shadows
 
 uniform mat4 lightViewMatrix;     	//Light perspective's view matrix
 uniform mat4 lightMapViewMatrix;    //Light perspective's view matrix
 uniform mat4 viewToModelMatrix;		//Inverse camera view space matrix
 
-uniform vec3  pointLightPositions[20];//max lights is 20 for now
-uniform vec3  pointLightColors[20]; //max lights is 20 for now
-uniform float pointLightRanges[20];//max lights is 20 for now
-uniform int   numPointLights;
+//uniform vec3  pointLightPositions[20];//max lights is 20 for now
+//uniform vec3  pointLightColors[20]; //max lights is 20 for now
+//uniform float pointLightRanges[20];//max lights is 20 for now
+//uniform int   numPointLights;
 
 float ambient = 0.1;
 float shadowEffect = 0.6;
@@ -60,49 +60,49 @@ void main(){
 		if(light.y >= 0.0) {
 			const float bias = 0.005; //removes shadow acne by adding a small bias
 			//Only shadow in textures space
-			if(shadowTextureCoordinates.x <= 1.0 && shadowTextureCoordinates.x >= 0.0 && shadowTextureCoordinates.y <= 1.0 && shadowTextureCoordinates.y >= 0.0){
+			//if(shadowTextureCoordinates.x <= 1.0 && shadowTextureCoordinates.x >= 0.0 && shadowTextureCoordinates.y <= 1.0 && shadowTextureCoordinates.y >= 0.0){
 				
 				if ( texture( cameraDepthTexture, shadowTextureCoordinates).x < (shadowMapping.z * 0.5 + 0.5) - bias){
 					directionalShadow = shadowEffect;
 				}	
-			}
-			else if(shadowTextureCoordinatesMap.x <= 1.0 && shadowTextureCoordinatesMap.x >= 0.0 && shadowTextureCoordinatesMap.y <= 1.0 && shadowTextureCoordinatesMap.y >= 0.0){
-				vec4 shadowMappingMap = lightMapViewMatrix * vec4(vsData.positionOut.xyz, 1.0);
-				shadowMappingMap = shadowMappingMap/shadowMappingMap.w; 
-				vec2 shadowTextureCoordinatesMap = shadowMappingMap.xy * vec2(0.5,0.5) + vec2(0.5,0.5);
-				
-				if ( texture( mapDepthTexture, shadowTextureCoordinatesMap).x < (shadowMappingMap.z * 0.5 + 0.5) - bias){
-					directionalShadow = shadowEffect;
-				}	
-			}
+			//}
+			//else if(shadowTextureCoordinatesMap.x <= 1.0 && shadowTextureCoordinatesMap.x >= 0.0 && shadowTextureCoordinatesMap.y <= 1.0 && shadowTextureCoordinatesMap.y >= 0.0){
+			//	vec4 shadowMappingMap = lightMapViewMatrix * vec4(vsData.positionOut.xyz, 1.0);
+			//	shadowMappingMap = shadowMappingMap/shadowMappingMap.w; 
+			//	vec2 shadowTextureCoordinatesMap = shadowMappingMap.xy * vec2(0.5,0.5) + vec2(0.5,0.5);
+			//	
+			//	if ( texture( mapDepthTexture, shadowTextureCoordinatesMap).x < (shadowMappingMap.z * 0.5 + 0.5) - bias){
+			//		directionalShadow = shadowEffect;
+			//	}	
+			//}
 			
 		}
 		else {
 			illumination = 0.0;
 		}
 		
-		//Point lights always emit light versus directional sun shadows
-		float numLights = numPointLights;
-		float totalPointLightEffect = 0.0;
-		for(int i = 0; i < numPointLights; i++){
-			vec3 pointLightDir = vsData.positionOut.xyz - pointLightPositions[i].xyz;
-			float distanceFromLight = length(pointLightDir);
-			if(distanceFromLight < pointLightRanges[i]){
-				vec3 pointLightDirNorm = normalize(-pointLightDir);
-				pointLighting += (dot(pointLightDirNorm, vsData.normalOut)) * (1.0 - (distanceFromLight/(pointLightRanges[i]))) * pointLightColors[i];
-				totalPointLightEffect += dot(pointLightDirNorm, vsData.normalOut) * (1.0 - (distanceFromLight/(pointLightRanges[i])));
-				
-				vec3 cubeMapTexCoords = (viewToModelMatrix * vec4(vsData.positionOut.xyz,1.0)).xyz - (viewToModelMatrix * vec4(pointLightPositions[i].xyz, 1.0)).xyz;
-				float distance = length(cubeMapTexCoords);
-				float cubeDepth = texture(depthMap, normalize(cubeMapTexCoords.xyz)).x*pointLightRanges[i];
-				float bias = 0.05; 
-				if(cubeDepth + bias < distance){
-					//pointShadow -= ((1.0 - pointLightShadowEffect)/numLights)*(1.0 - (distance/cubeDepth));
-					pointShadow -= (1.0 - shadowEffect);			
-				}	
-				
-			}
-		}
+		////Point lights always emit light versus directional sun shadows
+		//float numLights = numPointLights;
+		//float totalPointLightEffect = 0.0;
+		//for(int i = 0; i < numPointLights; i++){
+		//	vec3 pointLightDir = vsData.positionOut.xyz - pointLightPositions[i].xyz;
+		//	float distanceFromLight = length(pointLightDir);
+		//	if(distanceFromLight < pointLightRanges[i]){
+		//		vec3 pointLightDirNorm = normalize(-pointLightDir);
+		//		pointLighting += (dot(pointLightDirNorm, vsData.normalOut)) * (1.0 - (distanceFromLight/(pointLightRanges[i]))) * pointLightColors[i];
+		//		totalPointLightEffect += dot(pointLightDirNorm, vsData.normalOut) * (1.0 - (distanceFromLight/(pointLightRanges[i])));
+		//		
+		//		vec3 cubeMapTexCoords = (viewToModelMatrix * vec4(vsData.positionOut.xyz,1.0)).xyz - (viewToModelMatrix * vec4(pointLightPositions[i].xyz, 1.0)).xyz;
+		//		float distance = length(cubeMapTexCoords);
+		//		float cubeDepth = texture(depthMap, normalize(cubeMapTexCoords.xyz)).x*pointLightRanges[i];
+		//		float bias = 0.05; 
+		//		if(cubeDepth + bias < distance){
+		//			//pointShadow -= ((1.0 - pointLightShadowEffect)/numLights)*(1.0 - (distance/cubeDepth));
+		//			pointShadow -= (1.0 - shadowEffect);			
+		//		}	
+		//		
+		//	}
+		//}
 	
 		totalShadow = min(directionalShadow, pointShadow);
 	

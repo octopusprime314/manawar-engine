@@ -5,8 +5,8 @@ uniform sampler2D normalTexture;    //Normal texture data array
 uniform sampler2D velocityTexture; //velocity texture data array
 uniform sampler2D depthTexture;    //depth texture data array
 uniform sampler2D cameraDepthTexture;   //depth texture data array with values 1.0 to 0.0, with 0.0 being closer
-uniform sampler2D mapDepthTexture;      //depth texture data array with values 1.0 to 0.0, with 0.0 being closer
-uniform samplerCube depthMap;		//cube depth map for point light shadows
+//uniform sampler2D mapDepthTexture;      //depth texture data array with values 1.0 to 0.0, with 0.0 being closer
+//uniform samplerCube depthMap;		//cube depth map for point light shadows
 uniform samplerCube skyboxDayTexture;   //skybox day
 uniform samplerCube skyboxNightTexture;	//skybox night
 uniform sampler2D   ssaoTexture;      //depth texture data array with values 1.0 to 0.0, with 0.0 being closer
@@ -18,10 +18,10 @@ uniform mat4 lightMapViewMatrix;    //Light perspective's view matrix
 uniform mat4 viewToModelMatrix;		//Inverse camera view space matrix
 uniform mat4 projectionToViewMatrix; //Inverse projection matrix
 
-uniform vec3 pointLightPositions[20];//max lights is 20 for now
-uniform vec3 pointLightColors[20]; //max lights is 20 for now
-uniform float pointLightRanges[20];//max lights is 20 for now
-uniform int  numPointLights;
+//uniform vec3 pointLightPositions[20];//max lights is 20 for now
+//uniform vec3 pointLightColors[20]; //max lights is 20 for now
+//uniform float pointLightRanges[20];//max lights is 20 for now
+//uniform int  numPointLights;
 
 uniform int views;   //views set to 0 is diffuse mapping, set to 1 is shadow mapping and set to 2 is normal mapping
 uniform vec3 light;  
@@ -103,51 +103,51 @@ void main(){
 			if(light.y >= 0.0) {
 				const float bias = 0.005; //removes shadow acne by adding a small bias
 				//Only shadow in textures space
-				if(shadowTextureCoordinates.x <= 1.0 && shadowTextureCoordinates.x >= 0.0 && shadowTextureCoordinates.y <= 1.0 && shadowTextureCoordinates.y >= 0.0){
+				//if(shadowTextureCoordinates.x <= 1.0 && shadowTextureCoordinates.x >= 0.0 && shadowTextureCoordinates.y <= 1.0 && shadowTextureCoordinates.y >= 0.0){
 					
 					if ( texture( cameraDepthTexture, shadowTextureCoordinates).x < (shadowMapping.z * 0.5 + 0.5) - bias){
 						directionalShadow = shadowEffect;
 					}	
-				}
-				else if(shadowTextureCoordinatesMap.x <= 1.0 && shadowTextureCoordinatesMap.x >= 0.0 && shadowTextureCoordinatesMap.y <= 1.0 && shadowTextureCoordinatesMap.y >= 0.0){
-					vec4 shadowMappingMap = lightMapViewMatrix * vec4(position.xyz, 1.0);
-					shadowMappingMap = shadowMappingMap/shadowMappingMap.w; 
-					vec2 shadowTextureCoordinatesMap = shadowMappingMap.xy * vec2(0.5,0.5) + vec2(0.5,0.5);
-					
-					if ( texture( mapDepthTexture, shadowTextureCoordinatesMap).x < (shadowMappingMap.z * 0.5 + 0.5) - bias){
-						directionalShadow = shadowEffect;
-					}	
-				}
+				//}
+				//else if(shadowTextureCoordinatesMap.x <= 1.0 && shadowTextureCoordinatesMap.x >= 0.0 && shadowTextureCoordinatesMap.y <= 1.0 && shadowTextureCoordinatesMap.y >= 0.0){
+				//	vec4 shadowMappingMap = lightMapViewMatrix * vec4(position.xyz, 1.0);
+				//	shadowMappingMap = shadowMappingMap/shadowMappingMap.w; 
+				//	vec2 shadowTextureCoordinatesMap = shadowMappingMap.xy * vec2(0.5,0.5) + vec2(0.5,0.5);
+				//	
+				//	if ( texture( mapDepthTexture, shadowTextureCoordinatesMap).x < (shadowMappingMap.z * 0.5 + 0.5) - bias){
+				//		directionalShadow = shadowEffect;
+				//	}	
+				//}
 				
 			}
 			else {
 				illumination = 0.0;
 			}
 			
-			//Point lights always emit light versus directional sun shadows
-			float numLights = numPointLights;
-			float totalPointLightEffect = 0.0;
-			for(int i = 0; i < numPointLights; i++){
-				vec3 pointLightDir = position.xyz - pointLightPositions[i].xyz;
-				float distanceFromLight = length(pointLightDir);
-				float bias = 0.1; 
-				if(distanceFromLight < pointLightRanges[i]){
-					vec3 pointLightDirNorm = normalize(-pointLightDir);
-					pointLighting += (dot(pointLightDirNorm, normalizedNormal)) * (1.0 - (distanceFromLight/(pointLightRanges[i]))) * pointLightColors[i];
-					totalPointLightEffect += dot(pointLightDirNorm, normalizedNormal) * (1.0 - (distanceFromLight/(pointLightRanges[i])));
-					
-					vec3 cubeMapTexCoords = (viewToModelMatrix * vec4(position.xyz,1.0)).xyz - (viewToModelMatrix * vec4(pointLightPositions[i].xyz, 1.0)).xyz;
-					float distance = length(cubeMapTexCoords);
-					float cubeDepth = texture(depthMap, normalize(cubeMapTexCoords.xyz)).x*pointLightRanges[i];
-					
-					if(cubeDepth + bias < distance){
-						//pointShadow -= ((1.0 - pointLightShadowEffect)/numLights)*(1.0 - (distance/cubeDepth));
-						//pointShadow -= ((1.0 - shadowEffect)/numLights);
-						//USE ONLY ONE POINT SHADOW FOR NOW!!!!
-						pointShadow -= (1.0 - shadowEffect);						
-					}					
-				}
-			}
+			////Point lights always emit light versus directional sun shadows
+			//float numLights = numPointLights;
+			//float totalPointLightEffect = 0.0;
+			//for(int i = 0; i < numPointLights; i++){
+			//	vec3 pointLightDir = position.xyz - pointLightPositions[i].xyz;
+			//	float distanceFromLight = length(pointLightDir);
+			//	float bias = 0.1; 
+			//	if(distanceFromLight < pointLightRanges[i]){
+			//		vec3 pointLightDirNorm = normalize(-pointLightDir);
+			//		pointLighting += (dot(pointLightDirNorm, normalizedNormal)) * (1.0 - (distanceFromLight/(pointLightRanges[i]))) * pointLightColors[i];
+			//		totalPointLightEffect += dot(pointLightDirNorm, normalizedNormal) * (1.0 - (distanceFromLight/(pointLightRanges[i])));
+			//		
+			//		vec3 cubeMapTexCoords = (viewToModelMatrix * vec4(position.xyz,1.0)).xyz - (viewToModelMatrix * vec4(pointLightPositions[i].xyz, 1.0)).xyz;
+			//		float distance = length(cubeMapTexCoords);
+			//		float cubeDepth = texture(depthMap, normalize(cubeMapTexCoords.xyz)).x*pointLightRanges[i];
+			//		
+			//		if(cubeDepth + bias < distance){
+			//			//pointShadow -= ((1.0 - pointLightShadowEffect)/numLights)*(1.0 - (distance/cubeDepth));
+			//			//pointShadow -= ((1.0 - shadowEffect)/numLights);
+			//			//USE ONLY ONE POINT SHADOW FOR NOW!!!!
+			//			pointShadow -= (1.0 - shadowEffect);						
+			//		}					
+			//	}
+			//}
 		
 			totalShadow = min(directionalShadow, pointShadow);
 		
@@ -190,19 +190,19 @@ void main(){
 		fragColor = vec4(depth, depth, depth, 1.0);
 		gl_FragDepth = 0.1;
 	}
-	else if(views == 7){
-	
-		float depth = texture(mapDepthTexture, vsData.texCoordOut).x;
-		fragColor = vec4(depth, depth, depth, 1.0);
-		gl_FragDepth = 0.1;
-	}
-	else if(views == 8){
-	
-		vec3 cubeMapTexCoords = (viewToModelMatrix * vec4(position.xyz,1.0)).xyz - (viewToModelMatrix * vec4(pointLightPositions[0].xyz, 1.0)).xyz;
-		float cubeDepth = texture(depthMap, normalize(cubeMapTexCoords.xyz)).x;
-		fragColor = vec4(vec3(cubeDepth), 1.0);
-		gl_FragDepth = 0.1;
-	}
+	//else if(views == 7){
+	//
+	//	float depth = texture(mapDepthTexture, vsData.texCoordOut).x;
+	//	fragColor = vec4(depth, depth, depth, 1.0);
+	//	gl_FragDepth = 0.1;
+	//}
+	//else if(views == 8){
+	//
+	//	vec3 cubeMapTexCoords = (viewToModelMatrix * vec4(position.xyz,1.0)).xyz - (viewToModelMatrix * vec4(pointLightPositions[0].xyz, 1.0)).xyz;
+	//	float cubeDepth = texture(depthMap, normalize(cubeMapTexCoords.xyz)).x;
+	//	fragColor = vec4(vec3(cubeDepth), 1.0);
+	//	gl_FragDepth = 0.1;
+	//}
 	else if(views == 9){
 		//Draw geometry visualizer
 	}

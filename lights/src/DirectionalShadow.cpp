@@ -5,7 +5,7 @@
 #include "EngineManager.h"
 #include "HLSLShader.h"
 
-static const float SHADOW_RESOLUTION = 20.0; //10 pixels per unit distance of 1
+static const float SHADOW_RESOLUTION = 5.0; //10 pixels per unit distance of 1
 
 DirectionalShadow::DirectionalShadow(GLuint width, GLuint height) :
     _staticShadowShader(static_cast<ShadowStaticShader*>(ShaderBroker::instance()->getShader("staticShadowShader"))),

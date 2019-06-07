@@ -8,10 +8,6 @@ AssetTexture::AssetTexture(std::string textureName, bool cubeMap) :
     Texture(textureName),
     _alphaValues(false) {
 
-    if (textureName.find("LeafIvy001_COL_1K.png") != std::string::npos) {
-        return;
-    }
-
     if (!cubeMap) {
         if (_getTextureData(_name)) {
             _build2DTextureGL(_name);

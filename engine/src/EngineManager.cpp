@@ -202,7 +202,7 @@ EngineManager::EngineManager(int* argc, char** argv, HINSTANCE hInstance, int nC
         MVP lightMapMVP;
         lightMapMVP.setView(Matrix::translation(sunLocation.getx(), sunLocation.gety(), sunLocation.getz())
             * Matrix::rotationAroundX(-90.0f));
-        lightMapMVP.setProjection(Matrix::ortho(600.0f, 600.0f, 0.0f, 600.0f));
+        lightMapMVP.setProjection(Matrix::ortho(1200.0f, 1200.0f, 0.0f, 1200.0f));
         _lightList.push_back(new ShadowedDirectionalLight(_viewManager->getEventWrapper(),
             lightMapMVP,
             EffectType::None,

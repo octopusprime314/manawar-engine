@@ -1,6 +1,6 @@
 #include "AudioManager.h"
 
-#define THEME_MP3 "assets/audio/Theme.mp3"
+#define THEME_MP3 "assets/audio/forest.mp3"
 
 #include <Windows.h>
 #include <iostream>

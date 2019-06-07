@@ -1,6 +1,7 @@
 #include "Terminal.h"
 #include "IOEvents.h"
 #include "Picker.h"
+#include <algorithm>
 #include "EngineManager.h"
 
 ShaderBroker* Terminal::_shaderManager = ShaderBroker::instance();
@@ -47,12 +48,10 @@ void Terminal::display() {
 
         if (command == "RECOMPILE") {
             std::string shaderName = _commandToProcess.substr(location + 1);
-            shaderName.pop_back();
             _shaderManager->recompileShader(shaderName);
         }
         else if (command == "UPDATE") {
             std::string modelName = _commandToProcess.substr(location + 1);
-            modelName.pop_back();
             _modelManager->updateModel(modelName);
         }
         else if (command == "ADD") {
@@ -68,7 +67,6 @@ void Terminal::display() {
             std::string zStr = _commandToProcess.substr(0, _commandToProcess.find(' '));
             _commandToProcess = _commandToProcess.substr(_commandToProcess.find(' ') + 1);
             std::string scale = _commandToProcess.substr(0, _commandToProcess.find(' '));
-            scale.pop_back();
             _modelManager->addModel(modelName, modelToAdd, Vector4(
                 static_cast<float>(atof(xStr.c_str())), 
                 static_cast<float>(atof(yStr.c_str())),
@@ -96,7 +94,6 @@ void Terminal::display() {
             std::string bChannel = _commandToProcess.substr(0, _commandToProcess.find(' '));
             _commandToProcess = _commandToProcess.substr(_commandToProcess.find(' ') + 1);
             std::string aChannel = _commandToProcess.substr(0, _commandToProcess.find(' '));
-            aChannel.pop_back();
             _modelManager->addTileModel(modelName, modelToAdd, Vector4(
                 static_cast<float>(atof(xStr.c_str())),
                 static_cast<float>(atof(yStr.c_str())),
@@ -109,6 +106,10 @@ void Terminal::display() {
             std::string modelName = _commandToProcess.substr(0, _commandToProcess.find(' '));
             _commandToProcess = _commandToProcess.substr(_commandToProcess.find(' ') + 1);
             std::string modelToAdd = _commandToProcess.substr(0, _commandToProcess.find(' '));
+
+            //Updates currently selected model that will be placed on entities
+            _mousePosition(_picker->getLastPickedPosition(), false);
+
             if (modelToAdd == "*") {
                 auto modelCount = _modelManager->getModelNames().size();
                 _modelNameIndex++;
@@ -118,14 +119,12 @@ void Terminal::display() {
         else if (command == "SAVE") {
             _commandToProcess = _commandToProcess.substr(_commandToProcess.find(' ') + 1);
             std::string modelName = _commandToProcess.substr(0, _commandToProcess.find(' '));
-            modelName.pop_back();
             _modelManager->saveModel(modelName);
             _picker->saveMutableTextures();
         }
         else if (command == "CLEAR") {
             _commandToProcess = _commandToProcess.substr(_commandToProcess.find(' ') + 1);
             std::string modelName = _commandToProcess.substr(0, _commandToProcess.find(' '));
-            modelName.pop_back();
             _modelManager->clearChanges(modelName);
         }
         else if (command == "UNDO") {
@@ -140,6 +139,8 @@ bool Terminal::_mousePosition(Vector4 position, bool mouseClick) {
     if (_commandHistory.size() > 0) {
 
         auto commandString = _commandHistory[_commandHistoryIndex];
+        //removes all occurrences of '|'
+        commandString.erase(std::remove(commandString.begin(), commandString.end(), '|'), commandString.end());
         auto location = commandString.find(' ');
         std::string command = commandString.substr(0, location);
 
@@ -181,6 +182,8 @@ void Terminal::_updateKeyboard(int key, int x, int y) { //Do stuff based on keyb
     //Process command if entered correctly
     if (_gameState.worldEditorModeEnabled && key == GLFW_KEY_ENTER) {
         _commandToProcess = _commandString;
+        //removes all occurrences of '|'
+        _commandToProcess.erase(std::remove(_commandToProcess.begin(), _commandToProcess.end(), '|'), _commandToProcess.end());
         _commandHistory.push_back(_commandToProcess);
         _commandHistoryIndex = _commandHistory.size() - 1;
     }

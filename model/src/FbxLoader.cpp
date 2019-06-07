@@ -288,9 +288,8 @@ void FbxLoader::_searchAndEditNode(FbxNode* rootNode, FbxNode* childNode, std::s
     if (numChildren == 0) {
         return;
     }
-    FbxNode* tempChild = nullptr;
     for (int i = 0; i < numChildren; i++) {
-        auto childToEdit = rootNode->FindChild(childNode->GetName());
+        auto childToEdit = rootNode->FindChild(childNode->GetChild(i)->GetName());
         if (childToEdit != nullptr) {
             childToEdit->LclScaling.Set(FbxDouble3(location.getw(), location.getw(), location.getw()));
             childToEdit->LclTranslation.Set(FbxDouble3(location.getx(), location.gety(), location.getz()));
@@ -307,12 +306,12 @@ void FbxLoader::_searchAndEditMesh(FbxNode* childNode, std::string modelName, Ve
     if (childrenCount == 0) {
         return;
     }
-
     for (auto i = 0; i < childrenCount; i++) {
 
-        FbxMesh* mesh = childNode->GetMesh();
+        auto node = childNode->GetChild(i);
+        FbxMesh* mesh = node->GetMesh();
         if (mesh != nullptr) {
-            std::string nodeName = std::string(childNode->GetName());
+            std::string nodeName = std::string(node->GetName());
             OutputDebugString(nodeName.c_str());
             nodeName.insert(nodeName.find_first_of("_"), "_" + std::to_string(_clonedInstances[modelName]));
             FbxNode* lNode = FbxNode::Create(_export.scene,
@@ -321,20 +320,18 @@ void FbxLoader::_searchAndEditMesh(FbxNode* childNode, std::string modelName, Ve
             lNode->SetNodeAttribute(mesh);
             lNode->LclScaling.Set(FbxDouble3(location.getw(), location.getw(), location.getw()));
             lNode->LclTranslation.Set(FbxDouble3(location.getx(), location.gety(), location.getz()));
-            lNode->LclRotation.Set(childNode->LclRotation.Get());
+            lNode->LclRotation.Set(node->LclRotation.Get());
 
-            int materialCount = childNode->GetSrcObjectCount<FbxSurfaceMaterial>();
+            int materialCount = node->GetSrcObjectCount<FbxSurfaceMaterial>();
 
             for (int i = 0; i < materialCount; i++) {
-                FbxSurfaceMaterial* material = (FbxSurfaceMaterial*)childNode->GetSrcObject<FbxSurfaceMaterial>(i);
+                FbxSurfaceMaterial* material = (FbxSurfaceMaterial*)node->GetSrcObject<FbxSurfaceMaterial>(i);
                 lNode->AddMaterial(material);
             }
             // Add node to the scene
             _export.scene->GetRootNode()->AddChild(lNode);
-
-            
         }
-        _searchAndEditMesh(childNode->GetChild(i), modelName, location);
+        _searchAndEditMesh(node, modelName, location);
     }
 }
 
@@ -349,27 +346,19 @@ void FbxLoader::_cloneFbxNode(Model* modelAddedTo, FbxLoader* fbxLoader, Vector4
     modelName = modelName.substr(modelName.find_last_of("/") + 1);
     modelName = modelName.substr(0, modelName.find_last_of("."));
 
-    //_searchAndEditNode(rootNode, node, modelName, location);
-
-    FbxNode* childNode = node;
-    while (true) {
-        int numChildren = childNode->GetChildCount();
-        if (numChildren == 0) {
-            break;
+    //First check for root node copies
+    int numChildren = node->GetChildCount();
+    for (int i = 0; i < numChildren; i++) {
+        auto childToEdit = rootNode->FindChild(node->GetChild(i)->GetName());
+        if (childToEdit != nullptr) {
+            childToEdit->LclScaling.Set(FbxDouble3(location.getw(), location.getw(), location.getw()));
+            childToEdit->LclTranslation.Set(FbxDouble3(location.getx(), location.gety(), location.getz()));
+            childToEdit->SetName((modelName + "_0_"
+                + std::string(childToEdit->GetName())).c_str());
         }
-        FbxNode* tempChild = nullptr;
-        for (int i = 0; i < numChildren; i++) {
-            tempChild = childNode->GetChild(i);
-            auto childToEdit = rootNode->FindChild(tempChild->GetName());
-            if (childToEdit != nullptr) {
-                childToEdit->LclScaling.Set(FbxDouble3(location.getw(), location.getw(), location.getw()));
-                childToEdit->LclTranslation.Set(FbxDouble3(location.getx(), location.gety(), location.getz()));
-                childToEdit->SetName((modelName + "_0_"
-                    + std::string(childToEdit->GetName())).c_str());
-            }
-        }
-        childNode = childNode->GetChild(0);
     }
+    //then search recursively for the rest of the nodes to copy and rename
+    _searchAndEditNode(rootNode, node, modelName, location);
 
     //Remove the root node. is always copied over but is bad for the fbx stability
     int numCopiedChildren = rootNode->GetChildCount();
@@ -466,40 +455,31 @@ void FbxLoader::addToScene(Model* modelAddedTo, FbxLoader* modelToLoad, Vector4 
             }
             else {
 
-                //_searchAndEditMesh(childNode, modelName, location);
-                //If we can't find a mesh in the first node then search as if a linked list
-                while (true) {
-                    auto childrenCount = childNode->GetChildCount();
-                    if (childrenCount == 0) {
-                        break;
+                //Search for mesh in root node
+                FbxMesh* mesh = childNode->GetMesh();
+                if (mesh != nullptr) {
+                    std::string nodeName = std::string(childNode->GetName());
+                    OutputDebugString(nodeName.c_str());
+                    nodeName.insert(nodeName.find_first_of("_"), "_" + std::to_string(_clonedInstances[modelName]));
+                    FbxNode* lNode = FbxNode::Create(_export.scene,
+                        (nodeName +
+                            "instance" + std::to_string(_export.scene->GetRootNode()->GetChildCount())).c_str());
+                    lNode->SetNodeAttribute(mesh);
+                    lNode->LclScaling.Set(FbxDouble3(location.getw(), location.getw(), location.getw()));
+                    lNode->LclTranslation.Set(FbxDouble3(location.getx(), location.gety(), location.getz()));
+                    lNode->LclRotation.Set(childNode->LclRotation.Get());
+
+                    int materialCount = childNode->GetSrcObjectCount<FbxSurfaceMaterial>();
+
+                    for (int i = 0; i < materialCount; i++) {
+                        FbxSurfaceMaterial* material = (FbxSurfaceMaterial*)childNode->GetSrcObject<FbxSurfaceMaterial>(i);
+                        lNode->AddMaterial(material);
                     }
-                    for (auto i = 0; i < childrenCount; i++) {
-
-                        childNode = childNode->GetChild(i);
-                        FbxMesh* mesh = childNode->GetMesh();
-                        if (mesh != nullptr) {
-                            std::string nodeName = std::string(childNode->GetName());
-                            OutputDebugString(nodeName.c_str());
-                            nodeName.insert(nodeName.find_first_of("_"), "_" + std::to_string(_clonedInstances[modelName]));
-                            FbxNode* lNode = FbxNode::Create(_export.scene,
-                                (nodeName +
-                                    "instance" + std::to_string(_export.scene->GetRootNode()->GetChildCount())).c_str());
-                            lNode->SetNodeAttribute(mesh);
-                            lNode->LclScaling.Set(FbxDouble3(location.getw(), location.getw(), location.getw()));
-                            lNode->LclTranslation.Set(FbxDouble3(location.getx(), location.gety(), location.getz()));
-                            lNode->LclRotation.Set(childNode->LclRotation.Get());
-
-                            int materialCount = childNode->GetSrcObjectCount<FbxSurfaceMaterial>();
-
-                            for (int i = 0; i < materialCount; i++) {
-                                FbxSurfaceMaterial* material = (FbxSurfaceMaterial*)childNode->GetSrcObject<FbxSurfaceMaterial>(i);
-                                lNode->AddMaterial(material);
-                            }
-                            // Add node to the scene
-                            _export.scene->GetRootNode()->AddChild(lNode);
-                        }
-                    }
+                    // Add node to the scene
+                    _export.scene->GetRootNode()->AddChild(lNode);
                 }
+                //then search recursively for any other submeshes
+                _searchAndEditMesh(childNode, modelName, location);
             }
         }
     }

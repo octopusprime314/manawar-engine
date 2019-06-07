@@ -51,6 +51,10 @@ void Picker::_keyboardPress(int key, int x, int y) {
     }
 }
 
+Vector4 Picker::getLastPickedPosition() {
+    return _pickedPosition;
+}
+
 void Picker::saveMutableTextures() {
 
     for (auto mutableTexture : _mutableTextureCache) {
@@ -113,7 +117,9 @@ void Picker::_editData(int x, int y, bool mouseDrag, bool mouseClick) {
     unsigned int triangleID = static_cast<unsigned int>(
         _idBufferCache[((x * packAlignment) + (y * w * packAlignment)) + 3] * 16777216.0f);
 
-    for (auto entity : *EngineManager::getEntityList()) {
+    auto entityList = *EngineManager::getEntityList();
+
+    for (auto entity : entityList) {
         entity->setSelected(true);
         if (entity->getID() == entityID &&
             entity->getModel()->getRenderBuffers() != nullptr && 
@@ -195,6 +201,7 @@ void Picker::_editData(int x, int y, bool mouseDrag, bool mouseClick) {
                             }
                             //std::cout << xPosition << " " << zPosition << std::endl;
                             A.getFlatBuffer()[2] = -A.getz();
+                            _pickedPosition = A;
 
                             bool modelUpdate = _mouseCallback(A, mouseClick);
 
@@ -226,6 +233,8 @@ void Picker::_mouseMove(double x, double y) {
     if (_leftMousePressed == false) {
         _editData(static_cast<int>(x), static_cast<int>(y), true, false);
     }
+
+    _mousePosition = Vector4(static_cast<float>(x), static_cast<float>(y), 0.0f);
 }
 
 void Picker::_mouseClick(int button, int action, int x, int y) {
@@ -267,4 +276,5 @@ void Picker::_mouseClick(int button, int action, int x, int y) {
              y >= 0) {
         _editData(x, y, false, true);
     }
+    _mousePosition = Vector4(static_cast<float>(x), static_cast<float>(y), 0.0f);
 }

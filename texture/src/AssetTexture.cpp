@@ -8,6 +8,10 @@ AssetTexture::AssetTexture(std::string textureName, bool cubeMap) :
     Texture(textureName),
     _alphaValues(false) {
 
+    if (textureName.find("LeafIvy001_COL_1K.png") != std::string::npos) {
+        return;
+    }
+
     if (!cubeMap) {
         if (_getTextureData(_name)) {
             _build2DTextureGL(_name);
@@ -28,8 +32,12 @@ AssetTexture::AssetTexture(std::string textureName,
     if (!cubeMap) {
         if (_getTextureData(_name)) {
 
-            //Don't count as an alpha texture if all values are set to 1.0
-            if (_bits[3] == 255) {
+            //If alpha value is opaque then do not count as a transparent texture
+            //test all 4 corners
+            if (_bits[3] == 255 &&
+                _bits[(4 * _width) - 1] == 255 &&
+                _bits[((4 * _width)*(_height - 1)) + 3] == 255 &&
+                _bits[(4 * _width * _height) - 1] == 255) {
                 _alphaValues = false;
             }
             _build2DTextureDX(_name, cmdList, device);
@@ -39,7 +47,6 @@ AssetTexture::AssetTexture(std::string textureName,
     else {
         
         _buildCubeMapTextureDX(_name, cmdList, device);
-        //buildMipLevels();
     }
 }
 

@@ -42,9 +42,12 @@ class Picker {
     bool                              _leftMousePressed;
     MutableTextures                   _mutableTextureCache;
     float*                            _idBufferCache;
+    Vector4                           _mousePosition;
+    Vector4                           _pickedPosition;
 public:
     Picker(MRTFrameBuffer* mrt, std::function<bool(Vector4,bool)> terminalCallback);
     void updateIdBuffer();
     void saveMutableTextures();
+    Vector4 getLastPickedPosition();
     ~Picker();
 };

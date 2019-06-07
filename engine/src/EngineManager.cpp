@@ -243,7 +243,7 @@ EngineManager::EngineManager(int* argc, char** argv, HINSTANCE hInstance, int nC
             EffectType::Fire,
             Vector4(1.0f, 0.8f, 0.3f, 1.0f)));
 
-        //_audioManager->StartAll();
+        _audioManager->startAll();
 
 
     }
@@ -297,18 +297,25 @@ Entity* EngineManager::addEntity(Model* model, Matrix transform, bool temporaryM
             }
             else {
                 _entityListLock.lock();
-                int i = 0;
+                std::vector<Entity*>::iterator it = _entityList.begin();
+                Entity* entityToErase = nullptr;
                 for (auto entity : _entityList) {
                     if (entity == _shadowEntity) {
-                        // Deleting causes a crash with function call backs...fix later
-                        //delete _entityList[i]; 
-                        _entityList[i] = new Entity(model, viewWrapper, mvp);
+                        entityToErase = entity;
+                        //First throw it to infinity lol
+                        entity->setPosition(Vector4(100000000.0f, 100000000.0f, 100000000.0f, 1.0f));
                         break;
                     }
-                    i++;
+                    it++;
                 }
+                if (entityToErase != nullptr) {
+                    _entityList.erase(it);
+                }
+
+                _entityList.push_back(new Entity(model, viewWrapper, mvp));
+
                 _entityListLock.unlock();
-                _shadowEntity = _entityList[i];
+                _shadowEntity = _entityList.back();
             }
         }
     }

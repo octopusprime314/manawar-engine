@@ -10,6 +10,7 @@
 #include "ShaderBroker.h"
 #include "Matrix.h"
 
+
 ViewEventDistributor::ViewEventDistributor() {
 
     _viewEvents = new ViewEvents();
@@ -20,6 +21,7 @@ ViewEventDistributor::ViewEventDistributor(int* argc, char** argv, unsigned int 
     _viewEvents = new ViewEvents();
 
     _godState = true; //Start in god view mode
+    _trackedState = false; // Don't start on the track...yet
     _entityIndex = 0; //Start at index 0
 
     _thirdPersonTranslation = Matrix::translation(0, -5, -10);
@@ -27,6 +29,14 @@ ViewEventDistributor::ViewEventDistributor(int* argc, char** argv, unsigned int 
     _prevMouseX = IOEventDistributor::screenPixelWidth / 2;
     _prevMouseY = IOEventDistributor::screenPixelHeight / 2;
     _gameState = EngineState::getEngineState();
+
+    // Build tracked camera
+    std::vector<CameraWaypoint> waypoints;
+    waypoints.emplace_back(CameraWaypoint(Vector4(0, -40.0f, 450.0f), Vector4(0, 0, 0)));
+    waypoints.emplace_back(CameraWaypoint(Vector4(0, -50.0f, 450.0f), Vector4(0, 0, 0)));
+    waypoints.emplace_back(CameraWaypoint(Vector4(0, -50.0f, 440.0f), Vector4(0, 0, 0)));
+    waypoints.emplace_back(CameraWaypoint(Vector4(0, -50.0f, 450.0f), Vector4(0, 0, 0)));
+    _trackedCamera.setWaypoints(waypoints);
 
     //Used for god mode
     _currCamera = &_godCamera;
@@ -47,6 +57,10 @@ void ViewEventDistributor::displayViewFrustum() {
     else if (_currCamera == &_godCamera) {
         _viewCamera.displayViewFrustum(_godCamera.getView());
     }
+    else if (_currCamera == &_trackedCamera ) {
+        _viewCamera.displayViewFrustum(_trackedCamera.getView());
+    }
+
 }
 
 void ViewEventDistributor::setProjection(unsigned int viewportWidth, unsigned int viewportHeight, float nearPlaneDistance, float farPlaneDistance) {
@@ -60,6 +74,7 @@ void ViewEventDistributor::setProjection(unsigned int viewportWidth, unsigned in
         farPlaneDistance));
     _godCamera.setProjection(_currCamera->getProjection());
     _viewCamera.setProjection(_currCamera->getProjection());
+    _trackedCamera.setProjection(_currCamera->getProjection());
 
     
 }
@@ -75,6 +90,7 @@ void ViewEventDistributor::setView(Matrix translation, Matrix rotation, Matrix s
 
     _godCamera.setViewMatrix(_currCamera->getView());
     _viewCamera.setViewMatrix(_currCamera->getView());
+    _trackedCamera.setViewMatrix(_currCamera->getView());
 }
 
 void ViewEventDistributor::triggerEvents() {
@@ -120,6 +136,8 @@ void ViewEventDistributor::_updateReleaseKeyboard(int key, int x, int y) { //Do 
 }
 
 void ViewEventDistributor::_updateKinematics(int milliSeconds) {
+    
+    _trackedCamera.setInversion(_inverseRotation);
     //Do kinematic calculations
     _currCamera->updateState(milliSeconds);
 
@@ -134,9 +152,11 @@ void ViewEventDistributor::_updateKeyboard(int key, int x, int y) { //Do stuff b
 
         _currCamera->setViewState(key);
 
-        if (key == GLFW_KEY_W || key == GLFW_KEY_S ||
-            key == GLFW_KEY_A || key == GLFW_KEY_D ||
-            key == GLFW_KEY_E || key == GLFW_KEY_C) {
+        if (!_trackedState &&
+            ( key == GLFW_KEY_W || key == GLFW_KEY_S ||
+              key == GLFW_KEY_A || key == GLFW_KEY_D ||
+              key == GLFW_KEY_E || key == GLFW_KEY_C )) 
+        {
 
             Vector4 trans;
             Vector4 force;
@@ -208,6 +228,7 @@ void ViewEventDistributor::_updateKeyboard(int key, int x, int y) { //Do stuff b
         }
         else if (key == GLFW_KEY_G) { //God's eye view change g
             _godState = true;
+            _trackedState = false;
             _currCamera = &_godCamera;
 
             _translation = Matrix::translation(0, -5, 0); //Reset to 0,5,0 view position
@@ -216,6 +237,27 @@ void ViewEventDistributor::_updateKeyboard(int key, int x, int y) { //Do stuff b
             _currCamera->setViewMatrix(_rotation * _translation);
             _viewEvents->updateView(_currCamera->getView()); //Send out event to all listeners to offset locations essentially
         }
+        else if (key == GLFW_KEY_T) {
+            _trackedState = true;
+            _godState = false;
+            _trackedCamera.reset();
+            _currCamera = &_trackedCamera;
+            _currCamera->getState()->setGravity(false);
+            _currCamera->getState()->setActive(true);
+
+            _translation = Matrix::translation(0, -5, 0); //Reset to 0,5,0 view position
+            _rotation = Matrix(); //Set rotation matrix to identity
+            _inverseRotation = Matrix();
+            _currCamera->setViewMatrix(_rotation * _translation);
+
+            setProjection(IOEventDistributor::screenPixelWidth, IOEventDistributor::screenPixelHeight, 0.1f, 5000.0f);
+            setView(Matrix::translation(0.0f, -40.0f, 450.0f),
+                Matrix::rotationAroundY(0.0f),
+                Matrix());
+
+            _viewEvents->updateView(_currCamera->getView()); //Send out event to all listeners to offset locations essentially
+
+        }
         else if (key == GLFW_KEY_Q) { //Cycle through model's view point q
 
             _entityIndex++; //increment to the next model when q is pressed again
@@ -223,6 +265,7 @@ void ViewEventDistributor::_updateKeyboard(int key, int x, int y) { //Do stuff b
                 _entityIndex = 0;
             }
 
+            _trackedState = false;
             _godState = false;
             _currCamera = &_viewCamera;
 
@@ -254,7 +297,7 @@ void ViewEventDistributor::_updateMouse(double x, double y) { //Do stuff based o
 
     static const double mouseSensitivity = 15.5f;
 
-    if (_gameState.gameModeEnabled) {
+    if (!_trackedState && _gameState.gameModeEnabled) {
 
         Vector4 newRot = Vector4(0.0, 0.0, 0.0);
 
@@ -272,7 +315,7 @@ void ViewEventDistributor::_updateMouse(double x, double y) { //Do stuff based o
             _currCamera->getState()->setTorque(newRot);
 
             //If not in god camera view mode then push view changes to the model for full control of a model's movements
-            if (!_godState) {
+            if (!_godState ) {
                 _currCamera->setViewMatrix(_thirdPersonTranslation * _currCamera->getView());
             }
             _currCamera->getState()->setActive(true);
@@ -300,10 +343,11 @@ void ViewEventDistributor::_updateMouse(double x, double y) { //Do stuff based o
     _prevMouseX = x;
     _prevMouseY = y;
 }
+
 void ViewEventDistributor::_updateDraw() { //Do draw stuff
 
     //If not in god camera view mode then push view changes to the model for full control of a model's movements
-    if (!_godState && _entityIndex < _entityList.size()) {
+    if (!_trackedState && !_godState && _entityIndex < _entityList.size()) {
 
         StateVector* state = _entityList[_entityIndex]->getStateVector();
         float* pos = state->getLinearPosition().getFlatBuffer();
@@ -318,7 +362,7 @@ void ViewEventDistributor::_updateDraw() { //Do draw stuff
         _viewEvents->updateView(_currCamera->getView()); //Send out event to all listeners to offset locations essentially
 
     }
-    else if (_godState) {
+    else if (_godState || _trackedState) {
 
         float* pos = _currCamera->getState()->getLinearPosition().getFlatBuffer();
         float* rot = _currCamera->getState()->getAngularPosition().getFlatBuffer();

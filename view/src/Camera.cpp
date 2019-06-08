@@ -1,6 +1,7 @@
 #define _USE_MATH_DEFINES
 #include "Camera.h"
 #include "ShaderBroker.h"
+#include "Logger.h"
 
 Camera::Camera() {
 

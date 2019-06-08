@@ -26,9 +26,11 @@
 
 #pragma once
 #include "Camera.h"
+#include "TrackedCamera.h"
 #include "ViewEvents.h"
 #include "EventSubscriber.h"
 #include "IOEventDistributor.h"
+#include <memory>
 
 class Model;
 class Entity;
@@ -59,12 +61,14 @@ private:
     std::vector<Entity*> _entityList; //used to translate view to a model's transformation
     int                  _entityIndex; //used to keep track of which model the view is set to
     bool                 _godState; //indicates whether the view is in god or model view point mode
+    bool                 _trackedState; // indicates whether the camera is on a track
     FuncMap              _keyboardState;
     double               _prevMouseX, _prevMouseY;
     double               _currMouseX, _currMouseY;
     void                 _updateKinematics(int milliSeconds);
     Camera               _viewCamera;
     Camera               _godCamera;
+    TrackedCamera        _trackedCamera;
     Camera*              _currCamera;
     EngineStateFlags     _gameState;
 

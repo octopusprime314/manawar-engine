@@ -265,11 +265,11 @@ void AssetTexture::_buildCubeMapTextureGL(std::string skyboxName) {
             _getTextureData(textureName);
         }
         else if (i == 2) {
-            textureName = skyboxName + "/top.jpg";
+            textureName = skyboxName + "/bottom.jpg";
             _getTextureData(textureName);
         }
         else if (i == 3) {
-            textureName = skyboxName + "/bottom.jpg";
+            textureName = skyboxName + "/top.jpg";
             _getTextureData(textureName);
         }
         else if (i == 4) {

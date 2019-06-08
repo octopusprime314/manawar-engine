@@ -48,8 +48,10 @@ public:
     void                         clearChanges(std::string modelName);
     void                         updateModel(std::string modelName);
     void                         saveModel(std::string modelName);
-    void                         addModel(std::string modelName, std::string modelToAdd, Vector4 location);
-    void                         addTileModel(std::string modelName, std::string modelToAdd, Vector4 location, std::vector<std::string> textures);
+    void                         addModel(std::string modelName, std::string modelToAdd, 
+                                          Vector4 location, Vector4 rotation);
+    void                         addTileModel(std::string modelName, std::string modelToAdd, 
+                                              Vector4 location, std::vector<std::string> textures);
     static void                  setViewManager(ViewEventDistributor* viewEventDistributor);
     static ViewEventDistributor* getViewManager();
 

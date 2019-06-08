@@ -73,7 +73,7 @@ void ModelBroker::clearChanges(std::string modelName) {
     }
 }
 
-void ModelBroker::addModel(std::string modelName, std::string modelToAdd, Vector4 location) {
+void ModelBroker::addModel(std::string modelName, std::string modelToAdd, Vector4 location, Vector4 rotation) {
     
     std::string upperCaseMapName = _strToUpper(modelName);
     std::string upperCaseMapNameToAdd = _strToUpper(modelToAdd);
@@ -83,7 +83,7 @@ void ModelBroker::addModel(std::string modelName, std::string modelToAdd, Vector
 
         FbxLoader* modelToAdd = _models[upperCaseMapNameToAdd]->getFbxLoader();
         FbxLoader* modelAddedTo = _models[upperCaseMapName]->getFbxLoader();
-        modelAddedTo->addToScene(_models[upperCaseMapName], modelToAdd, location);
+        modelAddedTo->addToScene(_models[upperCaseMapName], modelToAdd, location, rotation);
     }
     else {
         std::cout << "Model doesn't exist so add it!" << std::endl;

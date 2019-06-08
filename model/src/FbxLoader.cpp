@@ -282,7 +282,8 @@ std::string FbxLoader::getModelName() {
     return _fileName;
 }
 
-void FbxLoader::_searchAndEditNode(FbxNode* rootNode, FbxNode* childNode, std::string modelName, Vector4 location) {
+void FbxLoader::_searchAndEditNode(FbxNode* rootNode, FbxNode* childNode, std::string modelName, 
+                                   Vector4 location, Vector4 rotation) {
 
     int numChildren = childNode->GetChildCount();
     if (numChildren == 0) {
@@ -293,14 +294,16 @@ void FbxLoader::_searchAndEditNode(FbxNode* rootNode, FbxNode* childNode, std::s
         if (childToEdit != nullptr) {
             childToEdit->LclScaling.Set(FbxDouble3(location.getw(), location.getw(), location.getw()));
             childToEdit->LclTranslation.Set(FbxDouble3(location.getx(), location.gety(), location.getz()));
+            childToEdit->LclRotation.Set(FbxDouble3(rotation.getx(), rotation.gety(), rotation.getz()));
             childToEdit->SetName((modelName + "_0_"
                 + std::string(childToEdit->GetName())).c_str());
         }
-        _searchAndEditNode(rootNode, childNode->GetChild(i), modelName, location);
+        _searchAndEditNode(rootNode, childNode->GetChild(i), modelName, location, rotation);
     }
 }
 
-void FbxLoader::_searchAndEditMesh(FbxNode* childNode, std::string modelName, Vector4 location) {
+void FbxLoader::_searchAndEditMesh(FbxNode* childNode, std::string modelName, 
+                                   Vector4 location, Vector4 rotation) {
     
     int childrenCount = childNode->GetChildCount();
     if (childrenCount == 0) {
@@ -320,7 +323,7 @@ void FbxLoader::_searchAndEditMesh(FbxNode* childNode, std::string modelName, Ve
             lNode->SetNodeAttribute(mesh);
             lNode->LclScaling.Set(FbxDouble3(location.getw(), location.getw(), location.getw()));
             lNode->LclTranslation.Set(FbxDouble3(location.getx(), location.gety(), location.getz()));
-            lNode->LclRotation.Set(node->LclRotation.Get());
+            lNode->LclRotation.Set(/*node->LclRotation.Get()*/FbxDouble3(rotation.getx(), rotation.gety(), rotation.getz()));
 
             int materialCount = node->GetSrcObjectCount<FbxSurfaceMaterial>();
 
@@ -331,11 +334,11 @@ void FbxLoader::_searchAndEditMesh(FbxNode* childNode, std::string modelName, Ve
             // Add node to the scene
             _export.scene->GetRootNode()->AddChild(lNode);
         }
-        _searchAndEditMesh(node, modelName, location);
+        _searchAndEditMesh(node, modelName, location, rotation);
     }
 }
 
-void FbxLoader::_cloneFbxNode(Model* modelAddedTo, FbxLoader* fbxLoader, Vector4 location) {
+void FbxLoader::_cloneFbxNode(Model* modelAddedTo, FbxLoader* fbxLoader, Vector4 location, Vector4 rotation) {
    
     // Determine the number of children there are
     auto rootNode  = _export.scene->GetRootNode();
@@ -353,12 +356,13 @@ void FbxLoader::_cloneFbxNode(Model* modelAddedTo, FbxLoader* fbxLoader, Vector4
         if (childToEdit != nullptr) {
             childToEdit->LclScaling.Set(FbxDouble3(location.getw(), location.getw(), location.getw()));
             childToEdit->LclTranslation.Set(FbxDouble3(location.getx(), location.gety(), location.getz()));
+            childToEdit->LclRotation.Set(FbxDouble3(rotation.getx(), rotation.gety(), rotation.getz()));
             childToEdit->SetName((modelName + "_0_"
                 + std::string(childToEdit->GetName())).c_str());
         }
     }
     //then search recursively for the rest of the nodes to copy and rename
-    _searchAndEditNode(rootNode, node, modelName, location);
+    _searchAndEditNode(rootNode, node, modelName, location, rotation);
 
     //Remove the root node. is always copied over but is bad for the fbx stability
     int numCopiedChildren = rootNode->GetChildCount();
@@ -399,7 +403,7 @@ void FbxLoader::_nodeExists(std::string modelName, FbxNode* node, std::vector<Fb
     }
 }
 
-void FbxLoader::addToScene(Model* modelAddedTo, FbxLoader* modelToLoad, Vector4 location) {
+void FbxLoader::addToScene(Model* modelAddedTo, FbxLoader* modelToLoad, Vector4 location, Vector4 rotation) {
 
     modelAddedTo->getRenderBuffers()->getVertices()->resize(0);
     modelAddedTo->getRenderBuffers()->getNormals()->resize(0);
@@ -415,7 +419,7 @@ void FbxLoader::addToScene(Model* modelAddedTo, FbxLoader* modelToLoad, Vector4 
     std::vector<FbxNode*> copiedNodes;
     _nodeExists(modelToLoad->getModelName(), modelToLoad->getScene()->GetRootNode(), copiedNodes);
     if (copiedNodes.size() == 0) {
-        _cloneFbxNode(modelAddedTo, modelToLoad, location);
+        _cloneFbxNode(modelAddedTo, modelToLoad, location, rotation);
     }
     //instance off of cloned mesh
     else {
@@ -442,7 +446,8 @@ void FbxLoader::addToScene(Model* modelAddedTo, FbxLoader* modelToLoad, Vector4 
                 lNode->SetNodeAttribute(mesh);
                 lNode->LclScaling.Set(FbxDouble3(location.getw(), location.getw(), location.getw()));
                 lNode->LclTranslation.Set(FbxDouble3(location.getx(), location.gety(), location.getz()));
-                lNode->LclRotation.Set(childNode->LclRotation.Get());
+                lNode->LclRotation.Set(/*childNode->LclRotation.Get()*/
+                                        FbxDouble3(rotation.getx(), rotation.gety(), rotation.getz()));
 
                 int materialCount = childNode->GetSrcObjectCount<FbxSurfaceMaterial>();
 
@@ -467,7 +472,8 @@ void FbxLoader::addToScene(Model* modelAddedTo, FbxLoader* modelToLoad, Vector4 
                     lNode->SetNodeAttribute(mesh);
                     lNode->LclScaling.Set(FbxDouble3(location.getw(), location.getw(), location.getw()));
                     lNode->LclTranslation.Set(FbxDouble3(location.getx(), location.gety(), location.getz()));
-                    lNode->LclRotation.Set(childNode->LclRotation.Get());
+                    lNode->LclRotation.Set(/*childNode->LclRotation.Get()*/
+                                           FbxDouble3(rotation.getx(), rotation.gety(), rotation.getz()));
 
                     int materialCount = childNode->GetSrcObjectCount<FbxSurfaceMaterial>();
 
@@ -479,7 +485,7 @@ void FbxLoader::addToScene(Model* modelAddedTo, FbxLoader* modelToLoad, Vector4 
                     _export.scene->GetRootNode()->AddChild(lNode);
                 }
                 //then search recursively for any other submeshes
-                _searchAndEditMesh(childNode, modelName, location);
+                _searchAndEditMesh(childNode, modelName, location, rotation);
             }
         }
     }
@@ -488,8 +494,10 @@ void FbxLoader::addToScene(Model* modelAddedTo, FbxLoader* modelToLoad, Vector4 
     modelName = modelName.substr(modelName.find_last_of("/") + 1);
     modelName = modelName.substr(0, modelName.find_last_of("."));
 
+    //Add in x and z rotation later please!!!! TODO
     auto transformation =
         Matrix::translation(location.getx(), location.gety(), location.getz()) * 
+        Matrix::rotationAroundY(rotation.gety()) *
         Matrix::scale(location.getw()) * 
         modelToLoad->getObjectSpaceTransform();
 

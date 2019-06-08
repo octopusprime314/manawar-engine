@@ -64,11 +64,13 @@ class FbxLoader {
     void            _loadNormals(FbxMesh* meshNode, int* indices, std::vector<Vector4>& normals);
     void            _loadVertices(FbxMesh* meshNode, std::vector<Vector4>& vertices);
     void            _loadIndices(Model* model, FbxMesh* meshNode, int*& indices);
-    void            _cloneFbxNode(Model* modelAddedTo, FbxLoader* fbxToAdd, Vector4 location);
+    void            _cloneFbxNode(Model* modelAddedTo, FbxLoader* fbxToAdd, Vector4 location, Vector4 rotation);
     int             _getASCIIFormatIndex(FbxManager* fbxManager);
     void            _parseTags(FbxNode* node);
-    void            _searchAndEditNode(FbxNode* rootNode, FbxNode* childNode, std::string modelName, Vector4 location);
-    void            _searchAndEditMesh(FbxNode* childNode, std::string modelName, Vector4 location);
+    void            _searchAndEditNode(FbxNode* rootNode, FbxNode* childNode, std::string modelName, 
+                                       Vector4 location, Vector4 rotation);
+    void            _searchAndEditMesh(FbxNode* childNode, std::string modelName, 
+                                       Vector4 location, Vector4 rotation);
     Matrix          _objectSpaceTransform;
     ClonedCount     _clonedInstances;
     ClonedMatrices  _clonedWorldTransforms;
@@ -86,8 +88,10 @@ public:
     void            buildAABB(Model* model);
     void            loadGeometry(Model* model, FbxNode* node);
     void            loadGeometryData(Model* model, FbxMesh* meshNode, FbxNode* childNode);
-    void            addToScene(Model* modelAddedTo, FbxLoader* modelToLoad, Vector4 location);
-    void            addTileToScene(Model* modelAddedTo, FbxLoader* modelToLoad, Vector4 location, std::vector<std::string> textures);
+    void            addToScene(Model* modelAddedTo, FbxLoader* modelToLoad, 
+                               Vector4 location, Vector4 rotation);
+    void            addTileToScene(Model* modelAddedTo, FbxLoader* modelToLoad, 
+                                   Vector4 location, std::vector<std::string> textures);
     void            saveScene();
     void            clearScene();
     std::string     getModelName();

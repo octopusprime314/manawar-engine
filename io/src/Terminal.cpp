@@ -19,7 +19,7 @@ Terminal::Terminal(MRTFrameBuffer* gBuffers, std::vector<Entity*> entityList) :
     
     //Added global history for quick debugging of model creator
     _commandHistory.push_back("ADDTILE SANDBOX TERRAINTILE 0 0 0 1 SNOW.JPG DIRT.JPG ROCKS.JPG GRASS.JPG|");
-    _commandHistory.push_back("MOUSEADD SANDBOX DEADTREE 0.025|");
+    _commandHistory.push_back("MOUSEADD SANDBOX DEADTREE 0.0 0.0 0.0 0.025|");
     _commandHistory.push_back("SAVE SANDBOX|");
 
     _picker = new Picker(gBuffers, std::bind(&Terminal::_mousePosition, this, _1, _2));
@@ -71,7 +71,7 @@ void Terminal::display() {
                 static_cast<float>(atof(xStr.c_str())), 
                 static_cast<float>(atof(yStr.c_str())),
                 static_cast<float>(atof(zStr.c_str())), 
-                static_cast<float>(atof(scale.c_str()))));
+                static_cast<float>(atof(scale.c_str()))), Vector4(0.0, 0.0, 0.0));
         }
         else if (command == "ADDTILE") {
             _commandToProcess = _commandToProcess.substr(_commandToProcess.find(' ') + 1);
@@ -153,18 +153,30 @@ bool Terminal::_mousePosition(Vector4 position, bool mouseClick) {
                 auto modelNamesList = _modelManager->getModelNames();
                 modelToAdd = modelNamesList[_modelNameIndex];
             }
+            //Rotation
+            commandString = commandString.substr(commandString.find(' ') + 1);
+            std::string rotX = commandString.substr(0, commandString.find(' '));
+            commandString = commandString.substr(commandString.find(' ') + 1);
+            std::string rotY = commandString.substr(0, commandString.find(' '));
+            commandString = commandString.substr(commandString.find(' ') + 1);
+            std::string rotZ = commandString.substr(0, commandString.find(' '));
+            Vector4 rot(static_cast<float>(atof(rotX.c_str())),
+                        static_cast<float>(atof(rotY.c_str())),
+                        static_cast<float>(atof(rotZ.c_str())));
+
             commandString = commandString.substr(commandString.find(' ') + 1);
             std::string scale = commandString.substr(0, commandString.find(' '));
             position.getFlatBuffer()[3] = static_cast<float>(atof(scale.c_str()));
 
             if (mouseClick) {
-                _modelManager->addModel(modelName, modelToAdd, position);
+                _modelManager->addModel(modelName, modelToAdd, position, rot);
             }
             else {
                 if (_modelManager->getModel(modelToAdd) != nullptr) {
 
                     auto transformation =
                         Matrix::translation(position.getx(), position.gety(), position.getz()) *
+                        Matrix::rotationAroundY(rot.gety()) *
                         Matrix::scale(position.getw()) *
                         _modelManager->getModel(modelToAdd)->getFbxLoader()->getObjectSpaceTransform();
 

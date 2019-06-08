@@ -202,18 +202,18 @@ EngineManager::EngineManager(int* argc, char** argv, HINSTANCE hInstance, int nC
         MVP lightMapMVP;
         lightMapMVP.setView(Matrix::translation(sunLocation.getx(), sunLocation.gety(), sunLocation.getz())
             * Matrix::rotationAroundX(-90.0f));
-        lightMapMVP.setProjection(Matrix::ortho(1200.0f, 1200.0f, 0.0f, 1200.0f));
+        lightMapMVP.setProjection(Matrix::ortho(1400.0f, 1400.0f, 0.0f, 1400.0f));
         _lightList.push_back(new ShadowedDirectionalLight(_viewManager->getEventWrapper(),
             lightMapMVP,
             EffectType::None,
             Vector4(1.0, 0.0, 0.0)));
 
         //Model view projection matrix for point light additions
-        //MVP pointLightMVP;
+        MVP pointLightMVP;
 
         //point light projection has a 90 degree view angle with a 1 aspect ratio for generating square shadow maps
         //with a near z value of 1 and far z value of 100
-        //pointLightMVP.setProjection(Matrix::projection(90.0f, 1.0f, 1.0f, 100.0f));
+        pointLightMVP.setProjection(Matrix::projection(90.0f, 1.0f, 1.0f, 100.0f));
 
         //Placing the lights in equidistant locations for testing
         /*pointLightMVP.setModel(Matrix::translation(212.14f, 24.68f, 186.46f));
@@ -221,21 +221,28 @@ EngineManager::EngineManager(int* argc, char** argv, HINSTANCE hInstance, int nC
             pointLightMVP,
             EffectType::Fire,
             Vector4(1.0f, 0.8f, 0.3f, 1.0f)));
-
-        pointLightMVP.setModel(Matrix::translation(198.45f, 24.68f, 186.71f));
+        */
+        pointLightMVP.setModel(Matrix::translation(122.0, 10.0, -43.0f));
         _lightList.push_back(new Light(_viewManager->getEventWrapper(),
             pointLightMVP,
             LightType::POINT,
             EffectType::Fire,
             Vector4(1.0f, 0.8f, 0.3f, 1.0f)));
 
-        pointLightMVP.setModel(Matrix::translation(178.45f, 143.59f, 240.71f));
+        pointLightMVP.setModel(Matrix::translation(122.0, 30.0, -43.0f));
+        _lightList.push_back(new Light(_viewManager->getEventWrapper(),
+            pointLightMVP,
+            LightType::POINT,
+            EffectType::Fire,
+            Vector4(1.0f, 0.8f, 0.3f, 1.0f)));
+
+        /*pointLightMVP.setModel(Matrix::translation(122.0, 130.0, -43.0f));
         _lightList.push_back(new Light(_viewManager->getEventWrapper(),
             pointLightMVP,
             LightType::POINT,
             EffectType::Smoke,
-            Vector4(0.4f, 0.4f, 0.4f, 1.0f)));
-
+            Vector4(0.4f, 0.4f, 0.4f, 1.0f)));*/
+        /*
         pointLightMVP.setModel(Matrix::translation(0.0f, 10.0f, 0.0f));
         _lightList.push_back(new Light(_viewManager->getEventWrapper(),
             pointLightMVP,

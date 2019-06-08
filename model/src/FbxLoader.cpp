@@ -1108,7 +1108,6 @@ void FbxLoader::_loadNormals(FbxMesh* meshNode, int* indices, std::vector<Vector
             }
 
             for (int j = 0; j < mappingNormals.size(); j++) {
-                FbxVector4 coord = meshNode->GetControlPointAt(j);
                 normals.push_back(Vector4(mappingNormals[j].getx(), mappingNormals[j].gety(), mappingNormals[j].getz(), 1.0));
             }
         }

@@ -443,14 +443,6 @@ void AssetTexture::_decodeTexture(std::string textureName, unsigned int textureT
     if (textureName.substr(textureName.find_last_of('.')) == ".tif" && _alphaValues) {
         glTexImage2D(textureType, 0, GL_RGBA8, _width, _height, 0, GL_BGRA, GL_UNSIGNED_BYTE, _bits);
         glGenerateMipmap(textureType); //Allocate mipmaps
-        //If alpha value is opaque then do not count as a transparent texture
-        //test all 4 corners
-        if (_bits[3] == 255 &&
-            _bits[(4 * _width) - 1] == 255 &&
-            _bits[((4 * _width)*(_height - 1)) + 3] == 255 &&
-            _bits[(4 * _width * _height) - 1] == 255) {
-            _alphaValues = false;
-        }
     }
     else if (textureName.substr(textureName.find_last_of('.')) == ".tif" && !_alphaValues) {
         glTexImage2D(textureType, 0, GL_RGB8, _width, _height, 0, GL_BGR, GL_UNSIGNED_BYTE, _bits);
@@ -459,14 +451,6 @@ void AssetTexture::_decodeTexture(std::string textureName, unsigned int textureT
     else if (textureName.substr(textureName.find_last_of('.')) == ".dds" && _alphaValues) {
         glTexImage2D(textureType, 0, GL_RGBA8, _width, _height, 0, GL_BGRA, GL_UNSIGNED_BYTE, _bits);
         glGenerateMipmap(textureType); //Allocate mipmaps
-        //If alpha value is opaque then do not count as a transparent texture
-        //test all 4 corners
-        if (_bits[3] == 255                                && 
-            _bits[(4 * _width) - 1]                 == 255 &&
-            _bits[((4 * _width)*(_height - 1)) + 3] == 255 &&
-            _bits[(4 * _width * _height) - 1]       == 255) {
-            _alphaValues = false;
-        }
     }
     else if (textureName.substr(textureName.find_last_of('.')) == ".dds" && !_alphaValues) {
         glTexImage2D(textureType, 0, GL_RGB8, _width, _height, 0, GL_BGR, GL_UNSIGNED_BYTE, _bits);
@@ -499,11 +483,25 @@ void AssetTexture::_decodeTexture(std::string textureName, unsigned int textureT
     else if (textureName.substr(textureName.find_last_of('.')) == ".png" && _alphaValues) {
         glTexImage2D(textureType, 0, GL_RGBA8, _width, _height, 0, GL_RGBA, GL_UNSIGNED_BYTE, _bits);
         glGenerateMipmap(textureType); //Allocate mipmaps
+        //QUICK HACK FOR DEMO SCENE...please remove and fix later TODO
+        _alphaValues = false;
     }
     else if (textureName.substr(textureName.find_last_of('.')) == ".png" && !_alphaValues) {
         glTexImage2D(textureType, 0, GL_RGB8, _width, _height, 0, GL_RGB, GL_UNSIGNED_BYTE, _bits);
         glGenerateMipmap(textureType); //Allocate mipmaps
     }
+
+    if (_alphaValues) {
+        //If alpha value is opaque then do not count as a transparent texture
+        //test all 4 corners
+        if (_bits[3] == 255 &&
+            _bits[(4 * _width) - 1] == 255 &&
+            _bits[((4 * _width)*(_height - 1)) + 3] == 255 &&
+            _bits[(4 * _width * _height) - 1] == 255) {
+            _alphaValues = false;
+        }
+    }
+
     // glGenerateMipmap() above frequently generates an error. Instead of dealing with it, ignore it.
     if (glGetError() != GL_NO_ERROR) {
         printf("%s:%d %s(): Something involving mipmaps generated an error, and we are going to ignore it.\n",

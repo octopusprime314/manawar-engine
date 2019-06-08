@@ -51,7 +51,11 @@ void EffectShader::runShader(Effect* effectObject, float seconds) {
         auto planeScale = Matrix::scale(2.0f);
         if (effectObject->getType() == EffectType::Smoke) {
             seconds /= 4.0f;
-            planeScale = Matrix::scale(20.0f);
+            planeScale = Matrix::scale(100.0f);
+        }
+        if (effectObject->getType() == EffectType::Fire) {
+            seconds /= 2.0f;
+            planeScale = Matrix::scale(120.0f);
         }
         auto lightMVP = light->getLightMVP();
 

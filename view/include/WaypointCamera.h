@@ -16,7 +16,7 @@
 */
 
 /**
-*  TrackedCamera class.  
+*  WaypointCamera class.  
 */
 
 #pragma once
@@ -33,9 +33,9 @@ struct CameraWaypoint {
 
 };
 
-class TrackedCamera : public Camera {
+class WaypointCamera : public Camera {
 public:
-    TrackedCamera();
+    WaypointCamera();
 
     void               reset();
     void               setInversion(const Matrix& inversion);

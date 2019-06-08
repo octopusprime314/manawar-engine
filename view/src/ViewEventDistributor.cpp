@@ -6,6 +6,7 @@
 #include "FunctionState.h"
 #include <cmath>
 #include "StateVector.h"
+#include "Logger.h"
 #include "Entity.h"
 #include "ShaderBroker.h"
 #include "Matrix.h"
@@ -33,14 +34,21 @@ ViewEventDistributor::ViewEventDistributor(int* argc, char** argv, unsigned int 
     // Build tracked camera
     std::vector<CameraWaypoint> waypoints;
     waypoints.emplace_back(CameraWaypoint(Vector4(0, -40.0f, 450.0f), Vector4(0, 0, 0)));
-    waypoints.emplace_back(CameraWaypoint(Vector4(0, -50.0f, 450.0f), Vector4(0, 0, 0)));
-    waypoints.emplace_back(CameraWaypoint(Vector4(0, -50.0f, 440.0f), Vector4(0, 0, 0)));
-    waypoints.emplace_back(CameraWaypoint(Vector4(0, -50.0f, 450.0f), Vector4(0, 0, 0)));
-    _trackedCamera.setWaypoints(waypoints);
+    _waypointCamera.setWaypoints(waypoints);
+
+    std::string vec_file = "../assets/path.txt";
+    _vectorCamera.setVectorsFromFile(vec_file);
+    _trackedCamera = &_vectorCamera;
 
     //Used for god mode
-    _currCamera = &_godCamera;
+    _trackedState = true;
+    _godState = false;
+    _waypointCamera.reset();
+    _vectorCamera.reset();
+    _currCamera = _trackedCamera;
     _currCamera->getState()->setGravity(false);
+    _currCamera->getState()->setActive(true);
+
     //Hook up to kinematic update for proper physics handling
     MasterClock::instance()->subscribeKinematicsRate(std::bind(&ViewEventDistributor::_updateKinematics, this, std::placeholders::_1));
 }
@@ -57,8 +65,8 @@ void ViewEventDistributor::displayViewFrustum() {
     else if (_currCamera == &_godCamera) {
         _viewCamera.displayViewFrustum(_godCamera.getView());
     }
-    else if (_currCamera == &_trackedCamera ) {
-        _viewCamera.displayViewFrustum(_trackedCamera.getView());
+    else if (_currCamera == _trackedCamera ) {
+        _viewCamera.displayViewFrustum(_trackedCamera->getView());
     }
 
 }
@@ -74,7 +82,7 @@ void ViewEventDistributor::setProjection(unsigned int viewportWidth, unsigned in
         farPlaneDistance));
     _godCamera.setProjection(_currCamera->getProjection());
     _viewCamera.setProjection(_currCamera->getProjection());
-    _trackedCamera.setProjection(_currCamera->getProjection());
+    _trackedCamera->setProjection(_currCamera->getProjection());
 
     
 }
@@ -90,7 +98,7 @@ void ViewEventDistributor::setView(Matrix translation, Matrix rotation, Matrix s
 
     _godCamera.setViewMatrix(_currCamera->getView());
     _viewCamera.setViewMatrix(_currCamera->getView());
-    _trackedCamera.setViewMatrix(_currCamera->getView());
+    _trackedCamera->setViewMatrix(_currCamera->getView());
 }
 
 void ViewEventDistributor::triggerEvents() {
@@ -137,7 +145,10 @@ void ViewEventDistributor::_updateReleaseKeyboard(int key, int x, int y) { //Do 
 
 void ViewEventDistributor::_updateKinematics(int milliSeconds) {
     
-    _trackedCamera.setInversion(_inverseRotation);
+    _waypointCamera.setInversion(_inverseRotation);
+    _vectorCamera.setInversion(_inverseRotation);
+    LOG_TRACE(_currCamera->getState()->getLinearPosition().getx(), _currCamera->getState()->getLinearPosition().gety(), _currCamera->getState()->getLinearPosition().getz());
+    LOG_TRACE("\n");
     //Do kinematic calculations
     _currCamera->updateState(milliSeconds);
 
@@ -238,21 +249,24 @@ void ViewEventDistributor::_updateKeyboard(int key, int x, int y) { //Do stuff b
             _viewEvents->updateView(_currCamera->getView()); //Send out event to all listeners to offset locations essentially
         }
         else if (key == GLFW_KEY_T) {
+            std::string vec_file = "../assets/path.txt";
+            _vectorCamera.setVectorsFromFile(vec_file);
             _trackedState = true;
             _godState = false;
-            _trackedCamera.reset();
-            _currCamera = &_trackedCamera;
+            _waypointCamera.reset();
+            _vectorCamera.reset();
+            _currCamera = _trackedCamera;
             _currCamera->getState()->setGravity(false);
             _currCamera->getState()->setActive(true);
 
-            _translation = Matrix::translation(0, -5, 0); //Reset to 0,5,0 view position
+            _translation = Matrix::translation(0, 0, 0); //Reset to 0,5,0 view position
             _rotation = Matrix(); //Set rotation matrix to identity
             _inverseRotation = Matrix();
             _currCamera->setViewMatrix(_rotation * _translation);
 
             setProjection(IOEventDistributor::screenPixelWidth, IOEventDistributor::screenPixelHeight, 0.1f, 5000.0f);
-            setView(Matrix::translation(0.0f, -40.0f, 450.0f),
-                Matrix::rotationAroundY(0.0f),
+            setView(Matrix::translation(584.0f, -5.0f, 20.0f),
+                Matrix::rotationAroundY(-180.0f),
                 Matrix());
 
             _viewEvents->updateView(_currCamera->getView()); //Send out event to all listeners to offset locations essentially

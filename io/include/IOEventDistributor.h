@@ -63,6 +63,8 @@ public:
     static int                            screenPixelHeight;
     static LRESULT CALLBACK               dxEventLoop(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
+    static void                           quit();
+
 private:
 
     IOEvents                              _events; //Event wrapper for GLFW based events

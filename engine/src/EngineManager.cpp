@@ -59,9 +59,10 @@ EngineManager::EngineManager(int* argc, char** argv, HINSTANCE hInstance, int nC
     ModelBroker::setViewManager(_viewManager); //Set the reference to the view model event interface
     //Initializes projection matrix and broadcasts upate to all listeners
     _viewManager->setProjection(IOEventDistributor::screenPixelWidth, IOEventDistributor::screenPixelHeight, 0.1f, 5000.0f); 
-    _viewManager->setView(Matrix::translation(0.0f, -40.0f, 450.0f),
-            Matrix::rotationAroundY(0.0f),
-            Matrix());
+    _viewManager->setView(Matrix::translation(584.0f, -5.0f, 20.0f),
+        Matrix::rotationAroundY(-180.0f),
+        Matrix());
+
 
     //Load and compile all models for the model broker
     ModelBroker::instance()->buildModels();

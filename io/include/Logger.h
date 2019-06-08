@@ -77,7 +77,7 @@ private:
 
     template<typename T>
     static void writeLog(std::stringstream& stream, T streamable) {
-        stream << streamable << std::endl;
+        stream << streamable;
     }
 
     template<typename T, typename... Args>

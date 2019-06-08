@@ -26,7 +26,8 @@
 
 #pragma once
 #include "Camera.h"
-#include "TrackedCamera.h"
+#include "WaypointCamera.h"
+#include "VectorCamera.h"
 #include "ViewEvents.h"
 #include "EventSubscriber.h"
 #include "IOEventDistributor.h"
@@ -68,7 +69,9 @@ private:
     void                 _updateKinematics(int milliSeconds);
     Camera               _viewCamera;
     Camera               _godCamera;
-    TrackedCamera        _trackedCamera;
+    WaypointCamera       _waypointCamera;
+    VectorCamera         _vectorCamera;
+    Camera*              _trackedCamera;
     Camera*              _currCamera;
     EngineStateFlags     _gameState;
 

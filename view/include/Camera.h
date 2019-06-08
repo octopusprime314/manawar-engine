@@ -59,6 +59,6 @@ public:
     ViewState          getViewState();
     void               displayViewFrustum(Matrix view);
     void               setViewState(int key);
-    void               updateState(int milliseconds);
+    virtual void       updateState(int milliseconds);
     StateVector*       getState();
 };

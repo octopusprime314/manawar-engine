@@ -171,6 +171,18 @@ LRESULT CALLBACK IOEventDistributor::dxEventLoop(HWND hWnd,
     return DefWindowProc(hWnd, message, wParam, lParam);
 }
 
+void IOEventDistributor::quit() {
+    if (EngineManager::getGraphicsLayer() == GraphicsLayer::OPENGL) {
+        glfwDestroyWindow(_window);
+        glfwTerminate();
+    }
+    else {
+
+    }
+    _quit = true;
+    exit(0);
+}
+
 //All keyboard input from glfw will be notified here
 void IOEventDistributor::_keyboardUpdate(GLFWwindow* window, int key, int scancode, int action, int mods) {
 

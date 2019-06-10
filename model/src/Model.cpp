@@ -110,6 +110,13 @@ Cube* Model::getAABB() {
     return _aabbCube;
 }
 
+void Model::setGfxAABB(Cube* gfxAABB) {
+    _gfxAABB = gfxAABB;
+}
+Cube* Model::getGfxAABB() {
+    return _gfxAABB;
+}
+
 std::vector<std::string> Model::getTextureNames() {
     return _textureRecorder;
 }

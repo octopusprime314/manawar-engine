@@ -3,6 +3,7 @@
 #include "Model.h"
 #include "FrustumCuller.h"
 #include "GeometryMath.h"
+#include "ModelBroker.h"
 
 unsigned int Entity::_idGenerator = 1;
 
@@ -50,13 +51,18 @@ Entity::~Entity() {
 
 void Entity::_updateDraw() {
 
-    if (_model->getClassType() == ModelClass::AnimatedModelType) {
+    Matrix inverseViewProjection = ModelBroker::getViewManager()->getView().inverse() *
+                                   ModelBroker::getViewManager()->getProjection().inverse();
 
-        AnimatedModel* animatedModel = static_cast<AnimatedModel*>(_model);
-        animatedModel->updateAnimation();
+    if (FrustumCuller::getVisible(this, inverseViewProjection)) {
+        if (_model->getClassType() == ModelClass::AnimatedModelType) {
+
+            AnimatedModel* animatedModel = static_cast<AnimatedModel*>(_model);
+            animatedModel->updateAnimation();
+        }
+        //Run model shader by allowing the shader to operate on the model
+        _model->runShader(this);
     }
-    //Run model shader by allowing the shader to operate on the model
-    _model->runShader(this);
 }
 
 Model* Entity::getModel() {

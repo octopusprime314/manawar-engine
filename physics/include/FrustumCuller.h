@@ -41,4 +41,5 @@ public:
     void visualize();
     std::vector<int> getVisibleVAOs();
     bool             getVisibleVAO(Entity* entity);
+    static bool      getVisible(Entity* entity, Matrix inverseViewProjection);
 };

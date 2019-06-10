@@ -74,3 +74,34 @@ bool FrustumCuller::getVisibleVAO(Entity* entity) {
         return false;
     }
 }
+
+bool FrustumCuller::getVisible(Entity* entity, Matrix inverseViewProjection){
+
+    std::vector<Vector4> frustumPlanes;
+    GeometryMath::getFrustumPlanes(inverseViewProjection, frustumPlanes);
+
+    Cube*   entityAABB  = entity->getModel()->getGfxAABB();
+
+    Matrix trans   = entity->getWorldSpaceTransform();
+    Vector4 center = trans * (entityAABB->getCenter() + entity->getStateVector()->getLinearPosition());
+    
+    float* buffer = entity->getWorldSpaceTransform().getFlatBuffer();
+
+    Vector4 A = Vector4(buffer[0], buffer[1], buffer[2]);
+    Vector4 B = Vector4(buffer[4], buffer[5], buffer[6]);
+    Vector4 C = Vector4(buffer[8], buffer[9], buffer[10]);
+
+    auto length = entityAABB->getLength() * A.getMagnitude();
+    auto height = entityAABB->getHeight() * B.getMagnitude();
+    auto width  = entityAABB->getWidth()  * C.getMagnitude();
+
+    Vector4 mins(center.getx() - length / 2.0f, center.gety() - height / 2.0f, center.getz() - width / 2.0f);
+    Vector4 maxs(center.getx() + length / 2.0f, center.gety() + height / 2.0f, center.getz() + width / 2.0f);
+
+    if (GeometryMath::frustumAABBDetection(frustumPlanes, mins, maxs)) {
+        return true;
+    }
+    else {
+        return false;
+    }
+}

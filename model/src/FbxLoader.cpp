@@ -1368,6 +1368,10 @@ void FbxLoader::_buildTriangles(Model* model, std::vector<Vector4>& vertices, st
     }
     _strideIndex = static_cast<int>(strides.size());
 
+    //Choose a min and max in either x y or z and that will be the diameter of the sphere
+    float min[3] = { (std::numeric_limits<float>::max)(), (std::numeric_limits<float>::max)(), (std::numeric_limits<float>::max)() };
+    float max[3] = { (std::numeric_limits<float>::min)(), (std::numeric_limits<float>::min)(), (std::numeric_limits<float>::min)() };
+
     size_t totalTriangles = indices.size() / 3; //Each index represents one vertex and a triangle is 3 vertices
     //Read each triangle vertex indices and store them in triangle array
     for (int i = 0; i < totalTriangles; i++) {
@@ -1421,6 +1425,40 @@ void FbxLoader::_buildTriangles(Model* model, std::vector<Vector4>& vertices, st
         renderBuffers->addDebugNormal((C) + (rotation * CN));
         renderBuffers->addTextureMapIndex(flattenStrides[triCount]);
         triCount++;
+
+        float* a = A.getFlatBuffer();
+        float* b = B.getFlatBuffer();
+        float* c = C.getFlatBuffer();
+
+        for (int i = 0; i < 3; i++) {
+            if (a[i] < min[i]) {
+                min[i] = a[i];
+            }
+            if (a[i] > max[i]) {
+                max[i] = a[i];
+            }
+
+            if (b[i] < min[i]) {
+                min[i] = b[i];
+            }
+            if (b[i] > max[i]) {
+                max[i] = b[i];
+            }
+
+            if (c[i] < min[i]) {
+                min[i] = c[i];
+            }
+            if (c[i] > max[i]) {
+                max[i] = c[i];
+            }
+        }
+
     }
+
+    float xCenter = min[0] + ((max[0] - min[0]) / 2.0f);
+    float yCenter = min[1] + ((max[1] - min[1]) / 2.0f);
+    float zCenter = min[2] + ((max[2] - min[2]) / 2.0f);
+    Vector4 center(xCenter, yCenter, zCenter);
+    model->setGfxAABB(new Cube(max[0] - min[0], max[1] - min[1], max[2] - min[2], center));
 }
 

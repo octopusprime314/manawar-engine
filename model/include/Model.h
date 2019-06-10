@@ -67,6 +67,8 @@ public:
     void                        addGeometrySphere(Sphere sphere);
     void                        setAABB(Cube* aabbCube);
     Cube*                       getAABB();
+    void                        setGfxAABB(Cube* gfxAABB);
+    Cube*                       getGfxAABB();
     void                        setInstances(std::vector<Vector4> offsets); //is this model used for instancing
     bool                        getIsInstancedModel();
     float*                      getInstanceOffsets();
@@ -94,5 +96,6 @@ protected:
     std::mutex                  _updateLock;
     std::string                 _name;
     Cube*                       _aabbCube;
+    Cube*                       _gfxAABB;
     std::vector<std::string>    _textureRecorder;
 };

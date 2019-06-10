@@ -16,7 +16,7 @@
 const std::string LOGGERPATH = "";
 
 const bool cmdEnabled = true;
-const bool disableLogging = false;
+const bool disableLogging = true;
 
 enum class LOG_LEVEL {
     FATAL = 100,

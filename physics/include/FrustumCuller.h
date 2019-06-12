@@ -26,6 +26,7 @@
 #include "OSP.h"
 #include <vector>
 #include "GeometryGraphic.h"
+#include "Light.h"
 
 class Entity;
 
@@ -41,5 +42,7 @@ public:
     void visualize();
     std::vector<int> getVisibleVAOs();
     bool             getVisibleVAO(Entity* entity);
-    static bool      getVisible(Entity* entity, Matrix inverseViewProjection);
+    static bool      getVisibleAABB(Entity* entity, Matrix inverseViewProjection);
+    static bool      getVisibleOBB(Entity* entity, Matrix inverseViewProjection, 
+                                   Light* light);
 };

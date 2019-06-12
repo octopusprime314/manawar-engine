@@ -4,6 +4,8 @@
 #include "IOEventDistributor.h"
 #include "EngineManager.h"
 #include "HLSLShader.h"
+#include "ModelBroker.h"
+#include "FrustumCuller.h"
 
 static const float SHADOW_RESOLUTION = 5.0; //10 pixels per unit distance of 1
 
@@ -40,12 +42,16 @@ void DirectionalShadow::render(std::vector<Entity*> entityList, Light* light) {
         glDrawBuffers(1, buffers);
 
         for (Entity* entity : entityList) {
+            Matrix inverseViewProjection = ModelBroker::getViewManager()->getView().inverse() *
+                ModelBroker::getViewManager()->getProjection().inverse();
 
-            if (entity->getModel()->getClassType() == ModelClass::ModelType) {
-                _staticShadowShader->runShader(entity, light);
-            }
-            else if (entity->getModel()->getClassType() == ModelClass::AnimatedModelType) {
-                _animatedShadowShader->runShader(entity, light);
+            if (FrustumCuller::getVisibleOBB(entity, inverseViewProjection, light)) {
+                if (entity->getModel()->getClassType() == ModelClass::ModelType) {
+                    _staticShadowShader->runShader(entity, light);
+                }
+                else if (entity->getModel()->getClassType() == ModelClass::AnimatedModelType) {
+                    _animatedShadowShader->runShader(entity, light);
+                }
             }
         }
 

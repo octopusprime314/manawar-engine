@@ -65,10 +65,23 @@ bool Light::isShadowCaster() {
 
 float Light::getRange() {
 
-    auto projMatrix = _lightMVP.getProjectionBuffer();
-    float nearVal = (2.0f*projMatrix[11]) / (2.0f*projMatrix[10] - 2.0f);
-    float farVal = ((projMatrix[10] - 1.0f)*nearVal) / (projMatrix[10] + 1.0f);
-    return farVal;
+    //Projection
+    if (_type == LightType::SHADOWED_POINT ||
+        _type == LightType::SHADOWED_SPOTLIGHT ||
+        _type == LightType::POINT ||
+        _type == LightType::SPOTLIGHT) {
+
+        auto projMatrix = _lightMVP.getProjectionBuffer();
+        float nearVal = (2.0f*projMatrix[10]) / (2.0f*projMatrix[11] - 2.0f);
+        float farVal = ((projMatrix[11] - 1.0f)*nearVal) / (projMatrix[11] + 1.0f);
+        return farVal;
+    }
+    //Orthographic
+    else {
+        auto projMatrix = _lightMVP.getProjectionBuffer();
+        float farVal = - (1.0f - projMatrix[11]) / projMatrix[10];
+        return farVal;
+    }
 }
 
 void Light::setMVP(MVP mvp) {

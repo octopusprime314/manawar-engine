@@ -54,7 +54,7 @@ void Entity::_updateDraw() {
     Matrix inverseViewProjection = ModelBroker::getViewManager()->getView().inverse() *
                                    ModelBroker::getViewManager()->getProjection().inverse();
 
-    if (FrustumCuller::getVisible(this, inverseViewProjection)) {
+    if (FrustumCuller::getVisibleAABB(this, inverseViewProjection)) {
         if (_model->getClassType() == ModelClass::AnimatedModelType) {
 
             AnimatedModel* animatedModel = static_cast<AnimatedModel*>(_model);

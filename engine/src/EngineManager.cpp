@@ -190,7 +190,7 @@ EngineManager::EngineManager(int* argc, char** argv, HINSTANCE hInstance, int nC
 
         _terminal = new Terminal(_deferredRenderer->getGBuffers(), _entityList);
 
-        Vector4 sunLocation(0.0f, 0.0f, -300.0f);
+        Vector4 sunLocation(0.0f, 0.0f, -700.0f);
         /*MVP lightMVP;
         lightMVP.setView(Matrix::translation(sunLocation.getx(), sunLocation.gety(), sunLocation.getz())
             * Matrix::rotationAroundX(-90.0f));
@@ -202,7 +202,7 @@ EngineManager::EngineManager(int* argc, char** argv, HINSTANCE hInstance, int nC
 
         MVP lightMapMVP;
         lightMapMVP.setView(Matrix::translation(sunLocation.getx(), sunLocation.gety(), sunLocation.getz())
-            * Matrix::rotationAroundX(-90.0f));
+            * Matrix::rotationAroundX(-25.0f));
         lightMapMVP.setProjection(Matrix::ortho(1400.0f, 1400.0f, 0.0f, 1400.0f));
         _lightList.push_back(new ShadowedDirectionalLight(_viewManager->getEventWrapper(),
             lightMapMVP,
@@ -251,7 +251,7 @@ EngineManager::EngineManager(int* argc, char** argv, HINSTANCE hInstance, int nC
             EffectType::Fire,
             Vector4(1.0f, 0.8f, 0.3f, 1.0f)));*/
 
-        _audioManager->startAll();
+        //_audioManager->startAll();
 
 
     }
@@ -413,9 +413,22 @@ void EngineManager::_postDraw() {
             //Draw transparent objects onto of the deferred renderer
             _forwardRenderer->forwardLighting(_entityList, _viewManager, _lightList);
 
+            
+
             // Lights - including the fire point lights
             for (Light* light : _lightList) {
                 light->render();
+
+                for (Entity* entity : _entityList) {
+                    
+                    if (light->getType() == LightType::SHADOWED_DIRECTIONAL) {
+                        
+                        Matrix inverseViewProjection = ModelBroker::getViewManager()->getView().inverse() *
+                            ModelBroker::getViewManager()->getProjection().inverse();
+
+                        FrustumCuller::getVisibleOBB(entity, inverseViewProjection, light);
+                    }
+                }
             }
 
             for (auto entity : _entityList) {
@@ -443,10 +456,10 @@ void EngineManager::_postDraw() {
             //_entityList[1]->getFrustumCuller()->visualize();
             _viewManager->displayViewFrustum();
 
-            ////shows all of the light/shadow volumes
-            //for (Light* light : _lightList) {
-            //    light->renderDebug();
-            //}
+            //shows all of the light/shadow volumes
+            for (Light* light : _lightList) {
+                light->renderDebug();
+            }
         }
         else {
 

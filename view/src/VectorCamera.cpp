@@ -39,7 +39,8 @@ void VectorCamera::setVectorsFromFile(const std::string& file)
     _vectors.clear();
     reset();
 
-    float v_x, v_y, v_z, r_x, r_y, r_z, time;
+    double v_x, v_y, v_z, r_x, r_y, r_z;
+    float time;
     std::string line;
     while(std::getline(infile, line))
     {
@@ -58,9 +59,9 @@ void VectorCamera::setVectorsFromFile(const std::string& file)
         r_y = ::atof(vstrings[4].c_str());
         r_z = ::atof(vstrings[5].c_str());
 
-        time = ::atof(vstrings[6].c_str());
-        Vector4 d(v_x, v_y, v_z);
-        Vector4 r(r_x, r_y, r_z);
+        time = static_cast<float>(::atof(vstrings[6].c_str()));
+        Vector4 d(static_cast<float>(v_x), static_cast<float>(v_y), static_cast<float>(v_z));
+        Vector4 r(static_cast<float>(r_x), static_cast<float>(r_y), static_cast<float>(r_z));
         _vectors.emplace_back(d, r, time);
         
     }

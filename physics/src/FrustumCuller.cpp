@@ -75,7 +75,7 @@ bool FrustumCuller::getVisibleVAO(Entity* entity) {
     }
 }
 
-bool FrustumCuller::getVisible(Entity* entity, Matrix inverseViewProjection){
+bool FrustumCuller::getVisibleAABB(Entity* entity, Matrix inverseViewProjection){
 
     std::vector<Vector4> frustumPlanes;
     GeometryMath::getFrustumPlanes(inverseViewProjection, frustumPlanes);
@@ -98,7 +98,189 @@ bool FrustumCuller::getVisible(Entity* entity, Matrix inverseViewProjection){
     Vector4 mins(center.getx() - length / 2.0f, center.gety() - height / 2.0f, center.getz() - width / 2.0f);
     Vector4 maxs(center.getx() + length / 2.0f, center.gety() + height / 2.0f, center.getz() + width / 2.0f);
 
+   
+
     if (GeometryMath::frustumAABBDetection(frustumPlanes, mins, maxs)) {
+
+        //std::vector<Cube>* cubes = new std::vector<Cube>{
+        //    Cube(length, height, width, center) };
+        //VAO vao;
+        //vao.createVAO(cubes, GeometryConstruction::LINE_WIREFRAME);
+
+        ////Build inverse projection matrix which will properly transform unit cube
+        ////to the frustum vertices to visualize it in the engine
+        //MVP mvp;
+
+        ////Model transform to create frustum cube
+        //Matrix cameraView = ModelBroker::getViewManager()->getView();
+        //Matrix cameraProj = ModelBroker::getViewManager()->getProjection();
+        //mvp.setView(cameraView);
+        //mvp.setProjection(cameraProj);
+
+        //auto debugShader = static_cast<DebugShader*>(ShaderBroker::instance()->getShader("debugShader"));
+        //Vector4 color(1.0, 0.0, 0.0);
+        //debugShader->runShader(&mvp, &vao, {}, color.getFlatBuffer(), GeometryConstruction::LINE_WIREFRAME);
+        return true;
+    }
+    else {
+        return false;
+    }
+}
+
+bool FrustumCuller::getVisibleOBB(Entity* entity, Matrix inverseViewProjection, Light* light) {
+
+    Matrix lightView = light->getLightMVP().getViewMatrix();
+    Matrix ortho     = light->getLightMVP().getProjectionMatrix();
+
+    //Transform the camera frustum to the light's view matrix
+
+    lightView.getFlatBuffer()[3] = 0.0f;
+    lightView.getFlatBuffer()[7] = 0.0f;
+    lightView.getFlatBuffer()[11] = 0.0f;
+
+    Matrix lightInverseViewProjection = /*lightView.inverse() * */inverseViewProjection * lightView;
+    std::vector<Vector4> frustumPlanes;
+    GeometryMath::getFrustumPlanes(lightInverseViewProjection, frustumPlanes);
+
+    Cube*   entityAABB = entity->getModel()->getGfxAABB();
+
+
+
+
+    float*  buffer = entity->getWorldSpaceTransform().getFlatBuffer();
+
+    Vector4 aRot = Vector4(buffer[0], buffer[1], buffer[2]);
+    Vector4 bRot = Vector4(buffer[4], buffer[5], buffer[6]);
+    Vector4 cRot = Vector4(buffer[8], buffer[9], buffer[10]);
+
+    auto    length = entityAABB->getLength() * aRot.getMagnitude();
+    auto    height = entityAABB->getHeight() * bRot.getMagnitude();
+    auto    width  = entityAABB->getWidth()  * cRot.getMagnitude();
+
+    Matrix  trans = entity->getWorldSpaceTransform();
+    Vector4 center = trans * (entityAABB->getCenter() + entity->getStateVector()->getLinearPosition());
+    Matrix  inverseTranslation = Matrix::translation(-center.getx(), -center.gety(), -center.getz());
+    Matrix  translation        = Matrix::translation(center.getx(), center.gety(), -center.getz());
+
+    float   planeZ = fabs(light->getRange()) / 2.0f;
+
+
+    //Vector4 A(center.getx() - (length / 2.0f), center.gety() - (height / 2.0f), center.getz() - (width / 2.0f));
+    //Vector4 B(center.getx() + (length / 2.0f), center.gety() + (height / 2.0f), center.getz() - (width / 2.0f));
+    //Vector4 C(center.getx() + (length / 2.0f), center.gety() - (height / 2.0f), center.getz() - (width / 2.0f));
+    //Vector4 D(center.getx() - (length / 2.0f), center.gety() + (height / 2.0f), center.getz() - (width / 2.0f)/* + planeZ*/);
+    //Vector4 E(center.getx() + (length / 2.0f), center.gety() - (height / 2.0f), center.getz() + (width / 2.0f)/* + planeZ*/);
+    //Vector4 F(center.getx() - (length / 2.0f), center.gety() + (height / 2.0f), center.getz() + (width / 2.0f)/* + planeZ*/);
+    //Vector4 G(center.getx() - (length / 2.0f), center.gety() - (height / 2.0f), center.getz() + (width / 2.0f)/* + planeZ*/);
+    //Vector4 H(center.getx() + (length / 2.0f), center.gety() + (height / 2.0f), center.getz() + (width / 2.0f)/* + planeZ*/);
+
+    //std::vector<Vector4> points;
+    //points.push_back(translation * lightView * inverseTranslation * A);
+    //points.push_back(translation * lightView * inverseTranslation * B);
+    //points.push_back(translation * lightView * inverseTranslation * C);
+    //points.push_back(translation * lightView * inverseTranslation * D);
+    //points.push_back(translation * lightView * inverseTranslation * E);
+    //points.push_back(translation * lightView * inverseTranslation * F);
+    //points.push_back(translation * lightView * inverseTranslation * G);
+    //points.push_back(translation * lightView * inverseTranslation * H);
+
+    Vector4 A(- (length / 2.0f), - (height / 2.0f) - planeZ, - (width / 2.0f));
+    Vector4 B(+ (length / 2.0f), + (height / 2.0f) - planeZ, - (width / 2.0f));
+    Vector4 C(+ (length / 2.0f), - (height / 2.0f) - planeZ, - (width / 2.0f));
+    Vector4 D(- (length / 2.0f), + (height / 2.0f) - planeZ, - (width / 2.0f));
+    Vector4 E(+ (length / 2.0f), - (height / 2.0f) + planeZ, + (width / 2.0f));
+    Vector4 F(- (length / 2.0f), + (height / 2.0f) + planeZ, + (width / 2.0f));
+    Vector4 G(- (length / 2.0f), - (height / 2.0f) + planeZ, + (width / 2.0f));
+    Vector4 H(+ (length / 2.0f), + (height / 2.0f) + planeZ, + (width / 2.0f));
+
+    std::vector<Vector4> points;
+    points.push_back(translation * lightView * A);
+    points.push_back(translation * lightView * B);
+    points.push_back(translation * lightView * C);
+    points.push_back(translation * lightView * D);
+    points.push_back(translation * lightView * E);
+    points.push_back(translation * lightView * F);
+    points.push_back(translation * lightView * G);
+    points.push_back(translation * lightView * H);
+
+
+    float min[3] = { (std::numeric_limits<float>::max)(), (std::numeric_limits<float>::max)(), (std::numeric_limits<float>::max)() };
+    float max[3] = { (std::numeric_limits<float>::min)(), (std::numeric_limits<float>::min)(), (std::numeric_limits<float>::min)() };
+
+    for (int i = 0; i < points.size(); i++) {
+        float* a = points[i].getFlatBuffer();
+
+        for (int j = 0; j < 3; j++) {
+            if (a[j] < min[j]) {
+                min[j] = a[j];
+            }
+            if (a[j] > max[j]) {
+                max[j] = a[j];
+            }
+        }
+    }
+    
+    //Make seperation at least 0.1
+    if (max[0] - min[0] < 0.1) {
+        max[0] = min[0] + 0.1f;
+    }
+    if (max[1] - min[1] < 0.1) {
+        max[1] = min[1] + 0.1f;
+    }
+    if (max[2] - min[2] < 0.1) {
+        max[2] = min[2] + 0.1f;
+    }
+
+    Vector4 mins(min[0], min[1], min[2]);
+    Vector4 maxs(max[0], max[1], max[2]);
+
+    Vector4 newCenter(((max[0] - min[0]) / 2.0f) + min[0],
+                      ((max[1] - min[1]) / 2.0f) + min[1],
+                      ((max[2] - min[2]) / 2.0f) + min[2]);
+
+    ////Transformed
+    //std::vector<Cube>* cubes = new std::vector<Cube>{
+    //    Cube(2.0f,2.0f,2.0f, Vector4(0.0, 0.0, 0.0)) };
+
+    //VAO vao;
+    //vao.createVAO(cubes, GeometryConstruction::LINE_WIREFRAME);
+    //MVP lightMVP = light->getLightMVP();
+    //MVP mvp;
+    ////Model transform to create frustum cube
+    //mvp.setModel(ModelBroker::getViewManager()->getView().inverse() * 
+    //    ModelBroker::getViewManager()->getProjection().inverse());
+
+    ////mvp.setView(ModelBroker::getViewManager()->getView());
+    //mvp.setProjection(ModelBroker::getViewManager()->getProjection());
+
+    //auto debugShader = static_cast<DebugShader*>(ShaderBroker::instance()->getShader("debugShader"));
+    //Vector4 color(1.0, 0.0, 0.0);
+    //debugShader->runShader(&mvp, &vao, {}, color.getFlatBuffer(), GeometryConstruction::LINE_WIREFRAME);
+    
+    if (GeometryMath::frustumAABBDetection(frustumPlanes, mins, maxs)) {
+
+        //Transformed
+        std::vector<Cube>* hitOBB = new std::vector<Cube>{
+            Cube(max[0] - min[0], max[1] - min[1], max[2] - min[2], newCenter) };
+
+        VAO hitVAO;
+        hitVAO.createVAO(hitOBB, GeometryConstruction::LINE_WIREFRAME);
+
+        //Build inverse projection matrix which will properly transform unit cube
+        //to the frustum vertices to visualize it in the engine
+        MVP hitMVP;
+
+        //Model transform to create frustum cube
+        Matrix cameraView = ModelBroker::getViewManager()->getView();
+        Matrix cameraProj = ModelBroker::getViewManager()->getProjection();
+        hitMVP.setView(cameraView);
+        hitMVP.setProjection(cameraProj);
+
+        auto debugShader = static_cast<DebugShader*>(ShaderBroker::instance()->getShader("debugShader"));
+        Vector4 color(1.0, 0.0, 0.0);
+        debugShader->runShader(&hitMVP, &hitVAO, {}, color.getFlatBuffer(), GeometryConstruction::LINE_WIREFRAME);
+
+
         return true;
     }
     else {

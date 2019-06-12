@@ -50,6 +50,16 @@ Vector4 Vector4::operator * (float scale) {
     return result;
 }
 
+Vector4 Vector4::operator * (Vector4 other) {
+    Vector4 result;
+    float* vector = result.getFlatBuffer();
+    vector[0] = _vec[0] * other.getx();
+    vector[1] = _vec[1] * other.gety();
+    vector[2] = _vec[2] * other.getz();
+    return result;
+}
+
+
 Vector4 Vector4::operator + (Vector4 other) {
     Vector4 result;
     float* vector = result.getFlatBuffer();

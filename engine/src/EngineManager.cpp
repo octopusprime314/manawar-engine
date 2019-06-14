@@ -202,7 +202,7 @@ EngineManager::EngineManager(int* argc, char** argv, HINSTANCE hInstance, int nC
 
         MVP lightMapMVP;
         lightMapMVP.setView(Matrix::translation(sunLocation.getx(), sunLocation.gety(), sunLocation.getz())
-            * Matrix::rotationAroundX(-25.0f));
+            * Matrix::rotationAroundX(-45.0f));
         lightMapMVP.setProjection(Matrix::ortho(1400.0f, 1400.0f, 0.0f, 1400.0f));
         _lightList.push_back(new ShadowedDirectionalLight(_viewManager->getEventWrapper(),
             lightMapMVP,
@@ -223,7 +223,7 @@ EngineManager::EngineManager(int* argc, char** argv, HINSTANCE hInstance, int nC
             EffectType::Fire,
             Vector4(1.0f, 0.8f, 0.3f, 1.0f)));
         */
-        pointLightMVP.setModel(Matrix::translation(122.0, 10.0, -43.0f));
+       /* pointLightMVP.setModel(Matrix::translation(122.0, 10.0, -43.0f));
         _lightList.push_back(new Light(_viewManager->getEventWrapper(),
             pointLightMVP,
             LightType::POINT,
@@ -235,7 +235,7 @@ EngineManager::EngineManager(int* argc, char** argv, HINSTANCE hInstance, int nC
             pointLightMVP,
             LightType::POINT,
             EffectType::Fire,
-            Vector4(1.0f, 0.8f, 0.3f, 1.0f)));
+            Vector4(1.0f, 0.8f, 0.3f, 1.0f)));*/
 
         /*pointLightMVP.setModel(Matrix::translation(122.0, 130.0, -43.0f));
         _lightList.push_back(new Light(_viewManager->getEventWrapper(),
@@ -430,6 +430,8 @@ void EngineManager::_postDraw() {
                     }
                 }
             }
+
+            //_viewManager->displayViewFrustum();
 
             for (auto entity : _entityList) {
                 if (entity->getSelected()) {

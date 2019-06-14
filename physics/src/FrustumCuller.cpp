@@ -195,28 +195,28 @@ bool FrustumCuller::getVisibleOBB(Entity* entity, Matrix inverseViewProjection, 
 
     if (GeometryMath::frustumAABBDetection(frustumPlanes, mins, maxs)) {
 
-        //Transformed
-        static std::vector<Cube>* hitOBB = new std::vector<Cube>{
-            Cube(max[0] - min[0], max[1] - min[1], max[2] - min[2], Vector4(0.0,0.0,0.0)) };
+        ////Transformed
+        //static std::vector<Cube>* hitOBB = new std::vector<Cube>{
+        //    Cube(max[0] - min[0], max[1] - min[1], max[2] - min[2], Vector4(0.0,0.0,0.0)) };
 
-        static VAO hitVAO;
-        hitVAO.createVAO(hitOBB, GeometryConstruction::LINE_WIREFRAME);
+        //static VAO hitVAO;
+        //hitVAO.createVAO(hitOBB, GeometryConstruction::LINE_WIREFRAME);
 
-        //Build inverse projection matrix which will properly transform unit cube
-        //to the frustum vertices to visualize it in the engine
-        MVP hitMVP;
+        ////Build inverse projection matrix which will properly transform unit cube
+        ////to the frustum vertices to visualize it in the engine
+        //MVP hitMVP;
 
-        //Model transform to create frustum cube
-        Matrix cameraView = ModelBroker::getViewManager()->getView();
-        Matrix cameraProj = ModelBroker::getViewManager()->getProjection();
-        Matrix visTranslation = Matrix::translation(buffer[3], buffer[7], -buffer[11]) *
-            Matrix::translation(pos[0], pos[1], pos[2]);
-        hitMVP.setView(cameraView * visTranslation * lightView.inverse());
-        hitMVP.setProjection(cameraProj);
+        ////Model transform to create frustum cube
+        //Matrix cameraView = ModelBroker::getViewManager()->getView();
+        //Matrix cameraProj = ModelBroker::getViewManager()->getProjection();
+        //Matrix visTranslation = Matrix::translation(buffer[3], buffer[7], -buffer[11]) *
+        //    Matrix::translation(pos[0], pos[1], pos[2]);
+        //hitMVP.setView(cameraView * visTranslation * lightView.inverse());
+        //hitMVP.setProjection(cameraProj);
 
-        auto debugShader = static_cast<DebugShader*>(ShaderBroker::instance()->getShader("debugShader"));
-        Vector4 color(1.0, 0.0, 0.0);
-        debugShader->runShader(&hitMVP, &hitVAO, {}, color.getFlatBuffer(), GeometryConstruction::LINE_WIREFRAME);
+        //auto debugShader = static_cast<DebugShader*>(ShaderBroker::instance()->getShader("debugShader"));
+        //Vector4 color(1.0, 0.0, 0.0);
+        //debugShader->runShader(&hitMVP, &hitVAO, {}, color.getFlatBuffer(), GeometryConstruction::LINE_WIREFRAME);
 
         return true;
     }

@@ -1,19 +1,14 @@
 #include "LayeredTexture.h"
+#include "AssetTexture.h"
 
-LayeredTexture::LayeredTexture(std::vector<std::string> textureNames) {
-
-    for (auto textureName : textureNames) {
-        _textures.push_back(new AssetTexture(textureName));
-    }
+LayeredTexture::LayeredTexture(std::vector<AssetTexture*> textures) {
+    _textures = textures;
 }
 
-LayeredTexture::LayeredTexture(std::vector<std::string> textureNames,
+LayeredTexture::LayeredTexture(std::vector<AssetTexture*> textures,
     ComPtr<ID3D12GraphicsCommandList>& cmdList,
     ComPtr<ID3D12Device>& device) {
-    
-    for (auto textureName : textureNames) {
-        _textures.push_back(new AssetTexture(textureName, cmdList, device));
-    }
+    _textures = textures;
 }
 
 LayeredTexture::~LayeredTexture() {

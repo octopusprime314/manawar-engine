@@ -28,8 +28,8 @@ class LayeredTexture {
     LayeredTexture(); //Make the default constructor private which forces coder to allocate a Texture with a string name
     std::vector<AssetTexture*> _textures;
 public:
-    LayeredTexture(std::vector<std::string> textureNames);
-    LayeredTexture(std::vector<std::string> textureNames,
+    LayeredTexture(std::vector<AssetTexture*> textureNames);
+    LayeredTexture(std::vector<AssetTexture*> textureNames,
                  ComPtr<ID3D12GraphicsCommandList>& cmdList,
                  ComPtr<ID3D12Device>& device);
     ~LayeredTexture();

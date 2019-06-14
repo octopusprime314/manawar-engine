@@ -36,11 +36,32 @@ void TextureBroker::addLayeredTexture(std::vector<std::string> textureNames) {
         sumString += str;
     }
     if (_layeredTextures.find(sumString) == _layeredTextures.end()) {
+
+        std::vector<AssetTexture*> textures;
+
         if (EngineManager::getGraphicsLayer() == GraphicsLayer::OPENGL) {
-            _layeredTextures[sumString] = new LayeredTexture(textureNames);
+
+            //prime the asset textures
+            for (auto textureName : textureNames) {
+                if (getTexture(textureName) == nullptr) {
+                    addTexture(textureName);
+                }
+                textures.push_back(getTexture(textureName));
+            }
+
+            _layeredTextures[sumString] = new LayeredTexture(textures);
         }
         else if (EngineManager::getGraphicsLayer() == GraphicsLayer::DX12) {
-            _layeredTextures[sumString] = new LayeredTexture(textureNames,
+
+            //prime the asset textures
+            for (auto textureName : textureNames) {
+                if (getTexture(textureName) == nullptr) {
+                    addTexture(textureName);
+                }
+                textures.push_back(getTexture(textureName));
+            }
+
+            _layeredTextures[sumString] = new LayeredTexture(textures,
                 DXLayer::instance()->getCmdList(), DXLayer::instance()->getDevice());
         }
     }
@@ -59,7 +80,12 @@ void TextureBroker::addCubeTexture(std::string textureName) {
 }
 
 AssetTexture* TextureBroker::getTexture(std::string textureName) {
-    return _textures[textureName];
+    if (_textures.find(textureName) != _textures.end()) {
+        return _textures[textureName];
+    }
+    else {
+        return nullptr;
+    }
 }
 
 LayeredTexture* TextureBroker::getLayeredTexture(std::string textureName) {

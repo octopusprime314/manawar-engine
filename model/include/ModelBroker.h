@@ -43,6 +43,7 @@ public:
     static ModelBroker*          instance();
     ~ModelBroker();
     Model*                       getModel(std::string modelName);
+    Model*                       getModel(std::string modelName, Vector4 pos);
     std::vector<std::string>     getModelNames();
     void                         buildModels();
     void                         clearChanges(std::string modelName);

@@ -66,7 +66,10 @@ void Entity::_updateDraw() {
 }
 
 Model* Entity::getModel() {
-    return _model;
+    auto pos = Vector4(_worldSpaceTransform.getFlatBuffer()[3],
+                       _worldSpaceTransform.getFlatBuffer()[7],
+                       _worldSpaceTransform.getFlatBuffer()[11]);
+    return ModelBroker::instance()->getModel(_model->getName(), pos);
 }
 Geometry* Entity::getGeometry() {
     return &_worldSpaceGeometry;
@@ -305,11 +308,15 @@ void Entity::setLayeredTexture(LayeredTexture* layeredTexture) {
 }
 
 std::vector<VAO*>* Entity::getFrustumVAO() {
+    auto pos = Vector4(_worldSpaceTransform.getFlatBuffer()[3],
+                       _worldSpaceTransform.getFlatBuffer()[7],
+                       _worldSpaceTransform.getFlatBuffer()[11]);
+    auto model = ModelBroker::instance()->getModel(_model->getName(), pos);
 
     //If not subdividing space using a frustum culler then retrieve whole of geometry
     if (_frustumCuller->getOSP() == nullptr) {
         if (_frustumCuller->getVisibleVAO(this)) {
-            return _model->getVAO();
+            return model->getVAO();
         }
         else {
             return new std::vector<VAO*>(); //empty
@@ -327,7 +334,7 @@ std::vector<VAO*>* Entity::getFrustumVAO() {
         }
         else {
             _frustumVAOs.clear();
-            auto addedVAOs = _model->getVAO();
+            auto addedVAOs = model->getVAO();
             //Do not add the original non frustum culled vao that needs to be used for shadows only
             int i = 0;
             for (auto vaoIndex : *addedVAOs) {

@@ -93,8 +93,8 @@ public:
     Camera::ViewState    getViewState();
     void                 displayViewFrustum();
     void                 triggerEvents();
-                         
-protected:               
+    Vector4              getCameraPos();
+protected:
     void                 _updateKeyboard(int key, int x, int y); //Do stuff based on keyboard upate
     void                 _updateReleaseKeyboard(int key, int x, int y); //Do stuff based on keyboard release upate
     void                 _updateMouse(double x, double y); //Do stuff based on mouse update

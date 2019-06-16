@@ -5,6 +5,7 @@
 #include "AnimatedModel.h"
 #include "Model.h"
 #include "Logger.h"
+#include "ViewEventDistributor.h"
 ModelBroker* ModelBroker::_broker = nullptr;
 ViewEventDistributor* ModelBroker::_viewManager = nullptr;
 
@@ -54,6 +55,40 @@ Model* ModelBroker::getModel(std::string modelName) {
     std::string upperCaseMapName = _strToUpper(modelName);
     if (_models.find(upperCaseMapName + "_LOD1") != _models.end()) {
         return _models[upperCaseMapName + "_LOD1"];
+    }
+    else {
+        return _models[upperCaseMapName];
+    }
+}
+
+Model* ModelBroker::getModel(std::string modelName, Vector4 pos) {
+    std::string upperCaseMapName = _strToUpper(modelName);
+    //If we have an lod marker from the model folder then choose which one
+    if (_models.find(upperCaseMapName) != _models.end() &&
+        upperCaseMapName.find("LOD") != std::string::npos) {
+
+        Vector4 cameraPos = getViewManager()->getCameraPos();
+        cameraPos.getFlatBuffer()[0] = -cameraPos.getx();
+        cameraPos.getFlatBuffer()[1] = -cameraPos.gety();
+        cameraPos.getFlatBuffer()[2] = -cameraPos.getz();
+
+        float distance = (pos - cameraPos).getMagnitude();
+        //use lod 1 which is the highest poly count for the model
+        if (distance < 400) {
+             return _models[upperCaseMapName];
+        }
+        else {
+            std::string lod = upperCaseMapName.substr(0, upperCaseMapName.size() - 1);
+            if (_models.find(lod + "2") != _models.end()) {
+                return _models[lod + "2"];
+            }
+            if (_models.find(lod + "3") != _models.end()) {
+                return _models[lod + "3"];
+            }
+            else {
+                return _models[upperCaseMapName];
+            }
+        }
     }
     else {
         return _models[upperCaseMapName];

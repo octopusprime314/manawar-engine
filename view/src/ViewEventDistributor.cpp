@@ -70,6 +70,11 @@ void ViewEventDistributor::displayViewFrustum() {
     }
 
 }
+Vector4 ViewEventDistributor::getCameraPos() {
+    return Vector4(_translation.getFlatBuffer()[3],
+                   _translation.getFlatBuffer()[7],
+                   _translation.getFlatBuffer()[11]);
+}
 
 void ViewEventDistributor::setProjection(unsigned int viewportWidth, unsigned int viewportHeight, float nearPlaneDistance, float farPlaneDistance) {
     //45 degree angle up/down/left/right,

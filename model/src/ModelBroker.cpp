@@ -52,7 +52,12 @@ void ModelBroker::buildModels() {
 
 Model* ModelBroker::getModel(std::string modelName) {
     std::string upperCaseMapName = _strToUpper(modelName);
-    return _models[upperCaseMapName];
+    if (_models.find(upperCaseMapName + "_LOD1") != _models.end()) {
+        return _models[upperCaseMapName + "_LOD1"];
+    }
+    else {
+        return _models[upperCaseMapName];
+    }
 }
 
 std::vector<std::string> ModelBroker::getModelNames() {
@@ -166,12 +171,25 @@ void ModelBroker::_gatherModelNames() {
                     fileName != "." && 
                     fileName != ".." && 
                     fileName.find(".ini") == std::string::npos) {
-                    
-                    LOG_INFO(ent->d_name, "\n");
+                   
+                    DIR *subDir;
+                    struct dirent *subEnt;
+                    if ((subDir = opendir((STATIC_MESH_LOCATION + fileName).c_str())) != nullptr) {
+                        while ((subEnt = readdir(subDir)) != nullptr) {
 
-                    std::string mapName = fileName + "/" + fileName + ".fbx";
-                    _models[_strToUpper(fileName)] = new Model(STATIC_MESH_LOCATION + mapName);
-                    _modelNames.push_back(_strToUpper(fileName));
+                            if (*subEnt->d_name) {
+                                LOG_INFO(subEnt->d_name, "\n");
+
+                                std::string lodFile = std::string(subEnt->d_name);
+                                if (lodFile.find("lod") != std::string::npos) {
+                                    std::string mapName = fileName + "/" + lodFile;
+                                    lodFile = lodFile.substr(0, lodFile.size() - 4);
+                                    _models[_strToUpper(lodFile)] = new Model(STATIC_MESH_LOCATION + mapName);
+                                    _modelNames.push_back(_strToUpper(lodFile));
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }

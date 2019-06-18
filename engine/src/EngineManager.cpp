@@ -278,6 +278,20 @@ EngineManager::~EngineManager() {
     delete _forwardRenderer;
 }
 
+void EngineManager::removeEntity(Entity* entity) {
+    _entityListLock.lock();
+    int indexToRemove = 0;
+    for (auto ent : _entityList) {
+        if (ent == entity) {
+            break;
+        }
+        indexToRemove++;
+    }
+    _entityList.erase(_entityList.begin() + indexToRemove);
+    entity->setPosition(Vector4(100000000.0f, 100000000.0f, 100000000.0f, 1.0f));
+    _entityListLock.unlock();
+}
+
 Entity* EngineManager::addEntity(Model* model, Matrix transform, bool temporaryModel) {
     auto viewManager = ModelBroker::getViewManager();
     auto viewWrapper = viewManager->getEventWrapper();

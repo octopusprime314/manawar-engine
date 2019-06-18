@@ -51,6 +51,7 @@ public:
     void                         saveModel(std::string modelName);
     void                         addModel(std::string modelName, std::string modelToAdd, 
                                           Vector4 location, Vector4 rotation);
+    void                         removeModel(Entity* entityToRemove, std::string modelRemovedFrom);
     void                         addTileModel(std::string modelName, std::string modelToAdd, 
                                               Vector4 location, std::vector<std::string> textures);
     static void                  setViewManager(ViewEventDistributor* viewEventDistributor);

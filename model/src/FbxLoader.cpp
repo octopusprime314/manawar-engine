@@ -10,6 +10,7 @@
 #include "ModelBroker.h"
 #include "MutableTexture.h"
 #include "EngineManager.h"
+#include "Entity.h"
 #include <cctype>
 using namespace fbxsdk;
 
@@ -403,6 +404,11 @@ void FbxLoader::_nodeExists(std::string modelName, FbxNode* node, std::vector<Fb
     }
 }
 
+void FbxLoader::removeFromScene(Entity* entityToRemove, FbxLoader* modelRemovedFrom) {
+
+    EngineManager::removeEntity(entityToRemove);
+}
+
 void FbxLoader::addToScene(Model* modelAddedTo, FbxLoader* modelToLoad, Vector4 location, Vector4 rotation) {
 
     modelAddedTo->getRenderBuffers()->getVertices()->resize(0);
@@ -446,8 +452,7 @@ void FbxLoader::addToScene(Model* modelAddedTo, FbxLoader* modelToLoad, Vector4 
                 lNode->SetNodeAttribute(mesh);
                 lNode->LclScaling.Set(FbxDouble3(location.getw(), location.getw(), location.getw()));
                 lNode->LclTranslation.Set(FbxDouble3(location.getx(), location.gety(), location.getz()));
-                lNode->LclRotation.Set(/*childNode->LclRotation.Get()*/
-                                        FbxDouble3(rotation.getx(), rotation.gety(), rotation.getz()));
+                lNode->LclRotation.Set(FbxDouble3(rotation.getx(), rotation.gety(), rotation.getz()));
 
                 int materialCount = childNode->GetSrcObjectCount<FbxSurfaceMaterial>();
 
@@ -472,8 +477,7 @@ void FbxLoader::addToScene(Model* modelAddedTo, FbxLoader* modelToLoad, Vector4 
                     lNode->SetNodeAttribute(mesh);
                     lNode->LclScaling.Set(FbxDouble3(location.getw(), location.getw(), location.getw()));
                     lNode->LclTranslation.Set(FbxDouble3(location.getx(), location.gety(), location.getz()));
-                    lNode->LclRotation.Set(/*childNode->LclRotation.Get()*/
-                                           FbxDouble3(rotation.getx(), rotation.gety(), rotation.getz()));
+                    lNode->LclRotation.Set(FbxDouble3(rotation.getx(), rotation.gety(), rotation.getz()));
 
                     int materialCount = childNode->GetSrcObjectCount<FbxSurfaceMaterial>();
 

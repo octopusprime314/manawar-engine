@@ -139,8 +139,12 @@ bool FrustumCuller::getVisibleOBB(Entity* entity, Matrix inverseViewProjection, 
     auto    height     = entityAABB->getHeight() * bRot.getMagnitude();
     auto    width      = entityAABB->getWidth()  * cRot.getMagnitude();
     auto    pos        = entity->getStateVector()->getLinearPosition().getFlatBuffer();
-    Matrix translation = Matrix::translation(-buffer[3], buffer[7], buffer[11]) *
-                         Matrix::translation(pos[0], pos[1], pos[2]);
+    /*Matrix translation = Matrix::translation(-buffer[3], buffer[7], buffer[11]) *
+                         Matrix::translation(entityAABB->getCenter().getx(), entityAABB->getCenter().gety(), entityAABB->getCenter().getz()) * 
+                         Matrix::translation(pos[0], pos[1], pos[2]);*/
+    Matrix  trans       = entity->getWorldSpaceTransform();
+    Matrix translation = trans * (Matrix::translation(entityAABB->getCenter().getx(), entityAABB->getCenter().gety(), entityAABB->getCenter().getz()))
+                                * Matrix::translation(pos[0], pos[1], pos[2]);
     float  planeY      = fabs(light->getRange()) / /*8.0f*/2.0f;
 
     lightView.getFlatBuffer()[3]  = 0.0f;
@@ -188,7 +192,8 @@ bool FrustumCuller::getVisibleOBB(Entity* entity, Matrix inverseViewProjection, 
     Vector4 mins(min[0], min[1], min[2]);
     Vector4 maxs(max[0], max[1], max[2]);
 
-    Matrix lightInverseViewProjection = lightView.inverse() * translation/*.inverse()*/ * inverseViewProjection;
+    //Matrix lightInverseViewProjection = lightView.inverse() * translation/*.inverse()*/ * inverseViewProjection;
+    Matrix lightInverseViewProjection = lightView.inverse() * translation.inverse() * inverseViewProjection;
 
     std::vector<Vector4> frustumPlanes;
     GeometryMath::getFrustumPlanes(lightInverseViewProjection, frustumPlanes);

@@ -31,6 +31,7 @@ class Model;
 class AnimatedModel;
 class SkinningData;
 class Vector4;
+class Entity;
 
 struct FbxExporterType {
     FbxManager*     manager;
@@ -90,6 +91,7 @@ public:
     void            loadGeometryData(Model* model, FbxMesh* meshNode, FbxNode* childNode);
     void            addToScene(Model* modelAddedTo, FbxLoader* modelToLoad, 
                                Vector4 location, Vector4 rotation);
+    void            removeFromScene(Entity* entityToRemove, FbxLoader* modelRemovedFrom);
     void            addTileToScene(Model* modelAddedTo, FbxLoader* modelToLoad, 
                                    Vector4 location, std::vector<std::string> textures);
     void            saveScene();

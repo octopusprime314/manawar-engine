@@ -86,6 +86,7 @@ public:
     EngineManager(int* argc, char** argv, HINSTANCE hInstance, int nCmdShow);
     ~EngineManager();
     static Entity*               addEntity(Model* model, Matrix transform, bool temporaryModel);
+    static void                  removeEntity(Entity* entity);
     static std::vector<Entity*>* getEntityList();
     static GraphicsLayer         getGraphicsLayer();
 };

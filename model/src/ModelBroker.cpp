@@ -130,6 +130,21 @@ void ModelBroker::addModel(std::string modelName, std::string modelToAdd, Vector
     }
 }
 
+void ModelBroker::removeModel(Entity* entityToRemove, std::string modelRemovedFrom) {
+
+    std::string upperCaseMapName = _strToUpper(modelRemovedFrom);
+
+    if (_models.find(upperCaseMapName) != _models.end() &&
+        entityToRemove                 != nullptr) {
+
+        FbxLoader* modelRemovedFrom  = _models[upperCaseMapName]->getFbxLoader();
+        modelRemovedFrom->removeFromScene(entityToRemove, modelRemovedFrom);
+    }
+    else {
+        std::cout << "Model doesn't exist so add it!" << std::endl;
+    }
+}
+
 void ModelBroker::addTileModel(std::string modelName, 
     std::string modelToAdd, 
     Vector4 location, 

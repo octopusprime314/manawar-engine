@@ -46,6 +46,7 @@ private:
     void                     _updateReleaseKeyboard(int key, int x, int y);
     void                     _updateGameState(EngineStateFlags state);
     bool                     _mousePosition(Vector4 position, bool mouseClick);
+    bool                     _mouseDeletion(Entity* entity);
     int                      _getCursorIndex();
     static ShaderBroker*     _shaderManager; 
     static ModelBroker*      _modelManager;

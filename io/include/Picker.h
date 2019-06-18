@@ -39,13 +39,16 @@ class Picker {
     Vector4                           _pixelEditValue;
     int                               _pickingRadius;
     std::function<bool(Vector4,bool)> _mouseCallback;
+    std::function<bool(Entity*)> _mouseDeleteCallback;
     bool                              _leftMousePressed;
     MutableTextures                   _mutableTextureCache;
     float*                            _idBufferCache;
     Vector4                           _mousePosition;
     Vector4                           _pickedPosition;
 public:
-    Picker(MRTFrameBuffer* mrt, std::function<bool(Vector4,bool)> terminalCallback);
+    Picker(MRTFrameBuffer* mrt, 
+           std::function<bool(Vector4,bool)> terminalCallback, 
+           std::function<bool(Entity*)>      mouseDeleteCallback);
     void updateIdBuffer();
     void saveMutableTextures();
     Vector4 getLastPickedPosition();

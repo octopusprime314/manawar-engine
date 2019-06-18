@@ -20,9 +20,12 @@ Terminal::Terminal(MRTFrameBuffer* gBuffers, std::vector<Entity*> entityList) :
     //Added global history for quick debugging of model creator
     _commandHistory.push_back("ADDTILE SANDBOX TERRAINTILE 0 0 0 1 SNOW.JPG DIRT.JPG ROCKS.JPG GRASS.JPG|");
     _commandHistory.push_back("MOUSEADD SANDBOX DEADTREE 0.0 0.0 0.0 0.025|");
+    _commandHistory.push_back("MOUSEDELETE SANDBOX|");
     _commandHistory.push_back("SAVE SANDBOX|");
 
-    _picker = new Picker(gBuffers, std::bind(&Terminal::_mousePosition, this, _1, _2));
+    _picker = new Picker(gBuffers, 
+                         std::bind(&Terminal::_mousePosition, this, _1, _2),
+                         std::bind(&Terminal::_mouseDeletion, this, _1));
 
     IOEvents::subscribeToKeyboard(std::bind(&Terminal::_updateKeyboard, this, _1, _2, _3));
     IOEvents::subscribeToReleaseKeyboard(std::bind(&Terminal::_updateReleaseKeyboard, this, _1, _2, _3));
@@ -132,6 +135,28 @@ void Terminal::display() {
         }
         _commandToProcess = "";
     }
+}
+
+bool Terminal::_mouseDeletion(Entity* entity) {
+
+    if (_commandHistory.size() > 0) {
+
+        auto commandString = _commandHistory[_commandHistoryIndex];
+        //removes all occurrences of '|'
+        commandString.erase(std::remove(commandString.begin(), commandString.end(), '|'), commandString.end());
+        auto location = commandString.find(' ');
+        std::string command = commandString.substr(0, location);
+
+        if (command == "MOUSEDELETE") {
+
+            commandString = commandString.substr(commandString.find(' ') + 1);
+            std::string modelName = commandString.substr(0, commandString.find(' '));
+
+            _modelManager->removeModel(entity, modelName);
+            return true;
+        }
+    }
+    return false;
 }
 
 bool Terminal::_mousePosition(Vector4 position, bool mouseClick) {

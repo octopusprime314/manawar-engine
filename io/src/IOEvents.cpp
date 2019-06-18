@@ -3,31 +3,37 @@
 #include "EngineManager.h"
 #include "ShaderBroker.h"
 
-std::vector<std::function<void(int, int, int)>> IOEvents::_keyboardFuncs;
-std::vector<std::function<void(int, int, int)>> IOEvents::_keyboardReleaseFuncs;
+std::vector<std::function<void(int, int, int)>>      IOEvents::_keyboardFuncs;
+std::vector<std::function<void(int, int, int)>>      IOEvents::_keyboardReleaseFuncs;
 std::vector<std::function<void(int, int, int, int)>> IOEvents::_mouseButtonFuncs;
-std::vector<std::function<void(double, double)>> IOEvents::_mouseFuncs;
-std::vector<std::function<void()>> IOEvents::_drawFuncs;
-std::vector<std::function<void(EngineStateFlags)>> IOEvents::_gameStateFuncs;
-std::function<void()> IOEvents::_preDrawCallback;
-std::function<void()> IOEvents::_postDrawCallback;
+std::vector<std::function<void(double, double)>>     IOEvents::_mouseFuncs;
+std::vector<std::function<void()>>                   IOEvents::_drawFuncs;
+std::vector<std::function<void(EngineStateFlags)>>   IOEvents::_gameStateFuncs;
+std::function<void()>                                IOEvents::_preDrawCallback;
+std::function<void()>                                IOEvents::_postDrawCallback;
 
-void IOEvents::subscribeToKeyboard(std::function<void(int, int, int)> func) { //Use this call to connect functions to key updates
+//Use this call to connect functions to key updates
+void IOEvents::subscribeToKeyboard(std::function<void(int, int, int)> func) { 
     _keyboardFuncs.push_back(func);
 }
-void IOEvents::subscribeToReleaseKeyboard(std::function<void(int, int, int)> func) { //Use this call to connect functions to key updates
+//Use this call to connect functions to key updates
+void IOEvents::subscribeToReleaseKeyboard(std::function<void(int, int, int)> func) { 
     _keyboardReleaseFuncs.push_back(func);
 }
-void IOEvents::subscribeToMouse(std::function<void(double, double)> func) { //Use this call to connect functions to mouse updates
+//Use this call to connect functions to mouse updates
+void IOEvents::subscribeToMouse(std::function<void(double, double)> func) { 
     _mouseFuncs.push_back(func);
 }
-void IOEvents::subscribeToDraw(std::function<void()> func) { //Use this call to connect functions to draw updates
+//Use this call to connect functions to draw updates
+void IOEvents::subscribeToDraw(std::function<void()> func) { 
     _drawFuncs.push_back(func);
 }
-void IOEvents::subscribeToGameState(std::function<void(EngineStateFlags)> func) { //Use this call to connect functions to key updates
+//Use this call to connect functions to key updates
+void IOEvents::subscribeToGameState(std::function<void(EngineStateFlags)> func) { 
     _gameStateFuncs.push_back(func);
 }
-void IOEvents::subscribeToMouseClick(std::function<void(int, int, int, int)> func) { //Use this call to connect functions to mouse button updates
+//Use this call to connect functions to mouse button updates
+void IOEvents::subscribeToMouseClick(std::function<void(int, int, int, int)> func) { 
     _mouseButtonFuncs.push_back(func);
 }
 

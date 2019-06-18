@@ -404,9 +404,45 @@ void FbxLoader::_nodeExists(std::string modelName, FbxNode* node, std::vector<Fb
     }
 }
 
-void FbxLoader::removeFromScene(Entity* entityToRemove, FbxLoader* modelRemovedFrom) {
+void FbxLoader::removeFromScene(Entity* entityToRemove, FbxLoader* modelRemovedFrom,
+                                std::vector<FbxNode*>& nodesToRemove, FbxNode* node) {
 
-    EngineManager::removeEntity(entityToRemove);
+    if (node == nullptr) {
+        auto rootNode = _scene->GetRootNode();
+        removeFromScene(entityToRemove, modelRemovedFrom, nodesToRemove, rootNode);
+
+        for (auto node : nodesToRemove) {
+            rootNode->RemoveChild(node);
+        }
+
+        EngineManager::removeEntity(entityToRemove);
+    }
+    else {
+        // Determine the number of children there are
+        auto numChildren = node->GetChildCount();
+        for (auto i = 0; i < numChildren; i++) {
+            FbxNode* childNode = node->GetChild(i);
+
+            FbxMesh* mesh = childNode->GetMesh();
+            if (mesh != nullptr) {
+                auto posBuffer = entityToRemove->getWorldSpaceTransform().getFlatBuffer();
+                auto pos = Vector4(posBuffer[3], posBuffer[7], posBuffer[11]);
+                
+                auto scale = childNode->LclScaling.Get().Buffer();
+                auto trans = childNode->LclTranslation.Get().Buffer();
+                auto rot   = childNode->LclRotation.Get().Buffer();
+
+                // Remove node from the scene if matches translation
+                if (pos.getx() == static_cast<float>( trans[0]) &&
+                    pos.gety() == static_cast<float>( trans[1]) &&
+                    pos.getz() == static_cast<float>(-trans[2])) {
+
+                    nodesToRemove.push_back(childNode);
+                }
+                removeFromScene(entityToRemove, modelRemovedFrom, nodesToRemove, childNode);
+            }
+        }
+    }
 }
 
 void FbxLoader::addToScene(Model* modelAddedTo, FbxLoader* modelToLoad, Vector4 location, Vector4 rotation) {

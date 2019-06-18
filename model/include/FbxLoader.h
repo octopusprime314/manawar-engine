@@ -91,7 +91,8 @@ public:
     void            loadGeometryData(Model* model, FbxMesh* meshNode, FbxNode* childNode);
     void            addToScene(Model* modelAddedTo, FbxLoader* modelToLoad, 
                                Vector4 location, Vector4 rotation);
-    void            removeFromScene(Entity* entityToRemove, FbxLoader* modelRemovedFrom);
+    void            removeFromScene(Entity* entityToRemove, FbxLoader* modelRemovedFrom, 
+                                    std::vector<FbxNode*>& nodesToRemove, FbxNode* node = nullptr);
     void            addTileToScene(Model* modelAddedTo, FbxLoader* modelToLoad, 
                                    Vector4 location, std::vector<std::string> textures);
     void            saveScene();

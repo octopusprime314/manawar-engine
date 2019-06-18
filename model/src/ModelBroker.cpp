@@ -138,7 +138,7 @@ void ModelBroker::removeModel(Entity* entityToRemove, std::string modelRemovedFr
         entityToRemove                 != nullptr) {
 
         FbxLoader* modelRemovedFrom  = _models[upperCaseMapName]->getFbxLoader();
-        modelRemovedFrom->removeFromScene(entityToRemove, modelRemovedFrom);
+        modelRemovedFrom->removeFromScene(entityToRemove, modelRemovedFrom, std::vector<FbxNode*>());
     }
     else {
         std::cout << "Model doesn't exist so add it!" << std::endl;

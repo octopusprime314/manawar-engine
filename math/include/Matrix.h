@@ -26,6 +26,7 @@
 
 const float PI = 3.14159265f;
 const float PI_OVER_180 = PI / 180.0f;
+#define MATRIX_SIZE 25
 
 class Matrix {
 
@@ -74,14 +75,17 @@ class Matrix {
     //| 0 0 2 0 |  
     //| 0 0 0 1 |  
 
+    friend class Uniforms;
 
-    float _matrix[16];
+    //Extend to 25 to house the 4x4 matrix and also
+    //the near, far, left, right, top, bottom, angle, aspect ratio and if inverted
+    float _matrix[MATRIX_SIZE];
+   
+    static Matrix convertToRightHanded(Matrix leftHandedMatrix);
+    Matrix(float *mat);
 
 public:
     Matrix();
-    Matrix(float *mat);
-    Matrix(double *mat);
-
     Matrix        transpose(); //Returns transpose of matrix
     Matrix        inverse(); //Returns inverse of matrix
     Matrix        operator * (Matrix mat);

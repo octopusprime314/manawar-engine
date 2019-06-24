@@ -88,7 +88,8 @@ void VectorCamera::updateState(int milliseconds) {
             }
         }
         _elapsedTime += milliseconds;
+
+        state->setTorque(_vectors[_currentVector].rotation);
+        state->update(milliseconds);
     }
-    state->setTorque(_vectors[_currentVector].rotation);
-    state->update(milliseconds);
 }

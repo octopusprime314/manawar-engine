@@ -621,14 +621,23 @@ Vector4 GeometryMath::_closestPoint(Sphere* sphere, Triangle* triangle)
 void GeometryMath::getFrustumPlanes(Matrix inverseViewProjection, std::vector<Vector4>& frustumPlanes) {
     
     std::vector<Vector4> frustumPoints;
-    frustumPoints.push_back(Vector4(-1.0, -1.0, -1.0)); //left  bottom far
-    frustumPoints.push_back(Vector4(-1.0, 1.0, -1.0)); //left  top    far
-    frustumPoints.push_back(Vector4(-1.0, -1.0, 1.0)); //left  bottom near 
-    frustumPoints.push_back(Vector4(-1.0, 1.0, 1.0)); //left  top    near
-    frustumPoints.push_back(Vector4(1.0, -1.0, -1.0)); //right bottom far
-    frustumPoints.push_back(Vector4(1.0, 1.0, -1.0)); //right top    far
-    frustumPoints.push_back(Vector4(1.0, -1.0, 1.0)); //right bottom near
-    frustumPoints.push_back(Vector4(1.0, 1.0, 1.0)); //right top    near
+    //frustumPoints.push_back(Vector4(-1.0, -1.0, -1.0)); //left  bottom far
+    //frustumPoints.push_back(Vector4(-1.0, 1.0, -1.0)); //left  top    far
+    //frustumPoints.push_back(Vector4(-1.0, -1.0, 1.0)); //left  bottom near 
+    //frustumPoints.push_back(Vector4(-1.0, 1.0, 1.0)); //left  top    near
+    //frustumPoints.push_back(Vector4(1.0, -1.0, -1.0)); //right bottom far
+    //frustumPoints.push_back(Vector4(1.0, 1.0, -1.0)); //right top    far
+    //frustumPoints.push_back(Vector4(1.0, -1.0, 1.0)); //right bottom near
+    //frustumPoints.push_back(Vector4(1.0, 1.0, 1.0)); //right top    near
+
+    frustumPoints.push_back(Vector4(-1.0, -1.0, 1.0)); //left  bottom far
+    frustumPoints.push_back(Vector4(-1.0, 1.0, 1.0)); //left  top    far
+    frustumPoints.push_back(Vector4(-1.0, -1.0, -1.0)); //left  bottom near 
+    frustumPoints.push_back(Vector4(-1.0, 1.0, -1.0)); //left  top    near
+    frustumPoints.push_back(Vector4(1.0, -1.0, 1.0)); //right bottom far
+    frustumPoints.push_back(Vector4(1.0, 1.0, 1.0)); //right top    far
+    frustumPoints.push_back(Vector4(1.0, -1.0, -1.0)); //right bottom near
+    frustumPoints.push_back(Vector4(1.0, 1.0, -1.0)); //right top    near
 
     for (auto& point : frustumPoints) {
         point = inverseViewProjection * point;

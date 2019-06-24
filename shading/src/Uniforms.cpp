@@ -1,5 +1,7 @@
 #include "Uniforms.h"
 #include <iostream>
+#include "Matrix.h"
+#include "Vector4.h"
 
 Uniforms::Uniforms(GLuint shaderContext) {
     
@@ -39,29 +41,64 @@ void Uniforms::updateUniform(std::string uniformName, void* value) {
     //Find the type of the uniform
     switch (_uniformMap[uniformName].type) {
     case GL_FLOAT:
-        glUniform1fv(_uniformMap[uniformName].location, _uniformMap[uniformName].size, static_cast<GLfloat*>(value));
+    {
+        glUniform1fv(_uniformMap[uniformName].location, 
+                     _uniformMap[uniformName].size, 
+                     static_cast<GLfloat*>(value));
         break;
+    }
     case GL_FLOAT_VEC2:
-        glUniform2fv(_uniformMap[uniformName].location, _uniformMap[uniformName].size, static_cast<GLfloat*>(value));
+    {
+        glUniform2fv(_uniformMap[uniformName].location, 
+                     _uniformMap[uniformName].size, 
+                     static_cast<GLfloat*>(value));
         break;
+    }
     case GL_FLOAT_VEC3:
-        glUniform3fv(_uniformMap[uniformName].location, _uniformMap[uniformName].size, static_cast<GLfloat*>(value));
+    {
+        //Transform to right handed prior to supplying to opengl so copy and flip z
+        Vector4 rightHandedVector(*static_cast<Vector4*>(value));
+        //rightHandedVector.getFlatBuffer()[2] = -rightHandedVector.getFlatBuffer()[2];
+        glUniform3fv(_uniformMap[uniformName].location,
+                     _uniformMap[uniformName].size,
+                     static_cast<GLfloat*>(rightHandedVector.getFlatBuffer()));
         break;
+    }
     case GL_FLOAT_VEC4:
-        glUniform4fv(_uniformMap[uniformName].location, _uniformMap[uniformName].size, static_cast<GLfloat*>(value));
+    {
+        glUniform4fv(_uniformMap[uniformName].location, 
+                     _uniformMap[uniformName].size, 
+                     static_cast<GLfloat*>(value));
         break;
+    }
     case GL_INT:
-        glUniform1i(_uniformMap[uniformName].location,   * static_cast<GLint*>  (value));
+    {
+        glUniform1i(_uniformMap[uniformName].location, 
+                    *static_cast<GLint*>(value));
         break;
+    }
     case GL_UNSIGNED_INT:
-        glUniform1ui(_uniformMap[uniformName].location,  * static_cast<GLuint*> (value));
+    {
+        glUniform1ui(_uniformMap[uniformName].location,
+                     *static_cast<GLuint*>(value));
         break;
+    }
     case GL_FLOAT_MAT4:
-        glUniformMatrix4fv(_uniformMap[uniformName].location, _uniformMap[uniformName].size, GL_TRUE, static_cast<GLfloat*>(value));
+    {
+        //Transform to right handed prior to supplying to opengl so cast and transform
+        Matrix leftHandedMatrix(static_cast<float*>(value));
+        Matrix rightHandedMatrix = Matrix::convertToRightHanded(leftHandedMatrix);
+        glUniformMatrix4fv(_uniformMap[uniformName].location,
+                           _uniformMap[uniformName].size,
+                           GL_TRUE,
+                           static_cast<GLfloat*>(rightHandedMatrix.getFlatBuffer()));
         break;
+    }
     default:
+    {
         std::cout << "Unknown uniform: " << uniformName << std::endl;
         break;
+    }
     }
 
     if (glGetError() != GL_NO_ERROR) {

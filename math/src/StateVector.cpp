@@ -66,11 +66,7 @@ void StateVector::update(int milliSeconds) {
 }
 
 Vector4 StateVector::getLinearPosition() {
-    Vector4 pos = _linearPosition;
-    if (EngineManager::getGraphicsLayer() == GraphicsLayer::OPENGL) {
-        pos.getFlatBuffer()[2] = -pos.getFlatBuffer()[2];
-    }
-    return pos;
+    return _linearPosition;
 }
 
 Vector4 StateVector::getAngularPosition() {

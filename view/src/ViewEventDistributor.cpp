@@ -152,7 +152,9 @@ void ViewEventDistributor::_updateKinematics(int milliSeconds) {
     
     _waypointCamera.setInversion(_inverseRotation);
     _vectorCamera.setInversion(_inverseRotation);
-    LOG_TRACE(_currCamera->getState()->getLinearPosition().getx(), _currCamera->getState()->getLinearPosition().gety(), _currCamera->getState()->getLinearPosition().getz());
+    LOG_TRACE(_currCamera->getState()->getLinearPosition().getx(), 
+              _currCamera->getState()->getLinearPosition().gety(), 
+              _currCamera->getState()->getLinearPosition().getz());
     LOG_TRACE("\n");
     //Do kinematic calculations
     _currCamera->updateState(milliSeconds);
@@ -326,10 +328,10 @@ void ViewEventDistributor::_updateMouse(double x, double y) { //Do stuff based o
             double diffX = _prevMouseX - x;
 
             if (diffX > 0) { //rotate left around y axis
-                newRot = newRot + Vector4(0.0, static_cast<float>(-mouseSensitivity * diffX), 0.0);
+                newRot = newRot + Vector4(0.0, static_cast<float>(mouseSensitivity * diffX), 0.0);
             }
             else if (diffX < 0) { //rotate right around y axis
-                newRot = newRot + Vector4(0.0, static_cast<float>(-mouseSensitivity * diffX), 0.0);
+                newRot = newRot + Vector4(0.0, static_cast<float>(mouseSensitivity * diffX), 0.0);
             }
             _currCamera->getState()->setTorque(newRot);
 
@@ -345,10 +347,10 @@ void ViewEventDistributor::_updateMouse(double x, double y) { //Do stuff based o
             double diffY = _prevMouseY - y;
 
             if (diffY > 0) { //rotate left around y axis
-                newRot = newRot + Vector4(static_cast<float>(-mouseSensitivity * diffY), 0.0, 0.0);
+                newRot = newRot + Vector4(static_cast<float>(mouseSensitivity * diffY), 0.0, 0.0);
             }
             else if (diffY < 0) { //rotate right around y axis
-                newRot = newRot + Vector4(static_cast<float>(-mouseSensitivity * diffY), 0.0, 0.0);
+                newRot = newRot + Vector4(static_cast<float>(mouseSensitivity * diffY), 0.0, 0.0);
             }
             _currCamera->getState()->setTorque(newRot);
 
@@ -372,8 +374,8 @@ void ViewEventDistributor::_updateDraw() { //Do draw stuff
         float* pos = state->getLinearPosition().getFlatBuffer();
         float* rot = _currCamera->getState()->getAngularPosition().getFlatBuffer();
         _translation = Matrix::translation(-pos[0], -pos[1], -pos[2]); //Update the translation state matrix
-        _rotation = Matrix::rotationAroundY(-rot[1]); //Update the rotation state matrix
-        _inverseRotation = Matrix::rotationAroundY(rot[1]);
+        _rotation = Matrix::rotationAroundY(rot[1]); //Update the rotation state matrix
+        _inverseRotation = Matrix::rotationAroundY(-rot[1]);
         auto mvp = _entityList[_entityIndex]->getMVP();
         auto modelTranslation = Matrix::translation(mvp->getModelBuffer()[3], mvp->getModelBuffer()[7], mvp->getModelBuffer()[11]);
         //Last transform to be applied to achieve third person view

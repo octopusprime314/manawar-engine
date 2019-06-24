@@ -98,8 +98,6 @@ bool FrustumCuller::getVisibleAABB(Entity* entity, Matrix inverseViewProjection)
     Vector4 mins(center.getx() - length / 2.0f, center.gety() - height / 2.0f, center.getz() - width / 2.0f);
     Vector4 maxs(center.getx() + length / 2.0f, center.gety() + height / 2.0f, center.getz() + width / 2.0f);
 
-   
-
     if (GeometryMath::frustumAABBDetection(frustumPlanes, mins, maxs)) {
 
         //std::vector<Cube>* cubes = new std::vector<Cube>{

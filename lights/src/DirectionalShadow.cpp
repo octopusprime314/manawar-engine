@@ -45,14 +45,14 @@ void DirectionalShadow::render(std::vector<Entity*> entityList, Light* light) {
             Matrix inverseViewProjection = ModelBroker::getViewManager()->getView().inverse() *
                 ModelBroker::getViewManager()->getProjection().inverse();
 
-            if (FrustumCuller::getVisibleOBB(entity, inverseViewProjection, light)) {
+            //if (FrustumCuller::getVisibleOBB(entity, inverseViewProjection, light)) {
                 if (entity->getModel()->getClassType() == ModelClass::ModelType) {
                     _staticShadowShader->runShader(entity, light);
                 }
                 else if (entity->getModel()->getClassType() == ModelClass::AnimatedModelType) {
                     _animatedShadowShader->runShader(entity, light);
                 }
-            }
+            //}
         }
 
         //Bring to original rendering viewport

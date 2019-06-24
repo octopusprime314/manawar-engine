@@ -10,6 +10,11 @@ Matrix::Matrix() {
     _matrix[4] = 0.0, _matrix[5] = 1.0, _matrix[6] = 0.0, _matrix[7] = 0.0;
     _matrix[8] = 0.0, _matrix[9] = 0.0, _matrix[10] = 1.0, _matrix[11] = 0.0;
     _matrix[12] = 0.0, _matrix[13] = 0.0, _matrix[14] = 0.0, _matrix[15] = 1.0;
+
+    _matrix[16] = 0.0, _matrix[17] = 0.0, _matrix[18] = 0.0, _matrix[19] = 0.0;
+    _matrix[20] = 0.0, _matrix[21] = 0.0, _matrix[22] = 0.0, _matrix[23] = 0.0;
+
+    _matrix[24] = 0.0f;
 }
 
 Matrix::Matrix(float* mat) {
@@ -18,14 +23,11 @@ Matrix::Matrix(float* mat) {
     _matrix[4] = mat[4], _matrix[5] = mat[5], _matrix[6] = mat[6], _matrix[7] = mat[7];
     _matrix[8] = mat[8], _matrix[9] = mat[9], _matrix[10] = mat[10], _matrix[11] = mat[11];
     _matrix[12] = mat[12], _matrix[13] = mat[13], _matrix[14] = mat[14], _matrix[15] = mat[15];
-}
 
-Matrix::Matrix(double* mat) {
+    _matrix[16] = mat[16], _matrix[17] = mat[17], _matrix[18] = mat[18], _matrix[19] = mat[19];
+    _matrix[20] = mat[20], _matrix[21] = mat[21], _matrix[22] = mat[22], _matrix[23] = mat[23];
 
-    _matrix[0] = (float)mat[0], _matrix[1] = (float)mat[1], _matrix[2] = (float)mat[2], _matrix[3] = (float)mat[3];
-    _matrix[4] = (float)mat[4], _matrix[5] = (float)mat[5], _matrix[6] = (float)mat[6], _matrix[7] = (float)mat[7];
-    _matrix[8] = (float)mat[8], _matrix[9] = (float)mat[9], _matrix[10] = (float)mat[10], _matrix[11] = (float)mat[11];
-    _matrix[12] = (float)mat[12], _matrix[13] = (float)mat[13], _matrix[14] = (float)mat[14], _matrix[15] = (float)mat[15];
+    _matrix[24] = mat[24];
 }
 
 float* Matrix::getFlatBuffer() {
@@ -40,6 +42,10 @@ Matrix Matrix::transpose() {
     mat[4] = _matrix[1], mat[5] = _matrix[5], mat[6] = _matrix[9], mat[7] = _matrix[13];
     mat[8] = _matrix[2], mat[9] = _matrix[6], mat[10] = _matrix[10], mat[11] = _matrix[14];
     mat[12] = _matrix[3], mat[13] = _matrix[7], mat[14] = _matrix[11], mat[15] = _matrix[15];
+
+    mat[16] = _matrix[16], mat[17] = _matrix[17], mat[18] = _matrix[18], mat[19] = _matrix[19];
+    mat[20] = _matrix[20], mat[21] = _matrix[21], mat[22] = _matrix[22], mat[23] = _matrix[23];
+    mat[24] = _matrix[24];
 
     return matrix;
 }
@@ -112,6 +118,12 @@ Matrix Matrix::inverse() {
         mat[14] = b43 / det;
         mat[15] = b44 / det;
     }
+
+    mat[16] = _matrix[16], mat[17] = _matrix[17], mat[18] = _matrix[18], mat[19] = _matrix[19];
+    mat[20] = _matrix[20], mat[21] = _matrix[21], mat[22] = _matrix[22], mat[23] = _matrix[23];
+
+    mat[24] = 1.0f;
+
     return matrix;
 }
 
@@ -129,7 +141,7 @@ Vector4 Matrix::operator * (Vector4 vec) {
 
 Matrix Matrix::operator * (Matrix mat) {
 
-    float result[16]; //Get underlying matrix memory
+    float result[MATRIX_SIZE]; //Get underlying matrix memory
     float* matBuff = mat.getFlatBuffer();
 
     result[0] = _matrix[0] * matBuff[0] + _matrix[1] * matBuff[4] + _matrix[2] * matBuff[8] + _matrix[3] * matBuff[12];
@@ -152,11 +164,15 @@ Matrix Matrix::operator * (Matrix mat) {
     result[14] = _matrix[12] * matBuff[2] + _matrix[13] * matBuff[6] + _matrix[14] * matBuff[10] + _matrix[15] * matBuff[14];
     result[15] = _matrix[12] * matBuff[3] + _matrix[13] * matBuff[7] + _matrix[14] * matBuff[11] + _matrix[15] * matBuff[15];
 
+    result[16] = _matrix[16], result[17] = _matrix[17], result[18] = _matrix[18], result[19] = _matrix[19];
+    result[20] = _matrix[20], result[21] = _matrix[21], result[22] = _matrix[22], result[23] = _matrix[23];
+    result[24] = _matrix[24];
+
     return Matrix(result);
 }
 Matrix Matrix::operator + (Matrix mat) {
 
-    float result[16]; //Get underlying matrix memory
+    float result[MATRIX_SIZE]; //Get underlying matrix memory
     float* matBuff = mat.getFlatBuffer();
 
     result[0] = _matrix[0] + matBuff[0];
@@ -179,10 +195,14 @@ Matrix Matrix::operator + (Matrix mat) {
     result[14] = _matrix[14] + matBuff[14];
     result[15] = _matrix[15] + matBuff[15];
 
+    result[16] = _matrix[16], result[17] = _matrix[17], result[18] = _matrix[18], result[19] = _matrix[19];
+    result[20] = _matrix[20], result[21] = _matrix[21], result[22] = _matrix[22], result[23] = _matrix[23];
+    result[24] = _matrix[24];
+
     return Matrix(result);
 }
 Matrix Matrix::operator * (double scale) {
-    float result[16]; //Get underlying matrix memory
+    float result[MATRIX_SIZE]; //Get underlying matrix memory
 
     result[0] = _matrix[0] * static_cast<float>(scale);
     result[1] = _matrix[1] * static_cast<float>(scale);
@@ -204,10 +224,14 @@ Matrix Matrix::operator * (double scale) {
     result[14] = _matrix[14] * static_cast<float>(scale);
     result[15] = _matrix[15] * static_cast<float>(scale);
 
+    result[16] = _matrix[16], result[17] = _matrix[17], result[18] = _matrix[18], result[19] = _matrix[19];
+    result[20] = _matrix[20], result[21] = _matrix[21], result[22] = _matrix[22], result[23] = _matrix[23];
+    result[24] = _matrix[24];
+
     return Matrix(result);
 }
 Matrix Matrix::operator * (float scale) {
-    float result[16]; //Get underlying matrix memory
+    float result[MATRIX_SIZE]; //Get underlying matrix memory
 
     result[0] = _matrix[0] * scale;
     result[1] = _matrix[1] * scale;
@@ -229,6 +253,10 @@ Matrix Matrix::operator * (float scale) {
     result[14] = _matrix[14] * scale;
     result[15] = _matrix[15] * scale;
 
+    result[16] = _matrix[16], result[17] = _matrix[17], result[18] = _matrix[18], result[19] = _matrix[19];
+    result[20] = _matrix[20], result[21] = _matrix[21], result[22] = _matrix[22], result[23] = _matrix[23];
+    result[24] = _matrix[24];
+
     return Matrix(result);
 }
 //Rotation Matrix of a theta change around X axis
@@ -237,21 +265,17 @@ Matrix Matrix::operator * (float scale) {
 //| 0 sin  cos  0 |
 //| 0  0    0   1 |
 Matrix Matrix::rotationAroundX(float degrees) {
-    float result[16]; //Get underlying matrix memory
+    float result[MATRIX_SIZE]; //Get underlying matrix memory
     float theta = degrees * PI_OVER_180;
 
-    if (EngineManager::getGraphicsLayer() == GraphicsLayer::OPENGL) {
-        result[0] = 1.0, result[1] = 0.0, result[2] = 0.0, result[3] = 0.0;
-        result[4] = 0.0, result[5] = cos(theta), result[6] = -sin(theta), result[7] = 0.0;
-        result[8] = 0.0, result[9] = sin(theta), result[10] = cos(theta), result[11] = 0.0;
-        result[12] = 0.0, result[13] = 0.0, result[14] = 0.0, result[15] = 1.0;
-    }
-    else {
-        result[0] = 1.0, result[1] = 0.0, result[2] = 0.0, result[3] = 0.0;
-        result[4] = 0.0, result[5] = cos(theta), result[6] = sin(theta), result[7] = 0.0;
-        result[8] = 0.0, result[9] = -sin(theta), result[10] = cos(theta), result[11] = 0.0;
-        result[12] = 0.0, result[13] = 0.0, result[14] = 0.0, result[15] = 1.0;
-    }
+    result[0] = 1.0, result[1] = 0.0, result[2] = 0.0, result[3] = 0.0;
+    result[4] = 0.0, result[5] = cos(theta), result[6] = sin(theta), result[7] = 0.0;
+    result[8] = 0.0, result[9] = -sin(theta), result[10] = cos(theta), result[11] = 0.0;
+    result[12] = 0.0, result[13] = 0.0, result[14] = 0.0, result[15] = 1.0;
+
+    result[16] = 0.0, result[17] = 0.0, result[18] = 0.0, result[19] = 0.0;
+    result[20] = 0.0, result[21] = 0.0, result[22] = 0.0, result[23] = 0.0;
+    result[24] = 0.0f;
 
     return Matrix(result);
 }
@@ -263,21 +287,17 @@ Matrix Matrix::rotationAroundX(float degrees) {
 //|-sin 0  cos  0 |
 //|  0  0   0   1 |
 Matrix Matrix::rotationAroundY(float degrees) {
-    float result[16]; //Get underlying matrix memory
+    float result[MATRIX_SIZE]; //Get underlying matrix memory
     float theta = degrees * PI_OVER_180;
 
-    if (EngineManager::getGraphicsLayer() == GraphicsLayer::OPENGL) {
-        result[0] = cos(theta), result[1] = 0.0, result[2] = sin(theta), result[3] = 0.0;
-        result[4] = 0.0, result[5] = 1.0, result[6] = 0.0, result[7] = 0.0;
-        result[8] = -sin(theta), result[9] = 0.0, result[10] = cos(theta), result[11] = 0.0;
-        result[12] = 0.0, result[13] = 0.0, result[14] = 0.0, result[15] = 1.0;
-    }
-    else {
-        result[0] = cos(theta), result[1] = 0.0, result[2] = -sin(theta), result[3] = 0.0;
-        result[4] = 0.0, result[5] = 1.0, result[6] = 0.0, result[7] = 0.0;
-        result[8] = sin(theta), result[9] = 0.0, result[10] = cos(theta), result[11] = 0.0;
-        result[12] = 0.0, result[13] = 0.0, result[14] = 0.0, result[15] = 1.0;
-    }
+    result[0] = cos(theta), result[1] = 0.0, result[2] = -sin(theta), result[3] = 0.0;
+    result[4] = 0.0, result[5] = 1.0, result[6] = 0.0, result[7] = 0.0;
+    result[8] = sin(theta), result[9] = 0.0, result[10] = cos(theta), result[11] = 0.0;
+    result[12] = 0.0, result[13] = 0.0, result[14] = 0.0, result[15] = 1.0;
+
+    result[16] = 0.0, result[17] = 0.0, result[18] = 0.0, result[19] = 0.0;
+    result[20] = 0.0, result[21] = 0.0, result[22] = 0.0, result[23] = 0.0;
+    result[24] = 0.0f;
 
     return Matrix(result);
 }
@@ -289,21 +309,17 @@ Matrix Matrix::rotationAroundY(float degrees) {
 //|  0    0  1  0 |
 //|  0    0  0  1 |
 Matrix Matrix::rotationAroundZ(float degrees) {
-    float result[16]; //Get underlying matrix memory
+    float result[MATRIX_SIZE]; //Get underlying matrix memory
     float theta = degrees * PI_OVER_180;
 
-    if (EngineManager::getGraphicsLayer() == GraphicsLayer::OPENGL) {
-        result[0] = cos(theta), result[1] = -sin(theta), result[2] = 0.0, result[3] = 0.0;
-        result[4] = sin(theta), result[5] = cos(theta), result[6] = 0.0, result[7] = 0.0;
-        result[8] = 0.0, result[9] = 0.0, result[10] = 1.0, result[11] = 0.0;
-        result[12] = 0.0, result[13] = 0.0, result[14] = 0.0, result[15] = 1.0;
-    }
-    else {
-        result[0] = cos(theta), result[1] = sin(theta), result[2] = 0.0, result[3] = 0.0;
-        result[4] = -sin(theta), result[5] = cos(theta), result[6] = 0.0, result[7] = 0.0;
-        result[8] = 0.0, result[9] = 0.0, result[10] = 1.0, result[11] = 0.0;
-        result[12] = 0.0, result[13] = 0.0, result[14] = 0.0, result[15] = 1.0;
-    }
+    result[0] = cos(theta), result[1] = sin(theta), result[2] = 0.0, result[3] = 0.0;
+    result[4] = -sin(theta), result[5] = cos(theta), result[6] = 0.0, result[7] = 0.0;
+    result[8] = 0.0, result[9] = 0.0, result[10] = 1.0, result[11] = 0.0;
+    result[12] = 0.0, result[13] = 0.0, result[14] = 0.0, result[15] = 1.0;
+    
+    result[16] = 0.0, result[17] = 0.0, result[18] = 0.0, result[19] = 0.0;
+    result[20] = 0.0, result[21] = 0.0, result[22] = 0.0, result[23] = 0.0;
+    result[24] = 0.0f;
 
     return Matrix(result);
 }
@@ -314,20 +330,16 @@ Matrix Matrix::rotationAroundZ(float degrees) {
 //| 0 0 1 0 |
 //| 0 0 0 1 |
 Matrix Matrix::translation(float x, float y, float z) {
-    float result[16]; //Get underlying matrix memory
+    float result[MATRIX_SIZE]; //Get underlying matrix memory
 
-    if (EngineManager::getGraphicsLayer() == GraphicsLayer::OPENGL) {
-        result[0] = 1.0, result[1] = 0.0, result[2] = 0.0, result[3] = x;
-        result[4] = 0.0, result[5] = 1.0, result[6] = 0.0, result[7] = y;
-        result[8] = 0.0, result[9] = 0.0, result[10] = 1.0, result[11] = -z;
-        result[12] = 0.0, result[13] = 0.0, result[14] = 0.0, result[15] = 1.0;
-    }
-    else {
-        result[0] = 1.0, result[1] = 0.0, result[2] = 0.0, result[3] = x;
-        result[4] = 0.0, result[5] = 1.0, result[6] = 0.0, result[7] = y;
-        result[8] = 0.0, result[9] = 0.0, result[10] = 1.0, result[11] = z;
-        result[12] = 0.0, result[13] = 0.0, result[14] = 0.0, result[15] = 1.0;
-    }
+    result[0] = 1.0, result[1] = 0.0, result[2] = 0.0, result[3] = x;
+    result[4] = 0.0, result[5] = 1.0, result[6] = 0.0, result[7] = y;
+    result[8] = 0.0, result[9] = 0.0, result[10] = 1.0, result[11] = z;
+    result[12] = 0.0, result[13] = 0.0, result[14] = 0.0, result[15] = 1.0;
+    
+    result[16] = 0.0, result[17] = 0.0, result[18] = 0.0, result[19] = 0.0;
+    result[20] = 0.0, result[21] = 0.0, result[22] = 0.0, result[23] = 0.0;
+    result[24] = 0.0f;
 
     return Matrix(result);
 }
@@ -338,12 +350,16 @@ Matrix Matrix::translation(float x, float y, float z) {
 //| 0 0 2 0 |
 //| 0 0 0 1 |
 Matrix Matrix::scale(float scalar) {
-    float result[16]; //Get underlying matrix memory
+    float result[MATRIX_SIZE]; //Get underlying matrix memory
 
     result[0] = scalar, result[1] = 0.0, result[2] = 0.0, result[3] = 0.0;
     result[4] = 0.0, result[5] = scalar, result[6] = 0.0, result[7] = 0.0;
     result[8] = 0.0, result[9] = 0.0, result[10] = scalar, result[11] = 0.0;
     result[12] = 0.0, result[13] = 0.0, result[14] = 0.0, result[15] = 1.0;
+
+    result[16] = 0.0, result[17] = 0.0, result[18] = 0.0, result[19] = 0.0;
+    result[20] = 0.0, result[21] = 0.0, result[22] = 0.0, result[23] = 0.0;
+    result[24] = 0.0f;
 
     return Matrix(result);
 }
@@ -354,84 +370,189 @@ Matrix Matrix::scale(float scalar) {
 //| 0 0 5 0 |
 //| 0 0 0 1 |
 Matrix Matrix::scale(float x, float y, float z) {
-    float result[16]; //Get underlying matrix memory
+    float result[MATRIX_SIZE]; //Get underlying matrix memory
 
     result[0] = x, result[1] = 0.0, result[2] = 0.0, result[3] = 0.0;
     result[4] = 0.0, result[5] = y, result[6] = 0.0, result[7] = 0.0;
     result[8] = 0.0, result[9] = 0.0, result[10] = z, result[11] = 0.0;
     result[12] = 0.0, result[13] = 0.0, result[14] = 0.0, result[15] = 1.0;
 
+    result[16] = 0.0, result[17] = 0.0, result[18] = 0.0, result[19] = 0.0;
+    result[20] = 0.0, result[21] = 0.0, result[22] = 0.0, result[23] = 0.0;
+    result[24] = 0.0f;
+
     return Matrix(result);
 }
 
 Matrix Matrix::projection(float angleOfView, float imageAspectRatio, float n, float f) {
 
-    float result[16];
+    float result[MATRIX_SIZE];
 
-    if (EngineManager::getGraphicsLayer() == GraphicsLayer::OPENGL) {
-        //n = -n;
-        //f = -f;
-        float scale = static_cast<float>(tan(angleOfView * 0.5 * PI_OVER_180)) * n; //scale
-        float r = imageAspectRatio * scale; //Right
-        float l = -r; //Left
-        float t = scale; //scale again
-        float b = -t; //negative scale
+    float scale = static_cast<float>(tan(angleOfView * 0.5 * PI_OVER_180)) * n; //scale
+    float r = imageAspectRatio * scale; //Right
+    float l = -r; //Left
+    float t = scale; //scale again
+    float b = -t; //negative scale
 
-        // Perspective Matrix
-        result[0] = 2 * n / (r - l), result[1] = 0, result[2] = (r + l) / (r - l), result[3] = 0;
-        result[4] = 0, result[5] = 2 * n / (t - b), result[6] = (t + b) / (t - b), result[7] = 0;
-        result[8] = 0, result[9] = 0, result[10] = -(f + n) / (f - n), result[11] = -2 * f * n / (f - n);
-        result[12] = 0, result[13] = 0, result[14] = -1, result[15] = 0;
-    }
-    else {
-        float scale = static_cast<float>(tan(angleOfView * 0.5 * PI_OVER_180)) * n; //scale
-        float r = imageAspectRatio * scale; //Right
-        float l = -r; //Left
-        float t = scale; //scale again
-        float b = -t; //negative scale
+    // Perspective Matrix
+    result[0] = 2 * n / (r - l), result[1] = 0, result[2] = -(r + l) / (r - l), result[3] = 0;
+    result[4] = 0, result[5] = 2 * n / (t - b), result[6] = -(t + b) / (t - b), result[7] = 0;
+    result[8] = 0, result[9] = 0, result[10] = (f) / (f - n), result[11] = - f * n / (f - n);
+    result[12] = 0, result[13] = 0, result[14] = 1, result[15] = 0;
 
-        // Perspective Matrix
-        result[0] = 2 * n / (r - l), result[1] = 0, result[2] = -(r + l) / (r - l), result[3] = 0;
-        result[4] = 0, result[5] = 2 * n / (t - b), result[6] = -(t + b) / (t - b), result[7] = 0;
-        result[8] = 0, result[9] = 0, result[10] = (f) / (f - n), result[11] = - f * n / (f - n);
-        result[12] = 0, result[13] = 0, result[14] = 1, result[15] = 0;
-    }
+    result[16] = n, result[17] = f, result[18] = l, result[19] = r;
+    result[20] = t, result[21] = b, result[22] = angleOfView, result[23] = imageAspectRatio;
+    result[24] = 0.0f;
 
     return Matrix(result);
 }
 
 Matrix Matrix::ortho(float orthoWidth, float orthoHeight, float n, float f) {
 
-    float result[16];
+    float result[MATRIX_SIZE];
 
     //Setup components of projection
     float r = orthoWidth / 2.0f;   //Right
     float l = -r;                  //Left
     float t = orthoHeight / 2.0f;  //Top
     float b = -t;                  //Bottom
+    
+    // Clip space in z is 0 to 1 in directx so invert near and far plane
+    // Ortho Matrix
+    result[0] = 2.0f / (r - l), result[1] = 0.0f, result[2] = 0.0f, result[3] = -((r + l) / (r - l));
+    result[4] = 0.0f, result[5] = 2.0f / (t - b), result[6] = 0.0f, result[7] = -((t + b) / (t - b));
+    result[8] = 0.0f, result[9] = 0.0f, result[10] = 1.0f / (n - f), result[11] = -((n) / (n - f));
+    result[12] = 0.0f, result[13] = 0.0f, result[14] = 0.0f, result[15] = 1.0f;
 
-    if (EngineManager::getGraphicsLayer() == GraphicsLayer::OPENGL) {
-        n = -n;
-        f = -f;
-        // Clip space in z is -1 to 1 in opengl
-        // Ortho Matrix
-        result[0] = 2.0f / (r - l), result[1] = 0.0f, result[2] = 0.0f, result[3] = -((r + l) / (r - l));
-        result[4] = 0.0f, result[5] = 2.0f / (t - b), result[6] = 0.0f, result[7] = -((t + b) / (t - b));
-        result[8] = 0.0f, result[9] = 0.0f, result[10] = -2.0f / (f - n), result[11] = -((f + n) / (f - n));
-        result[12] = 0.0f, result[13] = 0.0f, result[14] = 0.0f, result[15] = 1.0f;
-    }
-    else {
-        // Clip space in z is 0 to 1 in directx so invert near and far plane
-        // Ortho Matrix
-        result[0] = 2.0f / (r - l), result[1] = 0.0f, result[2] = 0.0f, result[3] = -((r + l) / (r - l));
-        result[4] = 0.0f, result[5] = 2.0f / (t - b), result[6] = 0.0f, result[7] = -((t + b) / (t - b));
-        result[8] = 0.0f, result[9] = 0.0f, result[10] = 1.0f / (n - f), result[11] = -((n) / (n - f));
-        result[12] = 0.0f, result[13] = 0.0f, result[14] = 0.0f, result[15] = 1.0f;
-    }
+    result[16] = n, result[17] = f, result[18] = l, result[19] = r;
+    result[20] = t, result[21] = b, result[22] = 0.0f, result[23] = 0.0f;
+    result[24] = 0.0f;
 
     return Matrix(result);
 
 }
+
+Matrix Matrix::convertToRightHanded(Matrix leftHandedMatrix) {
+    float* buff = leftHandedMatrix.getFlatBuffer();
+    Matrix rightHandedMatrix;
+    float* result = rightHandedMatrix.getFlatBuffer();
+    bool flaggedProjection = false;
+
+    Matrix leftHandedClone;
+    Matrix rightHandedClone;
+
+    if (buff[16] == 0.0f && buff[17] == 0.0f && buff[18] == 0.0f && buff[19] == 0.0f &&
+        buff[20] == 0.0f && buff[21] == 0.0f && buff[22] == 0.0f && buff[23] == 0.0f) {
+       
+        
+        //indicates inverted
+        if (buff[24] == 1.0f) {
+            rightHandedMatrix = (leftHandedMatrix.inverse() * Matrix::scale(1.0, 1.0, -1.0)).inverse();
+        }
+        else {
+            //non projection matrix so just negate the 3rd column
+            rightHandedMatrix = leftHandedMatrix * Matrix::scale(1.0, 1.0, -1.0);
+        }
+       /* result[0] = buff[0], result[1] = buff[4], result[2] = buff[8], result[3] = buff[3];
+        result[4] = buff[1], result[5] = buff[5], result[6] = buff[9], result[7] = buff[7];
+        result[8] = buff[2], result[9] = buff[6], result[10] = buff[10], result[11] = -buff[11];
+        result[12] = buff[12], result[13] = buff[13], result[14] = buff[14], result[15] = buff[15];*/
+        /*result[0] = buff[0], result[1] = buff[1], result[2] = -buff[2], result[3] = buff[3];
+        result[4] = buff[4], result[5] = buff[5], result[6] = -buff[6], result[7] = buff[7];
+        result[8] = buff[8], result[9] = buff[9], result[10] = -buff[10], result[11] = -buff[11];
+        result[12] = buff[12], result[13] = buff[13], result[14] = buff[14], result[15] = buff[15];*/
+    }
+    else if(buff[14] == 0) {
+        //orthographic projection
+
+        float n = buff[16];
+        float f = buff[17];
+        float l = buff[18];
+        float r = buff[19];
+        float t = buff[20];
+        float b = buff[21];
+
+        //Clone for mixed detection
+        leftHandedClone = Matrix::ortho(r*2.0f, t*2.0f, n, f);
+        
+        //WHY DO I NEED THIS!?!?! PLEASE REVISIT LATER
+        n = -n;
+        f = -f;
+
+        result[0] = 2.0f / (r - l), result[1] = 0.0f, result[2] = 0.0f, result[3] = -((r + l) / (r - l));
+        result[4] = 0.0f, result[5] = 2.0f / (t - b), result[6] = 0.0f, result[7] = -((t + b) / (t - b));
+        result[8] = 0.0f, result[9] = 0.0f, result[10] = -2.0f / (f - n), result[11] = -((f + n) / (f - n));
+        result[12] = 0.0f, result[13] = 0.0f, result[14] = 0.0f, result[15] = 1.0f;
+        rightHandedClone = rightHandedMatrix;
+
+        //indicates inverted
+        if (buff[24] == 1.0f) {
+            rightHandedMatrix = rightHandedMatrix.inverse();
+            result = rightHandedMatrix.getFlatBuffer();
+            leftHandedClone = leftHandedClone.inverse();
+        }
+
+        flaggedProjection = true;
+    }
+    else if (buff[14] != 0) {
+        //perspective projection
+        
+        float n = buff[16];
+        float f = buff[17];
+
+        float angleOfView = buff[22];
+        float imageAspectRatio = buff[23];
+        float scale = static_cast<float>(tan(angleOfView * 0.5 * PI_OVER_180)) * n;
+        float r = imageAspectRatio * scale;
+        float l = -r;
+        float t = scale;
+        float b = -t;
+
+        //Clone for mixed detection
+        leftHandedClone = Matrix::projection(angleOfView, imageAspectRatio, n, f);
+
+        result[0] = 2 * n / (r - l), result[1] = 0, result[2] = (r + l) / (r - l), result[3] = 0;
+        result[4] = 0, result[5] = 2 * n / (t - b), result[6] = (t + b) / (t - b), result[7] = 0;
+        result[8] = 0, result[9] = 0, result[10] = -(f + n) / (f - n), result[11] = -2 * f * n / (f - n);
+        result[12] = 0, result[13] = 0, result[14] = -1, result[15] = 0;
+        rightHandedClone = rightHandedMatrix;
+
+        //indicates inverted
+        if (buff[24] == 1.0f) {
+            rightHandedMatrix = rightHandedMatrix.inverse();
+            result = rightHandedMatrix.getFlatBuffer();
+            leftHandedClone = leftHandedClone.inverse();
+        }
+
+        flaggedProjection = true;
+    }
+
+    float* clone = leftHandedClone.getFlatBuffer();
+
+    //mixture of projection and transformation
+    //so extract the projection first and apply inverse to get only transformation
+    if (flaggedProjection == true &&
+        (buff[0] != clone[0] || buff[1] != clone[1] || buff[2] != clone[2] || buff[3] != clone[3] ||
+         buff[4] != clone[4] || buff[5] != clone[5] || buff[6] != clone[6] || buff[7] != clone[7] ||
+         buff[8] != clone[8] || buff[9] != clone[9] || buff[10] != clone[10] || buff[11] != clone[11] ||
+         buff[12] != clone[12] || buff[13] != clone[13] || buff[14] != clone[14] || buff[15] != clone[15])) {
+
+        if (buff[14] == 0 || buff[14] != 0) {
+
+            Matrix inverseProjection = leftHandedClone.inverse();
+            //Get ride of the perspective part
+            Matrix transformation = inverseProjection * leftHandedMatrix;
+            float* semiBuff = transformation.getFlatBuffer();
+            //non projection matrix so just transpose inner rotation matrix and negate z
+            rightHandedMatrix = leftHandedMatrix * Matrix::scale(1.0, 1.0, -1.0);
+
+            rightHandedMatrix = rightHandedClone * rightHandedMatrix;
+        }
+    }
+
+    return rightHandedMatrix;
+}
+
 
 //Prints out the result in row major
 void Matrix::display() {

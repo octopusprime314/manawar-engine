@@ -44,10 +44,7 @@ void WaypointCamera::updateState(int milliseconds) {
         auto current_pos = state->getLinearPosition();
         auto next_wp = _waypoints[_currentWaypoint + 1].position;
         auto prev_wp = _waypoints[_currentWaypoint].position;
-        if (EngineManager::getGraphicsLayer() == GraphicsLayer::OPENGL) {
-            float z_diff = std::abs(current_pos.getFlatBuffer()[2]) - std::abs(prev_wp.getFlatBuffer()[2]);
-            current_pos.getFlatBuffer()[2] = prev_wp.getFlatBuffer()[2] + _currentForce.getz()*z_diff;
-        }
+       
         LOG_TRACE(current_pos.getz());
         auto dir = next_wp - current_pos;
         float mag = dir.getMagnitude();
@@ -67,9 +64,6 @@ void WaypointCamera::updateState(int milliseconds) {
                 
                 _currentForce.normalize();   
                 LOG_TRACE(_currentForce.getx());
-                if (EngineManager::getGraphicsLayer() == GraphicsLayer::OPENGL) {
-                    current_wp.getFlatBuffer()[2] = -current_wp.getFlatBuffer()[2];
-                }
                 state->setLinearPosition(current_wp);
             }
             state->setForce(_inversion * _currentForce * 100.0f);

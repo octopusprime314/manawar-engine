@@ -55,8 +55,8 @@ void DeferredShader::runShader(std::vector<Light*>& lights,
 
     //Get light view matrix "look at" vector which is located in the third column
     //of the inner rotation matrix at index 2,6,10
-    auto viewMatrix = (viewEventDistributor->getView() 
-        * lights[0]->getLightMVP().getViewMatrix()).getFlatBuffer();
+    auto viewMatrix = (viewEventDistributor->getView().inverse() * 
+        lights[0]->getLightMVP().getViewMatrix()).getFlatBuffer();
 
     Vector4 lightPosition(viewMatrix[2], viewMatrix[6], viewMatrix[10]);
     //lightPosition.display();
@@ -103,13 +103,11 @@ void DeferredShader::runShader(std::vector<Light*>& lights,
     //Change of basis from camera view position back to world position
     if (lights.size() > 0 && lights[0] != nullptr) {
         MVP lightMVP = lights[0]->getLightMVP();
-        Matrix cameraToLightSpace = lightMVP.getProjectionMatrix() *
-            lightMVP.getViewMatrix() *
-            viewEventDistributor->getView().inverse();
 
-        _shader->updateData("lightViewMatrix", cameraToLightSpace.getFlatBuffer());
+        _shader->updateData("lightProjectionMatrix", lightMVP.getProjectionMatrix().getFlatBuffer());
+
+        _shader->updateData("lightViewMatrix", lightMVP.getViewMatrix().getFlatBuffer());
     }
-
 
     //Change of basis from camera view position back to world position
     if (lights.size() > 1 && lights[1] != nullptr) {

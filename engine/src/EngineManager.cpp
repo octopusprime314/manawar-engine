@@ -90,7 +90,7 @@ EngineManager::EngineManager(int* argc, char** argv, HINSTANCE hInstance, int nC
 
         ////_terminal = new Terminal(_deferredRenderer->getGBuffers(), _entityList);
 
-        Vector4 sunLocation(0.0f, 0.0f, -300.0f);
+        Vector4 sunLocation(0.0f, 0.0f, 300.0f);
         MVP lightMVP;
         
         lightMVP.setView(Matrix::translation(sunLocation.getx(), sunLocation.gety(), sunLocation.getz())
@@ -190,7 +190,7 @@ EngineManager::EngineManager(int* argc, char** argv, HINSTANCE hInstance, int nC
 
         _terminal = new Terminal(_deferredRenderer->getGBuffers(), _entityList);
 
-        Vector4 sunLocation(0.0f, 0.0f, -700.0f);
+        Vector4 sunLocation(0.0f, 0.0f, 700.0f);
         /*MVP lightMVP;
         lightMVP.setView(Matrix::translation(sunLocation.getx(), sunLocation.gety(), sunLocation.getz())
             * Matrix::rotationAroundX(-90.0f));
@@ -202,7 +202,7 @@ EngineManager::EngineManager(int* argc, char** argv, HINSTANCE hInstance, int nC
 
         MVP lightMapMVP;
         lightMapMVP.setView(Matrix::translation(sunLocation.getx(), sunLocation.gety(), sunLocation.getz())
-            * Matrix::rotationAroundX(-45.0f));
+            * Matrix::rotationAroundX(45.0f));
         lightMapMVP.setProjection(Matrix::ortho(1400.0f, 1400.0f, 0.0f, 1400.0f));
         _lightList.push_back(new ShadowedDirectionalLight(_viewManager->getEventWrapper(),
             lightMapMVP,
@@ -440,7 +440,7 @@ void EngineManager::_postDraw() {
                         Matrix inverseViewProjection = ModelBroker::getViewManager()->getView().inverse() *
                             ModelBroker::getViewManager()->getProjection().inverse();
 
-                        FrustumCuller::getVisibleOBB(entity, inverseViewProjection, light);
+                        //FrustumCuller::getVisibleOBB(entity, inverseViewProjection, light);
                     }
                 }
             }

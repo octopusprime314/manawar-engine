@@ -57,7 +57,7 @@ void main(){
 		float pointShadow = 1.0;
 		//illumination is from directional light but we don't want to illuminate when the sun is past the horizon
 		//aka night time
-		if(light.y >= 0.0) {
+		if(normalizedLight.y >= 0.0) {
 			const float bias = 0.005; //removes shadow acne by adding a small bias
 			//Only shadow in textures space
 			//if(shadowTextureCoordinates.x <= 1.0 && shadowTextureCoordinates.x >= 0.0 && shadowTextureCoordinates.y <= 1.0 && shadowTextureCoordinates.y >= 0.0){

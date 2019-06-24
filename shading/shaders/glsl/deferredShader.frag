@@ -12,8 +12,9 @@ uniform samplerCube skyboxNightTexture;	//skybox night
 uniform sampler2D   ssaoTexture;      //depth texture data array with values 1.0 to 0.0, with 0.0 being closer
 //uniform samplerCube environmentMapTexture;      //depth texture data array with values 1.0 to 0.0, with 0.0 being closer
 
-
+uniform mat4 lightProjectionMatrix;  //Light projection matrix
 uniform mat4 lightViewMatrix;     	//Light perspective's view matrix
+uniform mat4 inverseView; // Inverse View/Camera transformation matrix
 uniform mat4 lightMapViewMatrix;    //Light perspective's view matrix
 uniform mat4 viewToModelMatrix;		//Inverse camera view space matrix
 uniform mat4 projectionToViewMatrix; //Inverse projection matrix
@@ -74,7 +75,7 @@ void main(){
 	float illumination = dot(normalizedLight, normalizedNormal);
 	
 	//Convert from camera space vertex to light clip space vertex
-	vec4 shadowMapping = lightViewMatrix * vec4(position.xyz, 1.0);
+	vec4 shadowMapping = lightProjectionMatrix * lightViewMatrix * inverseView * vec4(position.xyz, 1.0);
     shadowMapping = shadowMapping/shadowMapping.w; 
     vec2 shadowTextureCoordinates = shadowMapping.xy * vec2(0.5,0.5) + vec2(0.5,0.5);
 	
@@ -87,7 +88,7 @@ void main(){
 		if(normal.x == 0.0 && normal.y == 0.0 && normal.z == 0.0){
 			vec4 dayColor = texture(skyboxDayTexture, vec3(vsData.vsViewDirection.x, vsData.vsViewDirection.y, vsData.vsViewDirection.z));
 			vec4 nightColor = texture(skyboxNightTexture, vec3(vsData.vsViewDirection.x, vsData.vsViewDirection.y, vsData.vsViewDirection.z));
-			fragColor = (((1.0 + light.y)/2.0) * dayColor) + (((1.0 - light.y)/2.0) * nightColor);
+			fragColor = (((1.0 + normalizedLight.y)/2.0) * dayColor) + (((1.0 - normalizedLight.y)/2.0) * nightColor);
 			//skybox depth trick to have it displayed at the depth boundary
 			//precision matters here and must be as close as possible to 1.0
 			//the number of 9s can only go to 7 but no less than 4
@@ -100,7 +101,7 @@ void main(){
 			float pointShadow = 1.0;
 			//illumination is from directional light but we don't want to illuminate when the sun is past the horizon
 			//aka night time
-			if(light.y >= 0.0) {
+			if(normalizedLight.y >= 0.0) {
 				const float bias = 0.005; //removes shadow acne by adding a small bias
 				//Only shadow in textures space
 				//if(shadowTextureCoordinates.x <= 1.0 && shadowTextureCoordinates.x >= 0.0 && shadowTextureCoordinates.y <= 1.0 && shadowTextureCoordinates.y >= 0.0){

@@ -74,7 +74,7 @@ Model* ModelBroker::getModel(std::string modelName, Vector4 pos) {
 
         float distance = (pos - cameraPos).getMagnitude();
         //use lod 1 which is the highest poly count for the model
-        if (distance < 400) {
+        if (distance < 400 || EngineState::getEngineState().worldEditorModeEnabled) {
              return _models[upperCaseMapName];
         }
         else {
@@ -116,7 +116,7 @@ void ModelBroker::clearChanges(std::string modelName) {
 void ModelBroker::addModel(std::string modelName, std::string modelToAdd, Vector4 location, Vector4 rotation) {
     
     std::string upperCaseMapName = _strToUpper(modelName);
-    std::string upperCaseMapNameToAdd = _strToUpper(modelToAdd);
+    std::string upperCaseMapNameToAdd = _strToUpper(modelToAdd) + "_LOD1";
 
     if (_models.find(upperCaseMapName) != _models.end() &&
         _models.find(upperCaseMapNameToAdd) != _models.end()) {
@@ -151,7 +151,7 @@ void ModelBroker::addTileModel(std::string modelName,
     std::vector<std::string> textures) {
 
     std::string upperCaseMapName = _strToUpper(modelName);
-    std::string upperCaseMapNameToAdd = _strToUpper(modelToAdd);
+    std::string upperCaseMapNameToAdd = _strToUpper(modelToAdd) + "_LOD1";
 
     if (_models.find(upperCaseMapName) != _models.end() &&
         _models.find(upperCaseMapNameToAdd) != _models.end()) {

@@ -128,9 +128,22 @@ void Picker::_editData(int x, int y, bool mouseDrag, bool mouseClick) {
                             int zPosOfTile = std::atoi(extentsInString.substr(0, extentsInString.find(".")).c_str());
 
                             auto vertices = renderBuffers->getVertices();
-                            Vector4 A = entity->getWorldSpaceTransform() * (*vertices)[triangleID * 3];
-                            Vector4 B = entity->getWorldSpaceTransform() * (*vertices)[(triangleID * 3) + 1];
-                            Vector4 C = entity->getWorldSpaceTransform() * (*vertices)[(triangleID * 3) + 2];
+                            Vector4 A = (*vertices)[triangleID * 3];
+                            Vector4 B = (*vertices)[(triangleID * 3) + 1];
+                            Vector4 C = (*vertices)[(triangleID * 3) + 2];
+
+                            //God damnit unfortunately we need to convert from opengl space to lefthanded space because
+                            //the entity ids we are getting back are in right handed (opengl space) and we need to convert
+                            //to left handed space which is the default coordinate system of the engine which directX uses
+                            if (EngineManager::getGraphicsLayer() == GraphicsLayer::OPENGL) {
+                                A = Matrix::scale(1.0, 1.0, -1.0) * A;
+                                B = Matrix::scale(1.0, 1.0, -1.0) * B;
+                                C = Matrix::scale(1.0, 1.0, -1.0) * C;
+                            }
+
+                            A = entity->getWorldSpaceTransform() * A;
+                            B = entity->getWorldSpaceTransform() * B;
+                            C = entity->getWorldSpaceTransform() * C;
 
                             MutableTexture* alphaMapEditor = nullptr;
                             if (_mutableTextureCache.find(texture->getName()) != _mutableTextureCache.end()) {
@@ -147,7 +160,7 @@ void Picker::_editData(int x, int y, bool mouseDrag, bool mouseClick) {
                             float zOffset = height / 2.0f;
 
                             float xCentroid = ((A.getx() + B.getx() + C.getx()) / 3.0f);
-                            float zCentroid = -((A.getz() + B.getz() + C.getz()) / 3.0f);
+                            float zCentroid = ((A.getz() + B.getz() + C.getz()) / 3.0f);
                             float totalRadius = (width / 2) + _pickingRadius;
 
                             if (xCentroid >= xPosOfTile - totalRadius && xCentroid <= xPosOfTile + totalRadius &&
@@ -170,7 +183,7 @@ void Picker::_editData(int x, int y, bool mouseDrag, bool mouseClick) {
                                 bool isMouseClickedTile = false;
 
                                 float xTilePoint = ((A.getx() + B.getx() + C.getx()) / 3.0f);
-                                float zTilePoint = -((A.getz() + B.getz() + C.getz()) / 3.0f);
+                                float zTilePoint = ((A.getz() + B.getz() + C.getz()) / 3.0f);
 
                                 if (xTilePoint >= (xPosOfTile - xOffset) && xTilePoint <= (xPosOfTile + xOffset) &&
                                     zTilePoint >= (zPosOfTile - zOffset) && zTilePoint <= (zPosOfTile + zOffset)) {
@@ -181,7 +194,7 @@ void Picker::_editData(int x, int y, bool mouseDrag, bool mouseClick) {
                                     xPosition = static_cast<int>(xPosition + width) % static_cast<int>(width + _pickingRadius);
                                 }
                                 //std::cout << xPosition << " " << zPosition << std::endl;
-                                A.getFlatBuffer()[2] = -A.getz();
+                                //A.getFlatBuffer()[2] = -A.getz();
                                 _pickedPosition = A;
 
                                 bool modelUpdate = _mouseCallback(A, mouseClick);

@@ -32,6 +32,8 @@ FbxLoader::FbxLoader(std::string name) :
 
     _scene = FbxScene::Create(_fbxManager, "");
 
+    
+
     int fileMinor, fileRevision;
     int sdkMajor, sdkMinor, sdkRevision;
     int fileFormat;
@@ -94,6 +96,7 @@ FbxLoader::FbxLoader(std::string name) :
     _export.ioSettings->SetBoolProp(EXP_FBX_TEXTURE, true);
     // create an empty scene to be exported
     _export.scene = FbxScene::Create(_export.manager, "");
+
     // create an exporter.
     _export.exporter = FbxExporter::Create(_export.manager, "");
     int asciiFormatIndex = _getASCIIFormatIndex(_export.manager);
@@ -293,6 +296,12 @@ void FbxLoader::_searchAndEditNode(FbxNode* rootNode, FbxNode* childNode, std::s
     for (int i = 0; i < numChildren; i++) {
         auto childToEdit = rootNode->FindChild(childNode->GetChild(i)->GetName());
         if (childToEdit != nullptr) {
+
+            //We instance so don't copy mesh by resetting it ftw
+            FbxMesh* mesh = childToEdit->GetMesh();
+            if (mesh != nullptr) {
+                childToEdit->GetMesh()->Reset();
+            }
             childToEdit->LclScaling.Set(FbxDouble3(location.getw(), location.getw(), location.getw()));
             childToEdit->LclTranslation.Set(FbxDouble3(location.getx(), location.gety(), location.getz()));
             childToEdit->LclRotation.Set(FbxDouble3(rotation.getx(), rotation.gety(), rotation.getz()));
@@ -324,7 +333,10 @@ void FbxLoader::_searchAndEditMesh(FbxNode* childNode, std::string modelName,
             lNode->SetNodeAttribute(mesh);
             lNode->LclScaling.Set(FbxDouble3(location.getw(), location.getw(), location.getw()));
             lNode->LclTranslation.Set(FbxDouble3(location.getx(), location.gety(), location.getz()));
-            lNode->LclRotation.Set(/*node->LclRotation.Get()*/FbxDouble3(rotation.getx(), rotation.gety(), rotation.getz()));
+            lNode->LclRotation.Set(FbxDouble3(rotation.getx(), rotation.gety(), rotation.getz()));
+
+            //We instance so don't copy mesh by resetting it ftw
+            childNode->GetMesh()->Reset();
 
             int materialCount = node->GetSrcObjectCount<FbxSurfaceMaterial>();
 
@@ -349,12 +361,20 @@ void FbxLoader::_cloneFbxNode(Model* modelAddedTo, FbxLoader* fbxLoader, Vector4
     auto modelName = fbxLoader->getModelName();
     modelName = modelName.substr(modelName.find_last_of("/") + 1);
     modelName = modelName.substr(0, modelName.find_last_of("."));
+    modelName = modelName.substr(0, modelName.find_last_of("_"));
 
     //First check for root node copies
     int numChildren = node->GetChildCount();
     for (int i = 0; i < numChildren; i++) {
         auto childToEdit = rootNode->FindChild(node->GetChild(i)->GetName());
         if (childToEdit != nullptr) {
+
+            //We instance so don't copy mesh by resetting it ftw
+            FbxMesh* mesh = childToEdit->GetMesh();
+            if (mesh != nullptr) {
+                childToEdit->GetMesh()->Reset();
+            }
+
             childToEdit->LclScaling.Set(FbxDouble3(location.getw(), location.getw(), location.getw()));
             childToEdit->LclTranslation.Set(FbxDouble3(location.getx(), location.gety(), location.getz()));
             childToEdit->LclRotation.Set(FbxDouble3(rotation.getx(), rotation.gety(), rotation.getz()));
@@ -389,6 +409,7 @@ void FbxLoader::_nodeExists(std::string modelName, FbxNode* node, std::vector<Fb
         childNode = node->GetChild(i);
         modelName = modelName.substr(modelName.find_last_of("/") + 1);
         modelName = modelName.substr(0, modelName.find_last_of("."));
+        modelName = modelName.substr(0, modelName.find_last_of("_"));
         std::string name = modelName + "_0_" + childNode->GetName();
         if (childNode != nullptr) {
             auto node = _scene->GetRootNode()->FindChild(name.c_str(), true);
@@ -469,6 +490,7 @@ void FbxLoader::addToScene(Model* modelAddedTo, FbxLoader* modelToLoad, Vector4 
         std::string modelName = modelToLoad->getModelName();
         modelName = modelName.substr(modelName.find_last_of("/") + 1);
         modelName = modelName.substr(0, modelName.find_last_of("."));
+        modelName = modelName.substr(0, modelName.find_last_of("_"));
 
         _clonedInstances[modelName]++;
 
@@ -485,6 +507,10 @@ void FbxLoader::addToScene(Model* modelAddedTo, FbxLoader* modelToLoad, Vector4 
                 FbxNode* lNode = FbxNode::Create(_export.scene, 
                     (nodeName +
                         "instance" + std::to_string(_export.scene->GetRootNode()->GetChildCount())).c_str());
+
+                //We instance so don't copy mesh by resetting it ftw
+                childNode->GetMesh()->Reset();
+                
                 lNode->SetNodeAttribute(mesh);
                 lNode->LclScaling.Set(FbxDouble3(location.getw(), location.getw(), location.getw()));
                 lNode->LclTranslation.Set(FbxDouble3(location.getx(), location.gety(), location.getz()));
@@ -511,6 +537,10 @@ void FbxLoader::addToScene(Model* modelAddedTo, FbxLoader* modelToLoad, Vector4 
                         (nodeName +
                             "instance" + std::to_string(_export.scene->GetRootNode()->GetChildCount())).c_str());
                     lNode->SetNodeAttribute(mesh);
+
+                    //We instance so don't copy mesh by resetting it ftw
+                    childNode->GetMesh()->Reset();
+
                     lNode->LclScaling.Set(FbxDouble3(location.getw(), location.getw(), location.getw()));
                     lNode->LclTranslation.Set(FbxDouble3(location.getx(), location.gety(), location.getz()));
                     lNode->LclRotation.Set(FbxDouble3(rotation.getx(), rotation.gety(), rotation.getz()));
@@ -533,6 +563,7 @@ void FbxLoader::addToScene(Model* modelAddedTo, FbxLoader* modelToLoad, Vector4 
     std::string modelName = modelToLoad->getModelName();
     modelName = modelName.substr(modelName.find_last_of("/") + 1);
     modelName = modelName.substr(0, modelName.find_last_of("."));
+    modelName = modelName.substr(0, modelName.find_last_of("_"));
 
     //Add in x and z rotation later please!!!! TODO
     auto transformation =
@@ -567,6 +598,7 @@ void FbxLoader::addTileToScene(Model* modelAddedTo, FbxLoader* modelToLoad, Vect
     std::string modelName = modelToLoad->getModelName();
     modelName = modelName.substr(modelName.find_last_of("/") + 1);
     modelName = modelName.substr(0, modelName.find_last_of("."));
+    modelName = modelName.substr(0, modelName.find_last_of("_"));
 
     _clonedInstances[modelName]++;
 
@@ -595,6 +627,12 @@ void FbxLoader::addTileToScene(Model* modelAddedTo, FbxLoader* modelToLoad, Vect
 
             childToEdit->SetName((nodeName +
                 "instance" + std::to_string(_export.scene->GetRootNode()->GetChildCount())).c_str());
+
+            //We instance so don't copy mesh by resetting it ftw
+            FbxMesh* mesh = childToEdit->GetMesh();
+            if (mesh != nullptr) {
+                childToEdit->GetMesh()->Reset();
+            }
 
             int materialCount = childToEdit->GetSrcObjectCount<FbxSurfaceMaterial>();
 

@@ -56,8 +56,7 @@ void ForwardShader::runShader(Entity* entity, ViewEventDistributor* viewEventDis
 
             //Get light view matrix "look at" vector which is located in the third column
             //of the inner rotation matrix at index 2,6,10
-            auto viewMatrix = (viewEventDistributor->getView().inverse() *
-                lights[0]->getLightMVP().getViewMatrix()).getFlatBuffer();
+            auto viewMatrix = lights[0]->getLightMVP().getViewMatrix().getFlatBuffer();
             Vector4 lightPosition(viewMatrix[2], viewMatrix[6], viewMatrix[10]);
             _shader->updateData("light", lightPosition.getFlatBuffer());
 

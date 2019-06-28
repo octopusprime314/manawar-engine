@@ -8,6 +8,7 @@ uniform sampler2D   cameraDepthTexture;   //depth texture data array with values
 uniform mat4 lightViewMatrix;     	//Light perspective's view matrix
 uniform mat4 lightMapViewMatrix;    //Light perspective's view matrix
 uniform mat4 viewToModelMatrix;		//Inverse camera view space matrix
+uniform mat4 normal;     // Normal matrix
 
 //uniform vec3  pointLightPositions[20];//max lights is 20 for now
 //uniform vec3  pointLightColors[20]; //max lights is 20 for now
@@ -36,14 +37,17 @@ void main(){
 		discard;
 	}
 	else {
-		
-		//Directional light calculation
-		vec3 normalizedLight = normalize(vec3(light.x, light.y, light.z));
-		float illumination = dot(normalizedLight, vsData.normalOut);
+
+        //Directional light calculation
+        vec3 lightInCameraView = normalize((normal * vec4(light, 0.0)).xyz);
+	    float illumination = dot(lightInCameraView, vsData.normalOut);
+
+        //Determines day/night calculations and does not factor in the view transform
+	    vec3 normalizedLight = normalize(vec3(light.x, light.y, light.z));
 		
 		//Convert from camera space vertex to light clip space vertex
 		vec4 shadowMapping = lightViewMatrix * vec4(vsData.positionOut.xyz, 1.0);
-		shadowMapping = shadowMapping/shadowMapping.w; 
+		shadowMapping = shadowMapping/shadowMapping.w;
 		vec2 shadowTextureCoordinates = shadowMapping.xy * vec2(0.5,0.5) + vec2(0.5,0.5);
 		
 		vec4 shadowMappingMap = lightMapViewMatrix * vec4(vsData.positionOut.xyz, 1.0);

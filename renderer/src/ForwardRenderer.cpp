@@ -21,7 +21,7 @@ ForwardRenderer::~ForwardRenderer() {
 void ForwardRenderer::forwardLighting(std::vector<Entity*>& entityList, ViewEventDistributor* viewEventDistributor, 
     std::vector<Light*>& lights) {
 
-    Matrix inverseViewProjection = ModelBroker::getViewManager()->getView().inverse() *
+    Matrix inverseViewProjection = (ModelBroker::getViewManager()->getView()/* * Matrix::scale(-1.0, 1.0, 1.0) * Matrix::scale(1.0, -1.0, 1.0)*/).inverse() *
                                    ModelBroker::getViewManager()->getProjection().inverse();
 
     for (auto entity : entityList) {

@@ -65,7 +65,7 @@ class FbxLoader {
     void            _loadNormals(FbxMesh* meshNode, int* indices, std::vector<Vector4>& normals);
     void            _loadVertices(FbxMesh* meshNode, std::vector<Vector4>& vertices);
     void            _loadIndices(Model* model, FbxMesh* meshNode, int*& indices);
-    void            _cloneFbxNode(Model* modelAddedTo, FbxLoader* fbxToAdd, Vector4 location, Vector4 rotation);
+    void            _cloneFbxNode(std::string modelName, FbxLoader* fbxToAdd, Vector4 location, Vector4 rotation);
     int             _getASCIIFormatIndex(FbxManager* fbxManager);
     void            _parseTags(FbxNode* node);
     void            _searchAndEditNode(FbxNode* rootNode, FbxNode* childNode, std::string modelName, 

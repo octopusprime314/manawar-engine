@@ -51,7 +51,7 @@ Entity::~Entity() {
 
 void Entity::_updateDraw() {
 
-    Matrix inverseViewProjection = ModelBroker::getViewManager()->getView().inverse() *
+    Matrix inverseViewProjection = (ModelBroker::getViewManager()->getView()).inverse() *
                                    ModelBroker::getViewManager()->getProjection().inverse();
 
     //if (FrustumCuller::getVisibleAABB(this, inverseViewProjection)) {

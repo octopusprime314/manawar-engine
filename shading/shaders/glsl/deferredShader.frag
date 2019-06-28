@@ -18,6 +18,7 @@ uniform mat4 inverseView; // Inverse View/Camera transformation matrix
 uniform mat4 lightMapViewMatrix;    //Light perspective's view matrix
 uniform mat4 viewToModelMatrix;		//Inverse camera view space matrix
 uniform mat4 projectionToViewMatrix; //Inverse projection matrix
+uniform mat4 normalMatrix;
 
 //uniform vec3 pointLightPositions[20];//max lights is 20 for now
 //uniform vec3 pointLightColors[20]; //max lights is 20 for now
@@ -71,8 +72,11 @@ void main(){
 	gl_FragDepth = texture(depthTexture, vsData.texCoordOut.xy).r;
 	
 	//Directional light calculation
+    vec3 lightInCameraView = normalize((normalMatrix * vec4(light.x, light.y, light.z, 0.0)).xyz);
+	float illumination = dot(lightInCameraView, normalizedNormal);
+
+    //Determines day/night calculations and does not factor in the view transform
 	vec3 normalizedLight = normalize(vec3(light.x, light.y, light.z));
-	float illumination = dot(normalizedLight, normalizedNormal);
 	
 	//Convert from camera space vertex to light clip space vertex
 	vec4 shadowMapping = lightProjectionMatrix * lightViewMatrix * inverseView * vec4(position.xyz, 1.0);
@@ -89,6 +93,7 @@ void main(){
 			vec4 dayColor = texture(skyboxDayTexture, vec3(vsData.vsViewDirection.x, vsData.vsViewDirection.y, vsData.vsViewDirection.z));
 			vec4 nightColor = texture(skyboxNightTexture, vec3(vsData.vsViewDirection.x, vsData.vsViewDirection.y, vsData.vsViewDirection.z));
 			fragColor = (((1.0 + normalizedLight.y)/2.0) * dayColor) + (((1.0 - normalizedLight.y)/2.0) * nightColor);
+
 			//skybox depth trick to have it displayed at the depth boundary
 			//precision matters here and must be as close as possible to 1.0
 			//the number of 9s can only go to 7 but no less than 4

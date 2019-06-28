@@ -45,7 +45,6 @@ void ShadowStaticShader::runShader(Entity* entity, Light* light) {
             _shader->updateData("projection", lightMVP.getProjectionBuffer());
         }
         else {
-            //auto mvpPreMultiplied = mvp->getModelMatrix() * lightMVP.getViewMatrix() * lightMVP.getProjectionMatrix();
             auto mvpPreMultiplied = lightMVP.getProjectionMatrix() * lightMVP.getViewMatrix() * mvp->getModelMatrix();
             _shader->updateData("model", mvpPreMultiplied.getFlatBuffer());
         }

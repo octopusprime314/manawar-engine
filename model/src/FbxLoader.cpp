@@ -283,7 +283,10 @@ void FbxLoader::clearScene() {
 }
 
 std::string FbxLoader::getModelName() {
-    return _fileName;
+    std::string modelName = _fileName.substr(_fileName.find_last_of("/") + 1);
+    modelName             = modelName.substr(0, modelName.find_last_of("."));
+    modelName             = modelName.substr(0, modelName.find_last_of("_"));
+    return modelName;
 }
 
 void FbxLoader::_searchAndEditNode(FbxNode* rootNode, FbxNode* childNode, std::string modelName, 
@@ -351,17 +354,12 @@ void FbxLoader::_searchAndEditMesh(FbxNode* childNode, std::string modelName,
     }
 }
 
-void FbxLoader::_cloneFbxNode(Model* modelAddedTo, FbxLoader* fbxLoader, Vector4 location, Vector4 rotation) {
+void FbxLoader::_cloneFbxNode(std::string modelName, FbxLoader* fbxLoader, Vector4 location, Vector4 rotation) {
    
     // Determine the number of children there are
     auto rootNode  = _export.scene->GetRootNode();
     auto node = fbxLoader->getScene()->GetRootNode();
     FbxCloneManager::Clone(node, rootNode);
-
-    auto modelName = fbxLoader->getModelName();
-    modelName = modelName.substr(modelName.find_last_of("/") + 1);
-    modelName = modelName.substr(0, modelName.find_last_of("."));
-    modelName = modelName.substr(0, modelName.find_last_of("_"));
 
     //First check for root node copies
     int numChildren = node->GetChildCount();
@@ -407,9 +405,6 @@ void FbxLoader::_nodeExists(std::string modelName, FbxNode* node, std::vector<Fb
     FbxNode* childNode = nullptr;
     for (int i = 0; i < numChildren; i++) {
         childNode = node->GetChild(i);
-        modelName = modelName.substr(modelName.find_last_of("/") + 1);
-        modelName = modelName.substr(0, modelName.find_last_of("."));
-        modelName = modelName.substr(0, modelName.find_last_of("_"));
         std::string name = modelName + "_0_" + childNode->GetName();
         if (childNode != nullptr) {
             auto node = _scene->GetRootNode()->FindChild(name.c_str(), true);
@@ -479,18 +474,16 @@ void FbxLoader::addToScene(Model* modelAddedTo, FbxLoader* modelToLoad, Vector4 
     //Stride index needs to be reset when adding new models to the scene
     _strideIndex = 0;
 
+    std::string modelName = modelToLoad->getModelName();
+
     std::vector<FbxNode*> copiedNodes;
-    _nodeExists(modelToLoad->getModelName(), modelToLoad->getScene()->GetRootNode(), copiedNodes);
+    _nodeExists(modelName, modelToLoad->getScene()->GetRootNode(), copiedNodes);
     if (copiedNodes.size() == 0) {
-        _cloneFbxNode(modelAddedTo, modelToLoad, location, rotation);
+        _cloneFbxNode(modelName, modelToLoad, location, rotation);
     }
     //instance off of cloned mesh
     else {
 
-        std::string modelName = modelToLoad->getModelName();
-        modelName = modelName.substr(modelName.find_last_of("/") + 1);
-        modelName = modelName.substr(0, modelName.find_last_of("."));
-        modelName = modelName.substr(0, modelName.find_last_of("_"));
 
         _clonedInstances[modelName]++;
 
@@ -560,11 +553,6 @@ void FbxLoader::addToScene(Model* modelAddedTo, FbxLoader* modelToLoad, Vector4 
         }
     }
 
-    std::string modelName = modelToLoad->getModelName();
-    modelName = modelName.substr(modelName.find_last_of("/") + 1);
-    modelName = modelName.substr(0, modelName.find_last_of("."));
-    modelName = modelName.substr(0, modelName.find_last_of("_"));
-
     //Add in x and z rotation later please!!!! TODO
     auto transformation =
         Matrix::translation(location.getx(), location.gety(), location.getz()) * 
@@ -592,13 +580,9 @@ void FbxLoader::addTileToScene(Model* modelAddedTo, FbxLoader* modelToLoad, Vect
     //Stride index needs to be reset when adding new models to the scene
     _strideIndex = 0;
 
-    std::vector<FbxNode*> copiedNodes;
-    _nodeExists(modelToLoad->getModelName(), modelToLoad->getScene()->GetRootNode(), copiedNodes);
-
     std::string modelName = modelToLoad->getModelName();
-    modelName = modelName.substr(modelName.find_last_of("/") + 1);
-    modelName = modelName.substr(0, modelName.find_last_of("."));
-    modelName = modelName.substr(0, modelName.find_last_of("_"));
+    std::vector<FbxNode*> copiedNodes;
+    _nodeExists(modelName, modelToLoad->getScene()->GetRootNode(), copiedNodes);
 
     _clonedInstances[modelName]++;
 

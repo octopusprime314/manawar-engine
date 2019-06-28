@@ -58,7 +58,7 @@ void Uniforms::updateUniform(std::string uniformName, void* value) {
     {
         //Transform to right handed prior to supplying to opengl so copy and flip z
         Vector4 rightHandedVector(*static_cast<Vector4*>(value));
-        //rightHandedVector.getFlatBuffer()[2] = -rightHandedVector.getFlatBuffer()[2];
+        rightHandedVector.getFlatBuffer()[2] = -rightHandedVector.getFlatBuffer()[2];
         glUniform3fv(_uniformMap[uniformName].location,
                      _uniformMap[uniformName].size,
                      static_cast<GLfloat*>(rightHandedVector.getFlatBuffer()));

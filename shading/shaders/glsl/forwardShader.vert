@@ -14,7 +14,7 @@ out VsData
 uniform mat4 model;		 // Model and World transformation matrix
 uniform mat4 view;		 // View/Camera transformation matrix
 uniform mat4 projection; // Projection transformation matrix
-uniform mat4 normal;     // Normal matrix
+uniform mat4 normalMatrix;     // Normal matrix
 
 void main(){
 
@@ -26,7 +26,7 @@ void main(){
 	
 	vsData.positionOut = view * model * vec4(vertexIn.xyz, 1.0); //store only in model space so deferred shadow rendering is done properly
 
-	vsData.normalOut = vec3((normal * vec4(normalIn, 0.0)).xyz); //Transform normal coordinate in with the normal matrix
+	vsData.normalOut = vec3((normalMatrix * vec4(normalIn, 0.0)).xyz); //Transform normal coordinate in with the normal matrix
 	
 	vsData.textureCoordinateOut = textureCoordinateIn; //Passthrough
 	

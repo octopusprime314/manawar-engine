@@ -44,8 +44,19 @@ Entity*              EngineManager::_shadowEntity = nullptr;
 
 EngineManager::EngineManager(int* argc, char** argv, HINSTANCE hInstance, int nCmdShow) {
 
+    
     _graphicsLayer = GraphicsLayer::OPENGL;
-    _useRaytracing = _graphicsLayer == GraphicsLayer::DX12 ? true : false;
+    if (_graphicsLayer == GraphicsLayer::DX12) {
+        DXLayer::initialize(hInstance,
+                            IOEventDistributor::screenPixelWidth,
+                            IOEventDistributor::screenPixelHeight,
+                            nCmdShow);
+    }
+
+    // disable raytracing until i find a way to not tank performance for shadows
+    _useRaytracing = false;
+                     //(_graphicsLayer == GraphicsLayer::DX12 ? true : false) &&
+                     //DXLayer::instance()->supportsRayTracing();
 
     _inputLayer = new IOEventDistributor(argc, argv, hInstance, nCmdShow);
 
@@ -75,83 +86,65 @@ EngineManager::EngineManager(int* argc, char** argv, HINSTANCE hInstance, int nC
 
     //_entityList.push_back(new Entity(modelBroker->getModel("werewolf"), _viewManager->getEventWrapper())); //Add a static model to the scene
 
+    _deferredFBO     = new DeferredFrameBuffer();
+    _forwardRenderer = new ForwardRenderer();
+    _audioManager    = new AudioManager();
+    _bloom           = new Bloom();
+    _ssaoPass        = new SSAO();
+    _water           = new Water(_viewManager->getEventWrapper());
+    _add             = new SSCompute("add", IOEventDistributor::screenPixelWidth,
+                                            IOEventDistributor::screenPixelHeight,
+                                            TextureFormat::RGBA_UNSIGNED_BYTE);
+    _mergeShader = static_cast<MergeShader*>(ShaderBroker::instance()->getShader("mergeShader"));
+    //_environmentMap  = new EnvironmentMap(2000, 2000);
+
+    Vector4 sunLocation(0.0f, 0.0f, 700.0f);
+
+    MVP lightMapMVP;
+    lightMapMVP.setView(Matrix::translation(sunLocation.getx(), sunLocation.gety(), sunLocation.getz())
+        * Matrix::rotationAroundX(45.0f));
+    lightMapMVP.setProjection(Matrix::ortho(1400.0f, 1400.0f, 0.0f, 1400.0f));
+    _lightList.push_back(new ShadowedDirectionalLight(_viewManager->getEventWrapper(),
+        lightMapMVP,
+        EffectType::None,
+        Vector4(1.0, 0.0, 0.0)));
+
+    //Model view projection matrix for point light additions
+    MVP pointLightMVP;
+
+    //point light projection has a 90 degree view angle with a 1 aspect ratio for generating square shadow maps
+    //with a near z value of 1 and far z value of 100
+    pointLightMVP.setProjection(Matrix::projection(90.0f, 1.0f, 1.0f, 100.0f));
+
+    pointLightMVP.setModel(Matrix::translation(198.45f, 24.68f, 186.71f));
+    _lightList.push_back(new Light(_viewManager->getEventWrapper(),
+        pointLightMVP,
+        LightType::POINT,
+        EffectType::Fire,
+        Vector4(1.0f, 0.8f, 0.3f, 1.0f)));
+
+    pointLightMVP.setModel(Matrix::translation(178.45f, 143.59f, 240.71f));
+    _lightList.push_back(new Light(_viewManager->getEventWrapper(),
+        pointLightMVP,
+        LightType::POINT,
+        EffectType::Smoke,
+        Vector4(0.4f, 0.4f, 0.4f, 1.0f)));
+
+    pointLightMVP.setModel(Matrix::translation(0.0f, 10.0f, 0.0f));
+    _lightList.push_back(new Light(_viewManager->getEventWrapper(),
+        pointLightMVP,
+        LightType::POINT,
+        EffectType::Fire,
+        Vector4(1.0f, 0.8f, 0.3f, 1.0f)));
+
+
     if (_graphicsLayer == GraphicsLayer::DX12) {
 
-        _forwardRenderer = new ForwardRenderer();
-        _ssaoPass = new SSAO();
-
-        _deferredFBO = new DeferredFrameBuffer();
-
-        _mergeShader = static_cast<MergeShader*>(ShaderBroker::instance()->getShader("mergeShader"));
-
-        _bloom = new Bloom();
-
-        _add = new SSCompute("add", IOEventDistributor::screenPixelWidth, IOEventDistributor::screenPixelHeight, TextureFormat::RGBA_UNSIGNED_BYTE);
-
-        ////_terminal = new Terminal(_deferredRenderer->getGBuffers(), _entityList);
-
-        Vector4 sunLocation(0.0f, 0.0f, 300.0f);
-        MVP lightMVP;
-        
-        lightMVP.setView(Matrix::translation(sunLocation.getx(), sunLocation.gety(), sunLocation.getz())
-            * Matrix::rotationAroundX(-90.0f));
-        
-        lightMVP.setProjection(Matrix::ortho(200.0f, 200.0f, 0.0f, 600.0f));
-        
-        _lightList.push_back(new ShadowedDirectionalLight(_viewManager->getEventWrapper(),
-            lightMVP,
-            EffectType::None,
-            Vector4(1.0, 0.0, 0.0)));
-
-        MVP lightMapMVP;
-        lightMapMVP.setView(Matrix::translation(sunLocation.getx(), sunLocation.gety(), sunLocation.getz())
-            * Matrix::rotationAroundX(-90.0f));
-        lightMapMVP.setProjection(Matrix::ortho(600.0f, 600.0f, 0.0f, 600.0f));
-        _lightList.push_back(new ShadowedDirectionalLight(_viewManager->getEventWrapper(),
-            lightMapMVP,
-            EffectType::None,
-            Vector4(1.0, 0.0, 0.0)));
-
-        //Model view projection matrix for point light additions
-        MVP pointLightMVP;
-
-        //point light projection has a 90 degree view angle with a 1 aspect ratio for generating square shadow maps
-        //with a near z value of 1 and far z value of 100
-        pointLightMVP.setProjection(Matrix::projection(90.0f, 1.0f, 1.0f, 100.0f));
-
-        //Placing the lights in equidistant locations for testing
-        /*pointLightMVP.setModel(Matrix::translation(212.14f, 24.68f, 186.46f));
-        _lightList.push_back(new ShadowedPointLight(_viewManager->getEventWrapper(),
-            pointLightMVP,
-            EffectType::Fire,
-            Vector4(1.0f, 0.8f, 0.3f, 1.0f)));*/
-
-        pointLightMVP.setModel(Matrix::translation(198.45f, 24.68f, 186.71f));
-        _lightList.push_back(new Light(_viewManager->getEventWrapper(),
-            pointLightMVP,
-            LightType::POINT,
-            EffectType::Fire,
-            Vector4(1.0f, 0.8f, 0.3f, 1.0f)));
-
-        pointLightMVP.setModel(Matrix::translation(178.45f, 143.59f, 240.71f));
-        _lightList.push_back(new Light(_viewManager->getEventWrapper(),
-            pointLightMVP,
-            LightType::POINT,
-            EffectType::Smoke,
-            Vector4(0.4f, 0.4f, 0.4f, 1.0f)));
-
-        pointLightMVP.setModel(Matrix::translation(0.0f, 10.0f, 0.0f));
-        _lightList.push_back(new Light(_viewManager->getEventWrapper(),
-            pointLightMVP,
-            LightType::POINT,
-            EffectType::Fire,
-            Vector4(1.0f, 0.8f, 0.3f, 1.0f)));
-
+        //_terminal = new Terminal(_deferredRenderer->getGBuffers(), _entityList);
         auto dxLayer = DXLayer::instance();
         dxLayer->fenceCommandList();
 
-        if (_graphicsLayer == GraphicsLayer::DX12 && 
-            DXLayer::instance()->supportsRayTracing() &&
+        if (_graphicsLayer == GraphicsLayer::DX12 &&
             _useRaytracing) {
 
             dxLayer->initCmdLists();
@@ -162,107 +155,20 @@ EngineManager::EngineManager(int* argc, char** argv, HINSTANCE hInstance, int nC
                     DXGI_FORMAT_R8G8B8A8_UNORM, _entityList);
 
             dxLayer->fenceCommandList();
-
-        }
-        else {
-            _useRaytracing = false;
         }
     }
     else {
-
-        _forwardRenderer = new ForwardRenderer();
-
-        _ssaoPass = new SSAO();
-
-        //_environmentMap = new EnvironmentMap(2000, 2000);
-
-        _water = new Water(_viewManager->getEventWrapper());
-
-        _audioManager = new AudioManager();
-
-        _deferredFBO = new DeferredFrameBuffer();
-
-        _mergeShader = static_cast<MergeShader*>(ShaderBroker::instance()->getShader("mergeShader"));
-
-        _bloom = new Bloom();
-
-        _add = new SSCompute("add", IOEventDistributor::screenPixelWidth, IOEventDistributor::screenPixelHeight, TextureFormat::RGBA_UNSIGNED_BYTE);
-
         _terminal = new Terminal(_deferredRenderer->getGBuffers(), _entityList);
-
-        Vector4 sunLocation(0.0f, 0.0f, 700.0f);
-        /*MVP lightMVP;
-        lightMVP.setView(Matrix::translation(sunLocation.getx(), sunLocation.gety(), sunLocation.getz())
-            * Matrix::rotationAroundX(-90.0f));
-        lightMVP.setProjection(Matrix::ortho(200.0f, 200.0f, 0.0f, 600.0f));
-        _lightList.push_back(new ShadowedDirectionalLight(_viewManager->getEventWrapper(),
-            lightMVP,
-            EffectType::None,
-            Vector4(1.0, 0.0, 0.0)));*/
-
-        MVP lightMapMVP;
-        lightMapMVP.setView(Matrix::translation(sunLocation.getx(), sunLocation.gety(), sunLocation.getz())
-            * Matrix::rotationAroundX(45.0f));
-        lightMapMVP.setProjection(Matrix::ortho(1400.0f, 1400.0f, 0.0f, 1400.0f));
-        _lightList.push_back(new ShadowedDirectionalLight(_viewManager->getEventWrapper(),
-            lightMapMVP,
-            EffectType::None,
-            Vector4(1.0, 0.0, 0.0)));
-
-        //Model view projection matrix for point light additions
-        MVP pointLightMVP;
-
-        //point light projection has a 90 degree view angle with a 1 aspect ratio for generating square shadow maps
-        //with a near z value of 1 and far z value of 100
-        pointLightMVP.setProjection(Matrix::projection(90.0f, 1.0f, 1.0f, 100.0f));
-
-        //Placing the lights in equidistant locations for testing
-        /*pointLightMVP.setModel(Matrix::translation(212.14f, 24.68f, 186.46f));
-        _lightList.push_back(new ShadowedPointLight(_viewManager->getEventWrapper(),
-            pointLightMVP,
-            EffectType::Fire,
-            Vector4(1.0f, 0.8f, 0.3f, 1.0f)));
-        */
-       /* pointLightMVP.setModel(Matrix::translation(122.0, 10.0, -43.0f));
-        _lightList.push_back(new Light(_viewManager->getEventWrapper(),
-            pointLightMVP,
-            LightType::POINT,
-            EffectType::Fire,
-            Vector4(1.0f, 0.8f, 0.3f, 1.0f)));
-
-        pointLightMVP.setModel(Matrix::translation(122.0, 30.0, -43.0f));
-        _lightList.push_back(new Light(_viewManager->getEventWrapper(),
-            pointLightMVP,
-            LightType::POINT,
-            EffectType::Fire,
-            Vector4(1.0f, 0.8f, 0.3f, 1.0f)));*/
-
-        /*pointLightMVP.setModel(Matrix::translation(122.0, 130.0, -43.0f));
-        _lightList.push_back(new Light(_viewManager->getEventWrapper(),
-            pointLightMVP,
-            LightType::POINT,
-            EffectType::Smoke,
-            Vector4(0.4f, 0.4f, 0.4f, 1.0f)));*/
-        /*
-        pointLightMVP.setModel(Matrix::translation(0.0f, 10.0f, 0.0f));
-        _lightList.push_back(new Light(_viewManager->getEventWrapper(),
-            pointLightMVP,
-            LightType::POINT,
-            EffectType::Fire,
-            Vector4(1.0f, 0.8f, 0.3f, 1.0f)));*/
-
-        //_audioManager->startAll();
-
-
     }
 
+    //_audioManager->startAll();
     MasterClock::instance()->run(); //Scene manager kicks off the clock event manager
     _viewManager->triggerEvents();
     _viewManager->setEntityList(_entityList);
 
     //_physics = new Physics();
-    //_physics->addEntities(_entityList); //Gives physics a pointer to all models which allows access to underlying geometry
-
+    //Gives physics a pointer to all models which allows access to underlying geometry
+    //_physics->addEntities(_entityList); 
     //_physics->run(); //Dispatch physics to start kinematics
 
     _inputLayer->run();

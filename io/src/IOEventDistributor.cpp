@@ -95,10 +95,6 @@ IOEventDistributor::IOEventDistributor(int* argc, char** argv, HINSTANCE hInstan
         //Disable mouse cursor view
         glfwSetInputMode(_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     }
-    else {
-        DXLayer::initialize(hInstance, IOEventDistributor::screenPixelWidth, IOEventDistributor::screenPixelHeight, nCmdShow);
-        _dxLayer = DXLayer::instance();
-    }
 
     MasterClock* masterClock = MasterClock::instance();
     masterClock->setFrameRate(60); //Establishes the frame rate of the draw context

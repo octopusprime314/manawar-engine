@@ -32,8 +32,6 @@ FbxLoader::FbxLoader(std::string name) :
 
     _scene = FbxScene::Create(_fbxManager, "");
 
-    
-
     int fileMinor, fileRevision;
     int sdkMajor, sdkMinor, sdkRevision;
     int fileFormat;

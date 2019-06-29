@@ -8,7 +8,7 @@ uniform sampler2D   cameraDepthTexture;   //depth texture data array with values
 uniform mat4 lightViewMatrix;     	//Light perspective's view matrix
 uniform mat4 lightMapViewMatrix;    //Light perspective's view matrix
 uniform mat4 viewToModelMatrix;		//Inverse camera view space matrix
-uniform mat4 normal;     // Normal matrix
+uniform mat4 normalMatrix;     // Normal matrix
 
 //uniform vec3  pointLightPositions[20];//max lights is 20 for now
 //uniform vec3  pointLightColors[20]; //max lights is 20 for now
@@ -39,7 +39,7 @@ void main(){
 	else {
 
         //Directional light calculation
-        vec3 lightInCameraView = normalize((normal * vec4(light, 0.0)).xyz);
+        vec3 lightInCameraView = normalize((normalMatrix * vec4(light, 0.0)).xyz);
 	    float illumination = dot(lightInCameraView, vsData.normalOut);
 
         //Determines day/night calculations and does not factor in the view transform

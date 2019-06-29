@@ -17,7 +17,7 @@ cbuffer globalData : register(b1) {
     //float4x4 prevView;   // Previous View/Camera transformation matrix
     float4x4 view;		 // View/Camera transformation matrix
     float4x4 projection; // Projection transformation matrix
-    float4x4 normal;     // Normal matrix
+    float4x4 normalMatrix;     // Normal matrix
 
     float4x4 lightViewMatrix;     	//Light perspective's view matrix
     float4x4 lightMapViewMatrix;    //Light perspective's view matrix
@@ -54,7 +54,7 @@ void VS(float3 iPosL : POSITION,
     float4x4 mvp = mul(mv, projection);
     oPosH = mul(float4(iPosL, 1.0f), mvp);
     oUV = iUV;
-    oNormal = mul(float4(iNormal, 1.0f), normal).rgb;
+    oNormal = mul(float4(iNormal, 1.0f), normalMatrix).rgb;
 }
 
 struct PixelOut
@@ -76,10 +76,9 @@ PixelOut PS(float4 posH : SV_POSITION,
     }
     else {
         //Directional light calculation
-        //NEED to invert light vector other a normal surface pointing up with a light pointing
-        //down would result in a negative dot product of the two vecs, inverting gives us positive numbers!
-        float3 normalizedLight = normalize(float3(-light.x, -light.y, -light.z));
-        float illumination = dot(normalizedLight, normalize(normal.xyz));
+        float3 normalizedLight = normalize(float3(light.x, light.y, light.z));
+        float3 lightInCameraView = normalize(float3(mul(float4(light.x, light.y, light.z, 0.0), normalMatrix).xyz));
+        float  illumination = dot(lightInCameraView, normalize(normal));
 
         //Convert from camera space vertex to light clip space vertex
         float4 shadowMapping = mul(float4(posH.xyz, 1.0), lightViewMatrix);
@@ -98,7 +97,7 @@ PixelOut PS(float4 posH : SV_POSITION,
         float d = cameraDepthTexture.Sample(textureSampler, invertedYCoord).r;
         //illumination is from directional light but we don't want to illuminate when the sun is past the horizon
         //aka night time
-        if (light.y <= 0.0) {
+        if (normalizedLight.y >= 0.0) {
             const float bias = 0.005; //removes shadow acne by adding a small bias
             //Only shadow in textures space
             if (shadowTextureCoordinates.x <= 1.0 && shadowTextureCoordinates.x >= 0.0 && shadowTextureCoordinates.y <= 1.0 && shadowTextureCoordinates.y >= 0.0) {

@@ -52,7 +52,7 @@ void ForwardShader::runShader(Entity* entity, ViewEventDistributor* viewEventDis
             _shader->updateData("projection", mvp->getProjectionBuffer());
 
             //glUniform mat4 normal matrix, GL_TRUE is telling GL we are passing in the matrix as row major
-            _shader->updateData("normal", mvp->getNormalBuffer());
+            _shader->updateData("normalMatrix", mvp->getNormalBuffer());
 
             //Get light view matrix "look at" vector which is located in the third column
             //of the inner rotation matrix at index 2,6,10

@@ -7,7 +7,7 @@
 
 DXLayer* DXLayer::_dxLayer = nullptr;
 
-DXLayer::DXLayer(HINSTANCE hInstance, DWORD width, DWORD height, int cmdShow) :
+DXLayer::DXLayer(HINSTANCE hInstance, int cmdShow) :
     _cmdShow(cmdShow),
     _cmdListIndex(0) {
     WNDCLASSEX windowClass;
@@ -25,6 +25,8 @@ DXLayer::DXLayer(HINSTANCE hInstance, DWORD width, DWORD height, int cmdShow) :
     windowClass.lpszClassName = "DX12_HELLO_WORLD";
     RegisterClassEx(&windowClass);
 
+    int width = GetSystemMetrics(SM_CXSCREEN);
+    int height = GetSystemMetrics(SM_CYSCREEN);
     RECT windowRect = { 0, 0, static_cast<LONG>(width), static_cast<LONG>(height) };
     AdjustWindowRect(&windowRect, WS_OVERLAPPEDWINDOW, FALSE);    // adjust the size
 
@@ -42,6 +44,11 @@ DXLayer::DXLayer(HINSTANCE hInstance, DWORD width, DWORD height, int cmdShow) :
         NULL,       // we aren't using menus, NULL
         hInstance,  // application handle
         NULL);      // used with multiple windows, NULL
+
+    RECT rect = { 0 };
+    GetWindowRect(_window, &rect);
+    IOEventDistributor::screenPixelWidth = rect.right - rect.left;
+    IOEventDistributor::screenPixelHeight = rect.bottom - rect.top;
 
     _event = CreateEvent(nullptr, FALSE, FALSE, nullptr);
     // Device
@@ -96,7 +103,8 @@ DXLayer::DXLayer(HINSTANCE hInstance, DWORD width, DWORD height, int cmdShow) :
 
     printf("%i\n", result);
 
-    _presentTarget = new PresentTarget(_device, _rtvFormat, _cmdQueue, height, width, _window);
+    _presentTarget = new PresentTarget(_device, _rtvFormat, _cmdQueue, 
+        IOEventDistributor::screenPixelWidth, IOEventDistributor::screenPixelHeight, _window);
 
     //Test DXR support
     ComPtr<ID3D12Device5>              dxrDevice;
@@ -106,14 +114,17 @@ DXLayer::DXLayer(HINSTANCE hInstance, DWORD width, DWORD height, int cmdShow) :
         _rayTracingEnabled = true;
     }
 
+
+    ShowCursor(false);
+
     // show the window
     ShowWindow(_window, _cmdShow);
 }
 
-void DXLayer::initialize(HINSTANCE hInstance, DWORD width, DWORD height, int cmdShow) {
+void DXLayer::initialize(HINSTANCE hInstance, int cmdShow) {
     
     if (_dxLayer == nullptr) {
-        _dxLayer = new DXLayer(hInstance, width, height, cmdShow);
+        _dxLayer = new DXLayer(hInstance, cmdShow);
     }
 }
 

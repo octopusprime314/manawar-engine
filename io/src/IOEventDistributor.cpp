@@ -3,14 +3,15 @@
 #include "MasterClock.h"
 #include "EngineManager.h"
 #include "DXLayer.h"
+#include "Windowsx.h"
 
 
 int         IOEventDistributor::_renderNow = 0;
 std::mutex  IOEventDistributor::_renderLock;
 GLFWwindow* IOEventDistributor::_window;
 bool        IOEventDistributor::_quit = false;
-int         IOEventDistributor::screenPixelWidth = 1920;
-int         IOEventDistributor::screenPixelHeight = 1080;
+int         IOEventDistributor::screenPixelWidth = 0;
+int         IOEventDistributor::screenPixelHeight = 0;
 
 std::priority_queue<TimeEvent> IOEventDistributor::_timeEvents; // Events that trigger at a specific time
 
@@ -95,6 +96,9 @@ IOEventDistributor::IOEventDistributor(int* argc, char** argv, HINSTANCE hInstan
         //Disable mouse cursor view
         glfwSetInputMode(_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     }
+    else {
+      
+    }
 
     MasterClock* masterClock = MasterClock::instance();
     masterClock->setFrameRate(60); //Establishes the frame rate of the draw context
@@ -136,22 +140,31 @@ void IOEventDistributor::updateGameState(EngineStateFlags state) {
 
 LRESULT CALLBACK IOEventDistributor::dxEventLoop(HWND hWnd,
     UINT message, WPARAM wParam, LPARAM lParam) {
-    int key = static_cast<int>(wParam);
+    
     switch (message)
     {
         case WM_KEYDOWN:
         {
-            _keyboardUpdate(nullptr, key, 0, 1, 0);
+            int key = static_cast<int>(wParam);
+            bool isRepeat = (lParam >> 30) & 0x1;
+            if (!isRepeat) {
+                _keyboardUpdate(nullptr, key, 0, 1, 0);
+            }
+            OutputDebugString("keyhit\n");
             break;
         }
         case WM_KEYUP:
         {
+            int key = static_cast<int>(wParam);
             _keyboardUpdate(nullptr, key, 0, 0, 0);
             break;
         }
         case WM_MOUSEMOVE:
         {
-            _keyboardUpdate(nullptr, key, 0, 0, 0);
+            int xPos = GET_X_LPARAM(lParam);
+            int yPos = GET_Y_LPARAM(lParam);
+            _mouseUpdate(nullptr, xPos, yPos);
+            SetCursorPos(IOEventDistributor::screenPixelWidth / 2, IOEventDistributor::screenPixelHeight / 2);
             break;
         }
         case WM_DESTROY:
@@ -270,9 +283,8 @@ void IOEventDistributor::_drawUpdate() {
                 if (msg.message == WM_QUIT)
                     break;
             }
-            else {
-                IOEvents::updateDraw(_window);
-            }
+
+            IOEvents::updateDraw(_window);
         }
     }
 

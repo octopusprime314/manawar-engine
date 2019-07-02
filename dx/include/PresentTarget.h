@@ -23,7 +23,7 @@ public:
     PresentTarget(ComPtr<ID3D12Device> device,
                   DXGI_FORMAT format,
                   ComPtr<ID3D12CommandQueue> cmdQueue,
-                  int height, int width, HWND window);
+                  int width, int height, HWND window);
 
     void bindTarget(ComPtr<ID3D12Device> device,
                     ComPtr<ID3D12GraphicsCommandList> cmdList,

@@ -45,12 +45,9 @@ Entity*              EngineManager::_shadowEntity = nullptr;
 EngineManager::EngineManager(int* argc, char** argv, HINSTANCE hInstance, int nCmdShow) {
 
     
-    _graphicsLayer = GraphicsLayer::OPENGL;
+    _graphicsLayer = GraphicsLayer::DX12;
     if (_graphicsLayer == GraphicsLayer::DX12) {
-        DXLayer::initialize(hInstance,
-                            IOEventDistributor::screenPixelWidth,
-                            IOEventDistributor::screenPixelHeight,
-                            nCmdShow);
+        DXLayer::initialize(hInstance, nCmdShow);
     }
 
     // disable raytracing until i find a way to not tank performance for shadows

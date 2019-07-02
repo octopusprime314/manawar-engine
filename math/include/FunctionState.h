@@ -35,19 +35,21 @@
 
 class FunctionState {
 
-    std::thread _lambdaThread; //Lambda thread
-    bool        _terminate;
-    Vector4     _currValue;
+    std::thread                  _lambdaThread; //Lambda thread
+    bool                         _terminate;
+    Vector4                      _currValue;
+    std::function<void(Vector4)> _funcPtr;
 public:
 
     FunctionState(std::function<void(Vector4)> functionPointer, std::function<Vector4(float)> equationLambda,
         int milliseconds, int duration = INT_MAX) : _terminate(false) {
 
+        _funcPtr = functionPointer;
         //time, function pointer and milliseconds timer update
         _lambdaThread = std::thread([=]() {
 
             Vector4 ft(0.0, 0.0, 0.0, 1.0);
-            int t = 0;
+            float t = 0.0f;
             float scalar = 1.0f;
             do {
 
@@ -73,10 +75,16 @@ public:
     }
     ~FunctionState() {
         _terminate = true;
-        _lambdaThread.join();
     }
 
     Vector4 getVectorState() {
         return _currValue;
     }
+
+    void kill() {
+        _terminate = true;
+        _lambdaThread.join();
+        _funcPtr(Vector4(0.0, 0.0, 0.0));
+    }
+
 };

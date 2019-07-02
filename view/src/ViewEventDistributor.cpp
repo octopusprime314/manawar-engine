@@ -143,8 +143,9 @@ ViewEvents* ViewEventDistributor::getEventWrapper() {
 void ViewEventDistributor::_updateReleaseKeyboard(int key, int x, int y) { //Do stuff based on keyboard release update
                                                                   //If function state exists
     if (_keyboardState.find(key) != _keyboardState.end()) {
+        _keyboardState[key]->kill();
         delete _keyboardState[key];
-        _keyboardState.erase(key); //erase by keyq
+        _keyboardState.erase(key); //erase by key
     }
 }
 
@@ -219,6 +220,11 @@ void ViewEventDistributor::_updateKeyboard(int key, int x, int y) { //Do stuff b
                     5);
 
                 //Keep track to kill function when key is released
+                if (_keyboardState.find(key) != _keyboardState.end()) {
+                    _keyboardState[key]->kill();
+                    delete _keyboardState[key];
+                    _keyboardState.erase(key); //erase by key
+                }
                 _keyboardState[key] = func;
             }
             else if (_godState) {
@@ -241,6 +247,11 @@ void ViewEventDistributor::_updateKeyboard(int key, int x, int y) { //Do stuff b
                     5);
 
                 //Keep track to kill function when key is released
+                if (_keyboardState.find(key) != _keyboardState.end()) {
+                    _keyboardState[key]->kill();
+                    delete _keyboardState[key];
+                    _keyboardState.erase(key); //erase by key
+                }
                 _keyboardState[key] = func;
             }
         }

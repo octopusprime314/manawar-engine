@@ -37,7 +37,7 @@ public:
     ~DXLayer();
 
     static DXLayer*                   instance();
-    static void                       initialize(HINSTANCE hInstance, DWORD width, DWORD height, int cmdShow);
+    static void                       initialize(HINSTANCE hInstance, int cmdShow);
     void                              initCmdLists();
 
     void                              flushCommandList();
@@ -52,7 +52,7 @@ public:
     bool                              supportsRayTracing();
 
 private:
-    DXLayer(HINSTANCE hInstance, DWORD width, DWORD height, int cmdShow);
+    DXLayer(HINSTANCE hInstance, int cmdShow);
 
     PresentTarget*                    _presentTarget;
     ComPtr<ID3D12Device>              _device;

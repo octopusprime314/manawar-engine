@@ -89,7 +89,7 @@ RayTracingPipelineShader::RayTracingPipelineShader(std::string shader,
     DXGI_FORMAT format, std::vector<Entity*>& entityList) {
 
     _descriptorsAllocated = 0;
-    _raytracingOutput = new RenderTexture(1920, 1080, TextureFormat::RGBA_FLOAT);
+    _raytracingOutput = new RenderTexture(IOEventDistributor::screenPixelWidth, IOEventDistributor::screenPixelHeight, TextureFormat::RGBA_FLOAT);
 
     auto commandList = DXLayer::instance()->getCmdList();
     auto dxLayer = DXLayer::instance();
@@ -617,8 +617,8 @@ void RayTracingPipelineShader::doRayTracing(Entity* entity, Light* light) {
     _dispatchDesc.MissShaderTable.StrideInBytes = _dispatchDesc.MissShaderTable.SizeInBytes;
     _dispatchDesc.RayGenerationShaderRecord.StartAddress = _rayGenShaderTable->GetGPUVirtualAddress();
     _dispatchDesc.RayGenerationShaderRecord.SizeInBytes = _rayGenShaderTable->GetDesc().Width;
-    _dispatchDesc.Width = 1920;
-    _dispatchDesc.Height = 1080;
+    _dispatchDesc.Width = IOEventDistributor::screenPixelWidth;
+    _dispatchDesc.Height = IOEventDistributor::screenPixelHeight;
     _dispatchDesc.Depth = 1;
     _dxrCommandList->SetPipelineState1(_dxrStateObject.Get());
 

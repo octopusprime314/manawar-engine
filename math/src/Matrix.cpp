@@ -443,16 +443,19 @@ Matrix Matrix::convertToRightHanded(Matrix leftHandedMatrix) {
 
     if (buff[16] == 0.0f && buff[17] == 0.0f && buff[18] == 0.0f && buff[19] == 0.0f &&
         buff[20] == 0.0f && buff[21] == 0.0f && buff[22] == 0.0f && buff[23] == 0.0f) {
-       
-        
+
         //indicates inverted
         if (buff[24] == 1.0f) {
-            rightHandedMatrix = (leftHandedMatrix.inverse() * Matrix::scale(1.0, 1.0, -1.0)).inverse();
+            //rightHandedMatrix = (leftHandedMatrix.inverse() * Matrix::scale(1.0, 1.0, -1.0)).inverse();
+            rightHandedMatrix = (Matrix::scale(1.0, 1.0, -1.0) * leftHandedMatrix.inverse()).inverse();
         }
         else {
+            
             //non projection matrix so just negate the 3rd column
-            rightHandedMatrix = leftHandedMatrix * Matrix::scale(1.0, 1.0, -1.0);
+            //rightHandedMatrix = leftHandedMatrix * Matrix::scale(1.0, 1.0, -1.0);
+            rightHandedMatrix = Matrix::scale(1.0, 1.0, -1.0) * leftHandedMatrix;
         }
+
        /* result[0] = buff[0], result[1] = buff[4], result[2] = buff[8], result[3] = buff[3];
         result[4] = buff[1], result[5] = buff[5], result[6] = buff[9], result[7] = buff[7];
         result[8] = buff[2], result[9] = buff[6], result[10] = buff[10], result[11] = -buff[11];

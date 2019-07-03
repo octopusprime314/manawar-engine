@@ -50,7 +50,10 @@ ViewEventDistributor::ViewEventDistributor(int* argc, char** argv, unsigned int 
     _currCamera->getState()->setActive(true);
 
     //Hook up to kinematic update for proper physics handling
-    MasterClock::instance()->subscribeKinematicsRate(std::bind(&ViewEventDistributor::_updateKinematics, this, std::placeholders::_1));
+    MasterClock::instance()->subscribeKinematicsRate(
+        std::bind(&ViewEventDistributor::_updateKinematics, 
+        this,
+        std::placeholders::_1));
 }
 
 ViewEventDistributor::~ViewEventDistributor() {
@@ -71,9 +74,10 @@ void ViewEventDistributor::displayViewFrustum() {
 
 }
 Vector4 ViewEventDistributor::getCameraPos() {
-    return Vector4(_translation.getFlatBuffer()[3],
-                   _translation.getFlatBuffer()[7],
-                   _translation.getFlatBuffer()[11]);
+    Vector4 position = _currCamera->getState()->getLinearPosition();
+    return Vector4(-position.getx(),
+                   -position.gety(),
+                   -position.getz());
 }
 
 void ViewEventDistributor::setProjection(unsigned int viewportWidth, unsigned int viewportHeight, float nearPlaneDistance, float farPlaneDistance) {
@@ -153,16 +157,17 @@ void ViewEventDistributor::_updateKinematics(int milliSeconds) {
     
     _waypointCamera.setInversion(_inverseRotation);
     _vectorCamera.setInversion(_inverseRotation);
-    LOG_TRACE(_currCamera->getState()->getLinearPosition().getx(), 
-              _currCamera->getState()->getLinearPosition().gety(), 
-              _currCamera->getState()->getLinearPosition().getz());
+    Vector4 position = _currCamera->getState()->getLinearPosition();
+
+    LOG_TRACE(-position.getx(),
+              -position.gety(),
+              -position.getz());
     LOG_TRACE("\n");
     //Do kinematic calculations
     _currCamera->updateState(milliSeconds);
 
     //Pass position information to model matrix
-    Vector4 position = _currCamera->getState()->getLinearPosition();
-    _translation = Matrix::translation(position.getx(), position.gety(), position.getz());
+    _translation = Matrix::translation(-position.getx(), -position.gety(), -position.getz());
 }
 
 void ViewEventDistributor::_updateKeyboard(int key, int x, int y) { //Do stuff based on keyboard update
@@ -187,20 +192,21 @@ void ViewEventDistributor::_updateKeyboard(int key, int x, int y) { //Do stuff b
             else if (key == GLFW_KEY_S) { //backward s
                 trans = Vector4(_inverseRotation * Vector4(0.0, 0.0, -velMagnitude));
             }
-            else if (key == GLFW_KEY_A) { //left a
+            else if (key == GLFW_KEY_D) { //right d
                 trans = Vector4(_inverseRotation * Vector4(velMagnitude, 0.0, 0.0));
             }
-            else if (key == GLFW_KEY_D) { //right d
+            else if (key == GLFW_KEY_A) { //left a
                 trans = Vector4(_inverseRotation * Vector4(-velMagnitude, 0.0, 0.0));
             }
             else if (key == GLFW_KEY_E) { //up e
-                trans = Vector4(_inverseRotation * Vector4(0.0, -velMagnitude, 0.0));
-            }
-            else if (key == GLFW_KEY_C) { //down c
                 trans = Vector4(_inverseRotation * Vector4(0.0, velMagnitude, 0.0));
             }
+            else if (key == GLFW_KEY_C) { //down c
+                trans = Vector4(_inverseRotation * Vector4(0.0, -velMagnitude, 0.0));
+            }
 
-            //If not in god camera view mode then push view changes to the model for full control of a model's movements
+            //If not in god camera view mode then push view changes to the model 
+            // for full control of a model's movements
             if (!_godState && _entityIndex < _entityList.size()) {
 
                 StateVector* state = _entityList[_entityIndex]->getStateVector();
@@ -215,7 +221,8 @@ void ViewEventDistributor::_updateKeyboard(int key, int x, int y) { //Do stuff b
                 };
                 //lambda function container that manages force model
                 //Last forever in intervals of 5 milliseconds
-                FunctionState* func = new FunctionState(std::bind(&StateVector::setForce, state, std::placeholders::_1),
+                FunctionState* func = new FunctionState(
+                    std::bind(&StateVector::setForce, state, std::placeholders::_1),
                     lamdaEq,
                     5);
 
@@ -310,12 +317,12 @@ void ViewEventDistributor::_updateKeyboard(int key, int x, int y) { //Do stuff b
             Matrix rotZ = Matrix::rotationAroundZ(-rotation[2]); //Set rotation around Z
             _rotation = rotZ * rotX * rotY;
             _inverseRotation = Matrix();
-            auto mvp = _entityList[_entityIndex]->getMVP();
-            auto modelTranslation = Matrix::translation(mvp->getModelBuffer()[3], mvp->getModelBuffer()[7], mvp->getModelBuffer()[11]);
-
+            
             //Last transform to be applied to achieve third person view
-            _currCamera->setViewMatrix(_thirdPersonTranslation * _rotation * _translation/* * modelTranslation*/); //translate then rotate around point
-            _viewEvents->updateView(_currCamera->getView()); //Send out event to all listeners to offset locations essentially
+            //translate then rotate around point
+            _currCamera->setViewMatrix(_thirdPersonTranslation * _rotation * _translation); 
+            //Send out event to all listeners to offset locations essentially
+            _viewEvents->updateView(_currCamera->getView()); 
 
         }
     }
@@ -334,15 +341,15 @@ void ViewEventDistributor::_updateMouse(double x, double y) { //Do stuff based o
         Vector4 newRot = Vector4(0.0, 0.0, 0.0);
 
         //Filter out large changes because that causes view twitching
-        if (x != _prevMouseX) {
+        if (x != _prevMouseX && x != IOEventDistributor::screenPixelWidth / 2) {
 
             double diffX = _prevMouseX - x;
 
             if (diffX > 0) { //rotate left around y axis
-                newRot = newRot + Vector4(0.0, static_cast<float>(mouseSensitivity * diffX), 0.0);
+                newRot = newRot + Vector4(0.0, -static_cast<float>(mouseSensitivity * diffX), 0.0);
             }
             else if (diffX < 0) { //rotate right around y axis
-                newRot = newRot + Vector4(0.0, static_cast<float>(mouseSensitivity * diffX), 0.0);
+                newRot = newRot + Vector4(0.0, -static_cast<float>(mouseSensitivity * diffX), 0.0);
             }
             _currCamera->getState()->setTorque(newRot);
 
@@ -351,17 +358,21 @@ void ViewEventDistributor::_updateMouse(double x, double y) { //Do stuff based o
                 _currCamera->setViewMatrix(_thirdPersonTranslation * _currCamera->getView());
             }
             _currCamera->getState()->setActive(true);
+
+            char str[256];
+            sprintf(str, "Mouse x: %f y: %f, Delta x: %f, Delta y: %f\n", x, y, _prevMouseX - x, _prevMouseY - y);
+            OutputDebugString(str);
         }
 
-        if (y != _prevMouseY) {
+        if (y != _prevMouseY && y != IOEventDistributor::screenPixelHeight / 2) {
 
             double diffY = _prevMouseY - y;
 
             if (diffY > 0) { //rotate left around y axis
-                newRot = newRot + Vector4(static_cast<float>(mouseSensitivity * diffY), 0.0, 0.0);
+                newRot = newRot + Vector4(-static_cast<float>(mouseSensitivity * diffY), 0.0, 0.0);
             }
             else if (diffY < 0) { //rotate right around y axis
-                newRot = newRot + Vector4(static_cast<float>(mouseSensitivity * diffY), 0.0, 0.0);
+                newRot = newRot + Vector4(-static_cast<float>(mouseSensitivity * diffY), 0.0, 0.0);
             }
             _currCamera->getState()->setTorque(newRot);
 
@@ -370,7 +381,13 @@ void ViewEventDistributor::_updateMouse(double x, double y) { //Do stuff based o
                 _currCamera->setViewMatrix(_thirdPersonTranslation * _currCamera->getView());
             }
             _currCamera->getState()->setActive(true);
+
+            char str[256];
+            sprintf(str, "Mouse x: %f y: %f, Delta x: %f, Delta y: %f\n", x, y, _prevMouseX - x, _prevMouseY - y);
+            OutputDebugString(str);
+
         }
+
     }
     _prevMouseX = x;
     _prevMouseY = y;
@@ -387,23 +404,26 @@ void ViewEventDistributor::_updateDraw() { //Do draw stuff
         _translation = Matrix::translation(-pos[0], -pos[1], -pos[2]); //Update the translation state matrix
         _rotation = Matrix::rotationAroundY(rot[1]); //Update the rotation state matrix
         _inverseRotation = Matrix::rotationAroundY(-rot[1]);
-        auto mvp = _entityList[_entityIndex]->getMVP();
-        auto modelTranslation = Matrix::translation(mvp->getModelBuffer()[3], mvp->getModelBuffer()[7], mvp->getModelBuffer()[11]);
+       
         //Last transform to be applied to achieve third person view
-        _currCamera->setViewMatrix(_thirdPersonTranslation * _rotation * _translation/* * modelTranslation*/); //translate then rotate around point
-        _viewEvents->updateView(_currCamera->getView()); //Send out event to all listeners to offset locations essentially
+        //translate then rotate around point
+        _currCamera->setViewMatrix(_thirdPersonTranslation * _rotation * _translation); 
+        //Send out event to all listeners to offset locations essentially
+        _viewEvents->updateView(_currCamera->getView()); 
 
     }
     else if (_godState || _trackedState) {
 
         float* pos = _currCamera->getState()->getLinearPosition().getFlatBuffer();
         float* rot = _currCamera->getState()->getAngularPosition().getFlatBuffer();
-        _translation = Matrix::translation(pos[0], pos[1], pos[2]); //Update the translation state matrix
+        _translation = Matrix::translation(-pos[0], -pos[1], -pos[2]); //Update the translation state matrix
         _rotation = Matrix::rotationAroundX(rot[0]) * Matrix::rotationAroundY(rot[1]); //Update the rotation state matrix
         _inverseRotation = Matrix::rotationAroundY(-rot[1]);
         
-        _currCamera->setViewMatrix(_rotation * _translation); //translate then rotate around point
-        _viewEvents->updateView(_currCamera->getView()); //Send out event to all listeners to offset locations essentially
+        //translate then rotate around point
+        _currCamera->setViewMatrix(_rotation * _translation); 
+        //Send out event to all listeners to offset locations essentially
+        _viewEvents->updateView(_currCamera->getView()); 
     }
 
     //Turn off camera rotation effects if there hasn't been a change in mouse

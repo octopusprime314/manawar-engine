@@ -44,7 +44,6 @@ Entity*              EngineManager::_shadowEntity = nullptr;
 
 EngineManager::EngineManager(int* argc, char** argv, HINSTANCE hInstance, int nCmdShow) {
 
-    
     _graphicsLayer = GraphicsLayer::DX12;
     if (_graphicsLayer == GraphicsLayer::DX12) {
         DXLayer::initialize(hInstance, nCmdShow);
@@ -106,33 +105,33 @@ EngineManager::EngineManager(int* argc, char** argv, HINSTANCE hInstance, int nC
         EffectType::None,
         Vector4(1.0, 0.0, 0.0)));
 
-    //Model view projection matrix for point light additions
-    MVP pointLightMVP;
+    ////Model view projection matrix for point light additions
+    //MVP pointLightMVP;
 
-    //point light projection has a 90 degree view angle with a 1 aspect ratio for generating square shadow maps
-    //with a near z value of 1 and far z value of 100
-    pointLightMVP.setProjection(Matrix::projection(90.0f, 1.0f, 1.0f, 100.0f));
+    ////point light projection has a 90 degree view angle with a 1 aspect ratio for generating square shadow maps
+    ////with a near z value of 1 and far z value of 100
+    //pointLightMVP.setProjection(Matrix::projection(90.0f, 1.0f, 1.0f, 100.0f));
 
-    pointLightMVP.setModel(Matrix::translation(198.45f, 24.68f, 186.71f));
-    _lightList.push_back(new Light(_viewManager->getEventWrapper(),
-        pointLightMVP,
-        LightType::POINT,
-        EffectType::Fire,
-        Vector4(1.0f, 0.8f, 0.3f, 1.0f)));
+    //pointLightMVP.setModel(Matrix::translation(198.45f, 24.68f, 186.71f));
+    //_lightList.push_back(new Light(_viewManager->getEventWrapper(),
+    //    pointLightMVP,
+    //    LightType::POINT,
+    //    EffectType::Fire,
+    //    Vector4(1.0f, 0.8f, 0.3f, 1.0f)));
 
-    pointLightMVP.setModel(Matrix::translation(178.45f, 143.59f, 240.71f));
-    _lightList.push_back(new Light(_viewManager->getEventWrapper(),
-        pointLightMVP,
-        LightType::POINT,
-        EffectType::Smoke,
-        Vector4(0.4f, 0.4f, 0.4f, 1.0f)));
+    //pointLightMVP.setModel(Matrix::translation(178.45f, 143.59f, 240.71f));
+    //_lightList.push_back(new Light(_viewManager->getEventWrapper(),
+    //    pointLightMVP,
+    //    LightType::POINT,
+    //    EffectType::Smoke,
+    //    Vector4(0.4f, 0.4f, 0.4f, 1.0f)));
 
-    pointLightMVP.setModel(Matrix::translation(0.0f, 10.0f, 0.0f));
-    _lightList.push_back(new Light(_viewManager->getEventWrapper(),
-        pointLightMVP,
-        LightType::POINT,
-        EffectType::Fire,
-        Vector4(1.0f, 0.8f, 0.3f, 1.0f)));
+    //pointLightMVP.setModel(Matrix::translation(0.0f, 10.0f, 0.0f));
+    //_lightList.push_back(new Light(_viewManager->getEventWrapper(),
+    //    pointLightMVP,
+    //    LightType::POINT,
+    //    EffectType::Fire,
+    //    Vector4(1.0f, 0.8f, 0.3f, 1.0f)));
 
 
     if (_graphicsLayer == GraphicsLayer::DX12) {

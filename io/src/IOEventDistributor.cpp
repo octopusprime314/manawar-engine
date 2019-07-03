@@ -150,7 +150,6 @@ LRESULT CALLBACK IOEventDistributor::dxEventLoop(HWND hWnd,
             if (!isRepeat) {
                 _keyboardUpdate(nullptr, key, 0, 1, 0);
             }
-            OutputDebugString("keyhit\n");
             break;
         }
         case WM_KEYUP:
@@ -164,7 +163,6 @@ LRESULT CALLBACK IOEventDistributor::dxEventLoop(HWND hWnd,
             int xPos = GET_X_LPARAM(lParam);
             int yPos = GET_Y_LPARAM(lParam);
             _mouseUpdate(nullptr, xPos, yPos);
-            SetCursorPos(IOEventDistributor::screenPixelWidth / 2, IOEventDistributor::screenPixelHeight / 2);
             break;
         }
         case WM_DESTROY:
@@ -272,6 +270,7 @@ void IOEventDistributor::_drawUpdate() {
 
         // this struct holds Windows event messages
         MSG msg = { 0 };
+        bool mouseMove = false;
         // main loop
         while (true) {
             // check to see if any messages are waiting in the queue
@@ -279,10 +278,24 @@ void IOEventDistributor::_drawUpdate() {
                 // translate keystroke messages into the right format
                 TranslateMessage(&msg);
                 DispatchMessage(&msg);
+
+                if (msg.message == WM_MOUSEMOVE) {
+                    mouseMove = true;
+                }
+
                 // check to see if it's time to quit
                 if (msg.message == WM_QUIT)
                     break;
             }
+            else {
+
+                if (mouseMove) {
+                    SetCursorPos(IOEventDistributor::screenPixelWidth  / 2,
+                                 IOEventDistributor::screenPixelHeight / 2);
+                    mouseMove = false;
+                }
+            }
+
 
             IOEvents::updateDraw(_window);
         }

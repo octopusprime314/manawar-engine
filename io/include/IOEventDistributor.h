@@ -62,7 +62,6 @@ public:
     static int                            screenPixelWidth;
     static int                            screenPixelHeight;
     static LRESULT CALLBACK               dxEventLoop(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
-
     static void                           quit();
 
 private:

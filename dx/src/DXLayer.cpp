@@ -27,8 +27,8 @@ DXLayer::DXLayer(HINSTANCE hInstance, int cmdShow) :
 
     int width = GetSystemMetrics(SM_CXSCREEN);
     int height = GetSystemMetrics(SM_CYSCREEN);
-    RECT windowRect = { 0, 0, static_cast<LONG>(width), static_cast<LONG>(height) };
-    AdjustWindowRect(&windowRect, WS_OVERLAPPEDWINDOW, FALSE);    // adjust the size
+    //RECT windowRect = { 0, 0, static_cast<LONG>(width), static_cast<LONG>(height) };
+    //AdjustWindowRect(&windowRect, WS_OVERLAPPEDWINDOW, FALSE);    // adjust the size
 
     // create the window and store a handle to it
 
@@ -38,8 +38,8 @@ DXLayer::DXLayer(HINSTANCE hInstance, int cmdShow) :
         WS_OVERLAPPEDWINDOW,
         0,
         0,
-        windowRect.right - windowRect.left,
-        windowRect.bottom - windowRect.top,
+        width,
+        height,
         NULL,       // we have no parent window, NULL
         NULL,       // we aren't using menus, NULL
         hInstance,  // application handle

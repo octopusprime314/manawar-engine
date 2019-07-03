@@ -68,9 +68,6 @@ Model* ModelBroker::getModel(std::string modelName, Vector4 pos) {
         upperCaseMapName.find("LOD") != std::string::npos) {
 
         Vector4 cameraPos = getViewManager()->getCameraPos();
-        cameraPos.getFlatBuffer()[0] = -cameraPos.getx();
-        cameraPos.getFlatBuffer()[1] = -cameraPos.gety();
-        cameraPos.getFlatBuffer()[2] = -cameraPos.getz();
 
         float distance = (pos - cameraPos).getMagnitude();
         //use lod 1 which is the highest poly count for the model

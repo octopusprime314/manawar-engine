@@ -545,9 +545,8 @@ Matrix Matrix::convertToRightHanded(Matrix leftHandedMatrix) {
             Matrix inverseProjection = leftHandedClone.inverse();
             //Get ride of the perspective part
             Matrix transformation = inverseProjection * leftHandedMatrix;
-            float* semiBuff = transformation.getFlatBuffer();
-            //non projection matrix so just transpose inner rotation matrix and negate z
-            rightHandedMatrix = leftHandedMatrix * Matrix::scale(1.0, 1.0, -1.0);
+            //non projection matrix so just transpose inner rotation matrix and negate z column
+            rightHandedMatrix = Matrix::scale(1.0, 1.0, -1.0) * leftHandedMatrix;
 
             rightHandedMatrix = rightHandedClone * rightHandedMatrix;
         }

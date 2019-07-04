@@ -183,7 +183,6 @@ void ViewEventDistributor::_updateKeyboard(int key, int x, int y) { //Do stuff b
         {
 
             Vector4 trans;
-            Vector4 force;
             const float velMagnitude = 500.0f;
 
             if (key == GLFW_KEY_W) { //forward w
@@ -205,73 +204,49 @@ void ViewEventDistributor::_updateKeyboard(int key, int x, int y) { //Do stuff b
                 trans = Vector4(_inverseRotation * Vector4(0.0, -velMagnitude, 0.0));
             }
 
+            StateVector* state = nullptr;
             //If not in god camera view mode then push view changes to the model 
-            // for full control of a model's movements
+           // for full control of a model's movements
             if (!_godState && _entityIndex < _entityList.size()) {
-
-                StateVector* state = _entityList[_entityIndex]->getStateVector();
-                //Define lambda equation
-                auto lamdaEq = [=](float t) -> Vector4 {
-                    if (t > 1.0f) {
-                        return trans;
-                    }
-                    else {
-                        return static_cast<Vector4>(trans) * t;
-                    }
-                };
-                //lambda function container that manages force model
-                //Last forever in intervals of 5 milliseconds
-                FunctionState* func = new FunctionState(
-                    std::bind(&StateVector::setForce, state, std::placeholders::_1),
-                    lamdaEq,
-                    5);
-
-                //Keep track to kill function when key is released
-                if (_keyboardState.find(key) != _keyboardState.end()) {
-                    _keyboardState[key]->kill();
-                    delete _keyboardState[key];
-                    _keyboardState.erase(key); //erase by key
-                }
-                _keyboardState[key] = func;
+                state = _entityList[_entityIndex]->getStateVector();
             }
             else if (_godState) {
-
-                _currCamera->getState()->setActive(true);
-
-                //Define lambda equation
-                auto lamdaEq = [trans](float t) -> Vector4 {
-                    if (t > 1.0f) {
-                        return trans;
-                    }
-                    else {
-                        return static_cast<Vector4>(trans) * t;
-                    }
-                };
-                //lambda function container that manages force model
-                //Last forever in intervals of 5 milliseconds
-                FunctionState* func = new FunctionState(std::bind(&StateVector::setForce, _currCamera->getState(), std::placeholders::_1),
-                    lamdaEq,
-                    5);
-
-                //Keep track to kill function when key is released
-                if (_keyboardState.find(key) != _keyboardState.end()) {
-                    _keyboardState[key]->kill();
-                    delete _keyboardState[key];
-                    _keyboardState.erase(key); //erase by key
-                }
-                _keyboardState[key] = func;
+                state = _currCamera->getState();
+                state->setActive(true);
             }
+
+            //Define lambda equation
+            auto lamdaEq = [=](float t) -> Vector4 {
+                if (t > 1.0f) {
+                    return trans;
+                }
+                else {
+                    return static_cast<Vector4>(trans) * t;
+                }
+            };
+            //lambda function container that manages force model
+            //Last forever in intervals of 5 milliseconds
+            FunctionState* func = new FunctionState(
+                std::bind(&StateVector::setForce, state, std::placeholders::_1),
+                lamdaEq,
+                5);
+
+            //Keep track to kill function when key is released
+            if (_keyboardState.find(key) != _keyboardState.end()) {
+                _keyboardState[key]->kill();
+                delete _keyboardState[key];
+                _keyboardState.erase(key); //erase by key
+            }
+            _keyboardState[key] = func;
+
         }
         else if (key == GLFW_KEY_G) { //God's eye view change g
             _godState = true;
             _trackedState = false;
             _currCamera = &_godCamera;
 
-            _translation = Matrix::translation(0, -5, 0); //Reset to 0,5,0 view position
-            _rotation = Matrix(); //Set rotation matrix to identity
-            _inverseRotation = Matrix();
-            _currCamera->setViewMatrix(_rotation * _translation);
-            _viewEvents->updateView(_currCamera->getView()); //Send out event to all listeners to offset locations essentially
+            StateVector* state = _currCamera->getState();
+            _updateView(_currCamera, Vector4(0, -5, 0), Vector4(0, 0, 0));
         }
         else if (key == GLFW_KEY_T) {
             std::string vec_file = "../assets/path.txt";
@@ -284,18 +259,13 @@ void ViewEventDistributor::_updateKeyboard(int key, int x, int y) { //Do stuff b
             _currCamera->getState()->setGravity(false);
             _currCamera->getState()->setActive(true);
 
-            _translation = Matrix::translation(0, 0, 0); //Reset to 0,5,0 view position
-            _rotation = Matrix(); //Set rotation matrix to identity
-            _inverseRotation = Matrix();
-            _currCamera->setViewMatrix(_rotation * _translation);
-
             setProjection(IOEventDistributor::screenPixelWidth, IOEventDistributor::screenPixelHeight, 0.1f, 5000.0f);
             setView(Matrix::translation(584.0f, -5.0f, 20.0f),
                 Matrix::rotationAroundY(-180.0f),
                 Matrix());
 
-            _viewEvents->updateView(_currCamera->getView()); //Send out event to all listeners to offset locations essentially
-
+            StateVector* state = _currCamera->getState();
+            _updateView(_currCamera, state->getLinearPosition(), state->getAngularPosition());
         }
         else if (key == GLFW_KEY_Q) { //Cycle through model's view point q
 
@@ -309,21 +279,7 @@ void ViewEventDistributor::_updateKeyboard(int key, int x, int y) { //Do stuff b
             _currCamera = &_viewCamera;
 
             StateVector* state = _entityList[_entityIndex]->getStateVector();
-            float* position = state->getLinearPosition().getFlatBuffer();
-            float* rotation = state->getAngularPosition().getFlatBuffer();
-            _translation = Matrix::translation(-position[0], -position[1], -position[2]); //Set camera to model's world space translation
-            Matrix rotY = Matrix::rotationAroundY(-rotation[1]); //Set rotation around Y
-            Matrix rotX = Matrix::rotationAroundX(-rotation[0]); //Set rotation around X
-            Matrix rotZ = Matrix::rotationAroundZ(-rotation[2]); //Set rotation around Z
-            _rotation = rotZ * rotX * rotY;
-            _inverseRotation = Matrix();
-            
-            //Last transform to be applied to achieve third person view
-            //translate then rotate around point
-            _currCamera->setViewMatrix(_thirdPersonTranslation * _rotation * _translation); 
-            //Send out event to all listeners to offset locations essentially
-            _viewEvents->updateView(_currCamera->getView()); 
-
+            _updateView(_currCamera, state->getLinearPosition(), state->getAngularPosition());
         }
     }
 }
@@ -393,37 +349,32 @@ void ViewEventDistributor::_updateMouse(double x, double y) { //Do stuff based o
     _prevMouseY = y;
 }
 
+void ViewEventDistributor::_updateView(Camera* camera, Vector4 posV, Vector4 rotV) {
+    
+    float* pos = posV.getFlatBuffer();
+    float* rot = rotV.getFlatBuffer();
+    _translation = Matrix::translation(-pos[0], -pos[1], -pos[2]); //Update the translation state matrix
+    _rotation = Matrix::rotationAroundX(rot[0]) * Matrix::rotationAroundY(rot[1]); //Update the rotation state matrix
+    _inverseRotation = Matrix::rotationAroundY(-rot[1]);
+
+    //translate then rotate around point
+    camera->setViewMatrix(_rotation * _translation);
+    //Send out event to all listeners to offset locations essentially
+    _viewEvents->updateView(camera->getView());
+}
+
 void ViewEventDistributor::_updateDraw() { //Do draw stuff
 
     //If not in god camera view mode then push view changes to the model for full control of a model's movements
     if (!_trackedState && !_godState && _entityIndex < _entityList.size()) {
 
         StateVector* state = _entityList[_entityIndex]->getStateVector();
-        float* pos = state->getLinearPosition().getFlatBuffer();
-        float* rot = _currCamera->getState()->getAngularPosition().getFlatBuffer();
-        _translation = Matrix::translation(-pos[0], -pos[1], -pos[2]); //Update the translation state matrix
-        _rotation = Matrix::rotationAroundY(rot[1]); //Update the rotation state matrix
-        _inverseRotation = Matrix::rotationAroundY(-rot[1]);
-       
-        //Last transform to be applied to achieve third person view
-        //translate then rotate around point
-        _currCamera->setViewMatrix(_thirdPersonTranslation * _rotation * _translation); 
-        //Send out event to all listeners to offset locations essentially
-        _viewEvents->updateView(_currCamera->getView()); 
-
+        _updateView(_currCamera, state->getLinearPosition(), _currCamera->getState()->getAngularPosition());
     }
     else if (_godState || _trackedState) {
 
-        float* pos = _currCamera->getState()->getLinearPosition().getFlatBuffer();
-        float* rot = _currCamera->getState()->getAngularPosition().getFlatBuffer();
-        _translation = Matrix::translation(-pos[0], -pos[1], -pos[2]); //Update the translation state matrix
-        _rotation = Matrix::rotationAroundX(rot[0]) * Matrix::rotationAroundY(rot[1]); //Update the rotation state matrix
-        _inverseRotation = Matrix::rotationAroundY(-rot[1]);
-        
-        //translate then rotate around point
-        _currCamera->setViewMatrix(_rotation * _translation); 
-        //Send out event to all listeners to offset locations essentially
-        _viewEvents->updateView(_currCamera->getView()); 
+        StateVector* state = _currCamera->getState();
+        _updateView(_currCamera, state->getLinearPosition(), state->getAngularPosition());
     }
 
     //Turn off camera rotation effects if there hasn't been a change in mouse

@@ -67,6 +67,7 @@ private:
     double               _prevMouseX, _prevMouseY;
     double               _currMouseX, _currMouseY;
     void                 _updateKinematics(int milliSeconds);
+    void                 _updateView(Camera* camera, Vector4 posV, Vector4 rotV);
     Camera               _viewCamera;
     Camera               _godCamera;
     WaypointCamera       _waypointCamera;

@@ -66,10 +66,9 @@ EngineManager::EngineManager(int* argc, char** argv, HINSTANCE hInstance, int nC
     ModelBroker::setViewManager(_viewManager); //Set the reference to the view model event interface
     //Initializes projection matrix and broadcasts upate to all listeners
     _viewManager->setProjection(IOEventDistributor::screenPixelWidth, IOEventDistributor::screenPixelHeight, 0.1f, 5000.0f); 
-    _viewManager->setView(Matrix::translation(584.0f, -5.0f, 20.0f),
-        Matrix::rotationAroundY(-180.0f),
+    _viewManager->setView(Matrix::translation(0, -5.0f, 0),
+        Matrix::rotationAroundY(0.0f),
         Matrix());
-
 
     //Load and compile all models for the model broker
     ModelBroker::instance()->buildModels();
@@ -91,14 +90,14 @@ EngineManager::EngineManager(int* argc, char** argv, HINSTANCE hInstance, int nC
     _add             = new SSCompute("add", IOEventDistributor::screenPixelWidth,
                                             IOEventDistributor::screenPixelHeight,
                                             TextureFormat::RGBA_UNSIGNED_BYTE);
-    _mergeShader = static_cast<MergeShader*>(ShaderBroker::instance()->getShader("mergeShader"));
+    _mergeShader     = static_cast<MergeShader*>(ShaderBroker::instance()->getShader("mergeShader"));
     //_environmentMap  = new EnvironmentMap(2000, 2000);
 
-    Vector4 sunLocation(0.0f, 0.0f, 700.0f);
+    Vector4 sunLocation(0.0f, 0.0f, -700.0f);
 
     MVP lightMapMVP;
     lightMapMVP.setView(Matrix::translation(sunLocation.getx(), sunLocation.gety(), sunLocation.getz())
-        * Matrix::rotationAroundX(45.0f));
+        * Matrix::rotationAroundX(-45.0f));
     lightMapMVP.setProjection(Matrix::ortho(1400.0f, 1400.0f, 0.0f, 1400.0f));
     _lightList.push_back(new ShadowedDirectionalLight(_viewManager->getEventWrapper(),
         lightMapMVP,

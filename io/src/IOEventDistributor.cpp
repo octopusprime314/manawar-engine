@@ -5,15 +5,16 @@
 #include "DXLayer.h"
 #include "Windowsx.h"
 
-
-int         IOEventDistributor::_renderNow = 0;
+// Events that trigger at a specific time
+TimeQueue   IOEventDistributor::_timeEvents;
 std::mutex  IOEventDistributor::_renderLock;
-GLFWwindow* IOEventDistributor::_window;
-bool        IOEventDistributor::_quit = false;
-int         IOEventDistributor::screenPixelWidth = 0;
-int         IOEventDistributor::screenPixelHeight = 0;
-
-std::priority_queue<TimeEvent> IOEventDistributor::_timeEvents; // Events that trigger at a specific time
+int         IOEventDistributor::_renderNow        = 0;
+GLFWwindow* IOEventDistributor::_window           = nullptr;
+bool        IOEventDistributor::_quit             = false;
+int         IOEventDistributor::_prevMouseX       = 0;
+int         IOEventDistributor::_prevMouseY       = 0;
+int         IOEventDistributor::screenPixelWidth  = -1;
+int         IOEventDistributor::screenPixelHeight = -1;
 
 uint64_t nowMs() {
     using std::chrono::duration_cast;
@@ -22,7 +23,10 @@ uint64_t nowMs() {
     return duration_cast<milliseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
 }
 
-IOEventDistributor::IOEventDistributor(int* argc, char** argv, HINSTANCE hInstance, int nCmdShow) {
+IOEventDistributor::IOEventDistributor(int* argc,
+                                       char** argv,
+                                       HINSTANCE hInstance,
+                                       int nCmdShow) {
 
     char workingDir[1024] = "";
     GetCurrentDirectory(sizeof(workingDir), workingDir);
@@ -97,8 +101,11 @@ IOEventDistributor::IOEventDistributor(int* argc, char** argv, HINSTANCE hInstan
         glfwSetInputMode(_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     }
     else {
-      
+
     }
+
+    _prevMouseX = IOEventDistributor::screenPixelWidth  / 2;
+    _prevMouseY = IOEventDistributor::screenPixelHeight / 2;
 
     MasterClock* masterClock = MasterClock::instance();
     masterClock->setFrameRate(60); //Establishes the frame rate of the draw context
@@ -162,7 +169,15 @@ LRESULT CALLBACK IOEventDistributor::dxEventLoop(HWND hWnd,
         {
             int xPos = GET_X_LPARAM(lParam);
             int yPos = GET_Y_LPARAM(lParam);
-            _mouseUpdate(nullptr, xPos, yPos);
+
+            if (_prevMouseX != IOEventDistributor::screenPixelWidth  / 2 &&
+                _prevMouseY != IOEventDistributor::screenPixelHeight / 2) {
+
+                _mouseUpdate(nullptr, xPos, yPos);
+                //Indicates free form mouse update
+                _prevMouseX = 0;
+                _prevMouseX = 0;
+            }
             break;
         }
         case WM_DESTROY:
@@ -270,7 +285,6 @@ void IOEventDistributor::_drawUpdate() {
 
         // this struct holds Windows event messages
         MSG msg = { 0 };
-        bool mouseMove = false;
         // main loop
         while (true) {
             // check to see if any messages are waiting in the queue
@@ -279,20 +293,19 @@ void IOEventDistributor::_drawUpdate() {
                 TranslateMessage(&msg);
                 DispatchMessage(&msg);
 
-                if (msg.message == WM_MOUSEMOVE) {
-                    mouseMove = true;
-                }
-
                 // check to see if it's time to quit
                 if (msg.message == WM_QUIT)
                     break;
             }
             else {
-
-                if (mouseMove) {
+                //prev x and y position ensure that the valid mouse movement is complete
+                //prior to set the cursor position back to the middle of the screen
+                if (_prevMouseX == 0 && _prevMouseX == 0) {
                     SetCursorPos(IOEventDistributor::screenPixelWidth  / 2,
                                  IOEventDistributor::screenPixelHeight / 2);
-                    mouseMove = false;
+
+                    _prevMouseX = IOEventDistributor::screenPixelWidth  / 2;
+                    _prevMouseY = IOEventDistributor::screenPixelHeight / 2;
                 }
             }
 

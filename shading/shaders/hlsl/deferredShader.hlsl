@@ -15,6 +15,8 @@ sampler textureSampler : register(s0);
 
 cbuffer globalData : register(b0) {
     float4x4 lightViewMatrix;     	//Light perspective's view matrix
+    float4x4 lightProjectionMatrix;     	//Light perspective's view matrix
+    float4x4 inverseView;     	//Light perspective's view matrix
     float4x4 lightMapViewMatrix;    //Light perspective's view matrix
     float4x4 viewToModelMatrix;		//Inverse camera view space matrix
     float4x4 projectionToViewMatrix; //Inverse projection matrix
@@ -93,8 +95,11 @@ PixelOut PS(float4 posH : SV_POSITION,
     float3 lightInCameraView = normalize(float3(mul(float4(inverseLight, 0.0), normalMatrix).xyz));
     float  illumination      = dot(lightInCameraView, normalizedNormal);
 
+    float4x4 inverseToLightView = mul(inverseView, lightViewMatrix);
+    float4x4 inverseLightViewProjection = mul(inverseToLightView, lightProjectionMatrix);
+
     //Convert from camera space vertex to light clip space vertex
-    float4 shadowMapping = mul(float4(position.xyz, 1.0), lightViewMatrix);
+    float4 shadowMapping = mul(float4(position.xyz, 1.0), inverseLightViewProjection);
     shadowMapping = shadowMapping / shadowMapping.w;
     float2 shadowTextureCoordinates = mul(shadowMapping.xy, 0.5) + float2(0.5, 0.5);
 
@@ -132,12 +137,12 @@ PixelOut PS(float4 posH : SV_POSITION,
                         directionalShadow = shadowEffect;
                     }
                 }
-                else if (shadowTextureCoordinatesMap.x <= 1.0 && shadowTextureCoordinatesMap.x >= 0.0 && shadowTextureCoordinatesMap.y <= 1.0 && shadowTextureCoordinatesMap.y >= 0.0) {
-                    float2 invertedYCoord = float2(shadowTextureCoordinatesMap.x, -shadowTextureCoordinatesMap.y); //TODO: need to fix cpu
-                    if (mapDepthTexture.Sample(textureSampler, invertedYCoord).r < shadowMappingMap.z - bias) {
-                        directionalShadow = shadowEffect;
-                    }
-                }
+                //else if (shadowTextureCoordinatesMap.x <= 1.0 && shadowTextureCoordinatesMap.x >= 0.0 && shadowTextureCoordinatesMap.y <= 1.0 && shadowTextureCoordinatesMap.y >= 0.0) {
+                //    float2 invertedYCoord = float2(shadowTextureCoordinatesMap.x, -shadowTextureCoordinatesMap.y); //TODO: need to fix cpu
+                //    if (mapDepthTexture.Sample(textureSampler, invertedYCoord).r < shadowMappingMap.z - bias) {
+                //        directionalShadow = shadowEffect;
+                //    }
+                //}
 
             }
             else {

@@ -40,31 +40,20 @@ void DirectionalShadow::render(std::vector<Entity*> entityList, Light* light) {
         glClear(GL_DEPTH_BUFFER_BIT);
 
         glDrawBuffers(1, buffers);
-
-        for (Entity* entity : entityList) {
-            Matrix inverseViewProjection = ModelBroker::getViewManager()->getView().inverse() *
-                ModelBroker::getViewManager()->getProjection().inverse();
-
-            //if (FrustumCuller::getVisibleOBB(entity, inverseViewProjection, light)) {
-                if (entity->getModel()->getClassType() == ModelClass::ModelType) {
-                    _staticShadowShader->runShader(entity, light);
-                }
-                else if (entity->getModel()->getClassType() == ModelClass::AnimatedModelType) {
-                    _animatedShadowShader->runShader(entity, light);
-                }
-            //}
-        }
-
-        //Bring to original rendering viewport
-        glViewport(0, 0, IOEventDistributor::screenPixelWidth, IOEventDistributor::screenPixelHeight);
     }
     else {
         RenderTexture* depthTexture = static_cast<RenderTexture*>(_shadow.getTexture());
         std::vector<RenderTexture> textures = { *depthTexture };
         HLSLShader::setOM(textures, _shadow.getWidth(), _shadow.getHeight());
+    }
 
-        for (Entity* entity : entityList) {
+    for (Entity* entity : entityList) {
+            
+        Matrix inverseViewProjection = ModelBroker::getViewManager()->getView().inverse() *
+                                       ModelBroker::getViewManager()->getProjection().inverse();
 
+        if (FrustumCuller::getVisibleAABB(entity, inverseViewProjection)) {
+        //if (FrustumCuller::getVisibleOBB(entity, inverseViewProjection, light)) {
             if (entity->getModel()->getClassType() == ModelClass::ModelType) {
                 _staticShadowShader->runShader(entity, light);
             }
@@ -72,7 +61,15 @@ void DirectionalShadow::render(std::vector<Entity*> entityList, Light* light) {
                 _animatedShadowShader->runShader(entity, light);
             }
         }
+    }
 
+    if (EngineManager::getGraphicsLayer() == GraphicsLayer::OPENGL) {
+        //Bring to original rendering viewport
+        glViewport(0, 0, IOEventDistributor::screenPixelWidth, IOEventDistributor::screenPixelHeight);
+    }
+    else {
+        RenderTexture* depthTexture = static_cast<RenderTexture*>(_shadow.getTexture());
+        std::vector<RenderTexture> textures = { *depthTexture };
         HLSLShader::releaseOM(textures);
     }
 }

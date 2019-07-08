@@ -44,7 +44,7 @@ Entity*              EngineManager::_shadowEntity = nullptr;
 
 EngineManager::EngineManager(int* argc, char** argv, HINSTANCE hInstance, int nCmdShow) {
 
-    _graphicsLayer = GraphicsLayer::DX12;
+    _graphicsLayer = GraphicsLayer::OPENGL;
     if (_graphicsLayer == GraphicsLayer::DX12) {
         DXLayer::initialize(hInstance, nCmdShow);
     }
@@ -54,22 +54,31 @@ EngineManager::EngineManager(int* argc, char** argv, HINSTANCE hInstance, int nC
                      //(_graphicsLayer == GraphicsLayer::DX12 ? true : false) &&
                      //DXLayer::instance()->supportsRayTracing();
 
-    _inputLayer = new IOEventDistributor(argc, argv, hInstance, nCmdShow);
+    _inputLayer = new IOEventDistributor(   argc,
+                                            argv,
+                                            hInstance,
+                                            nCmdShow);
+
+    _viewManager = new ViewEventDistributor(argc,
+                                            argv,
+                                            IOEventDistributor::screenPixelWidth,
+                                            IOEventDistributor::screenPixelHeight);
+    
+    //Set the reference to the view model event interface
+    ModelBroker::setViewManager(_viewManager);
+
+    //Initializes projection matrix and broadcasts upate to all listeners
+    _viewManager->setProjection(IOEventDistributor::screenPixelWidth,
+                                IOEventDistributor::screenPixelHeight,
+                                0.1f,
+                                5000.0f);
+
+    _viewManager->setView(      Matrix::translation(0, -5.0f, 0),
+                                Matrix::rotationAroundY(0.0f),
+                                Matrix());
 
     //Load and compile all shaders for the shader broker
     ShaderBroker::instance()->compileShaders();
-
-    _deferredRenderer = new DeferredRenderer();
-
-    _viewManager = new ViewEventDistributor(argc, argv, IOEventDistributor::screenPixelWidth, IOEventDistributor::screenPixelHeight);
-    
-    ModelBroker::setViewManager(_viewManager); //Set the reference to the view model event interface
-    //Initializes projection matrix and broadcasts upate to all listeners
-    _viewManager->setProjection(IOEventDistributor::screenPixelWidth, IOEventDistributor::screenPixelHeight, 0.1f, 5000.0f); 
-    _viewManager->setView(Matrix::translation(0, -5.0f, 0),
-        Matrix::rotationAroundY(0.0f),
-        Matrix());
-
     //Load and compile all models for the model broker
     ModelBroker::instance()->buildModels();
 
@@ -79,18 +88,20 @@ EngineManager::EngineManager(int* argc, char** argv, HINSTANCE hInstance, int nC
 
     auto modelBroker = ModelBroker::instance();
 
-    //_entityList.push_back(new Entity(modelBroker->getModel("werewolf"), _viewManager->getEventWrapper())); //Add a static model to the scene
+    //Add a static model to the scene
+    //_entityList.push_back(new Entity(modelBroker->getModel("werewolf"), _viewManager->getEventWrapper()));
 
-    _deferredFBO     = new DeferredFrameBuffer();
-    _forwardRenderer = new ForwardRenderer();
-    _audioManager    = new AudioManager();
-    _bloom           = new Bloom();
-    _ssaoPass        = new SSAO();
-    _water           = new Water(_viewManager->getEventWrapper());
-    _add             = new SSCompute("add", IOEventDistributor::screenPixelWidth,
-                                            IOEventDistributor::screenPixelHeight,
-                                            TextureFormat::RGBA_UNSIGNED_BYTE);
-    _mergeShader     = static_cast<MergeShader*>(ShaderBroker::instance()->getShader("mergeShader"));
+    _deferredRenderer = new DeferredRenderer();
+    _forwardRenderer  = new ForwardRenderer();
+    _audioManager     = new AudioManager();
+    _deferredFBO      = new DeferredFrameBuffer();
+    _bloom            = new Bloom();
+    _ssaoPass         = new SSAO();
+    _water            = new Water(_viewManager->getEventWrapper());
+    _add              = new SSCompute("add", IOEventDistributor::screenPixelWidth,
+                                             IOEventDistributor::screenPixelHeight,
+                                             TextureFormat::RGBA_UNSIGNED_BYTE);
+    _mergeShader      = static_cast<MergeShader*>(ShaderBroker::instance()->getShader("mergeShader"));
     //_environmentMap  = new EnvironmentMap(2000, 2000);
 
     Vector4 sunLocation(0.0f, 0.0f, -700.0f);
@@ -265,9 +276,9 @@ void EngineManager::_preDraw() {
         DXLayer::instance()->initCmdLists();
     }
 
-    if (_viewManager->getViewState() == Camera::ViewState::POINT_SHADOW ||
+    if (_viewManager->getViewState() == Camera::ViewState::POINT_SHADOW      ||
         _viewManager->getViewState() == Camera::ViewState::DEFERRED_LIGHTING ||
-        _viewManager->getViewState() == Camera::ViewState::CAMERA_SHADOW ||
+        _viewManager->getViewState() == Camera::ViewState::CAMERA_SHADOW     ||
         _viewManager->getViewState() == Camera::ViewState::MAP_SHADOW) {
        
         //send all vbo data to point light shadow pre pass
@@ -402,7 +413,7 @@ void EngineManager::_postDraw() {
         _ssaoPass->computeSSAO(_deferredRenderer->getGBuffers(), _viewManager);
 
         RenderTexture* renderTexture = static_cast<RenderTexture*>(_deferredFBO->getRenderTexture());
-        RenderTexture* depthTexture = static_cast<RenderTexture*>(_deferredFBO->getDepthTexture());
+        RenderTexture* depthTexture  = static_cast<RenderTexture*>(_deferredFBO->getDepthTexture());
 
         std::vector<RenderTexture> textures = { *renderTexture, *depthTexture };
         HLSLShader::setOM(textures,

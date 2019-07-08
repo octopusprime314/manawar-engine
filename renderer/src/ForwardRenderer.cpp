@@ -21,12 +21,12 @@ ForwardRenderer::~ForwardRenderer() {
 void ForwardRenderer::forwardLighting(std::vector<Entity*>& entityList, ViewEventDistributor* viewEventDistributor, 
     std::vector<Light*>& lights) {
 
-    Matrix inverseViewProjection = (ModelBroker::getViewManager()->getView()/* * Matrix::scale(-1.0, 1.0, 1.0) * Matrix::scale(1.0, -1.0, 1.0)*/).inverse() *
+    Matrix inverseViewProjection = ModelBroker::getViewManager()->getView().inverse() *
                                    ModelBroker::getViewManager()->getProjection().inverse();
 
     for (auto entity : entityList) {
 
-        //if (FrustumCuller::getVisibleAABB(entity, inverseViewProjection)) {
+        if (FrustumCuller::getVisibleAABB(entity, inverseViewProjection)) {
             auto model = entity->getModel();
             if (!model->getIsInstancedModel()) {
                 _forwardShader->runShader(entity, viewEventDistributor, lights);
@@ -34,6 +34,6 @@ void ForwardRenderer::forwardLighting(std::vector<Entity*>& entityList, ViewEven
             else {
                 _instancedForwardShader->runShader(entity, viewEventDistributor, lights);
             }
-        //}
+        }
     }
 }

@@ -206,7 +206,7 @@ void ViewEventDistributor::_updateKeyboard(int key, int x, int y) { //Do stuff b
 
             StateVector* state = nullptr;
             //If not in god camera view mode then push view changes to the model 
-           // for full control of a model's movements
+            // for full control of a model's movements
             if (!_godState && _entityIndex < _entityList.size()) {
                 state = _entityList[_entityIndex]->getStateVector();
             }
@@ -239,6 +239,29 @@ void ViewEventDistributor::_updateKeyboard(int key, int x, int y) { //Do stuff b
             }
             _keyboardState[key] = func;
 
+        }
+        else if (key == GLFW_KEY_T) {
+            static const double mouseSensitivity = 15.5f;
+            Vector4 newRot = Vector4(0.0, -static_cast<float>(mouseSensitivity * 200.0f), 0.0);
+            _currCamera->getState()->setTorque(newRot);
+
+            //If not in god camera view mode then push view changes to the model for full control
+            //of a model's movements
+            if (!_godState) {
+                _currCamera->setViewMatrix(_thirdPersonTranslation * _currCamera->getView());
+            }
+            _currCamera->getState()->setActive(true);
+        }
+        else if (key == GLFW_KEY_Y) {
+            static const double mouseSensitivity = 15.5f;
+            Vector4 newRot = Vector4(0.0, static_cast<float>(mouseSensitivity * 200.0f), 0.0);
+            _currCamera->getState()->setTorque(newRot);
+
+            //If not in god camera view mode then push view changes to the model for full control of a model's movements
+            if (!_godState) {
+                _currCamera->setViewMatrix(_thirdPersonTranslation * _currCamera->getView());
+            }
+            _currCamera->getState()->setActive(true);
         }
         else if (key == GLFW_KEY_G) { //God's eye view change g
             _godState = true;
@@ -351,10 +374,12 @@ void ViewEventDistributor::_updateMouse(double x, double y) { //Do stuff based o
 
 void ViewEventDistributor::_updateView(Camera* camera, Vector4 posV, Vector4 rotV) {
     
-    float* pos = posV.getFlatBuffer();
-    float* rot = rotV.getFlatBuffer();
-    _translation = Matrix::translation(-pos[0], -pos[1], -pos[2]); //Update the translation state matrix
-    _rotation = Matrix::rotationAroundX(rot[0]) * Matrix::rotationAroundY(rot[1]); //Update the rotation state matrix
+    float* pos       = posV.getFlatBuffer();
+    float* rot       = rotV.getFlatBuffer();
+    //Update the translation state matrix
+    _translation     = Matrix::translation(-pos[0], -pos[1], -pos[2]);
+    //Update the rotation state matrix
+    _rotation        = Matrix::rotationAroundX(rot[0]) * Matrix::rotationAroundY(rot[1]);
     _inverseRotation = Matrix::rotationAroundY(-rot[1]);
 
     //translate then rotate around point

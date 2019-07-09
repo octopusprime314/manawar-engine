@@ -45,12 +45,12 @@ void StaticShader::runShader(Entity* entity) {
         MVP* mvp     = entity->getMVP();
         MVP* prevMVP = entity->getPrevMVP();
 
-        _shader->updateData("model",        mvp->getModelBuffer());
-        _shader->updateData("view",         mvp->getViewBuffer());
-        _shader->updateData("projection",   mvp->getProjectionBuffer());
-        _shader->updateData("normalMatrix", mvp->getNormalBuffer());
-        _shader->updateData("prevModel",    prevMVP->getModelBuffer());
-        _shader->updateData("prevView",     prevMVP->getViewBuffer());
+        _shader->updateData("model",      mvp->getModelBuffer());
+        _shader->updateData("view",       mvp->getViewBuffer());
+        _shader->updateData("projection", mvp->getProjectionBuffer());
+        _shader->updateData("normal",     mvp->getNormalBuffer());
+        _shader->updateData("prevModel",  prevMVP->getModelBuffer());
+        _shader->updateData("prevView",   prevMVP->getViewBuffer());
 
         auto textureStrides = vaoInstance->getTextureStrides();
         unsigned int strideLocation = 0;

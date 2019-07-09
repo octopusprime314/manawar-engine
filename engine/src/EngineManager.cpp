@@ -98,17 +98,19 @@ EngineManager::EngineManager(int* argc, char** argv, HINSTANCE hInstance, int nC
     _bloom            = new Bloom();
     _ssaoPass         = new SSAO();
     _water            = new Water(_viewManager->getEventWrapper());
-    _add              = new SSCompute("add", IOEventDistributor::screenPixelWidth,
-                                             IOEventDistributor::screenPixelHeight,
-                                             TextureFormat::RGBA_UNSIGNED_BYTE);
+    _add              = new SSCompute("add", 
+                                      IOEventDistributor::screenPixelWidth,
+                                      IOEventDistributor::screenPixelHeight,
+                                      TextureFormat::RGBA_UNSIGNED_BYTE);
+
     _mergeShader      = static_cast<MergeShader*>(ShaderBroker::instance()->getShader("mergeShader"));
     //_environmentMap  = new EnvironmentMap(2000, 2000);
 
     Vector4 sunLocation(0.0f, 0.0f, -700.0f);
 
     MVP lightMapMVP;
-    lightMapMVP.setView(Matrix::translation(sunLocation.getx(), sunLocation.gety(), sunLocation.getz())
-        * Matrix::rotationAroundX(-45.0f));
+    lightMapMVP.setView(Matrix::translation(sunLocation.getx(), sunLocation.gety(), sunLocation.getz()) *
+                        Matrix::rotationAroundX(-45.0f));
     lightMapMVP.setProjection(Matrix::ortho(1400.0f, 1400.0f, 0.0f, 1400.0f));
     _lightList.push_back(new ShadowedDirectionalLight(_viewManager->getEventWrapper(),
         lightMapMVP,
@@ -296,10 +298,13 @@ void EngineManager::_preDraw() {
             _rayTracingPipeline->doRayTracing(_entityList[0], _lightList[1]);
             //DXLayer::instance()->present(_rayTracingPipeline->getRayTracingTarget());
 
-            auto depthTexture = static_cast<RenderTexture*>((static_cast<ShadowedDirectionalLight*>(_lightList[1]))->getDepthTexture());
+            auto depthTexture = static_cast<RenderTexture*>((
+                static_cast<ShadowedDirectionalLight*>(_lightList[1]))->getDepthTexture());
+
             std::vector<RenderTexture> textures = { *depthTexture };
             HLSLShader::setOM(textures,
-                depthTexture->getWidth(), depthTexture->getHeight());
+                              depthTexture->getWidth(),
+                              depthTexture->getHeight());
 
             auto depthBlit = static_cast<BlitDepthShader*>(ShaderBroker::instance()->getShader("blitDepthShader"));
 
@@ -338,8 +343,6 @@ void EngineManager::_postDraw() {
 
             //Draw transparent objects onto of the deferred renderer
             _forwardRenderer->forwardLighting(_entityList, _viewManager, _lightList);
-
-            
 
             // Lights - including the fire point lights
             for (Light* light : _lightList) {
@@ -402,10 +405,6 @@ void EngineManager::_postDraw() {
         _terminal->display();
     }
     else {
-
-
-        auto cmdList = DXLayer::instance()->getCmdList();
-
         //unbind fbo
         _deferredRenderer->unbind();
 
@@ -439,7 +438,8 @@ void EngineManager::_postDraw() {
         _add->uavBarrier();
 
         HLSLShader::setOM(textures,
-            IOEventDistributor::screenPixelWidth, IOEventDistributor::screenPixelHeight);
+                          IOEventDistributor::screenPixelWidth,
+                          IOEventDistributor::screenPixelHeight);
 
         Texture* velocityTexture = &_deferredRenderer->getGBuffers()->getTextures()[2];
         _mergeShader->runShader(_bloom->getTexture(), velocityTexture);

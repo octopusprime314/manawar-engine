@@ -87,7 +87,12 @@ void Uniforms::updateUniform(std::string uniformName, void* value) {
     {
         //Transform to right handed prior to supplying to opengl so cast and transform
         Matrix leftHandedMatrix(static_cast<float*>(value));
-        Matrix rightHandedMatrix = Matrix::convertToRightHanded(leftHandedMatrix);
+        //We need to transform only the view space
+        bool isViewMatrix = false;
+        if (uniformName.find("view") != std::string::npos || uniformName.find("View") != std::string::npos) {
+            isViewMatrix = true;
+        }
+        Matrix rightHandedMatrix = Matrix::convertToRightHanded(leftHandedMatrix, isViewMatrix);
         glUniformMatrix4fv(_uniformMap[uniformName].location,
                            _uniformMap[uniformName].size,
                            GL_TRUE,

@@ -432,7 +432,7 @@ Matrix Matrix::ortho(float orthoWidth, float orthoHeight, float n, float f) {
 
 }
 
-Matrix Matrix::convertToRightHanded(Matrix leftHandedMatrix) {
+Matrix Matrix::convertToRightHanded(Matrix leftHandedMatrix, bool isViewMatrix) {
     float* buff = leftHandedMatrix.getFlatBuffer();
     Matrix rightHandedMatrix;
     float* result = rightHandedMatrix.getFlatBuffer();
@@ -444,16 +444,21 @@ Matrix Matrix::convertToRightHanded(Matrix leftHandedMatrix) {
     if (buff[16] == 0.0f && buff[17] == 0.0f && buff[18] == 0.0f && buff[19] == 0.0f &&
         buff[20] == 0.0f && buff[21] == 0.0f && buff[22] == 0.0f && buff[23] == 0.0f) {
 
-        //indicates inverted
-        if (buff[24] == 1.0f) {
-            //rightHandedMatrix = (leftHandedMatrix.inverse() * Matrix::scale(1.0, 1.0, -1.0)).inverse();
-            rightHandedMatrix = (Matrix::scale(1.0, 1.0, -1.0) * leftHandedMatrix.inverse()).inverse();
+        if (isViewMatrix) {
+            //indicates inverted
+            if (buff[24] == 1.0f) {
+                //rightHandedMatrix = (leftHandedMatrix.inverse() * Matrix::scale(1.0, 1.0, -1.0)).inverse();
+                rightHandedMatrix = (Matrix::scale(1.0, 1.0, -1.0) * leftHandedMatrix.inverse()).inverse();
+            }
+            else {
+
+                //non projection matrix so just negate the 3rd column
+                //rightHandedMatrix = leftHandedMatrix * Matrix::scale(1.0, 1.0, -1.0);
+                rightHandedMatrix = Matrix::scale(1.0, 1.0, -1.0) * leftHandedMatrix;
+            }
         }
         else {
-            
-            //non projection matrix so just negate the 3rd column
-            //rightHandedMatrix = leftHandedMatrix * Matrix::scale(1.0, 1.0, -1.0);
-            rightHandedMatrix = Matrix::scale(1.0, 1.0, -1.0) * leftHandedMatrix;
+            rightHandedMatrix = leftHandedMatrix;
         }
 
        /* result[0] = buff[0], result[1] = buff[4], result[2] = buff[8], result[3] = buff[3];

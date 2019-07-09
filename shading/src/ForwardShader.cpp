@@ -42,16 +42,10 @@ void ForwardShader::runShader(Entity* entity, ViewEventDistributor* viewEventDis
             _shader->bindAttributes(vaoInstance);
 
             MVP* mvp = entity->getMVP();
-            //glUniform mat4 combined model and world matrix, GL_TRUE is telling GL we are passing in the matrix as row major
-            _shader->updateData("model", mvp->getModelBuffer());
 
-            //glUniform mat4 view matrix, GL_TRUE is telling GL we are passing in the matrix as row major
-            _shader->updateData("view", mvp->getViewBuffer());
-
-            //glUniform mat4 projection matrix, GL_TRUE is telling GL we are passing in the matrix as row major
-            _shader->updateData("projection", mvp->getProjectionBuffer());
-
-            //glUniform mat4 normal matrix, GL_TRUE is telling GL we are passing in the matrix as row major
+            _shader->updateData("model",        mvp->getModelBuffer());
+            _shader->updateData("view",         mvp->getViewBuffer());
+            _shader->updateData("projection",   mvp->getProjectionBuffer());
             _shader->updateData("normalMatrix", mvp->getNormalBuffer());
 
             //Get light view matrix "look at" vector which is located in the third column

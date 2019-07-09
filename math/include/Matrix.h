@@ -81,7 +81,7 @@ class Matrix {
     //the near, far, left, right, top, bottom, angle, aspect ratio and if inverted
     float _matrix[MATRIX_SIZE];
    
-    static Matrix convertToRightHanded(Matrix leftHandedMatrix);
+    static Matrix convertToRightHanded(Matrix leftHandedMatrix, bool isViewMatrix);
     Matrix(float *mat);
 
 public:

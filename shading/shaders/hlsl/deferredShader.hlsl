@@ -90,7 +90,7 @@ PixelOut PS(float4 posH : SV_POSITION,
     pixel.depth = depthTexture.Sample(textureSampler, uv).r;
 
     //Directional light calculation
-    float3 inverseLight      = float3(-light.x, -light.y, -light.z);
+    float3 inverseLight      = float3(light.x, light.y, light.z);
     float3 normalizedLight   = normalize(inverseLight);
     float3 lightInCameraView = normalize(float3(mul(float4(inverseLight, 0.0), normalMatrix).xyz));
     float  illumination      = dot(lightInCameraView, normalizedNormal);

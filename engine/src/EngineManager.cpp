@@ -44,7 +44,7 @@ Entity*              EngineManager::_shadowEntity = nullptr;
 
 EngineManager::EngineManager(int* argc, char** argv, HINSTANCE hInstance, int nCmdShow) {
 
-    _graphicsLayer = GraphicsLayer::OPENGL;
+    _graphicsLayer = GraphicsLayer::DX12;
     if (_graphicsLayer == GraphicsLayer::DX12) {
         DXLayer::initialize(hInstance, nCmdShow);
     }
@@ -106,11 +106,11 @@ EngineManager::EngineManager(int* argc, char** argv, HINSTANCE hInstance, int nC
     _mergeShader      = static_cast<MergeShader*>(ShaderBroker::instance()->getShader("mergeShader"));
     //_environmentMap  = new EnvironmentMap(2000, 2000);
 
-    Vector4 sunLocation(0.0f, 0.0f, -700.0f);
+    Vector4 sunLocation(0.0f, 0.0f, 700.0f);
 
     MVP lightMapMVP;
     lightMapMVP.setView(Matrix::translation(sunLocation.getx(), sunLocation.gety(), sunLocation.getz()) *
-                        Matrix::rotationAroundX(-45.0f));
+                        Matrix::rotationAroundX(45.0f));
     lightMapMVP.setProjection(Matrix::ortho(1400.0f, 1400.0f, 0.0f, 1400.0f));
     _lightList.push_back(new ShadowedDirectionalLight(_viewManager->getEventWrapper(),
         lightMapMVP,

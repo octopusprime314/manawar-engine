@@ -338,9 +338,9 @@ void ViewEventDistributor::_updateMouse(double x, double y) { //Do stuff based o
             }
             _currCamera->getState()->setActive(true);
 
-            char str[256];
+            /*char str[256];
             sprintf(str, "Mouse x: %f y: %f, Delta x: %f, Delta y: %f\n", x, y, _prevMouseX - x, _prevMouseY - y);
-            OutputDebugString(str);
+            OutputDebugString(str);*/
         }
 
         if (y != _prevMouseY && y != IOEventDistributor::screenPixelHeight / 2) {
@@ -361,10 +361,9 @@ void ViewEventDistributor::_updateMouse(double x, double y) { //Do stuff based o
             }
             _currCamera->getState()->setActive(true);
 
-            char str[256];
+            /*char str[256];
             sprintf(str, "Mouse x: %f y: %f, Delta x: %f, Delta y: %f\n", x, y, _prevMouseX - x, _prevMouseY - y);
-            OutputDebugString(str);
-
+            OutputDebugString(str);*/
         }
 
     }

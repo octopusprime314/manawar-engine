@@ -37,17 +37,11 @@ void ShadowStaticShader::runShader(Entity* entity, Light* light) {
 
         MVP* mvp = entity->getMVP();
 
-        if (EngineManager::getGraphicsLayer() == GraphicsLayer::OPENGL) {
-            _shader->updateData("model", mvp->getModelBuffer());
+        _shader->updateData("model", mvp->getModelBuffer());
 
-            _shader->updateData("view", lightMVP.getViewBuffer());
+        _shader->updateData("view", lightMVP.getViewBuffer());
 
-            _shader->updateData("projection", lightMVP.getProjectionBuffer());
-        }
-        else {
-            auto mvpPreMultiplied = lightMVP.getProjectionMatrix() * lightMVP.getViewMatrix() * mvp->getModelMatrix();
-            _shader->updateData("model", mvpPreMultiplied.getFlatBuffer());
-        }
+        _shader->updateData("projection", lightMVP.getProjectionBuffer());
 
         auto textureStrides = vaoInstance->getTextureStrides();
         unsigned int verticesSize = 0;

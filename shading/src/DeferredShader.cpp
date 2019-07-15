@@ -57,7 +57,6 @@ void DeferredShader::runShader(std::vector<Light*>& lights,
     //of the inner rotation matrix at index 2,6,10
     auto viewMatrix = lights[0]->getLightMVP().getViewMatrix().getFlatBuffer();
     Vector4 lightPosition(viewMatrix[2], viewMatrix[6], viewMatrix[10]);
-    //lightPosition.display();
     _shader->updateData("light", lightPosition.getFlatBuffer());
 
     _shader->updateData("normalMatrix", viewEventDistributor->getView().inverse().transpose().getFlatBuffer());

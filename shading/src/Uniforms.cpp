@@ -89,7 +89,8 @@ void Uniforms::updateUniform(std::string uniformName, void* value) {
         Matrix leftHandedMatrix(static_cast<float*>(value));
         //We need to transform only the view space
         bool isViewMatrix = false;
-        if (uniformName.find("view") != std::string::npos || uniformName.find("View") != std::string::npos) {
+        if (uniformName.find("view") != std::string::npos || uniformName.find("View") != std::string::npos /*||
+            uniformName.find("normal") != std::string::npos || uniformName.find("Normal") != std::string::npos*/) {
             isViewMatrix = true;
         }
         Matrix rightHandedMatrix = Matrix::convertToRightHanded(leftHandedMatrix, isViewMatrix);

@@ -45,11 +45,7 @@ void InstancedForwardShader::runShader(Entity* entity, ViewEventDistributor* vie
         //instance array offsets
         _shader->updateData("offsets[0]", model->getInstanceOffsets());
 
-        //Get light view matrix "look at" vector which is located in the third column
-        //of the inner rotation matrix at index 2,6,10
-        auto viewMatrix = lights[0]->getLightMVP().getViewBuffer();
-        Vector4 lightPosition(viewMatrix[2], viewMatrix[6], viewMatrix[10]);
-        _shader->updateData("light", lightPosition.getFlatBuffer());
+        _shader->updateData("lightDirection", lights[0]->getLightDirection().getFlatBuffer());
 
         //Get point light positions
         //TODO add max point light constant

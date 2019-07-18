@@ -53,13 +53,10 @@ void DeferredShader::runShader(std::vector<Light*>& lights,
         _shader->bindAttributes(nullptr);
     }
 
-    //Get light view matrix "look at" vector which is located in the third column
-    //of the inner rotation matrix at index 2,6,10
-    auto viewMatrix = lights[0]->getLightMVP().getViewMatrix().getFlatBuffer();
-    Vector4 lightPosition(viewMatrix[2], viewMatrix[6], viewMatrix[10]);
-    _shader->updateData("light", lightPosition.getFlatBuffer());
+    _shader->updateData("lightDirection", lights[0]->getLightDirection().getFlatBuffer());
 
     _shader->updateData("normalMatrix", viewEventDistributor->getView().inverse().transpose().getFlatBuffer());
+    //_shader->updateData("normalMatrix", lights[0]->getLightMVP().getViewMatrix().inverse().transpose()getFlatBuffer());
 
     //Get point light positions
     //TODO add max point light constant

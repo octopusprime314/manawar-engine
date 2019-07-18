@@ -58,6 +58,7 @@ public:
     MVP                     getLightMVP();
     MVP                     getCameraMVP();
     Vector4                 getPosition();
+    Vector4                 getLightDirection();
     LightType               getType();
     Vector4&                getColor();
     float                   getRange();

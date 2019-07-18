@@ -563,10 +563,7 @@ void RayTracingPipelineShader::doRayTracing(Entity* entity, Light* light) {
     auto inverseLightView = (light->getLightMVP().getViewMatrix() *
         light->getLightMVP().getModelMatrix()).inverse();
 
-    auto inverseLight = light->getLightMVP().getViewMatrix();
-    auto lightDir = Vector4(inverseLight.getFlatBuffer()[2],
-        inverseLight.getFlatBuffer()[6],
-        inverseLight.getFlatBuffer()[10]);
+    auto lightDir = light->getLightDirection();
 
     memcpy(&(_sceneCB[0]), inverseProj.getFlatBuffer(), sizeof(float) * 16);
     _sceneCB[0].cameraPosition[0] = inverseCameraView.getFlatBuffer()[3];

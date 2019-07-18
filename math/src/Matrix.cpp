@@ -471,10 +471,6 @@ Matrix Matrix::convertToRightHanded(Matrix leftHandedMatrix, bool isViewMatrix) 
 
         //Clone for mixed detection
         leftHandedClone = Matrix::ortho(r*2.0f, t*2.0f, n, f);
-        
-        //WHY DO I NEED THIS!?!?! PLEASE REVISIT LATER
-        n = -n;
-        f = -f;
 
         result[0] = 2.0f / (r - l), result[1] = 0.0f, result[2] = 0.0f, result[3] = -((r + l) / (r - l));
         result[4] = 0.0f, result[5] = 2.0f / (t - b), result[6] = 0.0f, result[7] = -((t + b) / (t - b));

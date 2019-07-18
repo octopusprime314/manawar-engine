@@ -56,12 +56,9 @@ void Uniforms::updateUniform(std::string uniformName, void* value) {
     }
     case GL_FLOAT_VEC3:
     {
-        //Transform to right handed prior to supplying to opengl so copy and flip z
-        Vector4 rightHandedVector(*static_cast<Vector4*>(value));
-        rightHandedVector.getFlatBuffer()[2] = -rightHandedVector.getFlatBuffer()[2];
         glUniform3fv(_uniformMap[uniformName].location,
                      _uniformMap[uniformName].size,
-                     static_cast<GLfloat*>(rightHandedVector.getFlatBuffer()));
+                     static_cast<GLfloat*>(value));
         break;
     }
     case GL_FLOAT_VEC4:
@@ -89,8 +86,8 @@ void Uniforms::updateUniform(std::string uniformName, void* value) {
         Matrix leftHandedMatrix(static_cast<float*>(value));
         //We need to transform only the view space
         bool isViewMatrix = false;
-        if (uniformName.find("view") != std::string::npos || uniformName.find("View") != std::string::npos /*||
-            uniformName.find("normal") != std::string::npos || uniformName.find("Normal") != std::string::npos*/) {
+        if (uniformName.find("view") != std::string::npos || uniformName.find("View") != std::string::npos ||
+            uniformName.find("normal") != std::string::npos || uniformName.find("Normal") != std::string::npos) {
             isViewMatrix = true;
         }
         Matrix rightHandedMatrix = Matrix::convertToRightHanded(leftHandedMatrix, isViewMatrix);

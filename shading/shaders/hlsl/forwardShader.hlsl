@@ -29,7 +29,7 @@ cbuffer globalData : register(b1) {
     int  numPointLights;
 
     int views;   //views set to 0 is diffuse mapping, set to 1 is shadow mapping and set to 2 is normal mapping
-    float3 light;
+    float3 lightDirection;
 }
 
 static const float2 poissonDisk[4] = {
@@ -76,9 +76,8 @@ PixelOut PS(float4 posH : SV_POSITION,
     }
     else {
         //Directional light calculation
-        float3 inverseLight = float3(light.x, light.y, light.z);
-        float3 normalizedLight = normalize(inverseLight);
-        float3 lightInCameraView = normalize(float3(mul(float4(inverseLight, 0.0), normalMatrix).xyz));
+        float3 normalizedLight = normalize(lightDirection);
+        float3 lightInCameraView = normalize(float3(mul(float4(-normalizedLight, 0.0), normalMatrix).xyz));
         float  illumination = dot(lightInCameraView, normalize(normal));
 
         //Convert from camera space vertex to light clip space vertex
@@ -98,7 +97,7 @@ PixelOut PS(float4 posH : SV_POSITION,
         float d = cameraDepthTexture.Sample(textureSampler, invertedYCoord).r;
         //illumination is from directional light but we don't want to illuminate when the sun is past the horizon
         //aka night time
-        if (normalizedLight.y >= 0.0) {
+        if (normalizedLight.y <= 0.0) {
             const float bias = 0.005; //removes shadow acne by adding a small bias
             //Only shadow in textures space
             if (shadowTextureCoordinates.x <= 1.0 && shadowTextureCoordinates.x >= 0.0 && shadowTextureCoordinates.y <= 1.0 && shadowTextureCoordinates.y >= 0.0) {

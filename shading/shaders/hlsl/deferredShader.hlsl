@@ -28,7 +28,7 @@ cbuffer globalData : register(b0) {
     int  numPointLights;
 
     int views;   //views set to 0 is diffuse mapping, set to 1 is shadow mapping and set to 2 is normal mapping
-    float3 light;
+    float3 lightDirection;
 }
 
 static const float2 poissonDisk[4] = {
@@ -90,9 +90,8 @@ PixelOut PS(float4 posH : SV_POSITION,
     pixel.depth = depthTexture.Sample(textureSampler, uv).r;
 
     //Directional light calculation
-    float3 inverseLight      = float3(light.x, light.y, light.z);
-    float3 normalizedLight   = normalize(inverseLight);
-    float3 lightInCameraView = normalize(float3(mul(float4(inverseLight, 0.0), normalMatrix).xyz));
+    float3 normalizedLight   = normalize(lightDirection);
+    float3 lightInCameraView = normalize(float3(mul(float4(-normalizedLight, 0.0), normalMatrix).xyz));
     float  illumination      = dot(lightInCameraView, normalizedNormal);
 
     float4x4 inverseToLightView = mul(inverseView, lightViewMatrix);
@@ -112,7 +111,7 @@ PixelOut PS(float4 posH : SV_POSITION,
         if (normal.x == 0.0 && normal.y == 0.0 && normal.z == 0.0) {
             float4 dayColor = skyboxDayTexture.Sample(textureSampler, float3(position.x, -position.y, position.z));
             float4 nightColor = skyboxNightTexture.Sample(textureSampler, float3(position.x, -position.y, position.z));
-            pixel.color = (((1.0 + normalizedLight.y) / 2.0) * dayColor) + (((1.0 - normalizedLight.y) / 2.0) * nightColor);
+            pixel.color = (((1.0 - normalizedLight.y) / 2.0) * dayColor) + (((1.0 + normalizedLight.y) / 2.0) * nightColor);
             //skybox depth trick to have it displayed at the depth boundary
             //precision matters here and must be as close as possible to 1.0
             //the number of 9s can only go to 7 but no less than 4
@@ -127,7 +126,7 @@ PixelOut PS(float4 posH : SV_POSITION,
             float d = cameraDepthTexture.Sample(textureSampler, invertedYCoord).r;
             //illumination is from directional light but we don't want to illuminate when the sun is past the horizon
             //aka night time
-            if (normalizedLight.y >= 0.0) {
+            if (normalizedLight.y <= 0.0) {
                 const float bias = 0.005; //removes shadow acne by adding a small bias
                 //Only shadow in textures space
                 if (shadowTextureCoordinates.x <= 1.0 && shadowTextureCoordinates.x >= 0.0 && shadowTextureCoordinates.y <= 1.0 && shadowTextureCoordinates.y >= 0.0) {

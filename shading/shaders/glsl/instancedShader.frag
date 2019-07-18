@@ -26,7 +26,7 @@ in VsData
 }  vsData;
 
 out vec4 fragColor;
-uniform vec3 light;
+uniform vec3 lightDirection;
 
 void main(){
 
@@ -40,7 +40,7 @@ void main(){
 		//Directional light calculation
 		//NEED to invert light vector other a normal surface pointing up with a light pointing
 		//down would result in a negative dot product of the two vecs, inverting gives us positive numbers!
-		vec3 normalizedLight = normalize(-light);
+		vec3 normalizedLight = normalize(-lightDirection);
 		float illumination = dot(normalizedLight, vsData.normalOut);
 		
 		//Convert from camera space vertex to light clip space vertex
@@ -59,7 +59,7 @@ void main(){
 		float pointShadow = 1.0;
 		//illumination is from directional light but we don't want to illuminate when the sun is past the horizon
 		//aka night time
-		if(light.y <= 0.0) {
+		if(lightDirection.y <= 0.0) {
 			const float bias = 0.005; //removes shadow acne by adding a small bias
 			//Only shadow in textures space
 			if(shadowTextureCoordinates.x <= 1.0 && shadowTextureCoordinates.x >= 0.0 && shadowTextureCoordinates.y <= 1.0 && shadowTextureCoordinates.y >= 0.0){

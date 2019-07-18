@@ -45,6 +45,13 @@ Vector4 Light::getPosition() {
     return _position;
 }
 
+Vector4 Light::getLightDirection() {
+    auto viewMatrix = _lightMVP.getViewMatrix().getFlatBuffer();
+    Vector4 lightDirection(-viewMatrix[1], -viewMatrix[5], -viewMatrix[9]);
+    return lightDirection;
+}
+
+
 LightType Light::getType() {
     return _type;
 }

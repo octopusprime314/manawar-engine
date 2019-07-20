@@ -26,34 +26,39 @@
 #include "Matrix.h"
 
 class RenderBuffers {
-
-    std::vector<Vector4>        _vertices; //Vertices that make up the triangles of the model
-    std::vector<Vector4>        _normals; //Normals that implement how light is shaded onto a model
-    std::vector<Tex2>           _textures; //Texture coordinates that places texture data and maps it onto a vertex
-    std::vector<int>            _indices; //Used to map vertices
-    std::vector<int>            _textureMapIndices; //index 0 maps to texture string at index 0
-    std::vector<std::string>    _textureMapNames; //texture names that map to textureMapindices
-    std::vector<Vector4>        _debugNormals; //Vertex storage for normal line visualization
-
+    //index 0 maps to texture string at index 0
+    std::vector<int>            _textureMapIndices;
+    //texture names that map to textureMapindices
+    std::vector<std::string>    _textureMapNames;
+    //Vertex storage for normal line visualization
+    std::vector<Vector4>        _debugNormals;
+    //Texture coordinates that places texture data and maps it onto a vertex
+    std::vector<Tex2>           _textures;
+    //Vertices that make up the triangles of the model
+    std::vector<Vector4>        _vertices;
+    //Normals that implement how light is shaded onto a model
+    std::vector<Vector4>        _normals;
+    //Used to map vertices
+    std::vector<int>            _indices;
+    
 public:
     RenderBuffers();
     ~RenderBuffers();
-    std::vector<Vector4>*       getVertices();
-    std::vector<Vector4>*       getNormals();
-    std::vector<Tex2>*          getTextures();
-    std::vector<int>*           getIndices();
-    std::vector<Vector4>*       getDebugNormals();
-    std::vector<int>*           getTextureMapIndices();
-    std::vector<std::string>*   getTextureMapNames();
+    void                        addTextureMapName(std::string textureMapName);
     int                         getTextureMapIndex(std::string textureName);
+    void                        setVertexIndices(std::vector<int> indices);
+    void                        addVertexIndices(std::vector<int> indices);
+    void                        addTextureMapIndex(int textureMapIndex);
+    void                        addDebugNormal(Vector4 normal);
     void                        addVertex(Vector4 vertex);
     void                        addNormal(Vector4 normal);
     void                        addTexture(Tex2 texture);
-    void                        addDebugNormal(Vector4 normal);
-    void                        addTextureMapIndex(int textureMapIndex);
-    void                        addTextureMapName(std::string textureMapName);
-    void                        addWorldSpaceTransform(Matrix worldSpaceTransform);
-    void                        setVertexIndices(std::vector<int> indices);
-    void                        addVertexIndices(std::vector<int> indices);
+    std::vector<int>*           getTextureMapIndices();
+    std::vector<std::string>*   getTextureMapNames();
+    std::vector<Vector4>*       getDebugNormals();
     void                        clearBuffers();
+    std::vector<Vector4>*       getVertices();
+    std::vector<Tex2>*          getTextures();
+    std::vector<int>*           getIndices();
+    std::vector<Vector4>*       getNormals();
 };

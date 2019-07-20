@@ -3,6 +3,7 @@
 FMOD_RESULT BackgroundTheme::create(FMOD::System* pSystem,
                                     const char* pFilename,
                                     BackgroundTheme* pBg) {
+
     return pSystem->createStream(pFilename,
                                  FMOD_LOOP_NORMAL | FMOD_3D,
                                  nullptr,
@@ -17,9 +18,10 @@ BackgroundTheme::~BackgroundTheme()
 FMOD_RESULT BackgroundTheme::playInBackground(FMOD::System* system) {
     FMOD_RESULT result;
     result = system->playSound(_sound,
-                       /*ch group*/ nullptr,
-                       /*paused?*/ false,
-                       &_channel);
+                               nullptr,
+                               false,
+                               &_channel);
+
     if (result == FMOD_OK) {
         result = _channel->setVolume(1.0f);
     }

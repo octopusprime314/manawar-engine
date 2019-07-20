@@ -37,52 +37,65 @@
 using namespace Microsoft::WRL;
 
 enum class GeometryConstruction;
-enum class ModelClass; //Forward declaration of enumerated type while not including Model class
-using TextureMetaData = std::vector<std::pair<std::string, int>>;
+enum class ModelClass;
+using      TextureMetaData = std::vector<std::pair<std::string, int>>;
 class VAO {
 
-    GLuint          _indexBufferContext; // Used as the index buffer
-    GLuint          _vertexBufferContext; //Used as the vertex attribute vbo context
-    GLuint          _normalBufferContext; //Used as the normal attribute vbo context
-    GLuint          _textureBufferContext; //Used as the texture coordinate attribute vbo context
-    GLuint          _debugNormalBufferContext; //Used as the debug normal line attribute vbo context
-    GLuint          _vaoContext;
-    GLuint          _vaoShadowContext;
-    GLuint          _indexContext;
-    GLuint          _weightContext;
-    GLuint          _vertexLength;
-    TextureMetaData _textureStride;
-    GLuint          _primitiveOffsetId;
-    ResourceBuffer*                          _vertexBuffer;
-    ResourceBuffer*                          _indexBuffer;
-    D3D12_INDEX_BUFFER_VIEW                  _ibv;
-    D3D12_VERTEX_BUFFER_VIEW                 _vbv;
+    void                     _buildVertices(float* flattenVerts);
+    GLuint                   _debugNormalBufferContext;
+    GLuint                   _textureBufferContext;
+    GLuint                   _vertexBufferContext;
+    GLuint                   _normalBufferContext;
+    GLuint                   _indexBufferContext;
+    GLuint                   _primitiveOffsetId;
+    GLuint                   _vaoShadowContext;
+    GLuint                   _weightContext;
+    TextureMetaData          _textureStride;
+    GLuint                   _indexContext;
+    GLuint                   _vertexLength;
+    ResourceBuffer*          _vertexBuffer;
+    ResourceBuffer*          _indexBuffer;
+    GLuint                   _vaoContext;
+    D3D12_INDEX_BUFFER_VIEW  _ibv;
+    D3D12_VERTEX_BUFFER_VIEW _vbv;
 public:
+
     VAO();
-    VAO(D3D12_VERTEX_BUFFER_VIEW vbv, D3D12_INDEX_BUFFER_VIEW ibv);
     ~VAO();
-    GLuint          getVAOContext();
-    GLuint          getVAOShadowContext();
-    GLuint          getVertexContext();
-    GLuint          getNormalContext();
-    GLuint          getTextureContext();
-    GLuint          getVertexLength();
-    GLuint          getPrimitiveOffsetId();
-    GLuint          getNormalDebugContext();
-    TextureMetaData getTextureStrides();
-    D3D12_INDEX_BUFFER_VIEW getIndexBuffer();
+    VAO(D3D12_VERTEX_BUFFER_VIEW vbv,
+        D3D12_INDEX_BUFFER_VIEW ibv);
+
+    void                     addTextureStride(std::pair<std::string, int> stride);
+    void                     createVAO(std::vector<Triangle>* triangles);
+    void                     createVAO(std::vector<Sphere>* spheres,
+                                       GeometryConstruction geometryType);
+    void                     createVAO(std::vector<Cube>* cubes,
+                                       GeometryConstruction geometryType);
+    void                     createVAO(RenderBuffers* renderBuffers,
+                                       ModelClass classId,
+                                       Animation* = nullptr);
+    void                     createVAO(RenderBuffers* renderBuffers,
+                                       int begin,
+                                       int range);
+
+    void                     setNormalDebugContext(GLuint context);
+    void                     setTextureContext(GLuint context);
+    void                     setVertexContext(GLuint context);
+    void                     setNormalContext(GLuint context);
+    void                     setPrimitiveOffsetId(GLuint id);
+    GLuint                   getNormalDebugContext();
+    GLuint                   getPrimitiveOffsetId();
+    GLuint                   getVAOShadowContext();
+    TextureMetaData          getTextureStrides();
+    GLuint                   getTextureContext();
+    ResourceBuffer*          getVertexResource();
+    ResourceBuffer*          getIndexResource();
+    GLuint                   getNormalContext();
+    GLuint                   getVertexContext();
     D3D12_VERTEX_BUFFER_VIEW getVertexBuffer();
-    ResourceBuffer* getIndexResource();
-    ResourceBuffer* getVertexResource();
-    void            setVertexContext(GLuint context);
-    void            setNormalContext(GLuint context);
-    void            setTextureContext(GLuint context);
-    void            setNormalDebugContext(GLuint context);
-    void            addTextureStride(std::pair<std::string, int> stride);
-    void            setPrimitiveOffsetId(GLuint id);
-    void            createVAO(RenderBuffers* renderBuffers, ModelClass classId, Animation* = nullptr);
-    void            createVAO(RenderBuffers* renderBuffers, int begin, int range); //special for frustum viewing
-    void            createVAO(std::vector<Sphere>* spheres, GeometryConstruction geometryType);
-    void            createVAO(std::vector<Triangle>* triangles);
-    void            createVAO(std::vector<Cube>* cubes, GeometryConstruction geometryType);
+    GLuint                   getVertexLength();
+    D3D12_INDEX_BUFFER_VIEW  getIndexBuffer();
+    GLuint                   getVAOContext();
+
+    
 };

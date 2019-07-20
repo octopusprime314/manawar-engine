@@ -24,40 +24,61 @@
  
 class AssetTexture : public Texture{
 
-    AssetTexture(); //Make the default constructor private which forces coder to allocate a Texture with a string name
-    void                         _build2DTextureDX(std::string textureName,
-                                                 ComPtr<ID3D12GraphicsCommandList>& cmdList,
-                                                 ComPtr<ID3D12Device>& device);
-    void                         _build2DTextureDX(void* data, UINT width, UINT height,
-                                                 ComPtr<ID3D12GraphicsCommandList>& cmdList,
-                                                 ComPtr<ID3D12Device>& device);
-    void                         _build2DTextureGL(void* data, UINT width, UINT height);
-    void                         _build2DTextureGL(std::string textureName);
-    void                         _buildCubeMapTextureGL(std::string skyboxName);
-    void                         _buildCubeMapTextureDX(std::string skyboxName,
-                                                 ComPtr<ID3D12GraphicsCommandList>& cmdList,
-                                                 ComPtr<ID3D12Device>& device);
-    bool                         _getTextureData(std::string textureName);
-    void                         _decodeTexture(std::string textureName, unsigned int textureType);
+    //Make the default constructor private which forces coder to allocate a Texture with a string name
+    AssetTexture();
+
+    void         _build2DTextureDX(     std::string textureName,
+                                        ComPtr<ID3D12GraphicsCommandList>& cmdList,
+                                        ComPtr<ID3D12Device>& device);
+
+    void         _build2DTextureDX(     void* data,
+                                        UINT width,
+                                        UINT height,
+                                        ComPtr<ID3D12GraphicsCommandList>& cmdList,
+                                        ComPtr<ID3D12Device>& device);
+
+    void         _buildCubeMapTextureDX(std::string skyboxName,
+                                        ComPtr<ID3D12GraphicsCommandList>& cmdList,
+                                        ComPtr<ID3D12Device>& device);
+
+    void         _build2DTextureGL(     void* data,
+                                        UINT width,
+                                        UINT height);
+
+    void         _decodeTexture(        std::string textureName,
+                                        uint32_t textureType,
+                                        uint32_t target);
+
+    void         _buildCubeMapTextureGL(std::string skyboxName);
+    void         _build2DTextureGL(std::string textureName);
+    bool         _getTextureData(std::string textureName);
   
-    unsigned int                 _imageBufferSize;
-    BYTE*                        _bits;
-    bool                         _alphaValues;
-    FIBITMAP*                    _dib;
+    unsigned int _imageBufferSize;
+    bool         _alphaValues;
+    BYTE*        _bits;
+    FIBITMAP*    _dib;
 
 public:
-    AssetTexture(std::string textureName, bool cubeMap = false);
+    AssetTexture(std::string textureName,
+                 bool cubeMap = false);
+
     AssetTexture(std::string textureName, 
                  ComPtr<ID3D12GraphicsCommandList>& cmdList,
                  ComPtr<ID3D12Device>& device,
-                 bool cubeMap = false); //if true then it is a special cube map
+                 bool cubeMap = false);
+
     AssetTexture(void* data, UINT width, UINT height,
                  ComPtr<ID3D12GraphicsCommandList>& cmdList,
                  ComPtr<ID3D12Device>& device);
-    AssetTexture(void* data, UINT width, UINT height);
+
+    AssetTexture(void* data,
+                 UINT width,
+                 UINT height);
+
     ~AssetTexture();
-    void  buildMipLevels();
-    bool  getTransparency();
+
     void  updateTexture(FIBITMAP* data);
+    bool  getTransparency();
+    void  buildMipLevels();
     BYTE* getBits();
 };

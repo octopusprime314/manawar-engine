@@ -55,6 +55,7 @@ GLuint VAO::getVertexLength() {
 D3D12_INDEX_BUFFER_VIEW VAO::getIndexBuffer() {
     return _ibv;
 }
+
 D3D12_VERTEX_BUFFER_VIEW VAO::getVertexBuffer() {
     return _vbv;
 }
@@ -62,114 +63,9 @@ D3D12_VERTEX_BUFFER_VIEW VAO::getVertexBuffer() {
 ResourceBuffer* VAO::getIndexResource() {
     return _indexBuffer;
 }
+
 ResourceBuffer* VAO::getVertexResource() {
     return _vertexBuffer;
-}
-
-void VAO::createVAO(std::vector<Cube>* cubes, GeometryConstruction geometryType) {
-    
-    float* flattenVerts = GeometryBuilder::buildCubes(cubes, _vertexLength, geometryType);
-
-    if (EngineManager::getGraphicsLayer() == GraphicsLayer::OPENGL) {
-     
-        //Create a double buffer that will be filled with the vertex data
-        glGenBuffers(1, &_vertexBufferContext);
-        glBindBuffer(GL_ARRAY_BUFFER, _vertexBufferContext);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(float)*_vertexLength * 3, flattenVerts, GL_STATIC_DRAW);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-        //Bind regular vertex, normal and texture coordinate vao
-        glGenVertexArrays(1, &_vaoContext);
-        glBindVertexArray(_vaoContext);
-
-        //Bind vertex buff context to current buffer
-        glBindBuffer(GL_ARRAY_BUFFER, _vertexBufferContext);
-
-        //Say that the vertex data is associated with attribute 0 in the context of a shader program
-        //Each vertex contains 3 floats per vertex
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-
-        //Now enable vertex buffer at location 0
-        glEnableVertexAttribArray(0);
-
-        //Close vao
-        glBindVertexArray(0);
-    }
-    else if (EngineManager::getGraphicsLayer() == GraphicsLayer::DX12) {
-        //IMPLEMENT ME!!!!
-    }
-
-    delete[] flattenVerts;
-}
-
-void VAO::createVAO(std::vector<Triangle>* triangles) {
-    
-    float* flattenVerts = GeometryBuilder::buildTriangles(triangles, _vertexLength);
-    
-    if (EngineManager::getGraphicsLayer() == GraphicsLayer::OPENGL) {
-        //Create a double buffer that will be filled with the vertex data
-        glGenBuffers(1, &_vertexBufferContext);
-        glBindBuffer(GL_ARRAY_BUFFER, _vertexBufferContext);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(float)*_vertexLength * 3, flattenVerts, GL_STATIC_DRAW);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-        //Bind regular vertex, normal and texture coordinate vao
-        glGenVertexArrays(1, &_vaoContext);
-        glBindVertexArray(_vaoContext);
-
-        //Bind vertex buff context to current buffer
-        glBindBuffer(GL_ARRAY_BUFFER, _vertexBufferContext);
-
-        //Say that the vertex data is associated with attribute 0 in the context of a shader program
-        //Each vertex contains 3 floats per vertex
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-
-        //Now enable vertex buffer at location 0
-        glEnableVertexAttribArray(0);
-
-        //Close vao
-        glBindVertexArray(0);
-    }
-    else if (EngineManager::getGraphicsLayer() == GraphicsLayer::DX12) {
-        //IMPLEMENT ME!!!!
-    }
-   
-    delete[] flattenVerts;
-}
-
-void VAO::createVAO(std::vector<Sphere>* spheres, GeometryConstruction geometryType) {
-
-    float* flattenVerts = GeometryBuilder::buildSpheres(spheres, _vertexLength, geometryType);
-
-    if (EngineManager::getGraphicsLayer() == GraphicsLayer::OPENGL) {
-        //Create a double buffer that will be filled with the vertex data
-        glGenBuffers(1, &_vertexBufferContext);
-        glBindBuffer(GL_ARRAY_BUFFER, _vertexBufferContext);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(float)*_vertexLength * 3, flattenVerts, GL_STATIC_DRAW);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-        //Bind regular vertex, normal and texture coordinate vao
-        glGenVertexArrays(1, &_vaoContext);
-        glBindVertexArray(_vaoContext);
-
-        //Bind vertex buff context to current buffer
-        glBindBuffer(GL_ARRAY_BUFFER, _vertexBufferContext);
-
-        //Say that the vertex data is associated with attribute 0 in the context of a shader program
-        //Each vertex contains 3 floats per vertex
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-
-        //Now enable vertex buffer at location 0
-        glEnableVertexAttribArray(0);
-
-        //Close vao
-        glBindVertexArray(0);
-    }
-    else if (EngineManager::getGraphicsLayer() == GraphicsLayer::DX12) {
-        //IMPLEMENT ME!!!!
-    }
-
-    delete[] flattenVerts;
 }
 
 void VAO::addTextureStride(std::pair<std::string, int> stride) {
@@ -180,50 +76,119 @@ TextureMetaData VAO::getTextureStrides() {
     return _textureStride;
 }
 
+void VAO::setPrimitiveOffsetId(GLuint id) {
+    _primitiveOffsetId = id;
+}
+
+GLuint VAO::getPrimitiveOffsetId() {
+    return _primitiveOffsetId;
+}
+
+GLuint VAO::getVAOContext() {
+    return _vaoContext;
+}
+
+GLuint VAO::getVAOShadowContext() {
+    return _vaoShadowContext;
+}
+
+void VAO::_buildVertices(float* flattenVerts) {
+    
+    if (EngineManager::getGraphicsLayer() == GraphicsLayer::OPENGL) {
+
+        //Create a double buffer that will be filled with the vertex data
+        glGenBuffers(1, &_vertexBufferContext);
+        glBindBuffer(GL_ARRAY_BUFFER, _vertexBufferContext);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(float)*_vertexLength * 3, flattenVerts, GL_STATIC_DRAW);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+        //Bind regular vertex, normal and texture coordinate vao
+        glGenVertexArrays(1, &_vaoContext);
+        glBindVertexArray(_vaoContext);
+
+        //Bind vertex buff context to current buffer
+        glBindBuffer(GL_ARRAY_BUFFER, _vertexBufferContext);
+
+        //Say that the vertex data is associated with attribute 0 in the context of a shader program
+        //Each vertex contains 3 floats per vertex
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+
+        //Now enable vertex buffer at location 0
+        glEnableVertexAttribArray(0);
+
+        //Close vao
+        glBindVertexArray(0);
+    }
+    else if (EngineManager::getGraphicsLayer() == GraphicsLayer::DX12) {
+        //IMPLEMENT ME!!!!
+    }
+}
+
+
+void VAO::createVAO(std::vector<Cube>* cubes, GeometryConstruction geometryType) {
+    
+    float* flattenVerts = GeometryBuilder::buildCubes(cubes, _vertexLength, geometryType);
+    _buildVertices(flattenVerts);
+    delete[] flattenVerts;
+}
+
+void VAO::createVAO(std::vector<Triangle>* triangles) {
+    
+    float* flattenVerts = GeometryBuilder::buildTriangles(triangles, _vertexLength);
+    _buildVertices(flattenVerts);
+    delete[] flattenVerts;
+}
+
+void VAO::createVAO(std::vector<Sphere>* spheres, GeometryConstruction geometryType) {
+
+    float* flattenVerts = GeometryBuilder::buildSpheres(spheres, _vertexLength, geometryType);
+    _buildVertices(flattenVerts);
+    delete[] flattenVerts;
+}
+
 void VAO::createVAO(RenderBuffers* renderBuffers, ModelClass classId, Animation* animation) {
-    auto vertices = renderBuffers->getVertices();
-    auto normals = renderBuffers->getNormals();
-    auto textures = renderBuffers->getTextures();
-    auto indices = renderBuffers->getIndices();
+    
+    size_t    triBuffSize     = 0;
+    float*    flattenVerts    = nullptr;
+    float*    flattenNorms    = nullptr;
+    size_t    textureBuffSize = 0;
+    float*    flattenTextures = nullptr;
+    float*    flattenAttribs  = nullptr;
+    uint32_t* flattenIndexes  = nullptr;
+    auto      vertices        = renderBuffers->getVertices();
+    auto      normals         = renderBuffers->getNormals();
+    auto      textures        = renderBuffers->getTextures();
+    auto      indices         = renderBuffers->getIndices();
 
     _vertexLength = static_cast<GLuint>(vertices->size());
-
-    //Now flatten vertices and normals out for opengl
-    size_t triBuffSize = 0;
-    float* flattenVerts = nullptr; //Only include the x y and z values not w
-    float* flattenNorms = nullptr; //Only include the x y and z values not w, same size as vertices
-    size_t textureBuffSize = 0;
-    float* flattenTextures = nullptr; //Only include the s and t
-
-    float* flattenAttribs = nullptr; //Only include the x y and z values not w
-    uint32_t* flattenIndexes = nullptr; //Only include the x y and z values not w, same size as vertices
 
     if (classId == ModelClass::ModelType) {
 
         if (EngineManager::getGraphicsLayer() == GraphicsLayer::OPENGL) {
-            //Now flatten vertices and normals out for opengl
-            triBuffSize = vertices->size() * 3;
-            flattenVerts = new float[triBuffSize]; //Only include the x y and z values not w
-            flattenNorms = new float[triBuffSize]; //Only include the x y and z values not w, same size as vertices
+
+            triBuffSize     = vertices->size() * 3;
+            flattenVerts    = new float[triBuffSize];
+            flattenNorms    = new float[triBuffSize];
             textureBuffSize = textures->size() * 2;
-            flattenTextures = new float[textureBuffSize]; //Only include the s and t
+            flattenTextures = new float[textureBuffSize];
+            
             int i = 0; //iterates through vertices indexes
             for (auto vertex : *vertices) {
-                float *flat = vertex.getFlatBuffer();
+                float *flat       = vertex.getFlatBuffer();
                 flattenVerts[i++] = flat[0];
                 flattenVerts[i++] = flat[1];
                 flattenVerts[i++] = flat[2];
             }
             i = 0; //Reset for normal indexes
             for (auto normal : *normals) {
-                float *flat = normal.getFlatBuffer();
+                float *flat       = normal.getFlatBuffer();
                 flattenNorms[i++] = flat[0];
                 flattenNorms[i++] = flat[1];
                 flattenNorms[i++] = flat[2];
             }
             i = 0; //Reset for texture indexes
             for (auto texture : *textures) {
-                float *flat = texture.getFlatBuffer();
+                float *flat          = texture.getFlatBuffer();
                 flattenTextures[i++] = flat[0];
                 flattenTextures[i++] = flat[1];
             }
@@ -231,25 +196,27 @@ void VAO::createVAO(RenderBuffers* renderBuffers, ModelClass classId, Animation*
         else {
 
             //Now flatten vertices and normals out 
-            triBuffSize = vertices->size() * 3;
-            flattenAttribs = new float[triBuffSize + (normals->size() * 3) + (textures->size() * 2)]; //Only include the x y and z values not w
-            flattenIndexes = new uint32_t[triBuffSize / 3]; //Only include the x y and z values not w, same size as vertices
+            triBuffSize    = vertices->size() * 3;
+            flattenAttribs = new float[triBuffSize + (normals->size() * 3) + 
+                                      (textures->size() * 2)]; 
+            flattenIndexes = new uint32_t[triBuffSize / 3]; 
 
             int i = 0; //iterates through vertices indexes
             uint32_t j = 0;
             for (auto vertex : *vertices) {
-                float *flatVert = vertex.getFlatBuffer();
+                float *flatVert     = vertex.getFlatBuffer();
                 flattenAttribs[i++] = flatVert[0];
                 flattenAttribs[i++] = flatVert[1];
-                flattenAttribs[i++] = flatVert[2];//z is flipped in directx
-                flattenIndexes[j] = j;
+                flattenAttribs[i++] = flatVert[2];
+                flattenIndexes[j]   = j;
+                
                 j++;
                 i += 5;
             }
 
             i = 3;
             for (auto normal : *normals) {
-                float *flatNormal = normal.getFlatBuffer();
+                float *flatNormal   = normal.getFlatBuffer();
                 flattenAttribs[i++] = flatNormal[0];
                 flattenAttribs[i++] = flatNormal[1];
                 flattenAttribs[i++] = flatNormal[2];
@@ -258,7 +225,7 @@ void VAO::createVAO(RenderBuffers* renderBuffers, ModelClass classId, Animation*
 
             i = 6;
             for (auto texture : *textures) {
-                float *flat = texture.getFlatBuffer();
+                float *flat         = texture.getFlatBuffer();
                 flattenAttribs[i++] = flat[0];
                 flattenAttribs[i++] = flat[1];
                 i += 6;
@@ -267,31 +234,31 @@ void VAO::createVAO(RenderBuffers* renderBuffers, ModelClass classId, Animation*
     }
     else if (classId == ModelClass::AnimatedModelType) {
         
-        int i = 0; //iterates through vertices indexes
+        int i = 0;
 
         if (EngineManager::getGraphicsLayer() == GraphicsLayer::OPENGL) {
-            //Now flatten vertices and normals out for opengl
-            triBuffSize = indices->size() * 3;
-            flattenVerts = new float[triBuffSize]; //Only include the x y and z values not w
-            flattenNorms = new float[triBuffSize]; //Only include the x y and z values not w, same size as vertices
+            triBuffSize     = indices->size() * 3;
+            flattenVerts    = new float[triBuffSize];
+            flattenNorms    = new float[triBuffSize];
             textureBuffSize = textures->size() * 2;
-            flattenTextures = new float[textureBuffSize]; //Only include the s and t
+            flattenTextures = new float[textureBuffSize];
+
             for (auto index : *indices) {
-                float *flat = (*vertices)[index].getFlatBuffer();
+                float *flat       = (*vertices)[index].getFlatBuffer();
                 flattenVerts[i++] = flat[0];
                 flattenVerts[i++] = flat[1];
                 flattenVerts[i++] = flat[2];
             }
             i = 0; //Reset for normal indexes
             for (auto index : *indices) {
-                float *flat = (*normals)[index].getFlatBuffer();
+                float *flat       = (*normals)[index].getFlatBuffer();
                 flattenNorms[i++] = flat[0];
                 flattenNorms[i++] = flat[1];
                 flattenNorms[i++] = flat[2];
             }
             i = 0; //Reset for texture indexes
             for (auto texture : *textures) {
-                float *flat = texture.getFlatBuffer();
+                float *flat          = texture.getFlatBuffer();
                 flattenTextures[i++] = flat[0];
                 flattenTextures[i++] = flat[1];
             }
@@ -299,25 +266,27 @@ void VAO::createVAO(RenderBuffers* renderBuffers, ModelClass classId, Animation*
         else {
 
             //Now flatten vertices and normals out 
-            triBuffSize = indices->size() * 3;
-            flattenAttribs = new float[triBuffSize + (indices->size() * 3) + (textures->size() * 2)]; //Only include the x y and z values not w
-            flattenIndexes = new uint32_t[triBuffSize / 3]; //Only include the x y and z values not w, same size as vertices
+            triBuffSize    = indices->size() * 3;
+            flattenAttribs = new float[triBuffSize + (indices->size() * 3) +
+                                      (textures->size() * 2)];
+            flattenIndexes = new uint32_t[triBuffSize / 3];
 
             uint16_t j = 0;
             i = 0;
             for (auto index : *indices) {
-                float *flatVert = (*vertices)[index].getFlatBuffer();
+                float *flatVert     = (*vertices)[index].getFlatBuffer();
                 flattenAttribs[i++] = flatVert[0];
                 flattenAttribs[i++] = flatVert[1];
-                flattenAttribs[i++] = flatVert[2]; //z is flipped in directx
-                flattenIndexes[j] = j;
+                flattenAttribs[i++] = flatVert[2];
+                flattenIndexes[j]   = j;
+                
                 j++;
                 i += 5;
             }
 
             i = 3;
             for (auto index : *indices) {
-                float *flatNormal = (*normals)[index].getFlatBuffer();
+                float *flatNormal   = (*normals)[index].getFlatBuffer();
                 flattenAttribs[i++] = flatNormal[0];
                 flattenAttribs[i++] = flatNormal[1];
                 flattenAttribs[i++] = flatNormal[2];
@@ -326,25 +295,23 @@ void VAO::createVAO(RenderBuffers* renderBuffers, ModelClass classId, Animation*
 
             i = 6;
             for (auto texture : *textures) {
-                float *flat = texture.getFlatBuffer();
+                float *flat         = texture.getFlatBuffer();
                 flattenAttribs[i++] = flat[0];
                 flattenAttribs[i++] = flat[1];
                 i += 6;
             }
         }
 
-        auto boneIndexes = animation->getBoneIndexes();
-        auto boneWeights = animation->getBoneWeights();
-
-        //Now flatten bone indexes and weights out for opengl
-        std::vector<int>* indices = renderBuffers->getIndices();
+        auto boneIndexes           = animation->getBoneIndexes();
+        auto boneWeights           = animation->getBoneWeights();
+        std::vector<int>* indices  = renderBuffers->getIndices();
         size_t boneIndexesBuffSize = indices->size() * 8;
-        float* flattenIndexes = new float[boneIndexesBuffSize];
-        float* flattenWeights = new float[boneIndexesBuffSize];
+        float* flattenIndexes      = new float[boneIndexesBuffSize];
+        float* flattenWeights      = new float[boneIndexesBuffSize];
 
         i = 0; //iterates through vertices indexes
         for (auto vertexIndex : *indices) {
-            auto indexes = (*boneIndexes)[vertexIndex];
+            auto indexes        = (*boneIndexes)[vertexIndex];
             flattenIndexes[i++] = static_cast<float>(indexes[0]);
             flattenIndexes[i++] = static_cast<float>(indexes[1]);
             flattenIndexes[i++] = static_cast<float>(indexes[2]);
@@ -356,7 +323,7 @@ void VAO::createVAO(RenderBuffers* renderBuffers, ModelClass classId, Animation*
         }
         i = 0; //Reset for normal indexes
         for (auto vertexIndex : *indices) {
-            auto weights = (*boneWeights)[vertexIndex];
+            auto weights        = (*boneWeights)[vertexIndex];
             flattenWeights[i++] = weights[0];
             flattenWeights[i++] = weights[1];
             flattenWeights[i++] = weights[2];
@@ -370,16 +337,24 @@ void VAO::createVAO(RenderBuffers* renderBuffers, ModelClass classId, Animation*
         if (EngineManager::getGraphicsLayer() == GraphicsLayer::OPENGL) {
 
             glGenBuffers(1, &_indexContext);
-            glBindBuffer(GL_ARRAY_BUFFER, _indexContext); //Load in vertex buffer context
-                                                          //Load the vertex data into the current vertex context
-            glBufferData(GL_ARRAY_BUFFER, sizeof(float)*boneIndexesBuffSize, flattenIndexes, GL_STATIC_DRAW);
-            glBindBuffer(GL_ARRAY_BUFFER, 0); //Unbind
+            glBindBuffer(GL_ARRAY_BUFFER, _indexContext);
+
+            glBufferData(GL_ARRAY_BUFFER,
+                         sizeof(float)*boneIndexesBuffSize,
+                         flattenIndexes,
+                         GL_STATIC_DRAW);
+
+            glBindBuffer(GL_ARRAY_BUFFER, 0);
 
             glGenBuffers(1, &_weightContext);
-            glBindBuffer(GL_ARRAY_BUFFER, _weightContext); //Load in normal buffer context
-                                                           //Load the normal data into the current normal context
-            glBufferData(GL_ARRAY_BUFFER, sizeof(float)*boneIndexesBuffSize, flattenWeights, GL_STATIC_DRAW);
-            glBindBuffer(GL_ARRAY_BUFFER, 0); //Unbind
+            glBindBuffer(GL_ARRAY_BUFFER, _weightContext);
+
+            glBufferData(GL_ARRAY_BUFFER,
+                         sizeof(float)*boneIndexesBuffSize,
+                         flattenWeights,
+                         GL_STATIC_DRAW);
+
+            glBindBuffer(GL_ARRAY_BUFFER, 0);
         }
         else {
             //IMPLEMENT ME!!!
@@ -506,20 +481,25 @@ void VAO::createVAO(RenderBuffers* renderBuffers, ModelClass classId, Animation*
             byteSize = static_cast<UINT>((triBuffSize + (normals->size() * 3) + (textures->size() * 2)) * sizeof(float));
         }
 
-        _vertexBuffer = new ResourceBuffer(flattenAttribs, byteSize, 
-            DXLayer::instance()->getCmdList(), DXLayer::instance()->getDevice());
+        auto indexBytes = static_cast<UINT>((triBuffSize / 3) * sizeof(uint32_t));
+
+        _vertexBuffer       = new ResourceBuffer(flattenAttribs,
+                                                 byteSize,
+                                                 DXLayer::instance()->getCmdList(),
+                                                 DXLayer::instance()->getDevice());
+
+        _indexBuffer        = new ResourceBuffer(flattenIndexes,
+                                                 indexBytes, 
+                                                 DXLayer::instance()->getCmdList(),
+                                                 DXLayer::instance()->getDevice());
 
         _vbv.BufferLocation = _vertexBuffer->getGPUAddress();
-        _vbv.StrideInBytes = sizeof(Vertex);
-        _vbv.SizeInBytes = byteSize;
-
-        auto indexBytes = static_cast<UINT>((triBuffSize / 3) * sizeof(uint32_t));
-        _indexBuffer = new ResourceBuffer(flattenIndexes, indexBytes, 
-            DXLayer::instance()->getCmdList(), DXLayer::instance()->getDevice());
+        _vbv.StrideInBytes  = sizeof(Vertex);
+        _vbv.SizeInBytes    = byteSize;
 
         _ibv.BufferLocation = _indexBuffer->getGPUAddress();
-        _ibv.Format = DXGI_FORMAT_R32_UINT;
-        _ibv.SizeInBytes = indexBytes;
+        _ibv.Format         = DXGI_FORMAT_R32_UINT;
+        _ibv.SizeInBytes    = indexBytes;
     }
 
     if (EngineManager::getGraphicsLayer() == GraphicsLayer::OPENGL) {
@@ -597,44 +577,33 @@ void VAO::createVAO(RenderBuffers* renderBuffers, ModelClass classId, Animation*
 
 }
 
-void VAO::setPrimitiveOffsetId(GLuint id) {
-    _primitiveOffsetId = id;
-}
-
-GLuint VAO::getPrimitiveOffsetId() {
-    return _primitiveOffsetId;
-}
-
 void VAO::createVAO(RenderBuffers* renderBuffers, int begin, int range) {
+
     
-    auto vertices = renderBuffers->getVertices();
-    auto normals = renderBuffers->getNormals();
-    auto textures = renderBuffers->getTextures();
-    auto indices = renderBuffers->getIndices();
-    auto debugNormals = renderBuffers->getDebugNormals();
+    size_t triBuffSize        = 0;
+    float* flattenVerts       = nullptr;
+    float* flattenNorms       = nullptr;
+    size_t textureBuffSize    = 0;
+    float* flattenTextures    = nullptr;
+    size_t lineBuffSize       = 0;
+    float* flattenNormLines   = nullptr;
+    auto   vertices           = renderBuffers->getVertices();
+    auto   normals            = renderBuffers->getNormals();
+    auto   textures           = renderBuffers->getTextures();
+    auto   indices            = renderBuffers->getIndices();
+    auto   debugNormals       = renderBuffers->getDebugNormals();
 
-    _vertexLength = static_cast<GLuint>(vertices->size());
+   _vertexLength              = static_cast<GLuint>(vertices->size());
+    triBuffSize               = range * 3;
+    flattenVerts              = new float[triBuffSize];
+    flattenNorms              = new float[triBuffSize];
+    textureBuffSize           = range * 2;
+    flattenTextures           = new float[textureBuffSize];
 
-    //Now flatten vertices and normals out for opengl
-    size_t triBuffSize = 0;
-    float* flattenVerts = nullptr; //Only include the x y and z values not w
-    float* flattenNorms = nullptr; //Only include the x y and z values not w, same size as vertices
-    size_t textureBuffSize = 0;
-    float* flattenTextures = nullptr; //Only include the s and t
-    size_t lineBuffSize = 0;
-    float* flattenNormLines = nullptr; //Only include the x y and z values not w, flat line data
-
-   
-    //Now flatten vertices and normals out for opengl
-    triBuffSize = range * 3;
-    flattenVerts = new float[triBuffSize]; //Only include the x y and z values not w
-    flattenNorms = new float[triBuffSize]; //Only include the x y and z values not w, same size as vertices
-    textureBuffSize = range * 2;
-    flattenTextures = new float[textureBuffSize]; //Only include the s and t
     int i = 0; //iterates through vertices indexes
     for (int j = begin; j < begin + range; j++) {
 
-        float *flat = (*vertices)[j].getFlatBuffer();
+        float *flat       = (*vertices)[j].getFlatBuffer();
         flattenVerts[i++] = flat[0];
         flattenVerts[i++] = flat[1];
         flattenVerts[i++] = flat[2];
@@ -642,7 +611,7 @@ void VAO::createVAO(RenderBuffers* renderBuffers, int begin, int range) {
     i = 0; //Reset for normal indexes
     for (int j = begin; j < begin + range; j++) {
 
-        float *flat = (*normals)[j].getFlatBuffer();
+        float *flat       = (*normals)[j].getFlatBuffer();
         flattenNorms[i++] = flat[0];
         flattenNorms[i++] = flat[1];
         flattenNorms[i++] = flat[2];
@@ -650,7 +619,7 @@ void VAO::createVAO(RenderBuffers* renderBuffers, int begin, int range) {
     i = 0; //Reset for texture indexes
     for (int j = begin; j < begin + range; j++) {
 
-        float *flat = (*textures)[j].getFlatBuffer();
+        float *flat          = (*textures)[j].getFlatBuffer();
         flattenTextures[i++] = flat[0];
         flattenTextures[i++] = flat[1];
     }
@@ -731,12 +700,4 @@ void VAO::createVAO(RenderBuffers* renderBuffers, int begin, int range) {
     delete[] flattenNorms;
     delete[] flattenTextures;
 
-}
-
-GLuint VAO::getVAOContext() {
-    return _vaoContext;
-}
-
-GLuint VAO::getVAOShadowContext() {
-    return _vaoShadowContext;
 }

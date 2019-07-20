@@ -14,36 +14,39 @@ ResourceBuffer::ResourceBuffer(const void* initData,
     ComPtr<ID3D12Device>& device) {
 
     device->CreateCommittedResource(&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
-        D3D12_HEAP_FLAG_NONE,
-        &CD3DX12_RESOURCE_DESC::Buffer(byteSize),
-        D3D12_RESOURCE_STATE_COMMON,
-        nullptr,
-        IID_PPV_ARGS(_defaultBuffer.GetAddressOf()));
+                                    D3D12_HEAP_FLAG_NONE,
+                                    &CD3DX12_RESOURCE_DESC::Buffer(byteSize),
+                                    D3D12_RESOURCE_STATE_COMMON,
+                                    nullptr,
+                                    IID_PPV_ARGS(_defaultBuffer.GetAddressOf()));
 
     device->CreateCommittedResource(&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
-        D3D12_HEAP_FLAG_NONE,
-        &CD3DX12_RESOURCE_DESC::Buffer(byteSize),
-        D3D12_RESOURCE_STATE_GENERIC_READ,
-        nullptr,
-        IID_PPV_ARGS(_uploadBuffer.GetAddressOf()));
+                                    D3D12_HEAP_FLAG_NONE,
+                                    &CD3DX12_RESOURCE_DESC::Buffer(byteSize),
+                                    D3D12_RESOURCE_STATE_GENERIC_READ,
+                                    nullptr,
+                                    IID_PPV_ARGS(_uploadBuffer.GetAddressOf()));
 
     D3D12_SUBRESOURCE_DATA subResourceData = {};
-    subResourceData.pData = initData;
-    subResourceData.RowPitch = byteSize;
-    subResourceData.SlicePitch = subResourceData.RowPitch;
+    subResourceData.pData                  = initData;
+    subResourceData.RowPitch               = byteSize;
+    subResourceData.SlicePitch             = subResourceData.RowPitch;
+                                           
+    cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_defaultBuffer.Get(),
+                                                                      D3D12_RESOURCE_STATE_COMMON,
+                                                                      D3D12_RESOURCE_STATE_COPY_DEST));
 
-    cmdList->ResourceBarrier(1,
-        &CD3DX12_RESOURCE_BARRIER::Transition(_defaultBuffer.Get(),
-            D3D12_RESOURCE_STATE_COMMON,
-            D3D12_RESOURCE_STATE_COPY_DEST));
+    UpdateSubresources<1>(cmdList.Get(),
+                          _defaultBuffer.Get(),
+                          _uploadBuffer.Get(),
+                          0,
+                          0,
+                          1,
+                          &subResourceData);
 
-    UpdateSubresources<1>(cmdList.Get(), _defaultBuffer.Get(), _uploadBuffer.Get(),
-        0, 0, 1, &subResourceData);
-
-    cmdList->ResourceBarrier(1,
-        &CD3DX12_RESOURCE_BARRIER::Transition(_defaultBuffer.Get(),
-            D3D12_RESOURCE_STATE_COPY_DEST,
-            D3D12_RESOURCE_STATE_GENERIC_READ));
+    cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_defaultBuffer.Get(),
+                                                                      D3D12_RESOURCE_STATE_COPY_DEST,
+                                                                      D3D12_RESOURCE_STATE_GENERIC_READ));
 }
 
 ResourceBuffer::ResourceBuffer(const void* initData,
@@ -56,19 +59,20 @@ ResourceBuffer::ResourceBuffer(const void* initData,
     UINT alignedWidthInBytes = 0;
 
     if (width*height == 16) {
-        pitchedDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+        pitchedDesc.Format  = DXGI_FORMAT_R32G32B32A32_FLOAT;
         alignedWidthInBytes = width * 4 * sizeof(float);
-        byteSize *= 4;
-        rowPitch *= 4;
+        byteSize            *= 4;
+        rowPitch            *= 4;
     }
     else {
-        pitchedDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
+        pitchedDesc.Format  = DXGI_FORMAT_B8G8R8A8_UNORM;
         alignedWidthInBytes = width * sizeof(DWORD);
     }
-    pitchedDesc.Width = width;
-    pitchedDesc.Height = height;
-    pitchedDesc.Depth = 1;
-    UINT alignment256 = ((alignedWidthInBytes + D3D12_TEXTURE_DATA_PITCH_ALIGNMENT - 1) & ~(D3D12_TEXTURE_DATA_PITCH_ALIGNMENT - 1));
+    pitchedDesc.Width    = width;
+    pitchedDesc.Height   = height;
+    pitchedDesc.Depth    = 1;
+    UINT alignment256    = ((alignedWidthInBytes + D3D12_TEXTURE_DATA_PITCH_ALIGNMENT - 1) &
+                            ~(D3D12_TEXTURE_DATA_PITCH_ALIGNMENT - 1));
     pitchedDesc.RowPitch = alignment256;
 
     if (pitchedDesc.Format == DXGI_FORMAT_B8G8R8A8_UNORM) {
@@ -76,15 +80,15 @@ ResourceBuffer::ResourceBuffer(const void* initData,
             width * height * 4 > byteSize) {
 
             unsigned char* stream = nullptr;
-            int channelCount = 3;
+            int channelCount      = 3;
             if (byteSize == width * height * 4) {
                 channelCount = 4;
             }
 
-            auto byteOffsetPitch = rowPitch - width * channelCount;
-
+            auto byteOffsetPitch      = rowPitch - width * channelCount;
             const unsigned char* data = reinterpret_cast<const unsigned char*>(initData);
-            stream = new unsigned char[pitchedDesc.RowPitch * height];
+            stream                    = new unsigned char[pitchedDesc.RowPitch * height];
+
             for (UINT i = 0; i < height; i++) {
 
                 for (UINT j = 0; j < width; j++) {
@@ -109,16 +113,16 @@ ResourceBuffer::ResourceBuffer(const void* initData,
 
             int channelCount = 4;
 
-            float* stream = nullptr;
+            float* stream     = nullptr;
             const float* data = reinterpret_cast<const float*>(initData);
-            stream = new float[(pitchedDesc.RowPitch * height) / sizeof(float)];
+            stream            = new float[(pitchedDesc.RowPitch * height) / sizeof(float)];
             for (UINT i = 0; i < height; i++) {
 
                 for (UINT j = 0; j < width; j++) {
 
                     for (int k = 0; k < channelCount; k++) {
 
-                        stream[(i*pitchedDesc.RowPitch/sizeof(float))   + (j*channelCount) + k] =
+                        stream[(i*pitchedDesc.RowPitch/sizeof(float)) + (j*channelCount) + k] =
                             data[(i*width*channelCount) + (j*channelCount) + k];
                     }
                 }
@@ -130,54 +134,66 @@ ResourceBuffer::ResourceBuffer(const void* initData,
 
     //Upload texture data to uploadbuffer
     device->CreateCommittedResource(&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
-        D3D12_HEAP_FLAG_NONE,
-        &CD3DX12_RESOURCE_DESC::Buffer(byteSize),
-        D3D12_RESOURCE_STATE_GENERIC_READ,
-        nullptr,
-        IID_PPV_ARGS(_uploadBuffer.GetAddressOf()));
+                                    D3D12_HEAP_FLAG_NONE,
+                                    &CD3DX12_RESOURCE_DESC::Buffer(byteSize),
+                                    D3D12_RESOURCE_STATE_GENERIC_READ,
+                                    nullptr,
+                                    IID_PPV_ARGS(_uploadBuffer.GetAddressOf()));
 
     UINT8* mappedData = nullptr;
     _uploadBuffer->Map(0, nullptr, reinterpret_cast<void**>(&mappedData));
     memcpy(mappedData, initData, byteSize);
     _uploadBuffer->Unmap(0, nullptr);
-    mappedData = nullptr;
+    mappedData        = nullptr;
 
     D3D12_PLACED_SUBRESOURCE_FOOTPRINT placedTexture2D;
     placedTexture2D.Footprint = pitchedDesc;
-    auto alignment512 = ((reinterpret_cast<UINT64>(mappedData) + D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT - 1) & ~(D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT - 1));
-    placedTexture2D.Offset = alignment512 - reinterpret_cast<UINT64>(mappedData);
+    auto alignment512         = ((reinterpret_cast<UINT64>(mappedData) + 
+                                  D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT - 1) &
+                                  ~(D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT - 1));
 
-    device->CreateCommittedResource(
-        &CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
-        D3D12_HEAP_FLAG_NONE,
-        &CD3DX12_RESOURCE_DESC::Tex2D(pitchedDesc.Format, width, height, 1, MIP_LEVELS, 
-            1, 0 , D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS), //default to 8 mip levels for now
-        D3D12_RESOURCE_STATE_COMMON,
-        nullptr,
-        IID_PPV_ARGS(&_defaultBuffer));
+    placedTexture2D.Offset    = alignment512 - reinterpret_cast<UINT64>(mappedData);
 
-    cmdList->ResourceBarrier(1,
-        &CD3DX12_RESOURCE_BARRIER::Transition(_defaultBuffer.Get(),
-            D3D12_RESOURCE_STATE_COMMON,
-            D3D12_RESOURCE_STATE_COPY_DEST));
-
-    cmdList->CopyTextureRegion(
-        &CD3DX12_TEXTURE_COPY_LOCATION(_defaultBuffer.Get(), 0),
-        0, 0, 0,
-        &CD3DX12_TEXTURE_COPY_LOCATION(_uploadBuffer.Get(), placedTexture2D),
-        nullptr);
+    device->CreateCommittedResource(&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
+                                    D3D12_HEAP_FLAG_NONE,
+                                    &CD3DX12_RESOURCE_DESC::Tex2D(pitchedDesc.Format, 
+                                                                  width,
+                                                                  height,
+                                                                  1,
+                                                                  MIP_LEVELS, 
+                                                                  1,
+                                                                  0,
+                                                                  D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS),
+                                    D3D12_RESOURCE_STATE_COMMON,
+                                    nullptr,
+                                    IID_PPV_ARGS(&_defaultBuffer));
 
     cmdList->ResourceBarrier(1,
-        &CD3DX12_RESOURCE_BARRIER::Transition(_defaultBuffer.Get(),
-            D3D12_RESOURCE_STATE_COPY_DEST,
-            D3D12_RESOURCE_STATE_GENERIC_READ));
+                             &CD3DX12_RESOURCE_BARRIER::Transition(_defaultBuffer.Get(),
+                             D3D12_RESOURCE_STATE_COMMON,
+                             D3D12_RESOURCE_STATE_COPY_DEST));
+
+    cmdList->CopyTextureRegion(&CD3DX12_TEXTURE_COPY_LOCATION(_defaultBuffer.Get(), 0),
+                               0,
+                               0,
+                               0,
+                               &CD3DX12_TEXTURE_COPY_LOCATION(_uploadBuffer.Get(), placedTexture2D),
+                               nullptr);
+
+    cmdList->ResourceBarrier(1,
+                             &CD3DX12_RESOURCE_BARRIER::Transition(_defaultBuffer.Get(),
+                             D3D12_RESOURCE_STATE_COPY_DEST,
+                             D3D12_RESOURCE_STATE_GENERIC_READ));
 }
 
-ResourceBuffer::ResourceBuffer(const void* initData, UINT count,
-    UINT byteSize, UINT width, UINT height,
-    UINT rowPitch,
-    ComPtr<ID3D12GraphicsCommandList>& cmdList,
-    ComPtr<ID3D12Device>& device) {
+ResourceBuffer::ResourceBuffer(const void* initData,
+                               UINT count,
+                               UINT byteSize,
+                               UINT width,
+                               UINT height,
+                               UINT rowPitch,
+                               ComPtr<ID3D12GraphicsCommandList>& cmdList,
+                               ComPtr<ID3D12Device>& device) {
 
     D3D12_SUBRESOURCE_FOOTPRINT pitchedDesc;
     pitchedDesc.Width = width;

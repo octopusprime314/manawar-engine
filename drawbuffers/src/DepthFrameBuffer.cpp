@@ -1,7 +1,8 @@
 #include "DepthFrameBuffer.h"
 #include "EngineManager.h"
 
-DepthFrameBuffer::DepthFrameBuffer(unsigned int width, unsigned int height) :
+DepthFrameBuffer::DepthFrameBuffer(uint32_t width,
+                                   uint32_t height) :
     _renderTexture(width, height, TextureFormat::DEPTH32_FLOAT) {
 
     if (EngineManager::getGraphicsLayer() == GraphicsLayer::OPENGL) {
@@ -13,7 +14,10 @@ DepthFrameBuffer::DepthFrameBuffer(unsigned int width, unsigned int height) :
 
         //Finally attach the texture to the previously generated frame buffer
         //the texture will be used in later shader texture sampling
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, _renderTexture.getContext(), 0);
+        glFramebufferTexture2D(GL_FRAMEBUFFER,
+                               GL_DEPTH_ATTACHMENT,
+                               GL_TEXTURE_2D,
+                               _renderTexture.getContext(), 0);
 
         //Tells opengl that the frame buffer will not have a color buffer
         glDrawBuffer(GL_NONE);

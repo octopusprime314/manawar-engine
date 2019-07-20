@@ -33,42 +33,38 @@ using namespace Microsoft::WRL;
 
 class DXLayer {
 public:
-    
-    ~DXLayer();
 
-    static DXLayer*                   instance();
     static void                       initialize(HINSTANCE hInstance, int cmdShow);
-    void                              initCmdLists();
-
+    void                              present(Texture* renderTexture);
+    bool                              supportsRayTracing();
     void                              flushCommandList();
     void                              fenceCommandList();
-    void                              present(Texture* renderTexture);
-    
     ComPtr<ID3D12CommandAllocator>    getCmdAllocator();
+    UINT                              getCmdListIndex();
+    void                              initCmdLists();
     ComPtr<ID3D12CommandQueue>        getCmdQueue();
     ComPtr<ID3D12GraphicsCommandList> getCmdList();
-    UINT                              getCmdListIndex();
     ComPtr<ID3D12Device>              getDevice();
-    bool                              supportsRayTracing();
+    static DXLayer*                   instance();
 
 private:
-    DXLayer(HINSTANCE hInstance, int cmdShow);
+    DXLayer(HINSTANCE hInstance,
+            int cmdShow);
+    ~DXLayer();
 
-    PresentTarget*                    _presentTarget;
-    ComPtr<ID3D12Device>              _device;
-    ComPtr<ID3D12CommandAllocator>    _cmdAllocator;
+    const DXGI_FORMAT                 _rtvFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
+    int                               _cmdListFenceValues[CMD_LIST_NUM];
     ComPtr<ID3D12GraphicsCommandList> _cmdLists[CMD_LIST_NUM];
+    bool                              _rayTracingEnabled;
+    int                               _nextFenceValue;
+    PresentTarget*                    _presentTarget;
+    ComPtr<ID3D12CommandAllocator>    _cmdAllocator;
     ComPtr<ID3D12Fence>               _cmdListFence;
+    int                               _cmdListIndex;
     ComPtr<ID3D12CommandQueue>        _cmdQueue;
+    int                               _cmdShow;
+    static DXLayer*                   _dxLayer;
+    ComPtr<ID3D12Device>              _device;
     HWND                              _window;
     HANDLE                            _event;
-    int                               _cmdShow;
-    int                               _cmdListIndex;
-    int                               _nextFenceValue;
-    int                               _cmdListFenceValues[CMD_LIST_NUM];
-    bool                              _rayTracingEnabled;
-
-    static DXLayer*                   _dxLayer;
-    const DXGI_FORMAT                 _rtvFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
-
 };

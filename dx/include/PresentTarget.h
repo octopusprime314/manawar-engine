@@ -20,14 +20,16 @@ class PresentTarget {
     D3D12_RECT                   _rectScissor;
 
 public:
-    PresentTarget(ComPtr<ID3D12Device> device,
-                  DXGI_FORMAT format,
-                  ComPtr<ID3D12CommandQueue> cmdQueue,
-                  int width, int height, HWND window);
+    PresentTarget(    ComPtr<ID3D12Device> device,
+                      DXGI_FORMAT format,
+                      ComPtr<ID3D12CommandQueue> cmdQueue,
+                      int width,
+                      int height,
+                      HWND window);
 
-    void bindTarget(ComPtr<ID3D12Device> device,
-                    ComPtr<ID3D12GraphicsCommandList> cmdList,
-                    int swapchainIndex);
+    void bindTarget(  ComPtr<ID3D12Device> device,
+                      ComPtr<ID3D12GraphicsCommandList> cmdList,
+                      int swapchainIndex);
 
     void unbindTarget(ComPtr<ID3D12GraphicsCommandList> cmdList,
                       int swapchainIndex);

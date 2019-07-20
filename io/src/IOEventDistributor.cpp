@@ -52,9 +52,9 @@ IOEventDistributor::IOEventDistributor(int* argc,
         int monitorResoltuionY = mode->height;
 
         //WINDOWED MODE
-        _window = glfwCreateWindow(monitorResoltuionX, monitorResoltuionY, "ReBoot", NULL, NULL);
+        _window = glfwCreateWindow(monitorResoltuionX, monitorResoltuionY, "manawar-engine", NULL, NULL);
         //FULLSCREEN MODE
-        //_window = glfwCreateWindow(viewportWidth, viewportHeight, "ReBoot", glfwGetPrimaryMonitor(), NULL);
+        //_window = glfwCreateWindow(viewportWidth, viewportHeight, "manawar-engine", glfwGetPrimaryMonitor(), NULL);
         if (!_window) {
             // Window or OpenGL context creation failed
             // The error callback above will tell us what happened.

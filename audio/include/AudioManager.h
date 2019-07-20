@@ -33,6 +33,6 @@ public:
     FMOD_RESULT      startAll();
 
 private:
-    FMOD::System*   _system;
-    BackgroundTheme _backgroundTheme;
+    FMOD::System*    _system;
+    BackgroundTheme  _backgroundTheme;
 };

@@ -83,9 +83,9 @@ std::vector<int>* RenderBuffers::getIndices() {
     return &_indices;
 }
 void RenderBuffers::clearBuffers() {
-    _vertices.resize(0);
-    _normals.resize(0);
-    _textures.resize(0);
+    _vertices    .resize(0);
+    _normals     .resize(0);
+    _textures    .resize(0);
     _debugNormals.resize(0);
-    _indices.resize(0);
+    _indices     .resize(0);
 }

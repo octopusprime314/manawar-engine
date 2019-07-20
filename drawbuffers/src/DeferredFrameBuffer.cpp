@@ -3,8 +3,12 @@
 #include "EngineManager.h"
 
 DeferredFrameBuffer::DeferredFrameBuffer() :
-    _renderTexture(IOEventDistributor::screenPixelWidth, IOEventDistributor::screenPixelHeight, TextureFormat::RGBA_UNSIGNED_BYTE),
-    _depthTexture(IOEventDistributor::screenPixelWidth, IOEventDistributor::screenPixelHeight, TextureFormat::DEPTH32_FLOAT) {
+    _renderTexture(IOEventDistributor::screenPixelWidth,
+                   IOEventDistributor::screenPixelHeight,
+                   TextureFormat::RGBA_UNSIGNED_BYTE),
+    _depthTexture( IOEventDistributor::screenPixelWidth,
+                   IOEventDistributor::screenPixelHeight,
+                   TextureFormat::DEPTH32_FLOAT) {
 
     if (EngineManager::getGraphicsLayer() == GraphicsLayer::OPENGL) {
         //Generate a context for the frame buffer
@@ -15,19 +19,31 @@ DeferredFrameBuffer::DeferredFrameBuffer() :
 
         //Finally attach the texture to the previously generated frame buffer
         //the texture will be used in later shader texture sampling
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _renderTexture.getContext(), 0);
+        glFramebufferTexture2D(   GL_FRAMEBUFFER,
+                                  GL_COLOR_ATTACHMENT0,
+                                  GL_TEXTURE_2D,
+                                  _renderTexture.getContext(),
+                                  0);
 
-        //Needs to attach a depth render buffer to the frame buffer object!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        //I got hosed on this super hard!!!!!!!!!!!!!!!!!!!!!!!!!
-        GLuint depth_stencil_rb;
-        glGenRenderbuffers(1, &depth_stencil_rb);
-        glBindRenderbuffer(GL_RENDERBUFFER, depth_stencil_rb);
-        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, _renderTexture.getWidth(), _renderTexture.getHeight());
+        //Needs to attach a depth render buffer to the frame buffer object
+        GLuint depthStencilRB;
+        glGenRenderbuffers(1, &depthStencilRB);
+        glBindRenderbuffer(GL_RENDERBUFFER, depthStencilRB);
+        glRenderbufferStorage(    GL_RENDERBUFFER,
+                                  GL_DEPTH24_STENCIL8,
+                                  _renderTexture.getWidth(),
+                                  _renderTexture.getHeight());
 
         //Attach depth buffer to FBO
-        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depth_stencil_rb);
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER,
+                                  GL_DEPTH_ATTACHMENT,
+                                  GL_RENDERBUFFER,
+                                  depthStencilRB);
         //Attach stencil buffer to FBO
-        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, depth_stencil_rb);
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER,
+                                  GL_STENCIL_ATTACHMENT,
+                                  GL_RENDERBUFFER,
+                                  depthStencilRB);
 
         //check the frame buffer's health
         GLuint status = glCheckFramebufferStatus(GL_FRAMEBUFFER);

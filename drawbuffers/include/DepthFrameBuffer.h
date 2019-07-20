@@ -31,7 +31,8 @@ class DepthFrameBuffer {
     RenderTexture _renderTexture;
 
 public:
-    DepthFrameBuffer(unsigned int width, unsigned int height);
+    DepthFrameBuffer(uint32_t width,
+                     uint32_t height);
     ~DepthFrameBuffer();
     GLuint        getFrameBufferContext();
     GLuint        getTextureContext();

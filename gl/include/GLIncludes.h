@@ -53,11 +53,14 @@ extern volatile bool g_AssertOnBadOpenGlCall;
     bool anyErrors = false;                                                    \
     while ((glError = glGetError()) != GL_NO_ERROR) {                          \
         anyErrors = true;                                                      \
-        printf("[OpenGL] Error code 0x%X in %s(): %s:%d\n",                    \
-            (int)glError,                                                      \
-            __func__,                                                          \
-            __FILE__,                                                          \
-            __LINE__);                                                         \
+        char msg[1024];                                                        \
+        sprintf(msg,                                                           \
+                "[OpenGL] Error code 0x%X in %s(): %s:%d\n",                   \
+                (int)glError,                                                  \
+                __func__,                                                      \
+                __FILE__,                                                      \
+                __LINE__);                                                     \
+        OutputDebugString(msg);                                                \
     }                                                                          \
     if (g_AssertOnBadOpenGlCall) {                                             \
         assert(!anyErrors && "One or more OpenGL calls generated an error");   \

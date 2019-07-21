@@ -20,7 +20,7 @@ AnimatedModel::AnimatedModel(std::string name) :
     //Populate model with fbx file data and recursivelty search with the root node of the scene
     geometryLoader.loadGeometry(this, geometryLoader.getScene()->GetRootNode());
 
-    _fbxLoader->buildAABB(this);
+    _fbxLoader->buildCollisionAABB(this);
 
     //Override default shader with a bone animation shader
     _shaderProgram = static_cast<AnimationShader*>(ShaderBroker::instance()->getShader("animatedShader"));

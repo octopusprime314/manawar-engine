@@ -82,19 +82,28 @@ void Uniforms::updateUniform(std::string uniformName, void* value) {
     }
     case GL_FLOAT_MAT4:
     {
-        //Transform to right handed prior to supplying to opengl so cast and transform
-        Matrix leftHandedMatrix(static_cast<float*>(value));
-        //We need to transform only the view space
-        bool isViewMatrix = false;
-        if (uniformName.find("view") != std::string::npos || uniformName.find("View") != std::string::npos ||
-            uniformName.find("normal") != std::string::npos || uniformName.find("Normal") != std::string::npos) {
-            isViewMatrix = true;
+        Matrix rightHandedMatrix;
+
+        //If we do have bone matrices then skip opengl coordinate system 
+        if (uniformName.find("bone") == std::string::npos) {
+
+            //Transform to right handed prior to supplying to opengl so cast and transform
+            Matrix leftHandedMatrix(static_cast<float*>(value));
+            //We need to transform only the view space
+            bool isViewMatrix = false;
+            if (uniformName.find("view") != std::string::npos || uniformName.find("View") != std::string::npos ||
+                uniformName.find("normal") != std::string::npos || uniformName.find("Normal") != std::string::npos) {
+                isViewMatrix = true;
+            }
+
+            rightHandedMatrix = Matrix::convertToRightHanded(leftHandedMatrix, isViewMatrix);
+            value = rightHandedMatrix.getFlatBuffer();
         }
-        Matrix rightHandedMatrix = Matrix::convertToRightHanded(leftHandedMatrix, isViewMatrix);
+
         glUniformMatrix4fv(_uniformMap[uniformName].location,
                            _uniformMap[uniformName].size,
                            GL_TRUE,
-                           static_cast<GLfloat*>(rightHandedMatrix.getFlatBuffer()));
+                           static_cast<GLfloat*>(value));
         break;
     }
     default:

@@ -924,7 +924,6 @@ void FbxLoader::loadGeometryData(Model* model, FbxMesh* meshNode, FbxNode* child
 
 void FbxLoader::loadModelData(Model* model, FbxMesh* meshNode, FbxNode* childNode) {
 
-    
     //Get the indices from the mesh
     int* indices = nullptr;
     _loadIndices(model, meshNode, indices);
@@ -948,7 +947,50 @@ void FbxLoader::loadModelData(Model* model, FbxMesh* meshNode, FbxNode* childNod
     _buildModelData(model, meshNode, childNode, vertices, normals, textures);
 }
 
-void FbxLoader::buildAABB(Model* model) {
+void FbxLoader::buildGfxAABB(Model* model, Matrix scale) {
+
+    //Choose a min and max in either x y or z and that will be the diameter of the sphere
+    float min[3] = { (std::numeric_limits<float>::max)(), (std::numeric_limits<float>::max)(), (std::numeric_limits<float>::max)() };
+    float max[3] = { (std::numeric_limits<float>::min)(), (std::numeric_limits<float>::min)(), (std::numeric_limits<float>::min)() };
+
+    auto renderBuffers = model->getRenderBuffers();
+    auto vertices      = renderBuffers->getVertices();
+    for (Vector4 vertex : *vertices) {
+
+        Vector4 scaledVertex = scale * vertex;
+        float* a             = scaledVertex.getFlatBuffer();
+
+        if (a[0] < min[0]) {
+            min[0] = a[0];
+        }
+        if (a[0] > max[0]) {
+            max[0] = a[0];
+        }
+
+        if (a[1] < min[1]) {
+            min[1] = a[1];
+        }
+        if (a[1] > max[1]) {
+            max[1] = a[1];
+        }
+
+        if (a[2] < min[2]) {
+            min[2] = a[2];
+        }
+        if (a[2] > max[2]) {
+            max[2] = a[2];
+        }
+    }
+
+    float xCenter  = min[0] + ((max[0] - min[0]) / 2.0f);
+    float yCenter  = min[1] + ((max[1] - min[1]) / 2.0f);
+    float zCenter  = min[2] + ((max[2] - min[2]) / 2.0f);
+    Vector4 center = Vector4(xCenter, yCenter, zCenter);
+    //Currently tree bounding collision data
+    model->setGfxAABB(new Cube(max[0] - min[0], max[1] - min[1], max[2] - min[2], center));
+}
+
+void FbxLoader::buildCollisionAABB(Model* model) {
     
     //Choose a min and max in either x y or z and that will be the diameter of the sphere
     float min[3] = { (std::numeric_limits<float>::max)(), (std::numeric_limits<float>::max)(), (std::numeric_limits<float>::max)() };
@@ -1143,8 +1185,10 @@ void FbxLoader::_buildModelData(Model* model, FbxMesh* meshNode, FbxNode* childN
         Matrix translation = Matrix::translation(static_cast<float>(TBuff[0]), static_cast<float>(TBuff[1]), static_cast<float>(TBuff[2]));
         Matrix scale = Matrix::scale(static_cast<float>(SBuff[0]), static_cast<float>(SBuff[1]), static_cast<float>(SBuff[2]));
 
-        Matrix transformation = translation * rotation;// *scale;
+        Matrix transformation = translation * rotation * scale;
         _objectSpaceTransform = transformation;
+
+        buildGfxAABB(model, scale);
     }
     else if (model->getClassType() == ModelClass::ModelType) {
         //Load in the entire model once if the data is not animated
@@ -1223,7 +1267,7 @@ void FbxLoader::_loadTextureUVs(FbxMesh* meshNode, std::vector<Tex2>& textures) 
     }
 }
 
-void FbxLoader::_generateTextureStrides(FbxMesh* meshNode, std::vector<std::pair<int, int>>& textureStrides) {
+void FbxLoader::_generateTextureStrides(FbxMesh* meshNode, TextureStrides& textureStrides) {
     //Get material element info
     FbxLayerElementMaterial* pLayerMaterial = meshNode->GetLayer(0)->GetMaterials();
     //Get material mapping info
@@ -1485,40 +1529,9 @@ void FbxLoader::_buildTriangles(Model* model, std::vector<Vector4>& vertices, st
         renderBuffers->addDebugNormal((C) + (rotation * CN));
         renderBuffers->addTextureMapIndex(flattenStrides[triCount]);
         triCount++;
-
-        float* a = A.getFlatBuffer();
-        float* b = B.getFlatBuffer();
-        float* c = C.getFlatBuffer();
-
-        for (int i = 0; i < 3; i++) {
-            if (a[i] < min[i]) {
-                min[i] = a[i];
-            }
-            if (a[i] > max[i]) {
-                max[i] = a[i];
-            }
-
-            if (b[i] < min[i]) {
-                min[i] = b[i];
-            }
-            if (b[i] > max[i]) {
-                max[i] = b[i];
-            }
-
-            if (c[i] < min[i]) {
-                min[i] = c[i];
-            }
-            if (c[i] > max[i]) {
-                max[i] = c[i];
-            }
-        }
-
     }
-
-    float xCenter = min[0] + ((max[0] - min[0]) / 2.0f);
-    float yCenter = min[1] + ((max[1] - min[1]) / 2.0f);
-    float zCenter = min[2] + ((max[2] - min[2]) / 2.0f);
-    Vector4 center(xCenter, yCenter, zCenter);
-    model->setGfxAABB(new Cube(max[0] - min[0], max[1] - min[1], max[2] - min[2], center));
+    //Scale is already factored into the render buffer geomertry we pass to buildGfxAABB
+    Matrix fakeScale = Matrix::scale(1.0, 1.0, 1.0);
+    buildGfxAABB(model, fakeScale);
 }
 

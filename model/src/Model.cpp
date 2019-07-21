@@ -48,9 +48,9 @@ Model::Model(std::string name, ModelClass classId) :
         //Populate model with fbx file data and recursivelty search with the root node of the scene
         geometryLoader.loadGeometry(this, geometryLoader.getScene()->GetRootNode());
 
-        //Still need to create this vao soley for shadowsq
+        //Still need to create this vao soley for shadows
         _vao[0]->createVAO(&_renderBuffers, ModelClass::ModelType);
-        _fbxLoader->buildAABB(this);
+        _fbxLoader->buildCollisionAABB(this);
     }
     else if (_classId == ModelClass::AnimatedModelType) {
 

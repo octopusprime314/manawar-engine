@@ -80,12 +80,11 @@ bool FrustumCuller::getVisibleAABB(Entity* entity, Matrix inverseViewProjection)
     std::vector<Vector4> frustumPlanes;
     GeometryMath::getFrustumPlanes(inverseViewProjection, frustumPlanes);
 
-    Cube*   entityAABB  = entity->getModel()->getGfxAABB();
-
-    Matrix trans   = entity->getWorldSpaceTransform();
-    Vector4 center = trans * (entityAABB->getCenter() + entity->getStateVector()->getLinearPosition());
-    
-    float* buffer = entity->getWorldSpaceTransform().getFlatBuffer();
+    Cube*   entityAABB = entity->getModel()->getGfxAABB();
+    Matrix  trans      = entity->getWorldSpaceTransform();
+    Vector4 center     = trans * (entityAABB->getCenter() +
+                                  entity->getStateVector()->getLinearPosition());
+    float* buffer      = entity->getWorldSpaceTransform().getFlatBuffer();
 
     Vector4 A = Vector4(buffer[0], buffer[1], buffer[2]);
     Vector4 B = Vector4(buffer[4], buffer[5], buffer[6]);

@@ -4,15 +4,15 @@
 #include "IOEventDistributor.h"
 
 Picker::Picker(MRTFrameBuffer* mrt,
-    std::function<bool(Vector4, bool)> terminalCallback,
-    std::function<bool(Entity*)>       mouseDeleteCallback) :
-    _mrt(mrt),
-    _textureSelection(0),
-    _mouseCallback(terminalCallback),
-    _mouseDeleteCallback(mouseDeleteCallback),
-    _pickingRadius(0),
-    _leftMousePressed(false),
-    _idBufferCache(nullptr) {
+               std::function<bool(Vector4, bool)> terminalCallback,
+               std::function<bool(Entity*)>       mouseDeleteCallback) :
+               _mrt(mrt),
+               _textureSelection(0),
+               _mouseCallback(terminalCallback),
+               _mouseDeleteCallback(mouseDeleteCallback),
+               _pickingRadius(0),
+               _leftMousePressed(false),
+               _idBufferCache(nullptr) {
     IOEvents::subscribeToMouseClick(std::bind(&Picker::_mouseClick, this, _1, _2, _3, _4));
     IOEvents::subscribeToMouse(std::bind(&Picker::_mouseMove, this, _1, _2));
     IOEvents::subscribeToKeyboard(std::bind(&Picker::_keyboardPress, this, _1, _2, _3));

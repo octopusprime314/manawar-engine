@@ -195,7 +195,6 @@ void ModelBroker::updateModel(std::string modelName) {
             _models[upperCaseMapName]->updateModel(model);
             delete model;
         }
-
     }
     else {
         std::cout << "Model doesn't exist so add it!" << std::endl;
@@ -218,7 +217,7 @@ void ModelBroker::_gatherModelNames() {
                     fileName != "." && 
                     fileName != ".." && 
                     fileName.find(".ini") == std::string::npos) {
-                   
+
                     DIR *subDir;
                     struct dirent *subEnt;
                     if ((subDir = opendir((STATIC_MESH_LOCATION + fileName).c_str())) != nullptr) {
@@ -252,16 +251,24 @@ void ModelBroker::_gatherModelNames() {
             if (*ent->d_name) {
                 std::string fileName = std::string(ent->d_name);
 
-                if (!fileName.empty() &&
-                    fileName != "." &&
-                    fileName != ".." &&
-                    fileName.find(".ini") == std::string::npos) {
+                DIR *subDir;
+                struct dirent *subEnt;
+                if ((subDir = opendir((ANIMATED_MESH_LOCATION + fileName).c_str())) != nullptr) {
+                    while ((subEnt = readdir(subDir)) != nullptr) {
 
-                    LOG_INFO(ent->d_name, "\n");
+                        if (*subEnt->d_name) {
+                            LOG_INFO(subEnt->d_name, "\n");
 
-                    std::string mapName = fileName + "/" + fileName + ".fbx";
-                    _models[_strToUpper(fileName)] = static_cast<Model*>(new AnimatedModel(ANIMATED_MESH_LOCATION + mapName));
-                    _modelNames.push_back(_strToUpper(fileName));
+                            std::string lodFile = std::string(subEnt->d_name);
+                            if (lodFile.find("lod") != std::string::npos) {
+                                std::string mapName = fileName + "/" + lodFile;
+                                lodFile = lodFile.substr(0, lodFile.size() - 4);
+                                _models[_strToUpper(lodFile)] = 
+                                    static_cast<Model*>(new AnimatedModel(ANIMATED_MESH_LOCATION + mapName));
+                                _modelNames.push_back(_strToUpper(lodFile));
+                            }
+                        }
+                    }
                 }
             }
         }

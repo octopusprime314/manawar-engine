@@ -22,7 +22,7 @@ Entity::Entity(Model* model, ViewEvents* eventWrapper, MVP transforms) :
     _mvp.setView(transforms.getViewMatrix());
 
     if (_model->getClassType() == ModelClass::AnimatedModelType) {
-        _state.setActive(true); //initialize animations to be active
+        //_state.setActive(true); //initialize animations to be active
         
         //Hook up to framerate update for proper animation progression
         _clock->subscribeAnimationRate(std::bind(&Entity::_updateAnimation, this, std::placeholders::_1));
@@ -313,38 +313,27 @@ std::vector<VAO*>* Entity::getFrustumVAO() {
                        _worldSpaceTransform.getFlatBuffer()[11]);
     auto model = ModelBroker::instance()->getModel(_model->getName(), pos);
 
-    //If not subdividing space using a frustum culler then retrieve whole of geometry
-    if (_frustumCuller->getOSP() == nullptr) {
-        if (_frustumCuller->getVisibleVAO(this)) {
-            return model->getVAO();
-        }
-        else {
-            return new std::vector<VAO*>(); //empty
+    if (_gameState.frustumVisualEnabled) {
+        auto vaoIndexes = _frustumCuller->getVisibleVAOs();
+        _frustumVAOs.clear();
+        for (auto vaoIndex : vaoIndexes) {
+            for (auto vao : _frustumVAOMapping[vaoIndex]) {
+                _frustumVAOs.push_back(vao);
+            }
         }
     }
     else {
-        if (_gameState.frustumVisualEnabled) {
-            auto vaoIndexes = _frustumCuller->getVisibleVAOs();
-            _frustumVAOs.clear();
-            for (auto vaoIndex : vaoIndexes) {
-                for (auto vao : _frustumVAOMapping[vaoIndex]) {
-                    _frustumVAOs.push_back(vao);
-                }
-            }
+        _frustumVAOs.clear();
+        auto addedVAOs = model->getVAO();
+        //Do not add the original non frustum culled vao that needs to be used for shadows only
+        int i = 0;
+        for (auto vaoIndex : *addedVAOs) {
+            _frustumVAOs.push_back(vaoIndex);
+            i++;
         }
-        else {
-            _frustumVAOs.clear();
-            auto addedVAOs = model->getVAO();
-            //Do not add the original non frustum culled vao that needs to be used for shadows only
-            int i = 0;
-            for (auto vaoIndex : *addedVAOs) {
-                _frustumVAOs.push_back(vaoIndex);
-                i++;
-            }
-        }
-
-        return &_frustumVAOs;
     }
+    return &_frustumVAOs;
+
 }
 
 FrustumCuller* Entity::getFrustumCuller() {

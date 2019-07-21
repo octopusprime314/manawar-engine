@@ -83,13 +83,13 @@ EngineManager::EngineManager(int* argc, char** argv, HINSTANCE hInstance, int nC
     ModelBroker::instance()->buildModels();
 
     //Setup pre and post draw callback events received when a draw call is issued
-    IOEvents::setPreDrawCallback(std::bind(&EngineManager::_preDraw, this));
+    IOEvents::setPreDrawCallback( std::bind(&EngineManager::_preDraw, this));
     IOEvents::setPostDrawCallback(std::bind(&EngineManager::_postDraw, this));
 
     auto modelBroker = ModelBroker::instance();
 
     //Add a static model to the scene
-    //_entityList.push_back(new Entity(modelBroker->getModel("werewolf"), _viewManager->getEventWrapper()));
+    //_entityList.push_back(new Entity(modelBroker->getModel("wolf"), _viewManager->getEventWrapper()));
 
     _deferredRenderer = new DeferredRenderer();
     _forwardRenderer  = new ForwardRenderer();

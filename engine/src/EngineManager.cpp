@@ -44,15 +44,15 @@ Entity*              EngineManager::_shadowEntity = nullptr;
 
 EngineManager::EngineManager(int* argc, char** argv, HINSTANCE hInstance, int nCmdShow) {
 
-    _graphicsLayer = GraphicsLayer::OPENGL;
+    _graphicsLayer = GraphicsLayer::DX12;
     if (_graphicsLayer == GraphicsLayer::DX12) {
         DXLayer::initialize(hInstance, nCmdShow);
     }
 
     // disable raytracing until i find a way to not tank performance for shadows
-    _useRaytracing = false;
-                     //(_graphicsLayer == GraphicsLayer::DX12 ? true : false) &&
-                     //DXLayer::instance()->supportsRayTracing();
+    _useRaytracing = //false;
+                     (_graphicsLayer == GraphicsLayer::DX12 ? true : false) &&
+                     DXLayer::instance()->supportsRayTracing();
 
     _inputLayer = new IOEventDistributor(   argc,
                                             argv,
@@ -295,11 +295,11 @@ void EngineManager::_preDraw() {
     if (_graphicsLayer == GraphicsLayer::DX12) {
 
         if (_useRaytracing) {
-            _rayTracingPipeline->doRayTracing(_entityList[0], _lightList[1]);
+            _rayTracingPipeline->doRayTracing(_entityList[0], _lightList[0]);
             //DXLayer::instance()->present(_rayTracingPipeline->getRayTracingTarget());
 
             auto depthTexture = static_cast<RenderTexture*>((
-                static_cast<ShadowedDirectionalLight*>(_lightList[1]))->getDepthTexture());
+                static_cast<ShadowedDirectionalLight*>(_lightList[0]))->getDepthTexture());
 
             std::vector<RenderTexture> textures = { *depthTexture };
             HLSLShader::setOM(textures,

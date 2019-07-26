@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.5)
-project(ReBoot)
-set(VS_STARTUP_VERSION ReBoot)
+project(manawar-engine)
+set(VS_STARTUP_VERSION manawar-engine)
 
 include(InstallRequiredSystemLibraries)
 
@@ -59,7 +59,7 @@ if (NOT IS_DIRECTORY "${CMAKE_SOURCE_DIR}/dx")
     message(WARNING "Missing directory ${CMAKE_SOURCE_DIR}/dx")
 endif()
 
-set(CMAKE_INSTALL_PREFIX "${CMAKE_SOURCE_DIR}/ReBoot-dist")
+set(CMAKE_INSTALL_PREFIX "${CMAKE_SOURCE_DIR}/manawar-engine-dist")
 
 include_directories("${CMAKE_SOURCE_DIR}/libs/glfw/include")
 include_directories("${CMAKE_SOURCE_DIR}/libs/fbx-sdk/include")
@@ -137,7 +137,7 @@ source_group("shaders/hlsl"  FILES 	${HLSL_SHADER_FILES})
 source_group("view"          FILES 	${VIEW_HEADER_FILES} ${VIEW_SRC_FILES})
 source_group("dx"            FILES 	${DX_HEADER_FILES} ${DX_SRC_FILES})
 
-add_executable(ReBoot
+add_executable(manawar-engine
     # WIN32
                 ${MODEL_SRC_FILES}
                 ${PHYSICS_SRC_FILES}
@@ -174,7 +174,7 @@ add_executable(ReBoot
 				${DX_HEADER_FILES}
 				${DX_SRC_FILES})
 
-target_compile_features(ReBoot PRIVATE cxx_range_for)
+target_compile_features(manawar-engine PRIVATE cxx_range_for)
 
 if (MSVC)
 	add_definitions(-D_CRT_SECURE_NO_WARNINGS)
@@ -183,14 +183,14 @@ if (MSVC)
 	set_source_files_properties(${HLSL_SHADER_FILES} PROPERTIES VS_TOOL_OVERRIDE "None")
 endif()
 
-target_link_libraries(ReBoot           legacy_stdio_definitions.lib)
-target_link_libraries(ReBoot           ${CMAKE_SOURCE_DIR}/libs/FreeImage/lib/FreeImage.lib)
-target_link_libraries(ReBoot           ${CMAKE_SOURCE_DIR}/libs/glfw/lib/glfw3.lib)
-target_link_libraries(ReBoot debug     ${CMAKE_SOURCE_DIR}/libs/fbx-sdk/lib/debug/libfbxsdk-md.lib)
-target_link_libraries(ReBoot optimized ${CMAKE_SOURCE_DIR}/libs/fbx-sdk/lib/release/libfbxsdk-md.lib)
-target_link_libraries(ReBoot           ${CMAKE_SOURCE_DIR}/libs/fmod/lowlevel/lib/fmod64_vc.lib)
+target_link_libraries(manawar-engine           legacy_stdio_definitions.lib)
+target_link_libraries(manawar-engine           ${CMAKE_SOURCE_DIR}/libs/FreeImage/lib/FreeImage.lib)
+target_link_libraries(manawar-engine           ${CMAKE_SOURCE_DIR}/libs/glfw/lib/glfw3.lib)
+target_link_libraries(manawar-engine debug     ${CMAKE_SOURCE_DIR}/libs/fbx-sdk/lib/debug/libfbxsdk-md.lib)
+target_link_libraries(manawar-engine optimized ${CMAKE_SOURCE_DIR}/libs/fbx-sdk/lib/release/libfbxsdk-md.lib)
+target_link_libraries(manawar-engine           ${CMAKE_SOURCE_DIR}/libs/fmod/lowlevel/lib/fmod64_vc.lib)
 
-install(TARGETS ReBoot RUNTIME DESTINATION bin)
+install(TARGETS manawar-engine RUNTIME DESTINATION bin)
 install(FILES "${CMAKE_SOURCE_DIR}/libs/freeimage/lib/FreeImage.dll"
               "${CMAKE_SOURCE_DIR}/libs/fmod/lowlevel/lib/fmod64.dll"
               "${CMAKE_SOURCE_DIR}/libs/fmod/lowlevel/lib/fmodL64.dll"

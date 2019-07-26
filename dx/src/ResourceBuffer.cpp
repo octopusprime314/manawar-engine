@@ -158,6 +158,11 @@ ResourceBuffer::ResourceBuffer(const void* initData,
 
     placedTexture2D.Offset    = alignment512 - reinterpret_cast<UINT64>(mappedData);
 
+    UINT mipLevels = MIP_LEVELS;
+    if (width*height == 16) {
+        mipLevels = 1;
+    }
+
     device->CreateCommittedResource(&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
                                     D3D12_HEAP_FLAG_NONE,
                                     &CD3DX12_RESOURCE_DESC::Tex2D(pitchedDesc.Format, 

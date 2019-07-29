@@ -2130,7 +2130,8 @@ enum D3D_SHADER_MODEL
         D3D_SHADER_MODEL_6_1    = 0x61,
         D3D_SHADER_MODEL_6_2    = 0x62,
         D3D_SHADER_MODEL_6_3    = 0x63,
-        D3D_SHADER_MODEL_6_4    = 0x64
+        D3D_SHADER_MODEL_6_4    = 0x64,
+        D3D_SHADER_MODEL_6_5    = 0x65
     }     D3D_SHADER_MODEL;
 
 typedef struct D3D12_FEATURE_DATA_SHADER_MODEL

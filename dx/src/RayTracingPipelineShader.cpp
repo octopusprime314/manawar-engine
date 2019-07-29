@@ -199,7 +199,7 @@ RayTracingPipelineShader::RayTracingPipelineShader(std::string shader,
     pLibrary  ->CreateBlobFromFile(fullPathWstring.c_str(), nullptr, &pSource);
     _dllSupport.CreateInstance(CLSID_DxcCompiler, &dxcCompiler);
 
-    CA2W shWide("lib_6_3", CP_UTF8);
+    CA2W shWide("lib_6_5", CP_UTF8);
     dxcCompiler->Compile(pSource,
                          L"rayTracingUberShader.hlsl",
                          L"",

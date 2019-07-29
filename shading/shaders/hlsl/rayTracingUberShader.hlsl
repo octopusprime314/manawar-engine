@@ -102,6 +102,12 @@ void MyRaygenShader()
     RayPayload payload = { float4(0, 0, 0, 0) };
     TraceRay(Scene, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, ~0, 0, 1, 0, ray, payload);
 
+    //RayQuery<RAY_FLAG_NONE> rayQuery;
+    //rayQuery.TraceRayInline(Scene,
+    //                        RAY_FLAG_NONE,
+    //                        ~0,
+    //                        ray);
+
     // Write the raytraced color to the output texture.
     RenderTarget[DispatchRaysIndex().xy] = payload.color;
 }

@@ -1,72 +1,28 @@
 cmake_minimum_required(VERSION 2.5)
 project(manawar-engine)
 set(VS_STARTUP_VERSION manawar-engine)
+set(TLS_VERIFY OFF)
 
 include(InstallRequiredSystemLibraries)
 
-if (NOT IS_DIRECTORY "${CMAKE_SOURCE_DIR}/libs/glfw")
-    message(WARNING "Missing directory ${CMAKE_SOURCE_DIR}/libs/glfw")
-endif()
-if (NOT IS_DIRECTORY "${CMAKE_SOURCE_DIR}/libs/fbx-sdk")
-    message(WARNING "Missing directory ${CMAKE_SOURCE_DIR}/libs/fbx-sdk")
-endif()
-if (NOT IS_DIRECTORY "${CMAKE_SOURCE_DIR}/libs/freeimage")
-    message(WARNING "Missing directory ${CMAKE_SOURCE_DIR}/libs/freeimage")
-endif()
-if (NOT IS_DIRECTORY "${CMAKE_SOURCE_DIR}/model")
-    message(WARNING "Missing directory ${CMAKE_SOURCE_DIR}/model")
-endif()
-if (NOT IS_DIRECTORY "${CMAKE_SOURCE_DIR}/physics")
-    message(WARNING "Missing directory ${CMAKE_SOURCE_DIR}/physics")
-endif()
-if (NOT IS_DIRECTORY "${CMAKE_SOURCE_DIR}/shading")
-    message(WARNING "Missing directory ${CMAKE_SOURCE_DIR}/shading")
-endif()
-if (NOT IS_DIRECTORY "${CMAKE_SOURCE_DIR}/libs/fmod")
-    message(WARNING "Missing directory ${CMAKE_SOURCE_DIR}/libs/fmod")
-endif()
-if (NOT IS_DIRECTORY "${CMAKE_SOURCE_DIR}/drawbuffers")
-    message(WARNING "Missing directory ${CMAKE_SOURCE_DIR}/drawbuffers")
-endif()
-if (NOT IS_DIRECTORY "${CMAKE_SOURCE_DIR}/engine")
-    message(WARNING "Missing directory ${CMAKE_SOURCE_DIR}/engine")
-endif()
-if (NOT IS_DIRECTORY "${CMAKE_SOURCE_DIR}/math")
-    message(WARNING "Missing directory ${CMAKE_SOURCE_DIR}/math")
-endif()
-if (NOT IS_DIRECTORY "${CMAKE_SOURCE_DIR}/procedural")
-    message(WARNING "Missing directory ${CMAKE_SOURCE_DIR}/procedural")
-endif()
-if (NOT IS_DIRECTORY "${CMAKE_SOURCE_DIR}/renderer")
-    message(WARNING "Missing directory ${CMAKE_SOURCE_DIR}/renderer")
-endif()
-if (NOT IS_DIRECTORY "${CMAKE_SOURCE_DIR}/effects")
-    message(WARNING "Missing directory ${CMAKE_SOURCE_DIR}/effects")
-endif()
-if (NOT IS_DIRECTORY "${CMAKE_SOURCE_DIR}/texture")
-    message(WARNING "Missing directory ${CMAKE_SOURCE_DIR}/texture")
-endif()
-if (NOT IS_DIRECTORY "${CMAKE_SOURCE_DIR}/io")
-    message(WARNING "Missing directory ${CMAKE_SOURCE_DIR}/io")
-endif()
-if (NOT IS_DIRECTORY "${CMAKE_SOURCE_DIR}/lights")
-    message(WARNING "Missing directory ${CMAKE_SOURCE_DIR}/lights")
-endif()
-if (NOT IS_DIRECTORY "${CMAKE_SOURCE_DIR}/view")
-    message(WARNING "Missing directory ${CMAKE_SOURCE_DIR}/view")
-endif()
-if (NOT IS_DIRECTORY "${CMAKE_SOURCE_DIR}/dx")
-    message(WARNING "Missing directory ${CMAKE_SOURCE_DIR}/dx")
-endif()
+#grab and extract zip folder containing libs and assets
+file(DOWNLOAD
+	https://www.dropbox.com/s/nouiu4of35fhss7/data.zip?dl=0
+	"${CMAKE_SOURCE_DIR}/data.zip"
+	TIMEOUT 100  # seconds
+    EXPECTED_HASH SHA1=6d6aedf358d2d4c483b79e54d6e70870afd3f35d
+    TLS_VERIFY ON
+)
 
 set(CMAKE_INSTALL_PREFIX "${CMAKE_SOURCE_DIR}/manawar-engine-dist")
 
+include_directories("${CMAKE_SOURCE_DIR}/libs/dx/include")
 include_directories("${CMAKE_SOURCE_DIR}/libs/glfw/include")
 include_directories("${CMAKE_SOURCE_DIR}/libs/fbx-sdk/include")
 include_directories("${CMAKE_SOURCE_DIR}/libs/freeimage/include")
-include_directories("${CMAKE_SOURCE_DIR}/libs/fmod/lowlevel/inc")
+include_directories("${CMAKE_SOURCE_DIR}/libs/fmod/inc")
 include_directories("${CMAKE_SOURCE_DIR}/model/include")
-include_directories("${CMAKE_SOURCE_DIR}/gl/include")
+include_directories("${CMAKE_SOURCE_DIR}/glLayer/include")
 include_directories("${CMAKE_SOURCE_DIR}/physics/include")
 include_directories("${CMAKE_SOURCE_DIR}/shading/include")
 include_directories("${CMAKE_SOURCE_DIR}/audio/include")
@@ -80,14 +36,14 @@ include_directories("${CMAKE_SOURCE_DIR}/texture/include")
 include_directories("${CMAKE_SOURCE_DIR}/io/include")
 include_directories("${CMAKE_SOURCE_DIR}/lights/include")
 include_directories("${CMAKE_SOURCE_DIR}/view/include")
-include_directories("${CMAKE_SOURCE_DIR}/dx/include")
+include_directories("${CMAKE_SOURCE_DIR}/dxLayer/include")
 
 FILE(GLOB MODEL_HEADER_FILES        ${CMAKE_SOURCE_DIR}/model/include/*.h)
 FILE(GLOB PHYSICS_HEADER_FILES      ${CMAKE_SOURCE_DIR}/physics/include/*.h)
 FILE(GLOB SHADING_HEADER_FILES      ${CMAKE_SOURCE_DIR}/shading/include/*.h)
 FILE(GLOB AUDIO_HEADER_FILES        ${CMAKE_SOURCE_DIR}/audio/include/*.h)
 FILE(GLOB DRAWBUFFERS_HEADER_FILES  ${CMAKE_SOURCE_DIR}/drawbuffers/include/*.h)
-FILE(GLOB GL_HEADER_FILES           ${CMAKE_SOURCE_DIR}/gl/include/*.h)
+FILE(GLOB GL_HEADER_FILES           ${CMAKE_SOURCE_DIR}/glLayer/include/*.h)
 FILE(GLOB ENGINE_HEADER_FILES       ${CMAKE_SOURCE_DIR}/engine/include/*.h)
 FILE(GLOB MATH_HEADER_FILES         ${CMAKE_SOURCE_DIR}/math/include/*.h)
 FILE(GLOB PROCEDURAL_HEADER_FILES   ${CMAKE_SOURCE_DIR}/procedural/include/*.h)
@@ -99,12 +55,12 @@ FILE(GLOB LIGHTS_HEADER_FILES 	    ${CMAKE_SOURCE_DIR}/lights/include/*.h)
 FILE(GLOB GLSL_SHADER_FILES 	   	${CMAKE_SOURCE_DIR}/shading/shaders/glsl/*)
 FILE(GLOB HLSL_SHADER_FILES 	   	${CMAKE_SOURCE_DIR}/shading/shaders/hlsl/*)
 FILE(GLOB VIEW_HEADER_FILES 	    ${CMAKE_SOURCE_DIR}/view/include/*.h)
-FILE(GLOB DX_HEADER_FILES 	     	${CMAKE_SOURCE_DIR}/dx/include/*.h)
+FILE(GLOB DX_HEADER_FILES 	     	${CMAKE_SOURCE_DIR}/dxLayer/include/*.h)
 
 FILE(GLOB MODEL_SRC_FILES           ${CMAKE_SOURCE_DIR}/model/src/*.cpp)
 FILE(GLOB PHYSICS_SRC_FILES         ${CMAKE_SOURCE_DIR}/physics/src/*.cpp)
 FILE(GLOB SHADING_SRC_FILES         ${CMAKE_SOURCE_DIR}/shading/src/*.cpp)
-FILE(GLOB GL_SRC_FILES    	        ${CMAKE_SOURCE_DIR}/gl/src/*)
+FILE(GLOB GL_SRC_FILES    	        ${CMAKE_SOURCE_DIR}/glLayer/src/*)
 FILE(GLOB AUDIO_SRC_FILES           ${CMAKE_SOURCE_DIR}/audio/src/*.cpp)
 FILE(GLOB DRAWBUFFERS_SRC_FILES     ${CMAKE_SOURCE_DIR}/drawbuffers/src/*.cpp)
 FILE(GLOB ENGINE_SRC_FILES          ${CMAKE_SOURCE_DIR}/engine/src/*.cpp)
@@ -116,7 +72,7 @@ FILE(GLOB TEXTURE_SRC_FILES         ${CMAKE_SOURCE_DIR}/texture/src/*.cpp)
 FILE(GLOB IO_SRC_FILES              ${CMAKE_SOURCE_DIR}/io/src/*.cpp)
 FILE(GLOB LIGHTS_SRC_FILES          ${CMAKE_SOURCE_DIR}/lights/src/*.cpp)
 FILE(GLOB VIEW_SRC_FILES            ${CMAKE_SOURCE_DIR}/view/src/*.cpp)
-FILE(GLOB DX_SRC_FILES              ${CMAKE_SOURCE_DIR}/dx/src/*.cpp)
+FILE(GLOB DX_SRC_FILES              ${CMAKE_SOURCE_DIR}/dxLayer/src/*.cpp)
 
 source_group("model"         FILES 	${MODEL_HEADER_FILES} ${MODEL_SRC_FILES})
 source_group("physics"       FILES 	${PHYSICS_HEADER_FILES} ${PHYSICS_SRC_FILES})
@@ -138,7 +94,6 @@ source_group("view"          FILES 	${VIEW_HEADER_FILES} ${VIEW_SRC_FILES})
 source_group("dx"            FILES 	${DX_HEADER_FILES} ${DX_SRC_FILES})
 
 add_executable(manawar-engine
-    # WIN32
                 ${MODEL_SRC_FILES}
                 ${PHYSICS_SRC_FILES}
                 ${SHADING_SRC_FILES}
@@ -177,6 +132,7 @@ add_executable(manawar-engine
 target_compile_features(manawar-engine PRIVATE cxx_range_for)
 
 if (MSVC)
+	set(VS_STARTUP_Project manawar-engine)
 	add_definitions(-D_CRT_SECURE_NO_WARNINGS)
     add_definitions("/MP")
 	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SUBSYSTEM:WINDOWS")
@@ -188,15 +144,29 @@ target_link_libraries(manawar-engine           ${CMAKE_SOURCE_DIR}/libs/FreeImag
 target_link_libraries(manawar-engine           ${CMAKE_SOURCE_DIR}/libs/glfw/lib/glfw3.lib)
 target_link_libraries(manawar-engine debug     ${CMAKE_SOURCE_DIR}/libs/fbx-sdk/lib/debug/libfbxsdk-md.lib)
 target_link_libraries(manawar-engine optimized ${CMAKE_SOURCE_DIR}/libs/fbx-sdk/lib/release/libfbxsdk-md.lib)
-target_link_libraries(manawar-engine           ${CMAKE_SOURCE_DIR}/libs/fmod/lowlevel/lib/fmod64_vc.lib)
+target_link_libraries(manawar-engine           ${CMAKE_SOURCE_DIR}/libs/fmod/lib/fmod64_vc.lib)
+
+
+add_custom_command(TARGET manawar-engine PRE_BUILD
+				   COMMAND ${CMAKE_COMMAND} -E tar xzf data.zip
+				   WORKING_DIRECTORY ../
+				   DEPENDS ${CMAKE_SOURCE_DIR}/data.zip
+				   COMMENT "Unpacking data.zip"
+				   VERBATIM)
+				   
+add_custom_command(TARGET manawar-engine POST_BUILD
+				   COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/libs/freeimage/lib/FreeImage.dll $<TARGET_FILE_DIR:manawar-engine>
+				   COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/libs/fmod/lib/fmod64.dll 		 $<TARGET_FILE_DIR:manawar-engine> 
+				   COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/libs/dx/lib/dxcompiler.dll       $<TARGET_FILE_DIR:manawar-engine> )
 
 install(TARGETS manawar-engine RUNTIME DESTINATION bin)
 install(FILES "${CMAKE_SOURCE_DIR}/libs/freeimage/lib/FreeImage.dll"
-              "${CMAKE_SOURCE_DIR}/libs/fmod/lowlevel/lib/fmod64.dll"
-              "${CMAKE_SOURCE_DIR}/libs/fmod/lowlevel/lib/fmodL64.dll"
+              "${CMAKE_SOURCE_DIR}/libs/fmod/lib/fmod64.dll"
+              "${CMAKE_SOURCE_DIR}/libs/dx/lib/dxcompiler.dll"
         DESTINATION bin)
 # FYI: Keep the trailing '/'s here.
 install(DIRECTORY "${CMAKE_SOURCE_DIR}/shading/shaders/"
         DESTINATION shading/shaders)
 install(DIRECTORY "${CMAKE_SOURCE_DIR}/assets/"
         DESTINATION assets)
+		

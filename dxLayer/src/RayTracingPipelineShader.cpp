@@ -131,10 +131,10 @@ RayTracingPipelineShader::RayTracingPipelineShader(std::string shader,
                                     D3D_ROOT_SIGNATURE_VERSION_1,
                                     &blob,
                                     &error);
-        device->CreateRootSignature(1,
-                                    blob->GetBufferPointer(),
-                                    blob->GetBufferSize(),
-                                    IID_PPV_ARGS(&(_raytracingGlobalRootSignature)));
+        _dxrDevice->CreateRootSignature(1,
+                                        blob->GetBufferPointer(),
+                                        blob->GetBufferSize(),
+                                        IID_PPV_ARGS(&(_raytracingGlobalRootSignature)));
     }
 
     // Local Root Signature
@@ -152,10 +152,10 @@ RayTracingPipelineShader::RayTracingPipelineShader(std::string shader,
                                     &blob,
                                     &error);
 
-        device->CreateRootSignature(1,
-                                    blob->GetBufferPointer(),
-                                    blob->GetBufferSize(),
-                                    IID_PPV_ARGS(&(_raytracingLocalRootSignature)));
+        _dxrDevice->CreateRootSignature(1,
+                                        blob->GetBufferPointer(),
+                                        blob->GetBufferSize(),
+                                        IID_PPV_ARGS(&(_raytracingLocalRootSignature)));
     }
 
     // Create 7 subobjects that combine into a RTPSO:
@@ -199,7 +199,12 @@ RayTracingPipelineShader::RayTracingPipelineShader(std::string shader,
     pLibrary  ->CreateBlobFromFile(fullPathWstring.c_str(), nullptr, &pSource);
     _dllSupport.CreateInstance(CLSID_DxcCompiler, &dxcCompiler);
 
-    CA2W shWide("lib_6_5", CP_UTF8);
+    std::string libProfile = "lib_6_3";
+    if (EngineManager::getGraphicsLayer() == GraphicsLayer::DXR_EXPERIMENTAL) {
+        libProfile = "lib_6_5";
+       
+    }
+    CA2W shWide(libProfile.c_str(), CP_UTF8);
     dxcCompiler->Compile(pSource,
                          L"rayTracingUberShader.hlsl",
                          L"",
@@ -307,9 +312,9 @@ RayTracingPipelineShader::RayTracingPipelineShader(std::string shader,
     _descriptorHeapDesc.Type           = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
     _descriptorHeapDesc.Flags          = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
     _descriptorHeapDesc.NodeMask       = 0;
-    device->CreateDescriptorHeap(&_descriptorHeapDesc, IID_PPV_ARGS(&_descriptorHeap));
+    _dxrDevice->CreateDescriptorHeap(&_descriptorHeapDesc, IID_PPV_ARGS(&_descriptorHeap));
 
-    _descriptorSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+    _descriptorSize = _dxrDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
     _geometryDesc = new D3D12_RAYTRACING_GEOMETRY_DESC[bottomLevelModels.size()];
     UINT modelIndex = 0;
@@ -389,7 +394,7 @@ RayTracingPipelineShader::RayTracingPipelineShader(std::string shader,
     auto uploadHeapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
     auto bufferDesc           = CD3DX12_RESOURCE_DESC::Buffer(sizeBuildInfo, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
     
-    device->CreateCommittedResource(&uploadHeapProperties,
+    _dxrDevice->CreateCommittedResource(&uploadHeapProperties,
                                     D3D12_HEAP_FLAG_NONE,
                                     &bufferDesc,
                                     D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
@@ -412,12 +417,12 @@ RayTracingPipelineShader::RayTracingPipelineShader(std::string shader,
         auto uploadHeapProperties                  = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
         auto bufferDesc                            = CD3DX12_RESOURCE_DESC::Buffer(sizeBuildInfo,
                                                                                    D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
-        device->CreateCommittedResource(&uploadHeapProperties,
-                                        D3D12_HEAP_FLAG_NONE,
-                                        &bufferDesc,
-                                        initialResourceState,
-                                        nullptr,
-                                        IID_PPV_ARGS(&(_bottomLevelAccelerationStructure[modelIndex])));
+        _dxrDevice->CreateCommittedResource(&uploadHeapProperties,
+                                            D3D12_HEAP_FLAG_NONE,
+                                            &bufferDesc,
+                                            initialResourceState,
+                                            nullptr,
+                                            IID_PPV_ARGS(&(_bottomLevelAccelerationStructure[modelIndex])));
         modelIndex++;
     }
 
@@ -427,12 +432,12 @@ RayTracingPipelineShader::RayTracingPipelineShader(std::string shader,
         auto uploadHeapProperties                  = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
         auto bufferDesc                            = CD3DX12_RESOURCE_DESC::Buffer(sizeBuildInfo,
                                                                                    D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
-        device->CreateCommittedResource(&uploadHeapProperties,
-                                        D3D12_HEAP_FLAG_NONE,
-                                        &bufferDesc,
-                                        initialResourceState,
-                                        nullptr,
-                                        IID_PPV_ARGS(&_topLevelAccelerationStructure));
+        _dxrDevice->CreateCommittedResource(&uploadHeapProperties,
+                                            D3D12_HEAP_FLAG_NONE,
+                                            &bufferDesc,
+                                            initialResourceState,
+                                            nullptr,
+                                            IID_PPV_ARGS(&_topLevelAccelerationStructure));
     }
 
     // Create an instance desc for the bottom-level acceleration structure.
@@ -452,7 +457,7 @@ RayTracingPipelineShader::RayTracingPipelineShader(std::string shader,
         bottomLevelIndex++;
     }
 
-    AllocateUploadBuffer(device.Get(),
+    AllocateUploadBuffer(_dxrDevice.Get(),
                          _instanceDesc,
                          sizeof(D3D12_RAYTRACING_INSTANCE_DESC) * instanceCount,
                          &_instanceDescs,
@@ -498,12 +503,12 @@ RayTracingPipelineShader::RayTracingPipelineShader(std::string shader,
     const D3D12_RESOURCE_DESC constantBufferDesc = CD3DX12_RESOURCE_DESC::Buffer(cbSize);
     auto uploadHeapProps                         = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
 
-    device->CreateCommittedResource(&uploadHeapProps,
-                                    D3D12_HEAP_FLAG_NONE,
-                                    &constantBufferDesc,
-                                    D3D12_RESOURCE_STATE_GENERIC_READ,
-                                    nullptr,
-                                    IID_PPV_ARGS(&_perFrameConstants));
+    _dxrDevice->CreateCommittedResource(&uploadHeapProps,
+                                        D3D12_HEAP_FLAG_NONE,
+                                        &constantBufferDesc,
+                                        D3D12_RESOURCE_STATE_GENERIC_READ,
+                                        nullptr,
+                                        IID_PPV_ARGS(&_perFrameConstants));
 
     // Map the constant buffer and cache its heap pointers.
     // We don't unmap this until the app closes. Keeping buffer mapped for the lifetime of the resource is okay.
@@ -532,7 +537,7 @@ RayTracingPipelineShader::RayTracingPipelineShader(std::string shader,
     {
         UINT numShaderRecords = 1;
         UINT shaderRecordSize = shaderIdentifierSize;
-        ShaderTable rayGenShaderTable(device.Get(), numShaderRecords, shaderRecordSize, L"RayGenShaderTable");
+        ShaderTable rayGenShaderTable(_dxrDevice.Get(), numShaderRecords, shaderRecordSize, L"RayGenShaderTable");
         rayGenShaderTable.push_back(ShaderRecord(rayGenShaderIdentifier, shaderIdentifierSize));
         _rayGenShaderTable    = rayGenShaderTable.GetResource();
     }
@@ -541,7 +546,7 @@ RayTracingPipelineShader::RayTracingPipelineShader(std::string shader,
     {
         UINT numShaderRecords = 1;
         UINT shaderRecordSize = shaderIdentifierSize;
-        ShaderTable missShaderTable(device.Get(), numShaderRecords, shaderRecordSize, L"MissShaderTable");
+        ShaderTable missShaderTable(_dxrDevice.Get(), numShaderRecords, shaderRecordSize, L"MissShaderTable");
         missShaderTable.push_back(ShaderRecord(missShaderIdentifier, shaderIdentifierSize));
         _missShaderTable      = missShaderTable.GetResource();
     }
@@ -551,7 +556,7 @@ RayTracingPipelineShader::RayTracingPipelineShader(std::string shader,
         
         UINT numShaderRecords = 1;
         UINT shaderRecordSize = shaderIdentifierSize;
-        ShaderTable hitGroupShaderTable(device.Get(), numShaderRecords, shaderRecordSize, L"HitGroupShaderTable");
+        ShaderTable hitGroupShaderTable(_dxrDevice.Get(), numShaderRecords, shaderRecordSize, L"HitGroupShaderTable");
         hitGroupShaderTable.push_back(ShaderRecord(hitGroupShaderIdentifier, shaderIdentifierSize));
         _hitGroupShaderTable  = hitGroupShaderTable.GetResource();
     }
@@ -564,7 +569,7 @@ RayTracingPipelineShader::RayTracingPipelineShader(std::string shader,
     _uavDesc.Format             = DXGI_FORMAT_R32G32B32A32_FLOAT;
     _uavDesc.ViewDimension      = D3D12_UAV_DIMENSION_TEXTURE2D;
     _uavDesc.Texture2D.MipSlice = 0;
-    device->CreateUnorderedAccessView(_raytracingOutput->getResource()->getResource().Get(),
+    _dxrDevice->CreateUnorderedAccessView(_raytracingOutput->getResource()->getResource().Get(),
                                       nullptr,
                                       &_uavDesc,
                                       *_hUAVDescriptor);

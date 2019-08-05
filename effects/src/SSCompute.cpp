@@ -33,7 +33,7 @@ void SSCompute::compute(Texture* readTexture, Texture* writeTexture) {
 }
 
 void SSCompute::uavBarrier() {
-    if (EngineManager::getGraphicsLayer() == GraphicsLayer::DX12) {
+    if (EngineManager::getGraphicsLayer() >= GraphicsLayer::DX12) {
         
         auto cmdList = DXLayer::instance()->getCmdList();
         D3D12_RESOURCE_BARRIER barrierDesc;

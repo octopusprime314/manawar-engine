@@ -22,7 +22,7 @@ void TextureBroker::addTexture(std::string textureName) {
         if (EngineManager::getGraphicsLayer() == GraphicsLayer::OPENGL) {
             _textures[textureName] = new AssetTexture(textureName);
         }
-        else if (EngineManager::getGraphicsLayer() == GraphicsLayer::DX12) {
+        else if (EngineManager::getGraphicsLayer() >= GraphicsLayer::DX12) {
             _textures[textureName] = new AssetTexture(textureName, 
                 DXLayer::instance()->getCmdList(), DXLayer::instance()->getDevice());
         }
@@ -51,7 +51,7 @@ void TextureBroker::addLayeredTexture(std::vector<std::string> textureNames) {
 
             _layeredTextures[sumString] = new LayeredTexture(textures);
         }
-        else if (EngineManager::getGraphicsLayer() == GraphicsLayer::DX12) {
+        else if (EngineManager::getGraphicsLayer() >= GraphicsLayer::DX12) {
 
             //prime the asset textures
             for (auto textureName : textureNames) {
@@ -72,7 +72,7 @@ void TextureBroker::addCubeTexture(std::string textureName) {
         if (EngineManager::getGraphicsLayer() == GraphicsLayer::OPENGL) {
             _textures[textureName] = new AssetTexture(textureName, true);
         }
-        else if (EngineManager::getGraphicsLayer() == GraphicsLayer::DX12) {
+        else if (EngineManager::getGraphicsLayer() >= GraphicsLayer::DX12) {
             _textures[textureName] = new AssetTexture(textureName,
                 DXLayer::instance()->getCmdList(), DXLayer::instance()->getDevice(), true);
         }
@@ -125,7 +125,7 @@ void TextureBroker::updateTextureToLayered(std::string textureName, FIBITMAP* pi
                 if (EngineManager::getGraphicsLayer() == GraphicsLayer::OPENGL) {
                     layeredTexture.second->updateTexture(textureName, pixelData);
                 }
-                else if (EngineManager::getGraphicsLayer() == GraphicsLayer::DX12) {
+                else if (EngineManager::getGraphicsLayer() >= GraphicsLayer::DX12) {
                     layeredTexture.second->setTexture(new AssetTexture(textureName,
                         DXLayer::instance()->getCmdList(), DXLayer::instance()->getDevice()));
                 }

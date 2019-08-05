@@ -66,7 +66,7 @@ void SSAO::_generateKernelNoise() {
         _ssaoNoise.push_back(noise);
     }
 
-    if (EngineManager::getGraphicsLayer() == GraphicsLayer::DX12) {
+    if (EngineManager::getGraphicsLayer() >= GraphicsLayer::DX12) {
         _noise = new AssetTexture(&_ssaoNoise[0], 4, 4,
             DXLayer::instance()->getCmdList(), DXLayer::instance()->getDevice());
     }
@@ -77,7 +77,7 @@ void SSAO::_generateKernelNoise() {
 
 void SSAO::computeSSAO(MRTFrameBuffer* mrtBuffer, ViewEventDistributor* viewEventDistributor) {
 
-    if (EngineManager::getGraphicsLayer() == GraphicsLayer::DX12) {
+    if (EngineManager::getGraphicsLayer() >= GraphicsLayer::DX12) {
 
         std::vector<RenderTexture> textures = { _renderTexture};
         HLSLShader::setOM(textures, IOEventDistributor::screenPixelWidth, IOEventDistributor::screenPixelHeight);
@@ -90,7 +90,7 @@ void SSAO::computeSSAO(MRTFrameBuffer* mrtBuffer, ViewEventDistributor* viewEven
 
     _ssaoShader->runShader(this, mrtBuffer, viewEventDistributor);
 
-    if (EngineManager::getGraphicsLayer() == GraphicsLayer::DX12) {
+    if (EngineManager::getGraphicsLayer() >= GraphicsLayer::DX12) {
         std::vector<RenderTexture> textures = { _renderTexture };
         HLSLShader::releaseOM(textures);
 

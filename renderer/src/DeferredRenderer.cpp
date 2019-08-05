@@ -24,7 +24,7 @@ void DeferredRenderer::deferredLighting(std::vector<Light*>& lights, ViewEventDi
 
 void DeferredRenderer::bind() {
 
-    if (EngineManager::getGraphicsLayer() == GraphicsLayer::DX12) {
+    if (EngineManager::getGraphicsLayer() >= GraphicsLayer::DX12) {
 
         HLSLShader::setOM(_mrtFBO.getTextures(), IOEventDistributor::screenPixelWidth, IOEventDistributor::screenPixelHeight);
     }
@@ -41,7 +41,7 @@ void DeferredRenderer::bind() {
     }
 }
 void DeferredRenderer::unbind() {
-    if (EngineManager::getGraphicsLayer() == GraphicsLayer::DX12) {
+    if (EngineManager::getGraphicsLayer() >= GraphicsLayer::DX12) {
 
         HLSLShader::releaseOM(_mrtFBO.getTextures());
     }

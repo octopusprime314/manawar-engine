@@ -119,7 +119,7 @@ void VAO::_buildVertices(float* flattenVerts) {
         //Close vao
         glBindVertexArray(0);
     }
-    else if (EngineManager::getGraphicsLayer() == GraphicsLayer::DX12) {
+    else if (EngineManager::getGraphicsLayer() >= GraphicsLayer::DX12) {
         //IMPLEMENT ME!!!!
     }
 }

@@ -44,27 +44,31 @@ Entity*              EngineManager::_shadowEntity = nullptr;
 
 EngineManager::EngineManager(int* argc, char** argv, HINSTANCE hInstance, int nCmdShow) {
 
-    _graphicsLayer = GraphicsLayer::DX12;
-    D3D12EnableExperimentalFeatures(1, &D3D12ExperimentalShaderModels, nullptr, 0);
 
-    if (_graphicsLayer == GraphicsLayer::DX12) {
+    if (_graphicsLayer >= GraphicsLayer::DX12) {
+
+        if (_graphicsLayer == GraphicsLayer::DXR_EXPERIMENTAL) {
+            D3D12EnableExperimentalFeatures(1, &D3D12ExperimentalShaderModels, nullptr, 0);
+        }
+
         DXLayer::initialize(hInstance, nCmdShow);
 
-        auto device                                     = DXLayer::instance()->getDevice();
-        D3D12_FEATURE_DATA_SHADER_MODEL shaderModel     = { D3D_SHADER_MODEL_6_5 };
-        HRESULT                         supportForSM6_5 = device->CheckFeatureSupport(D3D12_FEATURE_SHADER_MODEL,
-                                                                                      &shaderModel,
-                                                                                      sizeof(D3D12_FEATURE_DATA_SHADER_MODEL));
-
-        if (D3D_SHADER_MODEL_6_5 == shaderModel.HighestShaderModel) {
-            //do something lol
+        if (_graphicsLayer == GraphicsLayer::DXR_EXPERIMENTAL) {
+            auto device                                     = DXLayer::instance()->getDevice();
+            D3D12_FEATURE_DATA_SHADER_MODEL shaderModel     = { D3D_SHADER_MODEL_6_5 };
+            HRESULT                         supportForSM6_5 = device->CheckFeatureSupport(D3D12_FEATURE_SHADER_MODEL,
+                                                                                          &shaderModel,
+                                                                                          sizeof(D3D12_FEATURE_DATA_SHADER_MODEL));
+            if (D3D_SHADER_MODEL_6_5 == shaderModel.HighestShaderModel) {
+                //do something lol
+            }
         }
     }
 
     // disable raytracing until i find a way to not tank performance for shadows
-    _useRaytracing = //false;
-                     (_graphicsLayer == GraphicsLayer::DX12 ? true : false) &&
-                     DXLayer::instance()->supportsRayTracing();
+    _useRaytracing = ((_graphicsLayer == GraphicsLayer::DXR)                              ||
+                      (_graphicsLayer == GraphicsLayer::DXR_EXPERIMENTAL) ? true : false) &&
+                      DXLayer::instance()->supportsRayTracing();
 
     _inputLayer = new IOEventDistributor(   argc,
                                             argv,
@@ -125,9 +129,9 @@ EngineManager::EngineManager(int* argc, char** argv, HINSTANCE hInstance, int nC
                         Matrix::rotationAroundX(45.0f));
     lightMapMVP.setProjection(Matrix::ortho(1400.0f, 1400.0f, 0.0f, 1400.0f));
     _lightList.push_back(new ShadowedDirectionalLight(_viewManager->getEventWrapper(),
-        lightMapMVP,
-        EffectType::None,
-        Vector4(1.0, 0.0, 0.0)));
+                                                      lightMapMVP,
+                                                      EffectType::None,
+                                                      Vector4(1.0, 0.0, 0.0)));
 
     ////Model view projection matrix for point light additions
     //MVP pointLightMVP;
@@ -157,23 +161,20 @@ EngineManager::EngineManager(int* argc, char** argv, HINSTANCE hInstance, int nC
     //    EffectType::Fire,
     //    Vector4(1.0f, 0.8f, 0.3f, 1.0f)));
 
-
-    if (_graphicsLayer == GraphicsLayer::DX12) {
+    if (_graphicsLayer >= GraphicsLayer::DX12) {
 
         //_terminal = new Terminal(_deferredRenderer->getGBuffers(), _entityList);
         auto dxLayer = DXLayer::instance();
         dxLayer->fenceCommandList();
 
-        if (_graphicsLayer == GraphicsLayer::DX12 &&
-            _useRaytracing) {
+        if (_useRaytracing) {
 
             dxLayer->initCmdLists();
 
-            _rayTracingPipeline =
-                new RayTracingPipelineShader("rayTracingUberShader.hlsl",
-                    DXLayer::instance()->getDevice(),
-                    DXGI_FORMAT_R8G8B8A8_UNORM, _entityList);
-
+            _rayTracingPipeline = new RayTracingPipelineShader("rayTracingUberShader.hlsl",
+                                                               DXLayer::instance()->getDevice(),
+                                                               DXGI_FORMAT_R8G8B8A8_UNORM,
+                                                               _entityList);
             dxLayer->fenceCommandList();
         }
     }
@@ -286,7 +287,7 @@ std::vector<Entity*>* EngineManager::getEntityList() {
 void EngineManager::_preDraw() {
 
     //Init command lists
-    if (_graphicsLayer == GraphicsLayer::DX12) {
+    if (_graphicsLayer >= GraphicsLayer::DX12) {
         DXLayer::instance()->initCmdLists();
     }
 
@@ -298,13 +299,13 @@ void EngineManager::_preDraw() {
         //send all vbo data to point light shadow pre pass
         for (Light* light : _lightList) {
             //ray trace the second direcional light
-            if (_useRaytracing == false || light != _lightList[1]) {
+            if (_useRaytracing == false || light == _lightList[0]) {
                 light->renderShadow(_entityList);
             }
         }
     }
 
-    if (_graphicsLayer == GraphicsLayer::DX12) {
+    if (_graphicsLayer >= GraphicsLayer::DX12) {
 
         if (_useRaytracing) {
             _rayTracingPipeline->doRayTracing(_entityList[0], _lightList[0]);

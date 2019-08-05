@@ -45,8 +45,10 @@ class DXLayer;
 class RayTracingPipelineShader;
 
 enum class GraphicsLayer {
+    OPENGL,
     DX12,
-    OPENGL
+    DXR,
+    DXR_EXPERIMENTAL,
 };
 
 class EngineManager {

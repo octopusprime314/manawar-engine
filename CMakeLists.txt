@@ -7,10 +7,10 @@ include(InstallRequiredSystemLibraries)
 
 #grab and extract zip folder containing libs and assets
 file(DOWNLOAD
-	https://www.dropbox.com/s/nouiu4of35fhss7/data.zip?dl=0
+	https://www.dropbox.com/s/9h8h3nvwk1gxyaw/data.zip?dl=0
 	"${CMAKE_SOURCE_DIR}/data.zip"
 	TIMEOUT 100  # seconds
-    EXPECTED_HASH SHA1=6d6aedf358d2d4c483b79e54d6e70870afd3f35d
+    EXPECTED_HASH SHA1=36504e725d9c15f33a3ef9bc68367c62faa55513
     TLS_VERIFY ON
 )
 
@@ -153,11 +153,13 @@ add_custom_command(TARGET manawar-engine PRE_BUILD
 				   DEPENDS ${CMAKE_SOURCE_DIR}/data.zip
 				   COMMENT "Unpacking data.zip"
 				   VERBATIM)
-				   
+
+#dxil and dxcompiler dlls are needed for dxr
 add_custom_command(TARGET manawar-engine POST_BUILD
 				   COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/libs/freeimage/lib/FreeImage.dll $<TARGET_FILE_DIR:manawar-engine>
 				   COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/libs/fmod/lib/fmod64.dll 		 $<TARGET_FILE_DIR:manawar-engine> 
-				   COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/libs/dx/lib/dxcompiler.dll       $<TARGET_FILE_DIR:manawar-engine> )
+				   COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/libs/dx/lib/dxcompiler.dll       $<TARGET_FILE_DIR:manawar-engine>
+				   COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/libs/dx/lib/dxil.dll			 $<TARGET_FILE_DIR:manawar-engine>)
 
 install(TARGETS manawar-engine RUNTIME DESTINATION bin)
 install(FILES "${CMAKE_SOURCE_DIR}/libs/freeimage/lib/FreeImage.dll"

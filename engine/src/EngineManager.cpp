@@ -44,6 +44,7 @@ Entity*              EngineManager::_shadowEntity = nullptr;
 
 EngineManager::EngineManager(int* argc, char** argv, HINSTANCE hInstance, int nCmdShow) {
 
+    _graphicsLayer = GraphicsLayer::OPENGL;
 
     if (_graphicsLayer >= GraphicsLayer::DX12) {
 

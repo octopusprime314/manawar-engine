@@ -1,18 +1,11 @@
-cmake_minimum_required(VERSION 2.5)
+cmake_minimum_required(VERSION 3.15)
 project(manawar-engine)
 set(VS_STARTUP_VERSION manawar-engine)
 set(TLS_VERIFY OFF)
 
 include(InstallRequiredSystemLibraries)
+include(FetchContent)
 
-#grab and extract zip folder containing libs and assets
-file(DOWNLOAD
-	https://www.dropbox.com/s/9h8h3nvwk1gxyaw/data.zip?dl=0
-	"${CMAKE_SOURCE_DIR}/data.zip"
-	TIMEOUT 100  # seconds
-    EXPECTED_HASH SHA1=36504e725d9c15f33a3ef9bc68367c62faa55513
-    TLS_VERIFY ON
-)
 
 set(CMAKE_INSTALL_PREFIX "${CMAKE_SOURCE_DIR}/manawar-engine-dist")
 
@@ -146,13 +139,16 @@ target_link_libraries(manawar-engine debug     ${CMAKE_SOURCE_DIR}/libs/fbx-sdk/
 target_link_libraries(manawar-engine optimized ${CMAKE_SOURCE_DIR}/libs/fbx-sdk/lib/release/libfbxsdk-md.lib)
 target_link_libraries(manawar-engine           ${CMAKE_SOURCE_DIR}/libs/fmod/lib/fmod64_vc.lib)
 
+#pre fetches assets and dependencies during cmake -G configuration
+FetchContent_Populate(data
+					  URL        https://www.dropbox.com/s/9h8h3nvwk1gxyaw/data.zip?dl=0
+					  URL_HASH   MD5=24bc3ac2cd656569db2f7b64cbc47088
+					  SOURCE_DIR data)
 
-add_custom_command(TARGET manawar-engine PRE_BUILD
-				   COMMAND ${CMAKE_COMMAND} -E tar xzf data.zip
-				   WORKING_DIRECTORY ../
-				   DEPENDS ${CMAKE_SOURCE_DIR}/data.zip
-				   COMMENT "Unpacking data.zip"
-				   VERBATIM)
+#Copy over the contents of the unzipped folder					  
+file(COPY ${CMAKE_SOURCE_DIR}/build/data/ DESTINATION ${CMAKE_SOURCE_DIR})
+#delete the contents after moving
+file(REMOVE_RECURSE ${CMAKE_SOURCE_DIR}/build/data/)
 
 #dxil and dxcompiler dlls are needed for dxr
 add_custom_command(TARGET manawar-engine POST_BUILD

@@ -33,21 +33,18 @@ class DXLayer;
 
 struct TimeEvent {
     typedef void (Callback)();
-
-    uint64_t time;
+    uint64_t  time;
     Callback* pfnCallback;
 
-    TimeEvent(uint64_t time, Callback* pfnCallback)
+    TimeEvent(uint64_t time,
+              Callback* pfnCallback)
         : time(time),
         pfnCallback(pfnCallback) {}
 };
-
 static bool operator<(TimeEvent left, TimeEvent right) {
     return left.time > right.time;
 }
-
-using TimeQueue = std::priority_queue<TimeEvent>;
-
+using      TimeQueue = std::priority_queue<TimeEvent>;
 enum class MouseState { INIT, ACTIVE, INACTIVE };
 
 class IOEventDistributor {
@@ -58,30 +55,27 @@ public:
                        char**    argv,
                        HINSTANCE hInstance,
                        int       nCmdShow);
+
     //Function used to run context
     void                    run(); 
     //Use this call to connect functions up to key updates
-    void                    subscribeToKeyboard(
-                              std::function<void(int, int, int)> func);
+    void                    subscribeToKeyboard(       std::function<void(int, int, int)> func);
     //Use this call to connect functions up to key release updates
-    void                    subscribeToReleaseKeyboard(
-                              std::function<void(int, int, int)> func);
+    void                    subscribeToReleaseKeyboard(std::function<void(int, int, int)> func);
     //Use this call to connect functions up to mouse updates
-    void                    subscribeToMouse(
-                              std::function<void(double, double)> func);
+    void                    subscribeToMouse(          std::function<void(double, double)> func);
     //Use this call to connect functions up to draw updates
-    void                    subscribeToDraw(
-                              std::function<void()> func);
+    void                    subscribeToDraw(           std::function<void()> func);
     //Use this call to connect functions up to game state updates
-    void                    subscribeToGameState(
-                              std::function<void(EngineStateFlags)> func);
-    void                    updateGameState(EngineStateFlags state);
+    void                    subscribeToGameState(      std::function<void(EngineStateFlags)> func);
+    void                    updateGameState(           EngineStateFlags state);
+
     static LRESULT CALLBACK dxEventLoop(HWND   hWnd,
                                         UINT   message,
                                         WPARAM wParam,
                                         LPARAM lParam);
-    static void             quit();
 
+    static void             quit();
     static int              screenPixelWidth;
     static int              screenPixelHeight;
 
@@ -123,5 +117,5 @@ private:
                                         int         action,
                                         int         mods);
     //Simple context synchronizes frame rate using the MasterClock tuning capability
-    static void             _frameRateTrigger(int milliSeconds);
+    static void             _frameRateTrigger(int   milliSeconds);
 };

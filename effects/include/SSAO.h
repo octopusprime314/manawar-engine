@@ -32,21 +32,22 @@ class ViewEventDistributor;
 class SSAO {
 
     void                  _generateKernelNoise();
-    std::vector<Vector4>  _ssaoKernel;
-    std::vector<Vector4>  _ssaoNoise;
+    RenderTexture         _renderTexture;
     unsigned int          _noiseTexture;
-    unsigned int          _ssaoFBO;
     SSAOShader*           _ssaoShader;
-    SSCompute*            _blur;
+    std::vector<Vector4>  _ssaoKernel;
     SSCompute*            _downSample;
+    std::vector<Vector4>  _ssaoNoise;
     SSCompute*            _upSample;
-    RenderTexture         _renderTexture; 
+    unsigned int          _ssaoFBO;
     AssetTexture*         _noise;
+    SSCompute*            _blur;
 
 public:
     SSAO();
     ~SSAO();
-    void                  computeSSAO(MRTFrameBuffer* mrtBuffer, ViewEventDistributor* viewEventDistributor);
+    void                  computeSSAO(MRTFrameBuffer*       mrtBuffer,
+                                      ViewEventDistributor* viewEventDistributor);
     Texture*              getNoiseTexture();
     Texture*              getSSAOTexture();
     std::vector<Vector4>& getKernel();

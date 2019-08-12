@@ -33,26 +33,38 @@ class MasterClock {
     //Make constructor/destructor private so it can't be instantiated
     MasterClock();
     static MasterClock*                   _clock;
-    std::vector<std::function<void(int)>> _frameRateFuncs; //Clock feed subscriber's function pointers
-    std::vector<std::function<void(int)>> _animationRateFuncs; //Clock feed subscriber's function pointers
-    std::vector<std::function<void(int)>> _kinematicsRateFuncs; //Clock feed subscriber's function pointers
-    void                                  _physicsProcess();
-    void                                  _fpsProcess();
-    void                                  _animationProcess();
+
+    //Clock feed subscriber's function pointers
+    std::vector<std::function<void(int)>> _kinematicsRateFuncs;
+    //Clock feed subscriber's function pointers
+    std::vector<std::function<void(int)>> _animationRateFuncs;
+    //Clock feed subscriber's function pointers
+    std::vector<std::function<void(int)>> _frameRateFuncs;
+
+    unsigned int                          _milliSecondCounter;
+    std::thread*                          _animationThread;
+    int                                   _animationTime;
     std::thread*                          _physicsThread;
     std::thread*                          _fpsThread;
-    std::thread*                          _animationThread;
-    unsigned int                          _milliSecondCounter;
     int                                   _frameTime;
-    int                                   _animationTime;
+
+    void                                  _animationProcess();
+    void                                  _physicsProcess();
+    void                                  _fpsProcess();
 
 public:
 
     ~MasterClock();
     static MasterClock* instance();
-    void setFrameRate(int framesPerSecond); //Gives programmer adjustable framerate
-    void subscribeFrameRate(std::function<void(int)> func); //Frame rate update
-    void subscribeAnimationRate(std::function<void(int)> func); //Frame rate update
-    void subscribeKinematicsRate(std::function<void(int)> func); //Physics clock time update
-    void run(); //Kicks off the master clock thread that will asynchronously updates subscribers with clock events
+
+    //Physics clock time update
+    void subscribeKinematicsRate(std::function<void(int)> func);
+    //Frame rate update
+    void subscribeAnimationRate(std::function<void(int)> func);
+    //Frame rate update
+    void subscribeFrameRate(std::function<void(int)> func);
+    //Gives programmer adjustable framerate
+    void setFrameRate(int framesPerSecond);
+    //Kicks off the master clock thread that will asynchronously updates subscribers with clock events
+    void run();
 };

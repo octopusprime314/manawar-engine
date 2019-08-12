@@ -538,7 +538,7 @@ RayTracingPipelineShader::RayTracingPipelineShader(std::string shader,
         UINT numShaderRecords = 1;
         UINT shaderRecordSize = shaderIdentifierSize;
         ShaderTable rayGenShaderTable(_dxrDevice.Get(), numShaderRecords, shaderRecordSize, L"RayGenShaderTable");
-        rayGenShaderTable.push_back(ShaderRecord(rayGenShaderIdentifier, shaderIdentifierSize));
+        rayGenShaderTable.pushBack(ShaderRecord(rayGenShaderIdentifier, shaderIdentifierSize));
         _rayGenShaderTable    = rayGenShaderTable.GetResource();
     }
 
@@ -547,7 +547,7 @@ RayTracingPipelineShader::RayTracingPipelineShader(std::string shader,
         UINT numShaderRecords = 1;
         UINT shaderRecordSize = shaderIdentifierSize;
         ShaderTable missShaderTable(_dxrDevice.Get(), numShaderRecords, shaderRecordSize, L"MissShaderTable");
-        missShaderTable.push_back(ShaderRecord(missShaderIdentifier, shaderIdentifierSize));
+        missShaderTable.pushBack(ShaderRecord(missShaderIdentifier, shaderIdentifierSize));
         _missShaderTable      = missShaderTable.GetResource();
     }
 
@@ -557,7 +557,7 @@ RayTracingPipelineShader::RayTracingPipelineShader(std::string shader,
         UINT numShaderRecords = 1;
         UINT shaderRecordSize = shaderIdentifierSize;
         ShaderTable hitGroupShaderTable(_dxrDevice.Get(), numShaderRecords, shaderRecordSize, L"HitGroupShaderTable");
-        hitGroupShaderTable.push_back(ShaderRecord(hitGroupShaderIdentifier, shaderIdentifierSize));
+        hitGroupShaderTable.pushBack(ShaderRecord(hitGroupShaderIdentifier, shaderIdentifierSize));
         _hitGroupShaderTable  = hitGroupShaderTable.GetResource();
     }
 

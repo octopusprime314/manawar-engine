@@ -47,14 +47,21 @@ IOEventDistributor::IOEventDistributor(int* argc,
         });
 
         const GLFWvidmode * mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
-
-        int monitorResoltuionX = mode->width;
-        int monitorResoltuionY = mode->height;
+        int monitorResoltuionY   = mode->height;
+        int monitorResoltuionX   = mode->width;
 
         //WINDOWED MODE
-        _window = glfwCreateWindow(monitorResoltuionX, monitorResoltuionY, "manawar-engine", NULL, NULL);
+        _window = glfwCreateWindow(monitorResoltuionX,
+                                   monitorResoltuionY,
+                                   "manawar-engine",
+                                   NULL,
+                                   NULL);
         //FULLSCREEN MODE
-        //_window = glfwCreateWindow(viewportWidth, viewportHeight, "manawar-engine", glfwGetPrimaryMonitor(), NULL);
+        //_window = glfwCreateWindow(monitorResoltuionX,
+        //                           monitorResoltuionY,
+        //                           "manawar-engine",
+        //                           glfwGetPrimaryMonitor(),
+        //                           NULL);
         if (!_window) {
             // Window or OpenGL context creation failed
             // The error callback above will tell us what happened.
@@ -65,12 +72,12 @@ IOEventDistributor::IOEventDistributor(int* argc,
         int width, height;
         glfwGetWindowSize(_window, &width, &height);
 
-        IOEventDistributor::screenPixelWidth = width;
+        IOEventDistributor::screenPixelWidth  = width;
         IOEventDistributor::screenPixelHeight = height;
 
         //Callbacks
-        glfwSetKeyCallback(_window, &IOEventDistributor::_keyboardUpdate);
-        glfwSetCursorPosCallback(_window, &IOEventDistributor::_mouseUpdate);
+        glfwSetKeyCallback(        _window, &IOEventDistributor::_keyboardUpdate);
+        glfwSetCursorPosCallback(  _window, &IOEventDistributor::_mouseUpdate);
         glfwSetMouseButtonCallback(_window, &IOEventDistributor::_mouseClick);
 
         //Sets atleast one extra render buffer for double buffering to prevent screen tearing
@@ -84,21 +91,23 @@ IOEventDistributor::IOEventDistributor(int* argc,
             std::cout << "OpenGL 3.2 not supported\n" << std::endl;
         }
         printf("OpenGL: %s\nGLSL: %s\nVendor: %s\n",
-            glGetString(GL_VERSION),
-            glGetString(GL_SHADING_LANGUAGE_VERSION),
-            glGetString(GL_VENDOR));
+               glGetString(GL_VERSION),
+               glGetString(GL_SHADING_LANGUAGE_VERSION),
+               glGetString(GL_VENDOR));
 
         //Depth buffer settings
         glClearDepth(1.0);
-        glEnable(GL_DEPTH_TEST);
-        glDepthFunc(GL_LESS);
+        glEnable(    GL_DEPTH_TEST);
+        glDepthFunc( GL_LESS);
         //Color buffer settings
         glClearColor(0.0, 0.0, 0.0, 0.0);
         //Stencil buffer settings
         glClearStencil(0);
 
         //Disable mouse cursor view
-        glfwSetInputMode(_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+        glfwSetInputMode(_window,
+                         GLFW_CURSOR,
+                         GLFW_CURSOR_DISABLED);
     }
     else {
 
@@ -113,46 +122,41 @@ IOEventDistributor::IOEventDistributor(int* argc,
 
     // Hard coded debug events
     TimeEvent::Callback* debugCallback = []() { printf("%g\n", nowMs() / 1e3f); };
-
-    /*uint64_t now = nowMs();
-    constexpr uint64_t sec = 1000;
-    constexpr uint64_t DEMO_LENGTH = (60 + 17)*sec;
-    _timeEvents.push({ now + DEMO_LENGTH, []() {
-        ::std::exit(0);
-    }});*/
 }
 
 void IOEventDistributor::run() {
     _drawUpdate();
 }
 
-void IOEventDistributor::subscribeToKeyboard(std::function<void(int, int, int)> func) { //Use this call to connect functions to key updates
+void IOEventDistributor::subscribeToKeyboard(       std::function<void(int, int, int)> func) {
     _events.subscribeToKeyboard(func);
 }
-void IOEventDistributor::subscribeToReleaseKeyboard(std::function<void(int, int, int)> func) { //Use this call to connect functions to key updates
+void IOEventDistributor::subscribeToReleaseKeyboard(std::function<void(int, int, int)> func) {
     _events.subscribeToKeyboard(func);
 }
-void IOEventDistributor::subscribeToMouse(std::function<void(double, double)> func) { //Use this call to connect functions to mouse updates
+void IOEventDistributor::subscribeToMouse(          std::function<void(double, double)> func) {
     _events.subscribeToMouse(func);
 }
-void IOEventDistributor::subscribeToDraw(std::function<void()> func) { //Use this call to connect functions to draw updates
+void IOEventDistributor::subscribeToDraw(           std::function<void()> func) {
     _events.subscribeToDraw(func);
 }
-void IOEventDistributor::subscribeToGameState(std::function<void(EngineStateFlags)> func) {
+void IOEventDistributor::subscribeToGameState(      std::function<void(EngineStateFlags)> func) {
     _events.subscribeToGameState(func);
 }
-void IOEventDistributor::updateGameState(EngineStateFlags state) {
+void IOEventDistributor::updateGameState(           EngineStateFlags state) {
     IOEvents::updateGameState(state);
 }
 
 LRESULT CALLBACK IOEventDistributor::dxEventLoop(HWND hWnd,
-    UINT message, WPARAM wParam, LPARAM lParam) {
-    
+                                                 UINT message,
+                                                 WPARAM wParam,
+                                                 LPARAM lParam) {
+
     switch (message)
     {
         case WM_KEYDOWN:
         {
-            int key = static_cast<int>(wParam);
+            int key       = static_cast<int>(wParam);
             bool isRepeat = (lParam >> 30) & 0x1;
             if (!isRepeat) {
                 _keyboardUpdate(nullptr, key, 0, 1, 0);
@@ -206,11 +210,17 @@ void IOEventDistributor::quit() {
 }
 
 //All keyboard input from glfw will be notified here
-void IOEventDistributor::_keyboardUpdate(GLFWwindow* window, int key, int scancode, int action, int mods) {
+void IOEventDistributor::_keyboardUpdate(GLFWwindow* window,
+                                         int         key,
+                                         int         scancode,
+                                         int         action,
+                                         int         mods) {
 
     if (action == GLFW_PRESS) {
 
-        if (key == GLFW_KEY_ESCAPE || key == 27) { //Escape key pressed, hard exit no cleanup, TODO FIX THIS!!!!
+        //Escape key pressed, hard exit no cleanup, TODO FIX THIS!!!!
+        if (key == GLFW_KEY_ESCAPE ||
+            key == 27) {
             
             if (EngineManager::getGraphicsLayer() == GraphicsLayer::OPENGL) {
                 glfwDestroyWindow(_window);
@@ -223,7 +233,8 @@ void IOEventDistributor::_keyboardUpdate(GLFWwindow* window, int key, int scanco
             exit(0);
         }
 
-        if (key == GLFW_KEY_GRAVE_ACCENT) { //toggle between world editor and game mode
+        //toggle between world editor and game mode
+        if (key == GLFW_KEY_GRAVE_ACCENT) {
             EngineStateFlags engineStateFlags = EngineState::getEngineState();
             
             engineStateFlags.worldEditorModeEnabled = !engineStateFlags.worldEditorModeEnabled;
@@ -266,18 +277,6 @@ void IOEventDistributor::_drawUpdate() {
                 }
             }
 
-            /*//Only draw when a framerate trigger event has been received from the master clock
-            if (_renderNow > 0) {
-                _renderLock.lock();
-
-                do {
-                    IOEvents::updateDraw(_window);
-                    //Decrement trigger
-                    _renderNow--;
-                } while (_renderNow > 0);
-                _renderLock.unlock();
-            }*/
-
             IOEvents::updateDraw(_window);
         }
     }
@@ -300,7 +299,8 @@ void IOEventDistributor::_drawUpdate() {
             else {
                 //prev x and y position ensure that the valid mouse movement is complete
                 //prior to set the cursor position back to the middle of the screen
-                if (_prevMouseX == 0 && _prevMouseX == 0) {
+                if (_prevMouseX == 0 &&
+                    _prevMouseX == 0) {
                     SetCursorPos(IOEventDistributor::screenPixelWidth  / 2,
                                  IOEventDistributor::screenPixelHeight / 2);
 
@@ -317,18 +317,28 @@ void IOEventDistributor::_drawUpdate() {
 }
 
 //All mouse input will be notified here
-void IOEventDistributor::_mouseUpdate(GLFWwindow* window, double x, double y) {
+void IOEventDistributor::_mouseUpdate(GLFWwindow* window,
+                                      double      x,
+                                      double      y) {
 
     IOEvents::updateMouse(x, y);
 }
 
-void IOEventDistributor::_mouseClick(GLFWwindow* window, int button, int action, int mods) {
+void IOEventDistributor::_mouseClick(GLFWwindow* window,
+                                     int         button,
+                                     int         action,
+                                     int         mods) {
     double xpos, ypos;
     //getting cursor position
-    glfwGetCursorPos(_window, &xpos, &ypos);
-    IOEvents::updateMouseClick(button, action, static_cast<int>(xpos), static_cast<int>(ypos));
-}
+    glfwGetCursorPos(_window,
+                     &xpos,
+                     &ypos);
 
+    IOEvents::updateMouseClick(button,
+                               action,
+                               static_cast<int>(xpos),
+                               static_cast<int>(ypos));
+}
 
 void IOEventDistributor::_frameRateTrigger(int milliSeconds) {
     //Triggers the simple context to draw a frame

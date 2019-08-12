@@ -1,7 +1,11 @@
 #include "EngineState.h"
 
-EngineStateFlags EngineState::_engineStateFlags = {false, false, false, false, false, true};
-
+EngineStateFlags EngineState::_engineStateFlags = {false,
+                                                   false,
+                                                   false,
+                                                   false,
+                                                   false,
+                                                   true};
 
 EngineState::EngineState() {
 }

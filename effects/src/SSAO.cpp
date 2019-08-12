@@ -9,21 +9,38 @@
 #include "HLSLShader.h"
 
 SSAO::SSAO() :
-    _renderTexture(IOEventDistributor::screenPixelWidth, IOEventDistributor::screenPixelHeight, TextureFormat::R_FLOAT),
+    _renderTexture(IOEventDistributor::screenPixelWidth,
+                   IOEventDistributor::screenPixelHeight,
+                   TextureFormat::R_FLOAT),
+
     _ssaoShader(static_cast<SSAOShader*>(ShaderBroker::instance()->getShader("ssaoShader"))) {
 
-    _blur = new SSCompute("blurShader", IOEventDistributor::screenPixelWidth / 4, IOEventDistributor::screenPixelHeight / 4, TextureFormat::R_FLOAT);
-    _downSample = new SSCompute("downsample", IOEventDistributor::screenPixelWidth / 4, IOEventDistributor::screenPixelHeight / 4, TextureFormat::R_FLOAT);
-    _upSample = new SSCompute("upsample", IOEventDistributor::screenPixelWidth, IOEventDistributor::screenPixelHeight, TextureFormat::R_FLOAT);
+    _blur       = new SSCompute("blurShader",
+                                IOEventDistributor::screenPixelWidth  / 4,
+                                IOEventDistributor::screenPixelHeight / 4,
+                                TextureFormat::R_FLOAT);
+
+    _downSample = new SSCompute("downsample", 
+                                IOEventDistributor::screenPixelWidth  / 4,
+                                IOEventDistributor::screenPixelHeight / 4,
+                                TextureFormat::R_FLOAT);
+
+    _upSample   = new SSCompute("upsample",
+                                IOEventDistributor::screenPixelWidth,
+                                IOEventDistributor::screenPixelHeight,
+                                TextureFormat::R_FLOAT);
 
     if (EngineManager::getGraphicsLayer() == GraphicsLayer::OPENGL) {
-        glGenFramebuffers(1, &_ssaoFBO);
-        glBindFramebuffer(GL_FRAMEBUFFER, _ssaoFBO);
+        glGenFramebuffers(     1, &_ssaoFBO);
+        glBindFramebuffer(     GL_FRAMEBUFFER, _ssaoFBO);
 
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _renderTexture.getContext(), 0);
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glFramebufferTexture2D(GL_FRAMEBUFFER,
+                               GL_COLOR_ATTACHMENT0,
+                               GL_TEXTURE_2D,
+                               _renderTexture.getContext(), 0);
+
+        glBindFramebuffer(     GL_FRAMEBUFFER, 0);
     }
-   
     _generateKernelNoise();
 }
 
@@ -42,36 +59,44 @@ void SSAO::_generateKernelNoise() {
     std::default_random_engine generator;
 
     for (unsigned int i = 0; i < 64; ++i) {
-        Vector4 sample(
-            randomFloats(generator) * 2.0f - 1.0f,
-            randomFloats(generator) * 2.0f - 1.0f,
-            randomFloats(generator),
-            1.0f
+        Vector4 sample(randomFloats(generator) * 2.0f - 1.0f,
+                       randomFloats(generator) * 2.0f - 1.0f,
+                       randomFloats(generator),
+                       1.0f
         );
         sample.normalize();
-        sample = sample * randomFloats(generator);
+
+        sample      = sample * randomFloats(generator);
         float scale = static_cast<float>(i) / 64.0f;
 
-        scale = lerp(0.1f, 1.0f, scale * scale);
-        sample = sample * scale;
+        scale       = lerp(0.1f, 1.0f, scale * scale);
+        sample      = sample * scale;
+
         _ssaoKernel.push_back(sample);
     }
 
     for (unsigned int i = 0; i < 16; i++) {
-        Vector4 noise(
-            randomFloats(generator) * 2.0f - 1.0f,
-            randomFloats(generator) * 2.0f - 1.0f,
-            0.0f,
-            1.0f);
+
+        Vector4 noise(randomFloats(generator) * 2.0f - 1.0f,
+                      randomFloats(generator) * 2.0f - 1.0f,
+                      0.0f,
+                      1.0f);
+
         _ssaoNoise.push_back(noise);
     }
 
     if (EngineManager::getGraphicsLayer() >= GraphicsLayer::DX12) {
-        _noise = new AssetTexture(&_ssaoNoise[0], 4, 4,
-            DXLayer::instance()->getCmdList(), DXLayer::instance()->getDevice());
+
+        _noise = new AssetTexture(&_ssaoNoise[0],
+                                  4,
+                                  4,
+                                  DXLayer::instance()->getCmdList(),
+                                  DXLayer::instance()->getDevice());
     }
     else {
-        _noise = new AssetTexture(&_ssaoNoise[0], 4, 4);
+        _noise = new AssetTexture(&_ssaoNoise[0],
+                                  4,
+                                  4);
     }
 }
 
@@ -79,46 +104,54 @@ void SSAO::computeSSAO(MRTFrameBuffer* mrtBuffer, ViewEventDistributor* viewEven
 
     if (EngineManager::getGraphicsLayer() >= GraphicsLayer::DX12) {
 
-        std::vector<RenderTexture> textures = { _renderTexture};
-        HLSLShader::setOM(textures, IOEventDistributor::screenPixelWidth, IOEventDistributor::screenPixelHeight);
+        HLSLShader::setOM({ _renderTexture },
+                          IOEventDistributor::screenPixelWidth,
+                          IOEventDistributor::screenPixelHeight);
     }
     else {
         glBindFramebuffer(GL_FRAMEBUFFER, _ssaoFBO);
-
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(          GL_COLOR_BUFFER_BIT);
     }
 
-    _ssaoShader->runShader(this, mrtBuffer, viewEventDistributor);
+    _ssaoShader->runShader(this,
+                           mrtBuffer,
+                           viewEventDistributor);
 
     if (EngineManager::getGraphicsLayer() >= GraphicsLayer::DX12) {
-        std::vector<RenderTexture> textures = { _renderTexture };
-        HLSLShader::releaseOM(textures);
 
-        DXLayer::instance()->getCmdList()->ResourceBarrier(1,
-            &CD3DX12_RESOURCE_BARRIER::Transition(_renderTexture.getResource()->getResource().Get(),
-                D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_GENERIC_READ));
+        HLSLShader::releaseOM({ _renderTexture });
+
+        auto cmdList      = DXLayer::instance()->getCmdList();
+        auto renderTarget = _renderTexture.getResource()->getResource();
+
+        cmdList->ResourceBarrier(1,
+                                 &CD3DX12_RESOURCE_BARRIER::Transition(renderTarget.Get(),
+                                 D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_GENERIC_READ));
 
         //Downsample by a 1/4
         _downSample->compute(&_renderTexture);
 
-        DXLayer::instance()->getCmdList()->ResourceBarrier(1,
-            &CD3DX12_RESOURCE_BARRIER::Transition(_renderTexture.getResource()->getResource().Get(),
-                D3D12_RESOURCE_STATE_GENERIC_READ, D3D12_RESOURCE_STATE_COMMON));
+        cmdList->ResourceBarrier(1,
+                                 &CD3DX12_RESOURCE_BARRIER::Transition(renderTarget.Get(),
+                                 D3D12_RESOURCE_STATE_GENERIC_READ, D3D12_RESOURCE_STATE_COMMON));
 
-        DXLayer::instance()->getCmdList()->ResourceBarrier(1,
+        cmdList->ResourceBarrier(1,
             &CD3DX12_RESOURCE_BARRIER::UAV(_downSample->getTexture()->getResource()->getResource().Get()));
 
         //Blur in downsampled 
         _blur->compute(_downSample->getTexture());
 
-        DXLayer::instance()->getCmdList()->ResourceBarrier(1,
-            &CD3DX12_RESOURCE_BARRIER::UAV(_blur->getTexture()->getResource()->getResource().Get()));
+        auto blurTarget     = _blur->getTexture()->getResource()->getResource();
+        cmdList->ResourceBarrier(1,
+                                 &CD3DX12_RESOURCE_BARRIER::UAV(blurTarget.Get()));
 
         //upsample back to original
         _upSample->compute(_blur->getTexture());
 
-        DXLayer::instance()->getCmdList()->ResourceBarrier(1,
-            &CD3DX12_RESOURCE_BARRIER::UAV(_upSample->getTexture()->getResource()->getResource().Get()));
+        auto upSampleTarget = _upSample->getTexture()->getResource()->getResource();
+
+        cmdList->ResourceBarrier(1,
+                                 &CD3DX12_RESOURCE_BARRIER::UAV(upSampleTarget.Get()));
     }
     else {
         //Downsample by a 1/4
@@ -130,8 +163,6 @@ void SSAO::computeSSAO(MRTFrameBuffer* mrtBuffer, ViewEventDistributor* viewEven
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
-
-    
 }
 
 Texture* SSAO::getNoiseTexture() {

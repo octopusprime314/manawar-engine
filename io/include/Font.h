@@ -88,18 +88,21 @@ class FontRenderer {
 public:
     FontRenderer() = delete;
     FontRenderer(std::string fileName);
-    void        drawFont(float x, float y, std::string s, uint64_t timeDelta);
+
+    void        drawFont(float       x,
+                         float       y,
+                         std::string s,
+                         uint64_t    timeDelta);
     GLuint      getTexture() { return _fontTex; }
-    GLuint      getVao() { return _vao; }
+    GLuint      getVao()     { return _vao;     }
     ~FontRenderer() {};
 private:
     const int   _bufferSize = 65536;
-    FontInfo    _fontInfo;
-    FontShader* _fontShader;
-
-    GLuint      _fontTex;
-    GLuint      _vao;
     GLuint      _texCoordsVbo;
-    GLuint      _vbo;
+    FontShader* _fontShader;
+    FontInfo    _fontInfo;
+    GLuint      _fontTex;
     GLuint      _shader;
+    GLuint      _vao;
+    GLuint      _vbo;
 };

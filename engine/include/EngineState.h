@@ -23,10 +23,10 @@
 #pragma once
 
 struct EngineStateFlags {
-    bool frustumVisualEnabled;
-    bool geometryVisualEnabled;
     bool worldEditorModeEnabled;
     bool geometryOctTreeEnabled;
+    bool geometryVisualEnabled;
+    bool frustumVisualEnabled;
     bool renderOctTreeEnabled;
     bool gameModeEnabled;
 };

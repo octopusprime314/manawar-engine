@@ -31,9 +31,7 @@
 #include <chrono>
 
 using namespace std::chrono;
-
 uint64_t nowMs();
-
 // We define this here because this file is basically main.
 volatile bool g_AssertOnBadOpenGlCall = false;
 
@@ -42,14 +40,20 @@ std::mutex           EngineManager::_entityListLock;
 GraphicsLayer        EngineManager::_graphicsLayer;
 Entity*              EngineManager::_shadowEntity = nullptr;
 
-EngineManager::EngineManager(int* argc, char** argv, HINSTANCE hInstance, int nCmdShow) {
+EngineManager::EngineManager(int*      argc,
+                             char**    argv,
+                             HINSTANCE hInstance,
+                             int       nCmdShow) {
 
     _graphicsLayer = GraphicsLayer::OPENGL;
 
     if (_graphicsLayer >= GraphicsLayer::DX12) {
 
         if (_graphicsLayer == GraphicsLayer::DXR_EXPERIMENTAL) {
-            D3D12EnableExperimentalFeatures(1, &D3D12ExperimentalShaderModels, nullptr, 0);
+            D3D12EnableExperimentalFeatures(1,
+                                            &D3D12ExperimentalShaderModels,
+                                            nullptr,
+                                            0);
         }
 
         DXLayer::initialize(hInstance, nCmdShow);
@@ -180,7 +184,8 @@ EngineManager::EngineManager(int* argc, char** argv, HINSTANCE hInstance, int nC
         }
     }
     else {
-        _terminal = new Terminal(_deferredRenderer->getGBuffers(), _entityList);
+        _terminal = new Terminal(_deferredRenderer->getGBuffers(),
+                                 _entityList);
     }
 
     //_audioManager->startAll();
@@ -216,13 +221,17 @@ void EngineManager::removeEntity(Entity* entity) {
         indexToRemove++;
     }
     _entityList.erase(_entityList.begin() + indexToRemove);
-    entity->setPosition(Vector4(100000000.0f, 100000000.0f, 100000000.0f, 1.0f));
+    entity->setPosition(Vector4(100000000.0f,
+                                100000000.0f,
+                                100000000.0f,
+                                1.0f));
     _entityListLock.unlock();
 }
 
 Entity* EngineManager::addEntity(Model* model, Matrix transform, bool temporaryModel) {
     auto viewManager = ModelBroker::getViewManager();
     auto viewWrapper = viewManager->getEventWrapper();
+    
     MVP mvp;
     mvp.setModel(transform);
     mvp.setView(viewManager->getView());
@@ -247,13 +256,18 @@ Entity* EngineManager::addEntity(Model* model, Matrix transform, bool temporaryM
             }
             else {
                 _entityListLock.lock();
+
                 std::vector<Entity*>::iterator it = _entityList.begin();
-                Entity* entityToErase = nullptr;
+                Entity* entityToErase             = nullptr;
                 for (auto entity : _entityList) {
+
                     if (entity == _shadowEntity) {
                         entityToErase = entity;
                         //First throw it to infinity lol
-                        entity->setPosition(Vector4(100000000.0f, 100000000.0f, 100000000.0f, 1.0f));
+                        entity->setPosition(Vector4(100000000.0f,
+                                                    100000000.0f,
+                                                    100000000.0f,
+                                                    1.0f));
                         break;
                     }
                     it++;
@@ -262,16 +276,22 @@ Entity* EngineManager::addEntity(Model* model, Matrix transform, bool temporaryM
                     _entityList.erase(it);
                 }
 
-                _entityList.push_back(new Entity(model, viewWrapper, mvp));
+                _entityList.push_back(new Entity(model,
+                                                 viewWrapper,
+                                                 mvp));
 
                 _entityListLock.unlock();
+
                 _shadowEntity = _entityList.back();
             }
         }
     }
     else {
         _entityListLock.lock();
-        _entityList.push_back(new Entity(model, viewWrapper, mvp)); //Add a static model to the scene
+        //Add an entity to the scene
+        _entityList.push_back(new Entity(model,
+                                         viewWrapper,
+                                         mvp));
         _entityListLock.unlock();
     }
     return _entityList.back();
@@ -313,18 +333,18 @@ void EngineManager::_preDraw() {
             //DXLayer::instance()->present(_rayTracingPipeline->getRayTracingTarget());
 
             auto depthTexture = static_cast<RenderTexture*>((
-                static_cast<ShadowedDirectionalLight*>(_lightList[0]))->getDepthTexture());
+                                static_cast<ShadowedDirectionalLight*>(_lightList[0]))->getDepthTexture());
 
-            std::vector<RenderTexture> textures = { *depthTexture };
-            HLSLShader::setOM(textures,
+            HLSLShader::setOM({ *depthTexture },
                               depthTexture->getWidth(),
                               depthTexture->getHeight());
 
             auto depthBlit = static_cast<BlitDepthShader*>(ShaderBroker::instance()->getShader("blitDepthShader"));
 
-            depthBlit->runShader(_rayTracingPipeline->getRayTracingTarget(), depthTexture);
+            depthBlit->runShader(_rayTracingPipeline->getRayTracingTarget(),
+                                 depthTexture);
 
-            HLSLShader::releaseOM(textures);
+            HLSLShader::releaseOM({ *depthTexture });
         }
     }
 
@@ -345,18 +365,25 @@ void EngineManager::_postDraw() {
         if (_viewManager->getViewState() == Camera::ViewState::DEFERRED_LIGHTING) {
 
             //Only compute ssao for opaque objects
-            _ssaoPass->computeSSAO(_deferredRenderer->getGBuffers(), _viewManager);
+            _ssaoPass->computeSSAO(_deferredRenderer->getGBuffers(),
+                                   _viewManager);
 
             //Bind frame buffer
-            glBindFramebuffer(GL_FRAMEBUFFER, _deferredFBO->getFrameBufferContext());
+            glBindFramebuffer(GL_FRAMEBUFFER,
+                              _deferredFBO->getFrameBufferContext());
 
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
             //Pass lights to deferred shading pass
-            _deferredRenderer->deferredLighting(_lightList, _viewManager, _ssaoPass, _environmentMap);
+            _deferredRenderer->deferredLighting(_lightList,
+                                                _viewManager,
+                                                _ssaoPass,
+                                                _environmentMap);
 
             //Draw transparent objects onto of the deferred renderer
-            _forwardRenderer->forwardLighting(_entityList, _viewManager, _lightList);
+            _forwardRenderer->forwardLighting(_entityList,
+                                              _viewManager,
+                                              _lightList);
 
             // Lights - including the fire point lights
             for (Light* light : _lightList) {
@@ -367,7 +394,7 @@ void EngineManager::_postDraw() {
                     if (light->getType() == LightType::SHADOWED_DIRECTIONAL) {
                         
                         Matrix inverseViewProjection = ModelBroker::getViewManager()->getView().inverse() *
-                            ModelBroker::getViewManager()->getProjection().inverse();
+                                                       ModelBroker::getViewManager()->getProjection().inverse();
 
                         //FrustumCuller::getVisibleOBB(entity, inverseViewProjection, light);
                     }
@@ -388,12 +415,14 @@ void EngineManager::_postDraw() {
             _bloom->compute(_deferredFBO->getRenderTexture());
 
             //If adding a second texture then all writes are to this texture second param
-            _add->compute(_deferredFBO->getRenderTexture(), _bloom->getTexture());
+            _add->compute(_deferredFBO->getRenderTexture(),
+                          _bloom->getTexture());
 
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
             Texture* velocityTexture = &_deferredRenderer->getGBuffers()->getTextures()[2];
-            _mergeShader->runShader(_bloom->getTexture(), velocityTexture);
+            _mergeShader->runShader(_bloom->getTexture(),
+                                    velocityTexture);
         }
         else if (_viewManager->getViewState() == Camera::ViewState::PHYSICS) {
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -409,11 +438,15 @@ void EngineManager::_postDraw() {
         else {
 
             //Only compute ssao for opaque objects
-            _ssaoPass->computeSSAO(_deferredRenderer->getGBuffers(), _viewManager);
+            _ssaoPass->computeSSAO(_deferredRenderer->getGBuffers(),
+                                   _viewManager);
 
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             //Pass lights to deferred shading pass
-            _deferredRenderer->deferredLighting(_lightList, _viewManager, _ssaoPass, _environmentMap);
+            _deferredRenderer->deferredLighting(_lightList,
+                                                _viewManager,
+                                                _ssaoPass,
+                                                _environmentMap);
         }
 
         _terminal->display();
@@ -423,26 +456,32 @@ void EngineManager::_postDraw() {
         _deferredRenderer->unbind();
 
         //Only compute ssao for opaque objects
-        _ssaoPass->computeSSAO(_deferredRenderer->getGBuffers(), _viewManager);
+        _ssaoPass->computeSSAO(_deferredRenderer->getGBuffers(),
+                               _viewManager);
 
         RenderTexture* renderTexture = static_cast<RenderTexture*>(_deferredFBO->getRenderTexture());
         RenderTexture* depthTexture  = static_cast<RenderTexture*>(_deferredFBO->getDepthTexture());
 
-        std::vector<RenderTexture> textures = { *renderTexture, *depthTexture };
-        HLSLShader::setOM(textures,
-            IOEventDistributor::screenPixelWidth, IOEventDistributor::screenPixelHeight);
+        HLSLShader::setOM({ *renderTexture, *depthTexture },
+                          IOEventDistributor::screenPixelWidth,
+                          IOEventDistributor::screenPixelHeight);
 
         //Pass lights to deferred shading pass
-        _deferredRenderer->deferredLighting(_lightList, _viewManager, nullptr, nullptr);
+        _deferredRenderer->deferredLighting(_lightList,
+                                            _viewManager,
+                                            nullptr,
+                                            nullptr);
 
-        _forwardRenderer->forwardLighting(_entityList, _viewManager, _lightList);
+        _forwardRenderer->forwardLighting(_entityList,
+                                          _viewManager,
+                                          _lightList);
 
         // Lights - including the fire point lights
         for (Light* light : _lightList) {
             light->render();
         }
 
-        HLSLShader::releaseOM(textures);
+        HLSLShader::releaseOM({ *renderTexture, *depthTexture });
 
         //Compute bloom from deferred fbo texture
         _bloom->compute(_deferredFBO->getRenderTexture());
@@ -451,14 +490,14 @@ void EngineManager::_postDraw() {
         _add->compute(_deferredFBO->getRenderTexture(), _bloom->getTexture());
         _add->uavBarrier();
 
-        HLSLShader::setOM(textures,
+        HLSLShader::setOM({ *renderTexture, *depthTexture },
                           IOEventDistributor::screenPixelWidth,
                           IOEventDistributor::screenPixelHeight);
 
         Texture* velocityTexture = &_deferredRenderer->getGBuffers()->getTextures()[2];
         _mergeShader->runShader(_bloom->getTexture(), velocityTexture);
 
-        HLSLShader::releaseOM(textures);
+        HLSLShader::releaseOM({ *renderTexture, *depthTexture });
 
         DXLayer::instance()->present(_deferredFBO->getRenderTexture());
     }

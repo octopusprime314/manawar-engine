@@ -26,31 +26,36 @@
 #include "EffectShader.h"
 
 enum class EffectType {
-    None = 0,
+    None  = 0,
     Water = 1,
-    Fire = 2,
+    Fire  = 2,
     Smoke = 3
 };
 
 class Effect : public EventSubscriber {
 
 public:
-    Effect(ViewEvents* eventWrapper, std::string shaderName, EffectType effectType);
-    MVP           getCameraMVP();
-    EffectType    getType();
+    Effect(ViewEvents* eventWrapper,
+        std::string shaderName,
+        EffectType effectType);
+
     virtual void  render() = 0;
 
+    MVP           getCameraMVP();
+    EffectType    getType();
+
 protected:
-    void          _updateKeyboard(int key, int x, int y); //Do stuff based on keyboard upate
-    void          _updateReleaseKeyboard(int key, int x, int y);
-    void          _updateMouse(double x, double y); //Do stuff based on mouse update
-    void          _updateDraw(); //Do draw stuff
-    void          _updateView(Matrix view); //Get view matrix updates
-    void          _updateProjection(Matrix projection); //Get projection matrix updates
-    void          _updateGameState(EngineStateFlags state);
-    MVP           _cameraMVP; //Camera's model view matrix container
+    void          _updateReleaseKeyboard(int key, int x, int y) {};
+    void          _updateGameState(EngineStateFlags state) {};
+    void          _updateKeyboard(int key, int x, int y) {};
+    void          _updateProjection(Matrix projection);
+    void          _updateMouse(double x, double y) {};
+    void          _updateView(Matrix view);
     void          _updateTime(int time);
+    void          _updateDraw() {};
+
     uint64_t      _milliSecondTime;
     EffectShader* _effectShader;
     EffectType    _effectType;
+    MVP           _cameraMVP;
 };

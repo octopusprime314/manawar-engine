@@ -10,7 +10,8 @@
 #include "IOEventDistributor.h"
 #include "TextureBroker.h"
 
-const float ratio = static_cast<float>(IOEventDistributor::screenPixelHeight) / IOEventDistributor::screenPixelWidth;
+const float ratio = static_cast<float>(IOEventDistributor::screenPixelHeight) /
+                                       IOEventDistributor::screenPixelWidth;
 
 struct vec2 {
     float x;
@@ -23,13 +24,15 @@ struct vec3 {
     float z;
 };
 
-void parseFontFile(std::string& filename, FontInfo& out) {
+void parseFontFile(std::string& filename,
+                   FontInfo&    out) {
     std::ifstream filestream(filename);
-    std::string line;
-    std::string token;
-    std::size_t i;
-    std::string key;
-    std::string value;
+    std::string   line;
+    std::string   token;
+    std::size_t   i;
+    std::string   key;
+    std::string   value;
+
     while (std::getline(filestream, line)) {
         std::stringstream ss;
         ss << line;
@@ -37,9 +40,9 @@ void parseFontFile(std::string& filename, FontInfo& out) {
 
         if (token == "chars") {
             ss >> token;
-            i = token.find('=');
-            key = token.substr(0, i);
-            value = token.substr(i + 1);
+            i             = token.find('=');
+            key           = token.substr(0, i);
+            value         = token.substr(i + 1);
             out.charCount = atoi(value.c_str());
         }
         else if (token == "char") {
@@ -47,8 +50,8 @@ void parseFontFile(std::string& filename, FontInfo& out) {
 
             std::stringstream converter;
             ss >> token;
-            i = token.find('=');
-            key = token.substr(0, i);
+            i     = token.find('=');
+            key   = token.substr(0, i);
             value = token.substr(i + 1);
             converter << value;
 
@@ -61,8 +64,8 @@ void parseFontFile(std::string& filename, FontInfo& out) {
                 converter.str(std::string());
                 converter.clear();
                 ss >> token;
-                i = token.find('=');
-                key = token.substr(0, i);
+                i     = token.find('=');
+                key   = token.substr(0, i);
                 value = token.substr(i + 1);
                 converter << value;
 
@@ -94,9 +97,7 @@ void parseFontFile(std::string& filename, FontInfo& out) {
                     converter >> out.chars[id].chnl;
                 }
             }
-
         }
-
     }
 }
 
@@ -105,7 +106,7 @@ FontRenderer::FontRenderer(std::string fileName)
     std::string fullPath = FONT_LOCATION + fileName;
     parseFontFile(fullPath, _fontInfo);
 
-    TextureBroker* pTb = TextureBroker::instance();
+    TextureBroker* pTb   = TextureBroker::instance();
     pTb->addTexture("../assets/textures/font/ubuntu_mono_regular_0.png");
 
     // create vertex buffer
@@ -149,16 +150,21 @@ void FontRenderer::drawFont(float x, float y, std::string s, uint64_t timeDelta)
         // generate character position 
         float xoffset = _fontInfo.chars[asciiVal].xoffset / scale;
         float yoffset = _fontInfo.chars[asciiVal].yoffset / scale;
-        float width =   _fontInfo.chars[asciiVal].width / scale;
-        float height =  _fontInfo.chars[asciiVal].height / scale;
+        float width = _fontInfo.chars[asciiVal].width / scale;
+        float height = _fontInfo.chars[asciiVal].height / scale;
         float advance = _fontInfo.chars[asciiVal].xadvance / scale;
 
-        vec3 topLeftPos = { x + xoffset, y - yoffset, 0 };
-        vec3 topRightPos = { x + xoffset + width, y - yoffset, 0 };
-        vec3 bottomLeftPos = { x + xoffset, y - yoffset - height, 0 };
+        vec3 topLeftPos = { x + xoffset,         y - yoffset,          0 };
+        vec3 topRightPos = { x + xoffset + width, y - yoffset,          0 };
+        vec3 bottomLeftPos = { x + xoffset        , y - yoffset - height, 0 };
         vec3 bottomRightPos = { x + xoffset + width, y - yoffset - height, 0 };
 
-        vec3 cursorPosition[] = { bottomLeftPos, topLeftPos, topRightPos, topRightPos, bottomRightPos, bottomLeftPos };
+        vec3 cursorPosition[] = { bottomLeftPos,
+                                  topLeftPos,
+                                  topRightPos,
+                                  topRightPos,
+                                  bottomRightPos,
+                                  bottomLeftPos };
 
         cursorPosition[0].x += cursorAdvance;
         cursorPosition[1].x += cursorAdvance;
@@ -169,10 +175,14 @@ void FontRenderer::drawFont(float x, float y, std::string s, uint64_t timeDelta)
 
 
         // generate text coordinates
-        vec2 bottomLeft =  { _fontInfo.chars[asciiVal].x / 256.0f, 1.0f - (_fontInfo.chars[asciiVal].y + _fontInfo.chars[asciiVal].height) / 256.0f };
-        vec2 topRight =    {(_fontInfo.chars[asciiVal].x + _fontInfo.chars[asciiVal].width) / 256.0f, 1.0f - _fontInfo.chars[asciiVal].y / 256.0f };
-        vec2 topLeft =     { _fontInfo.chars[asciiVal].x / 256.0f, 1.0f - (_fontInfo.chars[asciiVal].y) / 256.0f };
-        vec2 bottomRight = {(_fontInfo.chars[asciiVal].x + _fontInfo.chars[asciiVal].width) / 256.0f, 1.0f - (_fontInfo.chars[asciiVal].y + _fontInfo.chars[asciiVal].height) / 256.0f };
+        vec2 bottomLeft = { _fontInfo.chars[asciiVal].x / 256.0f,
+                           1.0f - (_fontInfo.chars[asciiVal].y + _fontInfo.chars[asciiVal].height) / 256.0f };
+        vec2 topRight = { (_fontInfo.chars[asciiVal].x + _fontInfo.chars[asciiVal].width) / 256.0f,
+                           1.0f - _fontInfo.chars[asciiVal].y / 256.0f };
+        vec2 topLeft = { _fontInfo.chars[asciiVal].x / 256.0f,
+                           1.0f - (_fontInfo.chars[asciiVal].y) / 256.0f };
+        vec2 bottomRight = { (_fontInfo.chars[asciiVal].x + _fontInfo.chars[asciiVal].width) / 256.0f,
+                           1.0f - (_fontInfo.chars[asciiVal].y + _fontInfo.chars[asciiVal].height) / 256.0f };
 
         vec2 texCoords[] = { bottomLeft, topLeft, topRight, topRight, bottomRight, bottomLeft };
 
@@ -216,4 +226,3 @@ void FontRenderer::drawFont(float x, float y, std::string s, uint64_t timeDelta)
 
     _fontShader->runShader(_vao, s);
 }
-

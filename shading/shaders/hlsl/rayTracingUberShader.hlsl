@@ -1,3 +1,5 @@
+#define USE_SHADER_MODEL_6_5 0
+
 struct SceneConstantBuffer
 {
     float4x4 projectionToWorld;
@@ -7,15 +9,11 @@ struct SceneConstantBuffer
     float4x4 projection;
     float4x4 lightView;
 };
-
-
 struct Vertex
 {
     float3 position;
     float3 normal;
 };
-
-
 struct Viewport
 {
     float left;
@@ -23,25 +21,24 @@ struct Viewport
     float right;
     float bottom;
 };
-
 struct RayGenConstantBuffer
 {
     Viewport viewport;
     Viewport stencil;
 };
-
-RaytracingAccelerationStructure Scene : register(t0, space0);
-RWTexture2D<float4> RenderTarget : register(u0);
-ByteAddressBuffer Indices : register(t1, space0);
-StructuredBuffer<Vertex> Vertices : register(t2, space0);
-
-ConstantBuffer<SceneConstantBuffer> g_sceneCB : register(b0);
-
-typedef BuiltInTriangleIntersectionAttributes MyAttributes;
 struct RayPayload
 {
     float4 color;
 };
+
+typedef BuiltInTriangleIntersectionAttributes MyAttributes;
+
+RaytracingAccelerationStructure Scene         : register(t0, space0);
+RWTexture2D<float4> RenderTarget              : register(u0);
+ByteAddressBuffer Indices                     : register(t1, space0);
+StructuredBuffer<Vertex> Vertices             : register(t2, space0);
+ConstantBuffer<SceneConstantBuffer> g_sceneCB : register(b0);
+
 
 // Retrieve hit world position.
 float3 HitWorldPosition()
@@ -77,8 +74,6 @@ inline void GenerateCameraRay(uint2 index, out float3 origin, out float3 directi
     //Orthographic matrix
     origin = world.xyz;
     direction = g_sceneCB.lightDirection.xyz;
-
-
 }
 
 [shader("raygeneration")]
@@ -100,17 +95,89 @@ void MyRaygenShader()
     ray.TMin = 0.001;
     ray.TMax = 10000.0;
     RayPayload payload = { float4(0, 0, 0, 0) };
-    TraceRay(Scene, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, ~0, 0, 1, 0, ray, payload);
 
-    //RayQuery<RAY_FLAG_NONE> rayQuery;
-    //rayQuery.TraceRayInline(Scene,
+#if (USE_SHADER_MODEL_6_5 == 1)
+    RayQuery<RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH> rayQuery;
+    rayQuery.TraceRayInline(Scene,
+        RAY_FLAG_NONE,
+        ~0,
+        ray);
+
+    //rayQuery.Proceed();
+
+    if (rayQuery.Proceed() == false && rayQuery.CommittedStatus() == COMMITTED_TRIANGLE_HIT)
+    {
+        float3   hitPosition = rayQuery.WorldRayOrigin() +
+            (rayQuery.CommittedRayT() * rayQuery.WorldRayDirection());
+
+        float4x4 lightViewProj = mul(g_sceneCB.lightView, g_sceneCB.projection);
+        float4   clipSpace = mul(float4(hitPosition, 1), lightViewProj);
+        float    depth = clipSpace.z;
+
+        //float3x4 data = rayQuery.CommittedWorldToObject3x4();
+
+        float3x4 data = rayQuery.CandidateWorldToObject3x4();
+        data = mul(data, rayQuery.CandidateObjectToWorld3x4());
+        data = mul(data, rayQuery.CommittedObjectToWorld3x4());
+        data = mul(data, rayQuery.CommittedWorldToObject3x4());
+
+        if (data[0][0] > 0.0f)
+        {
+            payload.color += float4(depth, depth, depth, 1.0f);
+        }
+        else
+        {
+            payload.color += float4(1.0, 0.0, 0.0, 1.0f);
+        }
+
+    }
+    else
+    {
+        payload.color += float4(1.0f, 0.0f, 0.0f, 0.0f);
+    }
+
+    //RayQuery<RAY_FLAG_NONE> rayQuery2;
+    //rayQuery2.TraceRayInline(Scene,
     //                        RAY_FLAG_NONE,
     //                        ~0,
     //                        ray);
+    //
+    //rayQuery2.Proceed();
+    //
+    //if (rayQuery2.CommittedStatus() == COMMITTED_TRIANGLE_HIT)
+    //{
+    //    float3   hitPosition   = rayQuery2.WorldRayOrigin() +
+    //                             //(rayQuery.RayTCurrent() *
+    //                             (rayQuery2.CommittedRayT() *
+    //                                 rayQuery2.WorldRayDirection());
+    //
+    //    float4x4 lightViewProj = mul(g_sceneCB.lightView, g_sceneCB.projection);
+    //    float4   clipSpace     = mul(float4(hitPosition, 1), lightViewProj);
+    //    float    depth         = clipSpace.z;
+    //
+    //    payload.color += float4(depth, depth, depth, 1.0f);
+    //}
+    //else
+    //{
+    //    payload.color += float4(1.0f, 0.0f, 0.0f, 0.0f);
+    //}
+#else
+    TraceRay(Scene, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, ~0, 0, 1, 0, ray, payload);
+
+#endif
 
     // Write the raytraced color to the output texture.
     RenderTarget[DispatchRaysIndex().xy] = payload.color;
 }
+
+//float getDepth()
+//{
+//    float3 hitPosition = WorldRayOrigin() + RayTCurrent() * WorldRayDirection();
+//
+//    float4x4 lightViewProj = mul(g_sceneCB.lightView, g_sceneCB.projection);
+//    float4 clipSpace = mul(float4(hitPosition, 1), lightViewProj);
+//    return clipSpace.z;
+//}
 
 [shader("closesthit")]
 void MyClosestHitShader(inout RayPayload payload, in MyAttributes attr)
@@ -136,10 +203,8 @@ void MyClosestHitShader(inout RayPayload payload, in MyAttributes attr)
     float3 hitPosition = HitWorldPosition();
     float4x4 lightViewProj = mul(g_sceneCB.lightView, g_sceneCB.projection);
     float4 clipSpace = mul(float4(hitPosition, 1), lightViewProj);
-    //float4 clipSpace = mul(float4(hitPosition, 1), g_sceneCB.projection);
-    //float distance = length(clipSpace.xyz);
     payload.color = float4(clipSpace.z, clipSpace.z, clipSpace.z, 1.0);
-    
+
     //payload.color = float4(0.0, 1.0, 0.0, 1.0);
 
 }

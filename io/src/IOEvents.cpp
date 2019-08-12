@@ -3,14 +3,14 @@
 #include "EngineManager.h"
 #include "ShaderBroker.h"
 
-std::vector<std::function<void(int, int, int)>>      IOEvents::_keyboardFuncs;
 std::vector<std::function<void(int, int, int)>>      IOEvents::_keyboardReleaseFuncs;
+std::function<void()>                                IOEvents::_postDrawCallback;
 std::vector<std::function<void(int, int, int, int)>> IOEvents::_mouseButtonFuncs;
+std::function<void()>                                IOEvents::_preDrawCallback;
+std::vector<std::function<void(EngineStateFlags)>>   IOEvents::_gameStateFuncs;
+std::vector<std::function<void(int, int, int)>>      IOEvents::_keyboardFuncs;
 std::vector<std::function<void(double, double)>>     IOEvents::_mouseFuncs;
 std::vector<std::function<void()>>                   IOEvents::_drawFuncs;
-std::vector<std::function<void(EngineStateFlags)>>   IOEvents::_gameStateFuncs;
-std::function<void()>                                IOEvents::_preDrawCallback;
-std::function<void()>                                IOEvents::_postDrawCallback;
 
 //Use this call to connect functions to key updates
 void IOEvents::subscribeToKeyboard(std::function<void(int, int, int)> func) { 
@@ -49,7 +49,7 @@ void IOEvents::updateKeyboard(int key, int x, int y) {
 
     for (auto func : _keyboardFuncs) {
         if (func != nullptr) {
-            func(key, x, y); //Call keyboard update
+            func(key, x, y);
         }
     }
 }
@@ -59,7 +59,7 @@ void IOEvents::releaseKeyboard(int key, int x, int y) {
 
     for (auto func : _keyboardReleaseFuncs) {
         if (func != nullptr) {
-            func(key, x, y); //Call keyboard release update
+            func(key, x, y);
         }
     }
 }
@@ -72,7 +72,7 @@ void IOEvents::updateDraw(GLFWwindow* _window) {
     
     for (auto func : _drawFuncs) {
         if (func != nullptr) {
-            func(); //Call draw update method
+            func();
         }
     }
 
@@ -80,9 +80,10 @@ void IOEvents::updateDraw(GLFWwindow* _window) {
     _postDrawCallback();
 
     if (EngineManager::getGraphicsLayer() == GraphicsLayer::OPENGL) {
-        glfwSwapBuffers(_window); // Double buffering
+        glfwSwapBuffers(_window);
 
-        glfwPollEvents(); //Poll for events
+        //Poll for events
+        glfwPollEvents();
     }
 }
 
@@ -91,7 +92,7 @@ void IOEvents::updateDraw(GLFWwindow* _window) {
 void IOEvents::updateMouse(double x, double y) {
     for (auto func : _mouseFuncs) {
         if (func != nullptr) {
-            func(x, y); //Call mouse movement update
+            func(x, y);
         }
     }
 }
@@ -101,7 +102,7 @@ void IOEvents::updateMouseClick(int button, int action, int x, int y) {
 
     for (auto func : _mouseButtonFuncs) {
         if (func != nullptr) {
-            func(button, action, x, y); //Call mouse movement update
+            func(button, action, x, y);
         }
     }
 }
@@ -111,7 +112,7 @@ void IOEvents::updateGameState(EngineStateFlags state) {
     EngineState::setEngineState(state);
     for (auto func : _gameStateFuncs) {
         if (func != nullptr) {
-            func(state); //Call game state update
+            func(state);
         }
     }
 }

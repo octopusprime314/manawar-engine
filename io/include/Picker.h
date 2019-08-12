@@ -28,29 +28,40 @@
 using MutableTextures = std::unordered_map<std::string, MutableTexture*>;
 
 class Picker {
-    MRTFrameBuffer*                   _mrt;
-    void                              _mouseClick(int button, int action, int x, int y);
-    void                              _mouseMove(double x, double y);
-    void                              _editData(int x, int y, bool mouseDrag, bool mouseClick);
-    void                              _keyboardPress(int key, int x, int y);
+    void                                     _mouseClick(   int    button,
+                                                            int    action,
+                                                            int    x,
+                                                            int    y);
+    void                                     _mouseMove(    double x,
+                                                            double y);
+    void                                     _editData(     int    x,
+                                                            int    y,
+                                                            bool   mouseDrag,
+                                                            bool   mouseClick);
+    void                                     _keyboardPress(int    key,
+                                                            int    x,
+                                                            int    y);
+    
+    MutableTextures                          _mutableTextureCache;
+    std::function<bool(Entity*)>             _mouseDeleteCallback;
+    bool                                     _leftMousePressed;
+    int                                      _textureSelection;
+    Vector4                                  _pixelEditValue;
+    Vector4                                  _pickedPosition;
+    int                                      _pickingRadius;
+    std::function<bool(Vector4,bool)>        _mouseCallback;
+    float*                                   _idBufferCache;
+    Vector4                                  _mousePosition;
+    std::vector<Entity*>                     _entityList;
+    MRTFrameBuffer*                          _mrt;
 
-    std::vector<Entity*>              _entityList;
-    int                               _textureSelection;
-    Vector4                           _pixelEditValue;
-    int                               _pickingRadius;
-    std::function<bool(Vector4,bool)> _mouseCallback;
-    std::function<bool(Entity*)> _mouseDeleteCallback;
-    bool                              _leftMousePressed;
-    MutableTextures                   _mutableTextureCache;
-    float*                            _idBufferCache;
-    Vector4                           _mousePosition;
-    Vector4                           _pickedPosition;
 public:
-    Picker(MRTFrameBuffer* mrt, 
-           std::function<bool(Vector4,bool)> terminalCallback, 
+    Picker(MRTFrameBuffer*                   mrt,
+           std::function<bool(Vector4,bool)> terminalCallback,
            std::function<bool(Entity*)>      mouseDeleteCallback);
-    void updateIdBuffer();
-    void saveMutableTextures();
-    Vector4 getLastPickedPosition();
     ~Picker();
+
+    Vector4                                  getLastPickedPosition();
+    void                                     saveMutableTextures();
+    void                                     updateIdBuffer();
 };

@@ -29,11 +29,15 @@ class SSCompute {
     RenderTexture  _renderTexture;
 
 public:
-    SSCompute(std::string computeShader, GLuint width, GLuint height, TextureFormat format);
+    SSCompute(std::string   computeShader,
+              GLuint        width,
+              GLuint        height,
+              TextureFormat format);
     ~SSCompute();
     unsigned int   getTextureContext();
     Texture*       getTexture();
     void           compute(Texture* readTexture);
-    void           compute(Texture* readTexture, Texture* writeTexture);
+    void           compute(Texture* readTexture,
+                           Texture* writeTexture);
     void           uavBarrier();
 };

@@ -37,12 +37,12 @@
 #include <chrono>
 
 
-std::ofstream* Logger::outputFile = 
-new std::ofstream(LOGGERPATH + "Log" + getPID() + ".txt", std::ios_base::in | std::ios_base::out | std::ios_base::trunc);
+std::ofstream* Logger::outputFile = new std::ofstream(LOGGERPATH + "Log" + getPID() + ".txt",
+                                                      std::ios_base::in | std::ios_base::out | std::ios_base::trunc);
 
-std::mutex* Logger::logMutex = new std::mutex();
-int Logger::verbosity = 1;
-LOG_LEVEL Logger::logLevel = LOG_LEVEL::TRACE;
+std::mutex* Logger::logMutex  = new std::mutex();
+int         Logger::verbosity = 1;
+LOG_LEVEL   Logger::logLevel  = LOG_LEVEL::TRACE;
 
 std::string Logger::getPID() {
     //Return the program PID to generate unique log files
@@ -51,16 +51,16 @@ std::string Logger::getPID() {
 
 //Close log and save time
 void Logger::closeLog() {
-    logMutex->lock();
-    (*outputFile).close();
-    logMutex->unlock();
+    logMutex  ->lock();
+    outputFile->close();
+    logMutex  ->unlock();
 
     delete outputFile;
     delete logMutex;
 }
 
 void Logger::setLogLevel(std::string log_level) {
-    if (log_level == "fatal") {
+    if (log_level      == "fatal") {
         Logger::logLevel = LOG_LEVEL::FATAL;
     }
     else if (log_level == "err") {
@@ -80,7 +80,11 @@ void Logger::setLogLevel(std::string log_level) {
     }
 }
 
-void Logger::dumpLog(const char* file, const char* func, int line, LOG_LEVEL level, const std::string& buffer) {
+void Logger::dumpLog(const char* file,
+                     const char* func,
+                     int line,
+                     LOG_LEVEL level,
+                     const std::string& buffer) {
 
     if (cmdEnabled) {
         std::cout << buffer;

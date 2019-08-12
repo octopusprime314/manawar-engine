@@ -3,7 +3,9 @@
 #include "ShaderBroker.h"
 #include <random>
 
-Effect::Effect(ViewEvents* eventWrapper, std::string shaderName, EffectType effectType) :
+Effect::Effect(ViewEvents* eventWrapper,
+               std::string shaderName,
+               EffectType effectType) :
     EventSubscriber(eventWrapper),
     _effectShader(static_cast<EffectShader*>(ShaderBroker::instance()->getShader(shaderName))),
     _effectType(effectType) {
@@ -16,16 +18,6 @@ EffectType Effect::getType() {
     return _effectType;
 }
 
-void Effect::_updateDraw() {
-}
-void Effect::_updateKeyboard(int key, int x, int y) {
-}
-void Effect::_updateReleaseKeyboard(int key, int x, int y) {
-}
-void Effect::_updateMouse(double x, double y) {
-}
-void Effect::_updateGameState(EngineStateFlags state) {
-}
 
 void Effect::_updateView(Matrix view) {
     _cameraMVP.setView(view);
@@ -44,7 +36,7 @@ void Effect::_updateTime(int time) {
     //we need to multiply that value by some constant
     //A full day takes one minute should do it lol
     //divide total time by 60 seconds times 1000 to convert to milliseconds
-    uint64_t updateTimeAmplified = dayLengthMilliseconds / (60 * 1000);
+    uint64_t updateTimeAmplified         = dayLengthMilliseconds / (60 * 1000);
 
     _milliSecondTime += (updateTimeAmplified*time);
     _milliSecondTime %= dayLengthMilliseconds;

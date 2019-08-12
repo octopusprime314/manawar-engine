@@ -3,8 +3,9 @@
 #include <iostream>
 MasterClock* MasterClock::_clock = nullptr;
 
-MasterClock::MasterClock() : _frameTime(DEFAULT_FRAME_TIME),
-_animationTime(DEFAULT_FRAME_TIME) {
+MasterClock::MasterClock() : 
+    _frameTime(    DEFAULT_FRAME_TIME),
+    _animationTime(DEFAULT_FRAME_TIME) {
 
 }
 
@@ -22,8 +23,8 @@ MasterClock* MasterClock::instance() {
 void MasterClock::run() {
 
     //Run the clock event processes that are responsible for sending time events to subscribers
-    _physicsThread = new std::thread(&MasterClock::_physicsProcess, _clock);
-    _fpsThread = new std::thread(&MasterClock::_fpsProcess, _clock);
+    _physicsThread   = new std::thread(&MasterClock::_physicsProcess,   _clock);
+    _fpsThread       = new std::thread(&MasterClock::_fpsProcess,       _clock);
     _animationThread = new std::thread(&MasterClock::_animationProcess, _clock);
 }
 
@@ -31,23 +32,25 @@ void MasterClock::_physicsProcess() {
     int milliSecondCounter = 0;
     while (true) {
         auto start = std::chrono::high_resolution_clock::now();
-        //If the millisecond amount is divisible by kinematics time then trigger a kinematic calculation time event to subscribers
+        //If the millisecond amount is divisible by kinematics time,
+        //then trigger a kinematic calculation time event to subscribers
         if (milliSecondCounter == KINEMATICS_TIME) {
             milliSecondCounter = 0;
             for (auto funcs : _kinematicsRateFuncs) {
                 funcs(KINEMATICS_TIME);
             }
         }
-        auto end = std::chrono::high_resolution_clock::now();
+        auto end            = std::chrono::high_resolution_clock::now();
         double milliseconds = std::chrono::duration<double, std::milli>(end - start).count();
-        int deltaTime = static_cast<int>(static_cast<double>(KINEMATICS_TIME) - milliseconds);
+        int deltaTime       = static_cast<int>(static_cast<double>(KINEMATICS_TIME) - milliseconds);
         if (deltaTime > 0) {
             //std::cout << "left over time: " << deltaTime << std::endl;
             //Wait for remaining milliseconds
             std::this_thread::sleep_for(std::chrono::milliseconds(deltaTime));
         }
         else if (deltaTime < 0) {
-            std::cout << "Extra time being used on physics calculations: " << milliseconds - KINEMATICS_TIME << std::endl;
+            std::cout << "Extra time being used on physics calculations: "
+                      << milliseconds - KINEMATICS_TIME << std::endl;
         }
         milliSecondCounter += KINEMATICS_TIME;
     }
@@ -67,7 +70,7 @@ void MasterClock::_fpsProcess() {
         auto end = std::chrono::high_resolution_clock::now();
         if (std::chrono::duration<double, std::milli>(end - start).count() <= 1.0f) {
             //Wait for a millisecond
-            std::this_thread::sleep_for(std::chrono::milliseconds(1)); //1 millisecond clock resolution
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
             milliSecondCounter++;
         }
     }
@@ -87,7 +90,7 @@ void MasterClock::_animationProcess() {
         auto end = std::chrono::high_resolution_clock::now();
         if (std::chrono::duration<double, std::milli>(end - start).count() <= 1.0f) {
             //Wait for a millisecond
-            std::this_thread::sleep_for(std::chrono::milliseconds(1)); //1 millisecond clock resolution
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
             milliSecondCounter++;
         }
     }

@@ -31,27 +31,30 @@ class Picker;
 class Terminal {
 public:
 
-    Terminal(MRTFrameBuffer* gBuffers, std::vector<Entity*> entityList);
+    Terminal(MRTFrameBuffer*      gBuffers,
+             std::vector<Entity*> entityList);
     ~Terminal();
     void                     display();
 
 private:
-    FontRenderer             _fontRenderer;
-    std::string              _commandString;
-    std::string              _commandToProcess;
-    std::vector<std::string> _commandHistory;
-    size_t                   _commandHistoryIndex;
-    MRTFrameBuffer*          _gBuffers;
-    void                     _updateKeyboard(int key, int x, int y);
+    
+    bool                     _mousePosition(Vector4 position, bool mouseClick);
     void                     _updateReleaseKeyboard(int key, int x, int y);
     void                     _updateGameState(EngineStateFlags state);
-    bool                     _mousePosition(Vector4 position, bool mouseClick);
+    void                     _updateKeyboard(int key, int x, int y);
     bool                     _mouseDeletion(Entity* entity);
     int                      _getCursorIndex();
+
+    size_t                   _commandHistoryIndex;
+    std::string              _commandToProcess;
+    bool                     _shiftKeyPressed;
+    int                      _modelNameIndex;
+    std::vector<std::string> _commandHistory;
+    std::string              _commandString;
     static ShaderBroker*     _shaderManager; 
     static ModelBroker*      _modelManager;
-    int                      _modelNameIndex;
+    FontRenderer             _fontRenderer;
     EngineStateFlags         _gameState;
+    MRTFrameBuffer*          _gBuffers;
     Picker*                  _picker;
-    bool                     _shiftKeyPressed;
 };

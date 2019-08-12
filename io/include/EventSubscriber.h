@@ -38,11 +38,24 @@ public:
     virtual ~EventSubscriber();
 
 protected:
-    virtual void _updateKeyboard(int key, int x, int y) = 0;
-    virtual void _updateReleaseKeyboard(int key, int x, int y) = 0;
-    virtual void _updateMouse(double x, double y) = 0;
+
+    virtual void _updateGameState(      EngineStateFlags engineState) = 0;
+
+    virtual void _updateReleaseKeyboard(int    key,
+                                        int    x,
+                                        int    y) = 0;
+
+    virtual void _updateKeyboard(       int    key,
+                                        int    x,
+                                        int    y) = 0;
+
+    virtual void _updateMouse(          double x,
+                                        double y) = 0;
+
     virtual void _updateDraw() = 0;
-    virtual void _updateGameState(EngineStateFlags engineState) = 0;
-    virtual void _updateView(Matrix view); //optional to implement overriden function
-    virtual void _updateProjection(Matrix view); //optional to implement overriden function
+
+    //optional to implement overriden function
+    virtual void _updateView(           Matrix view);
+    //optional to implement overriden function
+    virtual void _updateProjection(     Matrix view);
 };

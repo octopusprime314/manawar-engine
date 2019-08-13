@@ -24,27 +24,48 @@
 #include "Cube.h"
 class GeometryMath {
 
-    static float   _max(float a, float b);
-    static float   _min(float a, float b);
-    static Vector4 _closestPoint(Sphere* sphere, Triangle* triangle);
+    static float   _max(            float     a,
+                                    float     b);
+    static float   _min(            float     a,
+                                    float     b);
+    static Vector4 _closestPoint(   Sphere*   sphere,
+                                    Triangle* triangle);
 public:
     //Early out collision helper functions
-    static bool sphereProtrudesCube(Sphere* sphere, Cube* cube); //Returns true if the sphere is not completely enclosed within a cube
+    static bool sphereProtrudesCube(      Sphere*               sphere,
+                                          Cube*                 cube);
 
     //Collision detection functions
-    static bool spheresSpheresDetection(Geometry *spheresGeometryA, Geometry *spheresGeometryB); //Test all model A's spheres against all model B's spheres
-    static bool spheresTrianglesDetection(Geometry* spheresGeometry, Geometry* triangleGeometry); //Test all model A's spheres against all model B's triangles
-    static bool sphereCubeDetection(Sphere *sphere, Cube *cube); //Test a single sphere against a single cube
-    static bool triangleCubeDetection(Triangle* triangle, Cube* cube); //Test a single triangle against a single cube
-    static bool sphereTriangleDetection(Sphere& sphere, Triangle& triangle); //Returns true if a sphere and triangle overlap
-    static bool sphereSphereDetection(Sphere& sphereA, Sphere& sphereB); //Returns true if a sphere and a sphere overlap
-    static bool frustumAABBDetection(std::vector<Vector4> planes, Vector4 &mins, Vector4 &maxs);
-    static void getFrustumPlanes(Matrix inverseViewProjection, std::vector<Vector4>& planes);
+    static bool spheresTrianglesDetection(Geometry*             spheresGeometry,
+                                          Geometry*             triangleGeometry);
+    static bool spheresSpheresDetection(  Geometry*             spheresGeometryA,
+                                          Geometry*             spheresGeometryB);
+    static bool sphereTriangleDetection(  Sphere&               sphere,
+                                          Triangle&             triangle);
+    static bool triangleCubeDetection(    Triangle*             triangle,
+                                          Cube*                 cube);
+    static bool sphereSphereDetection(    Sphere&               sphereA,
+                                          Sphere&               sphereB);
+    static bool frustumAABBDetection(     std::vector<Vector4>  planes,
+                                          Vector4&              mins,
+                                          Vector4&              maxs);
+    static bool sphereCubeDetection(      Sphere*               sphere,
+                                          Cube*                 cube);
+    static void getFrustumPlanes(         Matrix                inverseViewProjection,
+                                          std::vector<Vector4>& planes);
 
     //Collision resolution functions
-    static void sphereTriangleResolution(Entity* modelA, Sphere& sphere, Entity* modelB, Triangle& triangle); //Resolve collision math
-    static void sphereSphereResolution(Entity* modelA, Sphere& sphereA, Entity* modelB, Sphere& sphereB); //resolve collision math
+    static void sphereTriangleResolution( Entity*               modelA,
+                                          Sphere&               sphere,
+                                          Entity*               modelB,
+                                          Triangle&             triangle);
+    static void sphereSphereResolution(   Entity*               modelA,
+                                          Sphere&               sphereA,
+                                          Entity*               modelB,
+                                          Sphere&               sphereB);
+    static Triangle transform(            Triangle*             triangle,
+                                          Matrix                transform);
+    static Sphere transform(              Sphere*               sphere,
+                                          Matrix                transform);
 
-    static Sphere transform(Sphere* sphere, Matrix transform);
-    static Triangle transform(Triangle* triangle, Matrix transform);
 };

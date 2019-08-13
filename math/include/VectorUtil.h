@@ -33,7 +33,13 @@ namespace VectorUtil {
     };
 
     template<typename FromType, typename ToType>
-    void toType(FromType* arr, int size, std::vector<ToType>& refVec) {
-        std::transform(arr, arr + size, std::back_inserter(refVec), CastTo<FromType, ToType>());
+    void toType(FromType*            arr,
+                int                  size,
+                std::vector<ToType>& refVec) {
+
+        std::transform(arr,
+                       arr + size,
+                       std::back_inserter(refVec),
+                       CastTo<FromType, ToType>());
     }
 }

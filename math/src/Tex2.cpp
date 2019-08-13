@@ -19,23 +19,25 @@ float* Tex2::getFlatBuffer() {
 Tex2 Tex2::operator / (float scale) {
     Tex2 result;
     float* st = result.getFlatBuffer();
-    st[0] = _st[0] / scale;
-    st[1] = _st[1] / scale;
+    st[0]     = _st[0] / scale;
+    st[1]     = _st[1] / scale;
     return result;
 }
 
 Tex2 Tex2::operator + (Tex2 other) {
     Tex2 result;
-    float* st = result.getFlatBuffer();
+    float* st  = result.getFlatBuffer();
     float* st2 = other.getFlatBuffer();
-    st[0] = _st[0] + st2[0];
-    st[1] = _st[1] + st2[1];
+    st[0]      = _st[0] + st2[0];
+    st[1]      = _st[1] + st2[1];
     return result;
 }
 
 //Prints out the result in row major
 void Tex2::display() {
-    std::cout << setprecision(2) << std::setw(6) << _st[0] << " " << std::setw(6) << _st[1] << std::endl;
+    std::cout << setprecision(2) << std::setw(6) <<
+                 _st[0] << " "   << std::setw(6) <<
+                 _st[1] << std::endl;
 }
 
 float Tex2::gets() {

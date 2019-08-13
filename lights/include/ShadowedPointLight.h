@@ -27,15 +27,16 @@
 
 class ShadowedPointLight : public Light {
 
-    PointShadow              _shadow;
+    PointShadow  _shadow;
 public:
     ShadowedPointLight(ViewEvents* eventWrapper,
-        MVP mvp,
-        EffectType effect,
-        Vector4 color);
-    Texture*                    getDepthTexture();
-    virtual void                render();
-    virtual void                renderShadow(std::vector<Entity*> entityList);
-    virtual void                renderDebug();
+                       MVP         mvp,
+                       EffectType  effect,
+                       Vector4     color);
+
+    virtual void renderShadow(std::vector<Entity*> entityList);
+    Texture*     getDepthTexture();
+    virtual void renderDebug();
+    virtual void render();
 
 };

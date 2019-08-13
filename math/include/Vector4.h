@@ -27,28 +27,34 @@ class Vector4 {
 public:
 
     Vector4();
-    Vector4(float x, float y, float z, float w = 1.0f);
-    Vector4(const Vector4& other);
-    float*  getFlatBuffer();
-    void    display();
-    Vector4 operator / (float scale);
-    Vector4 operator * (float scale);
-    Vector4 operator * (Vector4 other);
-    Vector4 operator + (Vector4 other);
+    Vector4(float x,
+            float y,
+            float z,
+            float w = 1.0f);
+    Vector4              (const Vector4& other);
+
+    bool    operator ==  (Vector4 other);
+    bool    operator !=  (Vector4 other);
+    Vector4 operator *   (Vector4 other);
+    Vector4 operator +   (Vector4 other);
     Vector4& operator += (Vector4 other);
-    Vector4 operator - (Vector4 other);
-    Vector4 operator - ();
-    bool    operator == (Vector4 other);
-    bool    operator != (Vector4 other);
-    Vector4 crossProduct(Vector4 other);
-    float   dotProduct(Vector4 other);
+    Vector4 operator -   (Vector4 other);
+    Vector4 crossProduct (Vector4 other);
+    float   dotProduct   (Vector4 other);
+    Vector4 operator /   (float scale);
+    Vector4 operator *   (float scale);
+    Vector4 operator -   ();
+
+    friend  std::ostream &operator << (std::ostream& output,
+                                       Vector4&      other);
+    float*  getFlatBuffer();
+    float   getMagnitude();
+    void    normalize();
+    void    display();
     float   getx();
     float   gety();
     float   getz();
     float   getw();
-    float   getMagnitude();
-    void    normalize();
-    friend  std::ostream &operator << (std::ostream& output, Vector4 &other);
 };
 
 using Vector4x3 = Vector4(&)[3];

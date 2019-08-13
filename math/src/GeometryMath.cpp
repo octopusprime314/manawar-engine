@@ -3,32 +3,34 @@
 #include "Entity.h"
 
 //Returns true if the sphere is not completely enclosed within a cube
-bool GeometryMath::sphereProtrudesCube(Sphere* sphere, Cube* cube) {
+bool GeometryMath::sphereProtrudesCube(Sphere* sphere,
+                                       Cube*   cube) {
 
-    Vector4 sphereCenter = sphere->getPosition();
-    float sphereRadius = sphere->getRadius();
-
-    Vector4 cubeCenter = cube->getCenter();
-    float cubeWidth = cube->getWidth() / 2.0f; // x
-    float cubeHeight = cube->getHeight() / 2.0f; // y
-    float cubeLength = cube->getLength() / 2.0f; // z
-
+    Vector4 sphereCenter    = sphere->getPosition();
+    float   sphereRadius    = sphere->getRadius();
+    Vector4 cubeCenter      = cube->getCenter();
+    float   cubeWidth       = cube->getWidth()  / 2.0f;
+    float   cubeHeight      = cube->getHeight() / 2.0f;
+    float   cubeLength      = cube->getLength() / 2.0f;
     Vector4 distanceCenters = sphereCenter - cubeCenter;
-    float* distance = distanceCenters.getFlatBuffer();
+    float*  distance        = distanceCenters.getFlatBuffer();
 
     //Test x and z component first because most movement will be in the xz plane not falling down with gravity in the y direction
     //at least that is my theory to improve efficiency
 
     //Test x component
-    if (distance[0] + sphereRadius > cubeWidth || distance[0] - sphereRadius < -cubeWidth) {
+    if (distance[0] + sphereRadius > cubeWidth ||
+        distance[0] - sphereRadius < -cubeWidth) {
         return true;
     }
     //Test z component
-    if (distance[2] + sphereRadius > cubeLength || distance[2] - sphereRadius < -cubeLength) {
+    if (distance[2] + sphereRadius > cubeLength ||
+        distance[2] - sphereRadius < -cubeLength) {
         return true;
     }
     //Test y component
-    if (distance[1] + sphereRadius > cubeHeight || distance[1] - sphereRadius < -cubeHeight) {
+    if (distance[1] + sphereRadius > cubeHeight ||
+        distance[1] - sphereRadius < -cubeHeight) {
         return true;
     }
 
@@ -36,7 +38,8 @@ bool GeometryMath::sphereProtrudesCube(Sphere* sphere, Cube* cube) {
     return false;
 }
 
-bool GeometryMath::spheresSpheresDetection(Geometry *spheresGeometryA, Geometry *spheresGeometryB) {
+bool GeometryMath::spheresSpheresDetection(Geometry *spheresGeometryA,
+                                           Geometry *spheresGeometryB) {
 
     // Get all of the spheres that model the geometry A
     auto sphereVecA = spheresGeometryA->getSpheres();
@@ -55,10 +58,11 @@ bool GeometryMath::spheresSpheresDetection(Geometry *spheresGeometryA, Geometry 
     return false;
 }
 
-bool GeometryMath::spheresTrianglesDetection(Geometry* spheresGeometry, Geometry* triangleGeometry) {
+bool GeometryMath::spheresTrianglesDetection(Geometry* spheresGeometry,
+                                             Geometry* triangleGeometry) {
 
     //Get all of the spheres that model the geometry
-    auto sphereVec = spheresGeometry->getSpheres();
+    auto sphereVec   = spheresGeometry->getSpheres();
     //Get all of the triangles that model the geometry
     auto triangleVec = triangleGeometry->getTriangles();
 
@@ -76,9 +80,12 @@ bool GeometryMath::spheresTrianglesDetection(Geometry* spheresGeometry, Geometry
 
 Sphere GeometryMath::transform(Sphere* sphere, Matrix transform) {
     Vector4 center = transform * sphere->getObjectPosition();
-    auto buffer = transform.getFlatBuffer();
-    Vector4 scale(buffer[0], buffer[5], buffer[10]);
-    return Sphere(scale.getx() * sphere->getObjectRadius(), center);
+    float* buffer  = transform.getFlatBuffer();
+    Vector4 scale(buffer[0],
+                  buffer[5],
+                  buffer[10]);
+    return Sphere(scale.getx() * sphere->getObjectRadius(),
+                  center);
 }
 
 Triangle GeometryMath::transform(Triangle* triangle, Matrix transform) {
@@ -104,8 +111,8 @@ bool GeometryMath::sphereTriangleDetection(Sphere& sphere, Triangle& triangle) {
     sep1 = d * d > rr * e*/
 
     //Grab the location of the 3D sphere's center position
-    Vector4 spherePosition = sphere.getPosition();
-    float sphereRadius = sphere.getRadius();
+    Vector4 spherePosition  = sphere.getPosition();
+    float sphereRadius      = sphere.getRadius();
 
     Vector4 *trianglePoints = triangle.getTrianglePoints();
     //Points A, B and C that describe a 3D Triangle
@@ -113,11 +120,11 @@ bool GeometryMath::sphereTriangleDetection(Sphere& sphere, Triangle& triangle) {
     Vector4 B(trianglePoints[1] - spherePosition);
     Vector4 C(trianglePoints[2] - spherePosition);
 
-    float rr = sphereRadius * sphereRadius;
     Vector4 temp(B - A);
+    float rr  = sphereRadius * sphereRadius;
     Vector4 V = temp.crossProduct(C - A);
-    float d = A.dotProduct(V);
-    float e = V.dotProduct(V);
+    float d   = A.dotProduct(V);
+    float e   = V.dotProduct(V);
     if ((d*d) >= (rr*e)) {
         return false;
     }
@@ -205,14 +212,14 @@ bool GeometryMath::sphereSphereDetection(Sphere& sphereA, Sphere& sphereB) {
 
     //Grab the location of the 3D sphere's center position A
     Vector4 spherePositionA = sphereA.getPosition();
-    float sphereRadiusA = sphereA.getRadius();
+    float   sphereRadiusA   = sphereA.getRadius();
 
     //Grab the location of the 3D sphere's center position B
     Vector4 spherePositionB = sphereB.getPosition();
-    float sphereRadiusB = sphereB.getRadius();
+    float   sphereRadiusB   = sphereB.getRadius();
 
-    float distanceAB = (spherePositionA - spherePositionB).getMagnitude();
-    float radii = sphereRadiusA + sphereRadiusB;
+    float distanceAB        = (spherePositionA - spherePositionB).getMagnitude();
+    float radii             = sphereRadiusA + sphereRadiusB;
 
     //If the distance between sphere A and B is less than their radii combined then an overlap is detected
     if (radii - distanceAB >= 0) {
@@ -228,20 +235,20 @@ bool GeometryMath::triangleCubeDetection(Triangle* triangle, Cube* cube) {
     float p0, p1, p2, r;
     // Compute box center and extents (if not already given in that format)
     Vector4 c = cube->getCenter();
-    float e0 = cube->getHeight() / 2.0f;
-    float e1 = cube->getWidth() / 2.0f;
-    float e2 = cube->getLength() / 2.0f;
+    float e0  = cube->getHeight() / 2.0f;
+    float e1  = cube->getWidth() / 2.0f;
+    float e2  = cube->getLength() / 2.0f;
 
     // Translate triangle as conceptually moving AABB to origin
     Vector4* points = triangle->getTrianglePoints();
-    Vector4 v0 = points[0] - c;
-    Vector4 v1 = points[1] - c;
-    Vector4 v2 = points[2] - c;
+    Vector4 v0      = points[0] - c;
+    Vector4 v1      = points[1] - c;
+    Vector4 v2      = points[2] - c;
 
     // Compute edge vectors for triangle
-    Vector4 f0 = v1 - v0;
-    Vector4 f1 = v2 - v1;
-    Vector4 f2 = v0 - v2;
+    Vector4 f0      = v1 - v0;
+    Vector4 f1      = v2 - v1;
+    Vector4 f2      = v0 - v2;
 
     Vector4 u0(1, 0, 0, 1);
     Vector4 u1(0, 1, 0, 1);
@@ -356,7 +363,7 @@ bool GeometryMath::triangleCubeDetection(Triangle* triangle, Cube* cube) {
 
     // Test separating axis corresponding to triangle face normal (category 2)
     Vector4 normal = f0.crossProduct(f1);
-    float d = -normal.dotProduct(v0);  /* plane eq: normal.x+d=0 */
+    float d        = -normal.dotProduct(v0);  /* plane eq: normal.x+d=0 */
     Vector4 maxBox(e0, e1, e2, 1);
 
     float x_min, y_min, z_min;
@@ -408,16 +415,13 @@ bool GeometryMath::sphereCubeDetection(Sphere *sphere, Cube *cube) {
     Vector4 point, pos, tempNorm;
 
     Vector4 rectanglePosition = cube->getCenter();
+    Vector4 spherePosition    = sphere->getPosition();
+    float   rectHeight        = cube->getHeight() / 2.0f;
+    float   rectWidth         = cube->getWidth()  / 2.0f;
+    float   rectLength        = cube->getLength() / 2.0f;
+    float   sphereRadius      = sphere->getRadius();
 
-    Vector4 spherePosition = sphere->getPosition();
-
-    float rectHeight = cube->getHeight() / 2.0f;
-    float rectWidth = cube->getWidth() / 2.0f;
-    float rectLength = cube->getLength() / 2.0f;
-
-    float sphereRadius = sphere->getRadius();
-
-    Vector4 normalWidth(1, 0, 0, 1);
+    Vector4 normalWidth (1, 0, 0, 1);
     Vector4 normalHeight(0, 1, 0, 1);
     Vector4 normalLength(0, 0, 1, 1);
 
@@ -442,10 +446,9 @@ bool GeometryMath::sphereCubeDetection(Sphere *sphere, Cube *cube) {
 
     // Step that distance along the axis to get world coordinate
     Vector4 step = normalWidth;
-    step = step * dist;
-    q = q + step;
-
-    dist = d.dotProduct(normalHeight);
+    step         = step * dist;
+    q            = q + step;
+    dist         = d.dotProduct(normalHeight);
 
     // If distance farther than the box extents, clamp to the box
     if (dist > rectHeight) {
@@ -458,8 +461,7 @@ bool GeometryMath::sphereCubeDetection(Sphere *sphere, Cube *cube) {
     // Step that distance along the axis to get world coordinate
     step = normalHeight;
     step = step * dist;
-    q = q + step;
-
+    q    = q + step;
     dist = d.dotProduct(normalLength);
 
     // If distance farther than the box extents, clamp to the box
@@ -474,10 +476,9 @@ bool GeometryMath::sphereCubeDetection(Sphere *sphere, Cube *cube) {
     // Step that distance along the axis to get world coordinate
     step = normalLength;
     step = step * dist;
-    q = q + step;
+    q    = q + step;
 
     Vector4 v = q - spherePosition;
-
 
     if (v.dotProduct(v) <= sphereRadius * sphereRadius) {
         return true;
@@ -485,43 +486,49 @@ bool GeometryMath::sphereCubeDetection(Sphere *sphere, Cube *cube) {
     return false;
 }
 
-void GeometryMath::sphereTriangleResolution(Entity* modelA, Sphere& sphere, Entity* modelB, Triangle& triangle) {
+void GeometryMath::sphereTriangleResolution(Entity*   modelA,
+                                            Sphere&   sphere,
+                                            Entity*   modelB,
+                                            Triangle& triangle) {
 
-    StateVector* modelStateA = modelA->getStateVector();
-    Vector4* triPoints = triangle.getTrianglePoints();
-    Vector4 spherePosition = sphere.getPosition();
-    float sphereRadius = sphere.getRadius();
+    StateVector* modelStateA    = modelA->getStateVector();
+    Vector4*     triPoints      = triangle.getTrianglePoints();
+    Vector4      spherePosition = sphere.getPosition();
+    float        sphereRadius   = sphere.getRadius();
 
     //Compute the normal of the triangle
     Vector4 normal = triPoints[2] - triPoints[0];
-    normal = normal.crossProduct(triPoints[1] - triPoints[0]);
+    normal         = normal.crossProduct(triPoints[1] - triPoints[0]);
     normal.normalize();
 
-    Vector4 closestPointOnTriangle = _closestPoint(&sphere, &triangle);
-    Vector4 overlap = spherePosition - closestPointOnTriangle;
+    Vector4 closestPointOnTriangle = _closestPoint(&sphere,
+                                                   &triangle);
+    Vector4 overlap                = spherePosition - closestPointOnTriangle;
     overlap.normalize();
 
     Vector4 delta = ((overlap)*(sphereRadius*1.0001f)) + closestPointOnTriangle - spherePosition;
 
     //Sliding velocity component
     //Compute the speed of the resultant velocity along the normal for sliding collision resolution
-    float normalComponent = modelStateA->getLinearVelocity().dotProduct(normal);
+    float normalComponent     = modelStateA->getLinearVelocity().dotProduct(normal);
     //Resultant velocity vector
-    Vector4 n = normal * normalComponent;
+    Vector4 n                 = normal * normalComponent;
     //Subtract original velocity vectory with the new velocity vector along the normal
     Vector4 resultantVelocity = modelStateA->getLinearVelocity() - n;
 
     modelA->setPosition(modelStateA->getLinearPosition() + delta);
-
     modelStateA->setLinearVelocity(resultantVelocity);
-
     modelStateA->setContact(true);
 }
-void GeometryMath::sphereSphereResolution(Entity* modelA, Sphere& sphereA, Entity* modelB, Sphere& sphereB) {
+void GeometryMath::sphereSphereResolution(Entity* modelA,
+                                          Sphere& sphereA,
+                                          Entity* modelB,
+                                          Sphere& sphereB) {
+
     StateVector* modelStateA = modelA->getStateVector();
     StateVector* modelStateB = modelB->getStateVector();
 
-    Vector4 collisionNormal = sphereA.getPosition() - sphereB.getPosition();
+    Vector4 collisionNormal  = sphereA.getPosition() - sphereB.getPosition();
     
     if (modelStateA->getActive()) {
         //0.01 is restitution
@@ -537,52 +544,54 @@ void GeometryMath::sphereSphereResolution(Entity* modelA, Sphere& sphereA, Entit
         //Opposite reaction
         collisionNormal = -collisionNormal;
         //0.01 is restitution
-        float overlap = ((sphereA.getRadius() + sphereB.getRadius() - collisionNormal.getMagnitude()) / 2.0f) + 0.01f;
+        float overlap   = ((sphereA.getRadius() + sphereB.getRadius() - collisionNormal.getMagnitude()) / 2.0f) + 0.01f;
         collisionNormal.normalize();
         modelB->setVelocity(collisionNormal * modelStateB->getLinearVelocity().getMagnitude() * 0.1f);
 
         auto prevModelBuffer = modelB->getPrevMVP()->getModelBuffer();
         modelB->setPosition(Vector4(prevModelBuffer[3], prevModelBuffer[7], prevModelBuffer[11]));
     }
-
 }
 
-float GeometryMath::_max(float a, float b) {
+float GeometryMath::_max(float a,
+                         float b) {
     return (a > b ? a : b);
 }
 
-float GeometryMath::_min(float a, float b) {
+float GeometryMath::_min(float a,
+                         float b) {
     return (a < b ? a : b);
 }
 
-Vector4 GeometryMath::_closestPoint(Sphere* sphere, Triangle* triangle)
+Vector4 GeometryMath::_closestPoint(Sphere* sphere,
+                                    Triangle* triangle)
 {
     /** The code for Triangle-float3 test is from Christer Ericson's Real-Time Collision Detection, pp. 141-142. */
 
     // Check if P is in vertex region outside A.
     Vector4* triPoints = triangle->getTrianglePoints();
-    Vector4 A = triPoints[0];
-    Vector4 B = triPoints[1];
-    Vector4 C = triPoints[2];
-    Vector4 P = sphere->getPosition();
+    Vector4 A          = triPoints[0];
+    Vector4 B          = triPoints[1];
+    Vector4 C          = triPoints[2];
+    Vector4 P          = sphere->getPosition();
 
     Vector4 ab = B - A;
     Vector4 ac = C - A;
     Vector4 ap = P - A;
-    float d1 = ab.dotProduct(ap);
-    float d2 = ac.dotProduct(ap);
+    float d1   = ab.dotProduct(ap);
+    float d2   = ac.dotProduct(ap);
     if (d1 <= 0.f && d2 <= 0.f)
         return A; // Barycentric coordinates are (1,0,0).
 
     // Check if P is in vertex region outside B.
     Vector4 bp = P - B;
-    float d3 = ab.dotProduct(bp);
-    float d4 = ac.dotProduct(bp);
+    float d3   = ab.dotProduct(bp);
+    float d4   = ac.dotProduct(bp);
     if (d3 >= 0.f && d4 <= d3)
         return B; // Barycentric coordinates are (0,1,0).
 
     // Check if P is in edge region of AB, and if so, return the projection of P onto AB.
-    float vc = d1 * d4 - d3 * d2;
+    float vc    = d1 * d4 - d3 * d2;
     if (vc <= 0.f && d1 >= 0.f && d3 <= 0.f)
     {
         float v = d1 / (d1 - d3);
@@ -590,13 +599,13 @@ Vector4 GeometryMath::_closestPoint(Sphere* sphere, Triangle* triangle)
     }
     // Check if P is in vertex region outside C.
     Vector4 cp = P - C;
-    float d5 = ab.dotProduct(cp);
-    float d6 = ac.dotProduct(cp);
+    float d5   = ab.dotProduct(cp);
+    float d6   = ac.dotProduct(cp);
     if (d6 >= 0.f && d5 <= d6)
         return C; // The barycentric coordinates are (0,0,1).
 
     // Check if P is in edge region of AC, and if so, return the projection of P onto AC.
-    float vb = d5 * d2 - d1 * d6;
+    float vb    = d5 * d2 - d1 * d6;
     if (vb <= 0.f && d2 >= 0.f && d6 <= 0.f)
     {
         float w = d2 / (d2 - d6);
@@ -604,7 +613,7 @@ Vector4 GeometryMath::_closestPoint(Sphere* sphere, Triangle* triangle)
     }
 
     // Check if P is in edge region of BC, and if so, return the projection of P onto BC.
-    float va = d3 * d6 - d5 * d4;
+    float va    = d3 * d6 - d5 * d4;
     if (va <= 0.f && (d4 - d3) >= 0.f && (d5 - d6) >= 0.f)
     {
         float w = (d4 - d3) / (d4 - d3 + d5 - d6);
@@ -613,31 +622,23 @@ Vector4 GeometryMath::_closestPoint(Sphere* sphere, Triangle* triangle)
 
     // P must be inside the face region. Compute the closest point through its barycentric coordinates (u,v,w).
     float denom = 1.f / (va + vb + vc);
-    float v = vb * denom;
-    float w = vc * denom;
+    float v     = vb * denom;
+    float w     = vc * denom;
     return A + ab * v + ac * w;
 }
 
 void GeometryMath::getFrustumPlanes(Matrix inverseViewProjection, std::vector<Vector4>& frustumPlanes) {
     
     std::vector<Vector4> frustumPoints;
-    //frustumPoints.push_back(Vector4(-1.0, -1.0, -1.0)); //left  bottom far
-    //frustumPoints.push_back(Vector4(-1.0, 1.0, -1.0)); //left  top    far
-    //frustumPoints.push_back(Vector4(-1.0, -1.0, 1.0)); //left  bottom near 
-    //frustumPoints.push_back(Vector4(-1.0, 1.0, 1.0)); //left  top    near
-    //frustumPoints.push_back(Vector4(1.0, -1.0, -1.0)); //right bottom far
-    //frustumPoints.push_back(Vector4(1.0, 1.0, -1.0)); //right top    far
-    //frustumPoints.push_back(Vector4(1.0, -1.0, 1.0)); //right bottom near
-    //frustumPoints.push_back(Vector4(1.0, 1.0, 1.0)); //right top    near
 
-    frustumPoints.push_back(Vector4(-1.0, -1.0, 1.0)); //left  bottom far
-    frustumPoints.push_back(Vector4(-1.0, 1.0, 1.0)); //left  top    far
+    frustumPoints.push_back(Vector4(-1.0, -1.0,  1.0)); //left  bottom far
+    frustumPoints.push_back(Vector4(-1.0,  1.0,  1.0)); //left  top    far
     frustumPoints.push_back(Vector4(-1.0, -1.0, -1.0)); //left  bottom near 
-    frustumPoints.push_back(Vector4(-1.0, 1.0, -1.0)); //left  top    near
-    frustumPoints.push_back(Vector4(1.0, -1.0, 1.0)); //right bottom far
-    frustumPoints.push_back(Vector4(1.0, 1.0, 1.0)); //right top    far
-    frustumPoints.push_back(Vector4(1.0, -1.0, -1.0)); //right bottom near
-    frustumPoints.push_back(Vector4(1.0, 1.0, -1.0)); //right top    near
+    frustumPoints.push_back(Vector4(-1.0,  1.0, -1.0)); //left  top    near
+    frustumPoints.push_back(Vector4( 1.0, -1.0,  1.0)); //right bottom far
+    frustumPoints.push_back(Vector4( 1.0,  1.0,  1.0)); //right top    far
+    frustumPoints.push_back(Vector4( 1.0, -1.0, -1.0)); //right bottom near
+    frustumPoints.push_back(Vector4( 1.0,  1.0, -1.0)); //right top    near
 
     for (auto& point : frustumPoints) {
         point = inverseViewProjection * point;
@@ -650,8 +651,8 @@ void GeometryMath::getFrustumPlanes(Matrix inverseViewProjection, std::vector<Ve
         Vector4 B(frustumPoints[1] - frustumPoints[0]);
         Vector4 C(B.crossProduct(A));
         float d = -(C.getx() * -frustumPoints[0].getx() +
-            C.gety() * -frustumPoints[0].gety() +
-            C.getz() * -frustumPoints[0].getz());
+                    C.gety() * -frustumPoints[0].gety() +
+                    C.getz() * -frustumPoints[0].getz());
         Vector4 D(C.getx(), C.gety(), C.getz(), d);
         D.normalize();
         frustumPlanes.push_back(D);
@@ -663,8 +664,8 @@ void GeometryMath::getFrustumPlanes(Matrix inverseViewProjection, std::vector<Ve
         Vector4 B(frustumPoints[6] - frustumPoints[4]);
         Vector4 C(B.crossProduct(A));
         float d = -(C.getx() * -frustumPoints[4].getx() +
-            C.gety() * -frustumPoints[4].gety() +
-            C.getz() * -frustumPoints[4].getz());
+                    C.gety() * -frustumPoints[4].gety() +
+                    C.getz() * -frustumPoints[4].getz());
         Vector4 D(C.getx(), C.gety(), C.getz(), d);
         D.normalize();
         frustumPlanes.push_back(D);
@@ -676,8 +677,8 @@ void GeometryMath::getFrustumPlanes(Matrix inverseViewProjection, std::vector<Ve
         Vector4 B(frustumPoints[2] - frustumPoints[6]);
         Vector4 C(B.crossProduct(A));
         float d = -(C.getx() * -frustumPoints[6].getx() +
-            C.gety() * -frustumPoints[6].gety() +
-            C.getz() * -frustumPoints[6].getz());
+                    C.gety() * -frustumPoints[6].gety() +
+                    C.getz() * -frustumPoints[6].getz());
         Vector4 D(C.getx(), C.gety(), C.getz(), d);
         D.normalize();
         frustumPlanes.push_back(D);
@@ -689,8 +690,8 @@ void GeometryMath::getFrustumPlanes(Matrix inverseViewProjection, std::vector<Ve
         Vector4 B(frustumPoints[1] - frustumPoints[4]);
         Vector4 C(B.crossProduct(A));
         float d = -(C.getx() * -frustumPoints[4].getx() +
-            C.gety() * -frustumPoints[4].gety() +
-            C.getz() * -frustumPoints[4].getz());
+                    C.gety() * -frustumPoints[4].gety() +
+                    C.getz() * -frustumPoints[4].getz());
         Vector4 D(C.getx(), C.gety(), C.getz(), d);
         D.normalize();
         frustumPlanes.push_back(D);
@@ -702,8 +703,8 @@ void GeometryMath::getFrustumPlanes(Matrix inverseViewProjection, std::vector<Ve
         Vector4 B(frustumPoints[2] - frustumPoints[0]);
         Vector4 C(B.crossProduct(A));
         float d = -(C.getx() * -frustumPoints[0].getx() +
-            C.gety() * -frustumPoints[0].gety() +
-            C.getz() * -frustumPoints[0].getz());
+                    C.gety() * -frustumPoints[0].gety() +
+                    C.getz() * -frustumPoints[0].getz());
         Vector4 D(C.getx(), C.gety(), C.getz(), d);
         D.normalize();
         frustumPlanes.push_back(D);
@@ -715,8 +716,8 @@ void GeometryMath::getFrustumPlanes(Matrix inverseViewProjection, std::vector<Ve
         Vector4 B(frustumPoints[3] - frustumPoints[5]);
         Vector4 C(B.crossProduct(A));
         float d = -(C.getx() * -frustumPoints[5].getx() +
-            C.gety() * -frustumPoints[5].gety() +
-            C.getz() * -frustumPoints[5].getz());
+                    C.gety() * -frustumPoints[5].gety() +
+                    C.getz() * -frustumPoints[5].getz());
         Vector4 D(C.getx(), C.gety(), C.getz(), d);
         D.normalize();
         frustumPlanes.push_back(D);

@@ -29,15 +29,15 @@
 
 class ShadowedDirectionalLight : public Light {
 
-    DirectionalShadow     _shadow;
+    DirectionalShadow _shadow;
 public:
     ShadowedDirectionalLight(ViewEvents* eventWrapper,
-        MVP mvp,
-        EffectType effect,
-        Vector4 color);
+                             MVP         mvp,
+                             EffectType  effect,
+                             Vector4     color);
 
-    Texture*              getDepthTexture();
-    virtual void          render();
-    virtual void          renderShadow(std::vector<Entity*> entityList);
-    virtual void          renderDebug();
+    virtual void      renderShadow(std::vector<Entity*> entityList);
+    Texture*          getDepthTexture();
+    virtual void      renderDebug();
+    virtual void      render();
 };

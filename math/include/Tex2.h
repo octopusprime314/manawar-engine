@@ -26,7 +26,8 @@ class Tex2 {
 public:
 
     Tex2();
-    Tex2(float s, float t);
+    Tex2(float s,
+         float t);
     float*  getFlatBuffer();
     void    display();
     Tex2    operator / (float scale);

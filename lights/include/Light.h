@@ -38,35 +38,42 @@ enum class LightType {
     SHADOWED_SPOTLIGHT
 };
 
+//The amount of milliseconds in 24 hours
+const uint64_t dayLengthMilliseconds = 24 * 60 * 60 * 1000;
+
 class Light : public Effect {
 
 protected:
-    MVP                     _lightMVP; //Light's Model view matrix for light
-    Vector4                 _position; //Position of light
-    LightType               _type; //Light type enum
-    Vector4                 _color; //Light color
-    void                    _updateTime(int time);
-    uint64_t                _milliSecondTime;
-    VAO                     _vao;
-    DebugShader*            _debugShader;
+
+    uint64_t     _milliSecondTime;
+    DebugShader* _debugShader;
+    MVP          _lightMVP;
+    Vector4      _position;
+    Vector4      _color;
+    LightType    _type;
+    VAO          _vao;
+
+    void         _updateTime(int time);
+
 public:
     Light(ViewEvents* eventWrapper,
-        MVP mvp,
-        LightType type,
-        EffectType effect,
-        Vector4 color);
-    MVP                     getLightMVP();
-    MVP                     getCameraMVP();
-    Vector4                 getPosition();
-    Vector4                 getLightDirection();
-    LightType               getType();
-    Vector4&                getColor();
-    float                   getRange();
-    float                   getWidth();
-    float                   getHeight();
-    bool                    isShadowCaster();
-    void                    setMVP(MVP mvp);
-    virtual void            render();
-    virtual void            renderShadow(std::vector<Entity*> entityList);
-    virtual void            renderDebug() {};
+          MVP         mvp,
+          LightType   type,
+          EffectType  effect,
+          Vector4     color);
+
+    virtual void renderShadow(std::vector<Entity*> entityList);
+    Vector4      getLightDirection();
+    bool         isShadowCaster();
+    void         setMVP(MVP mvp);
+    MVP          getCameraMVP();
+    MVP          getLightMVP();
+    Vector4      getPosition();
+    virtual void renderDebug() {};
+    float        getHeight();
+    Vector4&     getColor();
+    float        getRange();
+    float        getWidth();
+    LightType    getType();
+    virtual void render();
 };

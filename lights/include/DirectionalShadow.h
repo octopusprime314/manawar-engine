@@ -31,14 +31,16 @@ class Entity;
 
 class DirectionalShadow {
 
-    DepthFrameBuffer      _shadow;
-    ShadowStaticShader*   _staticShadowShader;
     ShadowAnimatedShader* _animatedShadowShader;
+    ShadowStaticShader*   _staticShadowShader;
+    DepthFrameBuffer      _shadow;
 
 public:
-    DirectionalShadow(GLuint width, GLuint height);
+    DirectionalShadow(GLuint width,
+                      GLuint height);
     ~DirectionalShadow();
 
     Texture*              getTexture();
-    void                  render(std::vector<Entity*> entityList, Light* light);
+    void                  render(std::vector<Entity*> entityList,
+                                 Light*               light);
 };

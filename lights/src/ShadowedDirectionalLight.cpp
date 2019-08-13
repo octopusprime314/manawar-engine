@@ -1,14 +1,27 @@
 #include "ShadowedDirectionalLight.h"
 
 ShadowedDirectionalLight::ShadowedDirectionalLight(ViewEvents* eventWrapper,
-    MVP mvp, EffectType effect, Vector4 color) :
-    Light(eventWrapper, mvp, LightType::SHADOWED_DIRECTIONAL, effect, color),
+                                                   MVP         mvp,
+                                                   EffectType  effect,
+                                                   Vector4     color) :
+
+    Light(eventWrapper,
+          mvp,
+          LightType::SHADOWED_DIRECTIONAL,
+          effect,
+          color),
+
     _shadow(static_cast<unsigned int>(getWidth()),
             static_cast<unsigned int>(getHeight())) {
 
 
-    std::vector<Cube>* cubes = new std::vector<Cube>{ Cube(2.0, 2.0, 2.0, Vector4(0.0, 0.0, 0.0)) };
-    _vao.createVAO(cubes, GeometryConstruction::TRIANGLE_MESH);
+    std::vector<Cube>* cubes = new std::vector<Cube>{ Cube(2.0,
+                                                           2.0,
+                                                           2.0,
+                                                           Vector4(0.0, 0.0, 0.0)) };
+
+    _vao.createVAO(cubes,
+                   GeometryConstruction::TRIANGLE_MESH);
 }
 
 
@@ -21,13 +34,14 @@ Texture* ShadowedDirectionalLight::getDepthTexture() {
 }
 
 void ShadowedDirectionalLight::render() {
-
     Light::render();
 }
 
 void ShadowedDirectionalLight::renderDebug() {
 
-    if (_type == LightType::DIRECTIONAL || _type == LightType::SHADOWED_DIRECTIONAL) {
+    if (_type == LightType::DIRECTIONAL ||
+        _type == LightType::SHADOWED_DIRECTIONAL) {
+
         Vector4 color(1.0, 0.0, 0.0);
 
         //Build inverse projection matrix which will properly transform unit cube
@@ -35,9 +49,17 @@ void ShadowedDirectionalLight::renderDebug() {
         MVP lightMVP = getLightMVP();
         MVP mvp;
         //Model transform to create frustum cube
-        mvp.setModel(lightMVP.getViewMatrix().inverse() * lightMVP.getProjectionMatrix().inverse());
-        mvp.setView(_cameraMVP.getViewMatrix());
+        mvp.setModel(     lightMVP.getViewMatrix().inverse() *
+                          lightMVP.getProjectionMatrix().inverse());
+
+        mvp.setView(      _cameraMVP.getViewMatrix());
+
         mvp.setProjection(_cameraMVP.getProjectionMatrix());
-        _debugShader->runShader(&mvp, &_vao, {}, color.getFlatBuffer(), GeometryConstruction::TRIANGLE_MESH);
+
+        _debugShader->runShader(&mvp,
+                                &_vao,
+                                {},
+                                color.getFlatBuffer(),
+                                GeometryConstruction::TRIANGLE_MESH);
     }
 }

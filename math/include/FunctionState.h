@@ -22,11 +22,13 @@
 *  time must be kept track of.
 */
 
-//Example usage: lasts for 3000 milliseconds in intervals of 5 milliseconds passing a function lambda of e^-4t and func pointer
-//          FunctionState(std::bind(&StateVector::setForce, state, std::placeholders::_1), 
-//                        [=](double t) -> Vector4 { return static_cast<Vector4>(force) * (powf(M_E, -4.0*t));}, 
-//                        5, 
-//                        3000); 
+//Example usage: lasts for 3000 milliseconds in intervals of 5 milliseconds passing a function
+//               lambda of e^-4t and func pointer
+//          FunctionState(std::bind(&StateVector::setForce, state, std::placeholders::_1),
+//                        [=](double t) -> Vector4 { return static_cast<Vector4>(force) * (powf(M_E, -4.0*t));},
+//                        5,
+//                        3000);
+
 #include <functional>
 #include <thread>
 #include <iostream>
@@ -35,29 +37,32 @@
 
 class FunctionState {
 
-    std::thread                  _lambdaThread; //Lambda thread
+    std::thread                  _lambdaThread;
     bool                         _terminate;
     Vector4                      _currValue;
     std::function<void(Vector4)> _funcPtr;
 public:
 
-    FunctionState(std::function<void(Vector4)> functionPointer, std::function<Vector4(float)> equationLambda,
-        int milliseconds, int duration = INT_MAX) : _terminate(false) {
+    FunctionState(std::function<void(Vector4)>  functionPointer,
+                  std::function<Vector4(float)> equationLambda,
+                  int                           milliseconds,
+                  int                           duration = INT_MAX) :
+    _terminate(false) {
 
-        _funcPtr = functionPointer;
+        _funcPtr      = functionPointer;
         //time, function pointer and milliseconds timer update
         _lambdaThread = std::thread([=]() {
 
-            Vector4 ft(0.0, 0.0, 0.0, 1.0);
-            float t = 0.0f;
-            float scalar = 1.0f;
+            Vector4 ft      (0.0, 0.0, 0.0, 1.0);
+            float   t      = 0.0f;
+            float   scalar = 1.0f;
             do {
 
                 //compute milliseconds to a fraction
                 float seconds = t / 1000.0f;
 
                 //Calculate new equation value
-                _currValue = equationLambda(seconds);
+                _currValue    = equationLambda(seconds);
 
                 //Call function pointer
                 functionPointer(_currValue);
@@ -68,9 +73,11 @@ public:
                 //increment equation time
                 t += milliseconds;
 
-            } while (t < duration && !_terminate); //Stop updates and kill lambda thread when equation has reached a threshold value
+            //Stop updates and kill lambda thread when equation has reached a threshold value
+            } while (t < duration && !_terminate); 
 
-            functionPointer(Vector4(0.0f, 0.0f, 0.0f, 1.0f)); //kill acceleration
+            //kill acceleration
+            functionPointer(Vector4(0.0f, 0.0f, 0.0f, 1.0f));
         });
     }
     ~FunctionState() {

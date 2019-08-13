@@ -16,53 +16,53 @@ void StateVector::update(int milliSeconds) {
         std::lock_guard<std::mutex> lockGuard(_stateLock);
 
         //Update kinematics here...
-        float deltaTime = static_cast<float>(milliSeconds) / 1000.0f; //Convert to fraction of a second
+        float deltaTime      = static_cast<float>(milliSeconds) / 1000.0f;
 
         //Calculate accelerations based on external forces
-        _linearAcceleration = _force / _mass;
+        _linearAcceleration  = _force / _mass;
         _angularAcceleration = _torque / _mass;
 
         //Test to see if gravity is enabled
-        float gravity = GRAVITY;
+        float gravity        = GRAVITY;
         if (!_gravity) {
-            gravity = 0.0;
+            gravity          = 0.0;
         }
 
         //Calculate linear velocity changes with delta time
         Vector4 deltaLinearVelocity(_linearAcceleration.getx() * deltaTime,
-            (_linearAcceleration.gety() + gravity) * deltaTime,
-            _linearAcceleration.getz() * deltaTime,
-            1.0f);
+                                   (_linearAcceleration.gety() + gravity) * deltaTime,
+                                    _linearAcceleration.getz() * deltaTime,
+                                    1.0f);
         //Add to linear velocity
         //If there is contact with a surface then add friction coefficient to velocity
-        _linearVelocity = (_linearVelocity + deltaLinearVelocity) * ((_contact || !_gravity) ? FRICTION : 1.0f);
+        _linearVelocity  = (_linearVelocity + deltaLinearVelocity) *
+                           ((_contact || !_gravity) ? FRICTION : 1.0f);
         
         //Calculate linear position changes with delta time
         Vector4 deltaLinearPosition(_linearVelocity.getx() * deltaTime,
-            _linearVelocity.gety() * deltaTime,
-            _linearVelocity.getz() * deltaTime,
-            1.0f);
+                                    _linearVelocity.gety() * deltaTime,
+                                    _linearVelocity.getz() * deltaTime,
+                                    1.0f);
         //Add to linear position
-        _linearPosition = _linearPosition + deltaLinearPosition;
+        _linearPosition  = _linearPosition + deltaLinearPosition;
 
         //Calculate angular velocity changes with delta time
         Vector4 deltaAngularVelocity(_angularAcceleration.getx() * deltaTime,
-            _angularAcceleration.gety() * deltaTime,
-            _angularAcceleration.getz() * deltaTime,
-            1.0f);
+                                     _angularAcceleration.gety() * deltaTime,
+                                     _angularAcceleration.getz() * deltaTime,
+                                     1.0f);
         //Add to angular velocity
-        _angularVelocity = (_angularVelocity + deltaAngularVelocity) * ((_contact || !_gravity) ? FRICTION : 1.0f);
+        _angularVelocity = (_angularVelocity + deltaAngularVelocity) *
+                           ((_contact || !_gravity) ? FRICTION : 1.0f);
 
         //Calculate angular position changes with delta time
         Vector4 deltaAngularPosition(_angularVelocity.getx() * deltaTime,
-            _angularVelocity.gety() * deltaTime,
-            _angularVelocity.getz() * deltaTime,
-            1.0f);
+                                     _angularVelocity.gety() * deltaTime,
+                                     _angularVelocity.getz() * deltaTime,
+                                     1.0f);
         //Add to angular position
         _angularPosition = _angularPosition + deltaAngularPosition;
-
     }
-
 }
 
 Vector4 StateVector::getLinearPosition() {

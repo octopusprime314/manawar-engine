@@ -24,9 +24,9 @@
 #include "Vector4.h"
 #include <math.h>
 
-const float PI = 3.14159265f;
+const float PI          = 3.14159265f;
 const float PI_OVER_180 = PI / 180.0f;
-#define MATRIX_SIZE 25
+#define     MATRIX_SIZE 25
 
 class Matrix {
 
@@ -81,27 +81,38 @@ class Matrix {
     //the near, far, left, right, top, bottom, angle, aspect ratio and if inverted
     float _matrix[MATRIX_SIZE];
    
-    static Matrix convertToRightHanded(Matrix leftHandedMatrix, bool isViewMatrix);
+    static Matrix convertToRightHanded(Matrix leftHandedMatrix,
+                                       bool   isViewMatrix);
     Matrix(float *mat);
 
 public:
     Matrix();
-    Matrix        transpose(); //Returns transpose of matrix
-    Matrix        inverse(); //Returns inverse of matrix
-    Matrix        operator * (Matrix mat);
-    Vector4       operator * (Vector4 vec);
-    Matrix        operator * (double scale);
-    Matrix        operator * (float scale);
-    Matrix        operator + (Matrix mat);
     float*        getFlatBuffer();
+    Matrix        transpose();
+    Matrix        inverse();
     void          display();
+    Matrix        operator * (Matrix  mat);
+    Vector4       operator * (Vector4 vec);
+    Matrix        operator * (double  scale);
+    Matrix        operator * (float   scale);
+    Matrix        operator + (Matrix  mat);
 
-    static Matrix rotationAroundX(float degrees); //Build rotation matrix around the x axis
-    static Matrix rotationAroundY(float degrees); //Build rotation matrix around the y axis
-    static Matrix rotationAroundZ(float degrees); //Build rotation matrix around the z axis
-    static Matrix translation(float x, float y, float z); //Build translation matrix
-    static Matrix scale(float scalar); //Build a scale matrix
-    static Matrix scale(float x, float y, float z); //Build a scale matrix
-    static Matrix projection(float angleOfView, float aspectRatio, float near, float far);
-    static Matrix ortho(float orthoWidth, float orthoHeight, float n, float f);
+    static Matrix rotationAroundX(float degrees);
+    static Matrix rotationAroundY(float degrees);
+    static Matrix rotationAroundZ(float degrees);
+    static Matrix translation(    float x,
+                                  float y,
+                                  float z);
+    static Matrix projection(     float angleOfView,
+                                  float aspectRatio,
+                                  float near,
+                                  float far);
+    static Matrix scale(          float scalar);
+    static Matrix scale(          float x,
+                                  float y,
+                                  float z);
+    static Matrix ortho(          float orthoWidth,
+                                  float orthoHeight,
+                                  float n,
+                                  float f);
 };

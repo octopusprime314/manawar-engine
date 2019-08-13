@@ -23,26 +23,30 @@
 #include "Matrix.h"
 
 class MVP {
-
-    Matrix                      _model; //Object and World Space Matrix i.e. how the model is centered around the origin and 
-                                        //where it is placed in the context of the game World
-    Matrix                      _view;  //View matrix updates from ViewEventDistributor/Camera 
-    Matrix                      _projection; //Projection matrix based on ViewEventDistributor/Camera
-    Matrix                      _normal; //Normal matrix based on inverse transpose matrix of the ViewEventDistributor/Camera matrix
-
+    //Projection matrix based on ViewEventDistributor/Camera
+    Matrix _projection;
+    //Normal matrix based on inverse transpose matrix of the ViewEventDistributor/Camera matrix
+    Matrix _normal;
+    //Object and World Space Matrix i.e. how the model is centered around the origin and
+    //where it is placed in the context of the game World
+    Matrix _model;
+    //View matrix updates from ViewEventDistributor/Camera
+    Matrix _view;
 public:
     MVP();
     ~MVP();
-    float*                      getModelBuffer();
-    float*                      getViewBuffer();
-    float*                      getProjectionBuffer();
-    float*                      getNormalBuffer();
-    Matrix                      getModelMatrix();
-    Matrix                      getViewMatrix();
-    Matrix                      getProjectionMatrix();
-    Matrix                      getNormalMatrix();
-    void                        setModel(Matrix model);
-    void                        setView(Matrix view);
-    void                        setProjection(Matrix projection);
-    void                        setNormal(Matrix normal);
+    void   setProjection(Matrix projection);
+    void   setNormal(    Matrix normal);
+    void   setModel(     Matrix model);
+    void   setView(      Matrix view);
+    Matrix getProjectionMatrix();
+    float* getProjectionBuffer();
+    Matrix getNormalMatrix();
+    float* getNormalBuffer();
+    float* getModelBuffer();
+    Matrix getModelMatrix();
+    Matrix getViewMatrix();
+    float* getViewBuffer();
+
+
 };

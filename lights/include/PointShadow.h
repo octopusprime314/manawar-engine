@@ -28,12 +28,16 @@ class Entity;
 
 class PointShadow : public CubeMapRenderer {
 
-    ShadowPointShader*          _pointShadowShader; //Shader that generates point light cube map shadows
-    ShadowAnimatedPointShader*  _pointAnimatedShadowShader; //Animated Shader that generates point light cube map shadows
-    
+     //Animated Shader that generates point light cube map shadows
+    ShadowAnimatedPointShader* _pointAnimatedShadowShader;
+    //Shader that generates point light cube map shadows
+    ShadowPointShader*         _pointShadowShader;
+
 public:
-    PointShadow(GLuint width, GLuint height);
+    PointShadow(GLuint width,
+                GLuint height);
     ~PointShadow();
 
-    void                       render(std::vector<Entity*> entityList, Light* light);
+    void                       render(std::vector<Entity*> entityList,
+                                      Light*               light);
 };

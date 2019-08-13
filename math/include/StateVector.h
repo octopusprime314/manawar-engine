@@ -24,46 +24,50 @@
 #include "Vector4.h"
 #include <mutex>
 
-const float GRAVITY = -9.8f; //meters per second squared 
-const float FRICTION = 0.95f; //friction coefficient applied 
+//meters per second squared
+const float GRAVITY = -9.8f;
+//friction coefficient applied
+const float FRICTION = 0.95f;
 
 class StateVector {
-    Vector4    _linearPosition;
-    Vector4    _angularPosition;
-    Vector4    _linearVelocity;
-    Vector4    _angularVelocity;
-    Vector4    _linearAcceleration;
     Vector4    _angularAcceleration;
-    Vector4    _force; //linear force
-    Vector4    _torque; //angular force
-    float      _mass; //mass of object used to calculate acceleration on objects
-    bool       _active; //indicates whether an object is in motion or not
-    bool       _contact; //indicates a hit between another state vector has been detected
-    bool       _gravity; //gravity on or off
+    Vector4    _linearAcceleration;
+    Vector4    _angularVelocity;
+    Vector4    _angularPosition;
+    Vector4    _linearPosition;
+    Vector4    _linearVelocity;
     std::mutex _stateLock;
+    bool       _contact;
+    bool       _gravity;
+    Vector4    _torque;
+    bool       _active;
+    Vector4    _force;
+    float      _mass;
+
 public:
     StateVector();
-    void       update(int milliSeconds);
-    Vector4    getLinearPosition();
-    Vector4    getAngularPosition();
-    Vector4    getLinearVelocity();
-    Vector4    getAngularVelocity();
-    Vector4    getLinearAcceleration();
-    Vector4    getAngularAcceleration();
-    Vector4    getForce(); //get linear force
-    Vector4    getTorque(); //get angular force
-    bool       getContact();
-    float      getMass(); // get mass of object
-    bool       getActive(); //get whether an object is in motion or not
-    void       setActive(bool active); //set whether an object is in motion or not
-    void       setLinearPosition(Vector4 position); //set the position of the state vector
-    void       setAngularPosition(Vector4 position);
-    void       setLinearVelocity(Vector4 velocity);
-    void       setAngularVelocity(Vector4 velocity);
-    void       setLinearAcceleration(Vector4 acceleration);
     void       setAngularAcceleration(Vector4 acceleration);
-    void       setForce(Vector4 force); //set linear force
-    void       setTorque(Vector4 torque); //set angular force
-    void       setContact(bool contact);
-    void       setGravity(bool enableGravity); //Enable/Disable gravity
+    void       setLinearAcceleration( Vector4 acceleration);
+    void       setAngularPosition(    Vector4 position);
+    void       setAngularVelocity(    Vector4 velocity);
+    void       setLinearVelocity(     Vector4 velocity);
+    void       setLinearPosition(     Vector4 position);
+    void       setContact(            bool    contact);
+    void       setGravity(            bool    enableGravity);
+    void       setActive(             bool    active);
+    void       setTorque(             Vector4 torque);
+    void       setForce(              Vector4 force);
+    void       update(                int     milliSeconds);
+
+    Vector4    getAngularAcceleration();
+    Vector4    getLinearAcceleration();
+    Vector4    getAngularPosition();
+    Vector4    getAngularVelocity();
+    Vector4    getLinearPosition();
+    Vector4    getLinearVelocity();
+    bool       getContact();
+    bool       getActive();
+    Vector4    getTorque();
+    Vector4    getForce();
+    float      getMass();
 };

@@ -7,13 +7,17 @@
 #include "ModelBroker.h"
 #include "FrustumCuller.h"
 
-static const float SHADOW_RESOLUTION = 1.0; //10 pixels per unit distance of 1
+//10 pixels per unit distance of 1
+static const float SHADOW_RESOLUTION = 1.0;
 
-DirectionalShadow::DirectionalShadow(GLuint width, GLuint height) :
-    _staticShadowShader(static_cast<ShadowStaticShader*>(ShaderBroker::instance()->getShader("staticShadowShader"))),
+DirectionalShadow::DirectionalShadow(GLuint width,
+                                     GLuint height) :
+    _staticShadowShader(  static_cast<ShadowStaticShader*>(ShaderBroker::instance()->getShader("staticShadowShader"))),
+
     _animatedShadowShader(static_cast<ShadowAnimatedShader*>(ShaderBroker::instance()->getShader("animatedShadowShader"))),
-    _shadow(static_cast<unsigned int>(width * SHADOW_RESOLUTION),
-        static_cast<unsigned int>(height * SHADOW_RESOLUTION)) {
+
+    _shadow(              static_cast<unsigned int>(width  * SHADOW_RESOLUTION),
+                          static_cast<unsigned int>(height * SHADOW_RESOLUTION)) {
 
 }
 
@@ -31,10 +35,14 @@ void DirectionalShadow::render(std::vector<Entity*> entityList, Light* light) {
         // Specify what to render an start acquiring
         GLenum buffers[] = { GL_NONE };
         //Bind frame buffer
-        glBindFramebuffer(GL_FRAMEBUFFER, _shadow.getFrameBufferContext());
+        glBindFramebuffer(GL_FRAMEBUFFER,
+                          _shadow.getFrameBufferContext());
 
         //Need to change viewport to the resolution of the shadow texture
-        glViewport(0, 0, _shadow.getWidth(), _shadow.getHeight());
+        glViewport(0,
+                   0,
+                   _shadow.getWidth(),
+                   _shadow.getHeight());
 
         //Clear depth buffer
         glClear(GL_DEPTH_BUFFER_BIT);
@@ -43,8 +51,7 @@ void DirectionalShadow::render(std::vector<Entity*> entityList, Light* light) {
     }
     else {
         RenderTexture* depthTexture = static_cast<RenderTexture*>(_shadow.getTexture());
-        std::vector<RenderTexture> textures = { *depthTexture };
-        HLSLShader::setOM(textures, _shadow.getWidth(), _shadow.getHeight());
+        HLSLShader::setOM({ *depthTexture }, _shadow.getWidth(), _shadow.getHeight());
     }
 
     for (Entity* entity : entityList) {
@@ -53,7 +60,6 @@ void DirectionalShadow::render(std::vector<Entity*> entityList, Light* light) {
                                        ModelBroker::getViewManager()->getProjection().inverse();
 
         if (FrustumCuller::getVisibleAABB(entity, inverseViewProjection)) {
-        //if (FrustumCuller::getVisibleOBB(entity, inverseViewProjection, light)) {
             if (entity->getModel()->getClassType() == ModelClass::ModelType) {
                 _staticShadowShader->runShader(entity, light);
             }
@@ -65,11 +71,13 @@ void DirectionalShadow::render(std::vector<Entity*> entityList, Light* light) {
 
     if (EngineManager::getGraphicsLayer() == GraphicsLayer::OPENGL) {
         //Bring to original rendering viewport
-        glViewport(0, 0, IOEventDistributor::screenPixelWidth, IOEventDistributor::screenPixelHeight);
+        glViewport(0,
+                   0,
+                   IOEventDistributor::screenPixelWidth,
+                   IOEventDistributor::screenPixelHeight);
     }
     else {
         RenderTexture* depthTexture = static_cast<RenderTexture*>(_shadow.getTexture());
-        std::vector<RenderTexture> textures = { *depthTexture };
-        HLSLShader::releaseOM(textures);
+        HLSLShader::releaseOM({ *depthTexture });
     }
 }

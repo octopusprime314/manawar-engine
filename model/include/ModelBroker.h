@@ -30,31 +30,39 @@
 using ModelMap = std::map<std::string, Model*>;
 
 class ModelBroker {
+
     ModelBroker();
-    ModelMap                     _models;
-    std::vector<std::string>     _modelNames;
-    static ModelBroker*          _broker;
-    void                         _gatherModelNames();
     std::string                  _strToUpper(std::string s);
     std::string                  _strToLower(std::string s);
+    void                         _gatherModelNames();
+    
     static ViewEventDistributor* _viewManager;
+    std::vector<std::string>     _modelNames;
+    ModelMap                     _models;
+    static ModelBroker*          _broker;
 
 public:
-    static ModelBroker*          instance();
     ~ModelBroker();
-    Model*                       getModel(std::string modelName);
-    Model*                       getModel(std::string modelName, Vector4 pos);
+
+    static void                  setViewManager(ViewEventDistributor*    viewEventDistributor);
+    void                         clearChanges(  std::string              modelName);
+    void                         addTileModel(  std::string              modelName,
+                                                std::string              modelToAdd,
+                                                Vector4                  location,
+                                                std::vector<std::string> textures);
+    void                         removeModel(   Entity*                  entityToRemove,
+                                                std::string              modelRemovedFrom);
+    void                         updateModel(   std::string              modelName);
+    void                         saveModel(     std::string              modelName);
+    void                         addModel(      std::string              modelName,
+                                                std::string              modelToAdd,
+                                                Vector4                  location,
+                                                Vector4                  rotation);
+    Model*                       getModel(      std::string              modelName);
+    Model*                       getModel(      std::string              modelName,
+                                                Vector4                  pos);
+    static ViewEventDistributor* getViewManager();
     std::vector<std::string>     getModelNames();
     void                         buildModels();
-    void                         clearChanges(std::string modelName);
-    void                         updateModel(std::string modelName);
-    void                         saveModel(std::string modelName);
-    void                         addModel(std::string modelName, std::string modelToAdd, 
-                                          Vector4 location, Vector4 rotation);
-    void                         removeModel(Entity* entityToRemove, std::string modelRemovedFrom);
-    void                         addTileModel(std::string modelName, std::string modelToAdd, 
-                                              Vector4 location, std::vector<std::string> textures);
-    static void                  setViewManager(ViewEventDistributor* viewEventDistributor);
-    static ViewEventDistributor* getViewManager();
-
+    static ModelBroker*          instance();
 };

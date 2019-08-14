@@ -6,10 +6,11 @@
 #include "Model.h"
 #include "Logger.h"
 #include "ViewEventDistributor.h"
-ModelBroker* ModelBroker::_broker = nullptr;
+
+ModelBroker*          ModelBroker::_broker      = nullptr;
 ViewEventDistributor* ModelBroker::_viewManager = nullptr;
 
-ModelBroker* ModelBroker::instance() { //Only initializes the static pointer once
+ModelBroker* ModelBroker::instance() {
     if (_broker == nullptr) {
         _broker = new ModelBroker();
     }
@@ -24,16 +25,20 @@ ModelBroker::~ModelBroker() {
 
 //helper function to capitalize everything
 std::string ModelBroker::_strToUpper(std::string s) {
-    std::transform(s.begin(), s.end(), s.begin(),
-        [](unsigned char c) { return std::toupper(c); } // correct
+    std::transform(s.begin(),
+                   s.end(),
+                   s.begin(),
+                   [](unsigned char c) { return std::toupper(c); }
     );
     return s;
 }
 
 //helper function to capitalize everything
 std::string ModelBroker::_strToLower(std::string s) {
-    std::transform(s.begin(), s.end(), s.begin(),
-        [](unsigned char c) { return std::tolower(c); } // correct
+    std::transform(s.begin(),
+                   s.end(),
+                   s.begin(),
+                   [](unsigned char c) { return std::tolower(c); }
     );
     return s;
 }
@@ -47,7 +52,6 @@ ViewEventDistributor* ModelBroker::getViewManager() {
 }
 
 void ModelBroker::buildModels() {
-
     _gatherModelNames();
 }
 
@@ -68,10 +72,10 @@ Model* ModelBroker::getModel(std::string modelName, Vector4 pos) {
         upperCaseMapName.find("LOD") != std::string::npos) {
 
         Vector4 cameraPos = getViewManager()->getCameraPos();
-
-        float distance = (pos - cameraPos).getMagnitude();
+        float distance    = (pos - cameraPos).getMagnitude();
         //use lod 1 which is the highest poly count for the model
-        if (distance < 400 || EngineState::getEngineState().worldEditorModeEnabled) {
+        if (distance < 400 ||
+            EngineState::getEngineState().worldEditorModeEnabled) {
              return _models[upperCaseMapName];
         }
         else {
@@ -99,10 +103,9 @@ std::vector<std::string> ModelBroker::getModelNames() {
 void ModelBroker::clearChanges(std::string modelName) {
 
     std::string upperCaseMapName = _strToUpper(modelName);
-
     if (_models.find(upperCaseMapName) != _models.end()) {
 
-        FbxLoader* fbxScene = _models[upperCaseMapName]->getFbxLoader();
+        FbxLoader* fbxScene      = _models[upperCaseMapName]->getFbxLoader();
         fbxScene->clearScene();
     }
     else {
@@ -112,15 +115,18 @@ void ModelBroker::clearChanges(std::string modelName) {
 
 void ModelBroker::addModel(std::string modelName, std::string modelToAdd, Vector4 location, Vector4 rotation) {
     
-    std::string upperCaseMapName = _strToUpper(modelName);
+    std::string upperCaseMapName      = _strToUpper(modelName);
     std::string upperCaseMapNameToAdd = _strToUpper(modelToAdd) + "_LOD1";
 
-    if (_models.find(upperCaseMapName) != _models.end() &&
+    if (_models.find(upperCaseMapName)      != _models.end() &&
         _models.find(upperCaseMapNameToAdd) != _models.end()) {
 
-        FbxLoader* modelToAdd = _models[upperCaseMapNameToAdd]->getFbxLoader();
+        FbxLoader* modelToAdd   = _models[upperCaseMapNameToAdd]->getFbxLoader();
         FbxLoader* modelAddedTo = _models[upperCaseMapName]->getFbxLoader();
-        modelAddedTo->addToScene(_models[upperCaseMapName], modelToAdd, location, rotation);
+        modelAddedTo->addToScene(_models[upperCaseMapName],
+                                 modelToAdd,
+                                 location,
+                                 rotation);
     }
     else {
         std::cout << "Model doesn't exist so add it!" << std::endl;
@@ -129,12 +135,12 @@ void ModelBroker::addModel(std::string modelName, std::string modelToAdd, Vector
 
 void ModelBroker::removeModel(Entity* entityToRemove, std::string modelRemovedFrom) {
 
-    std::string upperCaseMapName = _strToUpper(modelRemovedFrom);
+    std::string upperCaseMapName    = _strToUpper(modelRemovedFrom);
 
     if (_models.find(upperCaseMapName) != _models.end() &&
         entityToRemove                 != nullptr) {
 
-        FbxLoader* modelRemovedFrom  = _models[upperCaseMapName]->getFbxLoader();
+        FbxLoader* modelRemovedFrom = _models[upperCaseMapName]->getFbxLoader();
         modelRemovedFrom->removeFromScene(entityToRemove, modelRemovedFrom, std::vector<FbxNode*>());
     }
     else {
@@ -142,23 +148,26 @@ void ModelBroker::removeModel(Entity* entityToRemove, std::string modelRemovedFr
     }
 }
 
-void ModelBroker::addTileModel(std::string modelName, 
-    std::string modelToAdd, 
-    Vector4 location, 
-    std::vector<std::string> textures) {
+void ModelBroker::addTileModel(std::string              modelName,
+                               std::string              modelToAdd,
+                               Vector4                  location,
+                               std::vector<std::string> textures) {
 
-    std::string upperCaseMapName = _strToUpper(modelName);
+    std::string upperCaseMapName      = _strToUpper(modelName);
     std::string upperCaseMapNameToAdd = _strToUpper(modelToAdd) + "_LOD1";
 
-    if (_models.find(upperCaseMapName) != _models.end() &&
+    if (_models.find(upperCaseMapName)      != _models.end() &&
         _models.find(upperCaseMapNameToAdd) != _models.end()) {
 
-        FbxLoader* modelToAdd = _models[upperCaseMapNameToAdd]->getFbxLoader();
+        FbxLoader* modelToAdd   = _models[upperCaseMapNameToAdd]->getFbxLoader();
         FbxLoader* modelAddedTo = _models[upperCaseMapName]->getFbxLoader();
         for (auto& texture : textures) {
             texture = _strToLower(texture);
         }
-        modelAddedTo->addTileToScene(_models[upperCaseMapName], modelToAdd, location, textures);
+        modelAddedTo->addTileToScene(_models[upperCaseMapName],
+                                     modelToAdd,
+                                     location,
+                                     textures);
     }
     else {
         std::cout << "Model doesn't exist so add it!" << std::endl;
@@ -171,7 +180,7 @@ void ModelBroker::saveModel(std::string modelName) {
 
     if (_models.find(upperCaseMapName) != _models.end()) {
 
-        FbxLoader* modelToSave = _models[upperCaseMapName]->getFbxLoader();
+        FbxLoader* modelToSave   = _models[upperCaseMapName]->getFbxLoader();
         modelToSave->saveScene();
     }
     else {
@@ -203,9 +212,9 @@ void ModelBroker::updateModel(std::string modelName) {
 
 
 void ModelBroker::_gatherModelNames() {
-    bool isFile = false;
-    DIR *dir;
-    struct dirent *ent;
+    bool           isFile = false;
+    DIR*           dir;
+    struct dirent* ent;
     if ((dir = opendir(STATIC_MESH_LOCATION.c_str())) != nullptr) {
         LOG_INFO("Files to be processed: \n");
 
@@ -213,23 +222,23 @@ void ModelBroker::_gatherModelNames() {
             if (*ent->d_name) {
                 std::string fileName = std::string(ent->d_name);
            
-                if (!fileName.empty() && 
-                    fileName != "." && 
-                    fileName != ".." && 
+                if (fileName.empty()      == false &&
+                    fileName              != "."   &&
+                    fileName              != ".."  &&
                     fileName.find(".ini") == std::string::npos) {
 
-                    DIR *subDir;
-                    struct dirent *subEnt;
+                    DIR*           subDir;
+                    struct dirent* subEnt;
                     if ((subDir = opendir((STATIC_MESH_LOCATION + fileName).c_str())) != nullptr) {
                         while ((subEnt = readdir(subDir)) != nullptr) {
 
                             if (*subEnt->d_name) {
                                 LOG_INFO(subEnt->d_name, "\n");
 
-                                std::string lodFile = std::string(subEnt->d_name);
+                                std::string lodFile               = std::string(subEnt->d_name);
                                 if (lodFile.find("lod") != std::string::npos) {
-                                    std::string mapName = fileName + "/" + lodFile;
-                                    lodFile = lodFile.substr(0, lodFile.size() - 4);
+                                    std::string mapName           = fileName + "/" + lodFile;
+                                    lodFile                       = lodFile.substr(0, lodFile.size() - 4);
                                     _models[_strToUpper(lodFile)] = new Model(STATIC_MESH_LOCATION + mapName);
                                     _modelNames.push_back(_strToUpper(lodFile));
                                 }
@@ -250,21 +259,19 @@ void ModelBroker::_gatherModelNames() {
         while ((ent = readdir(dir)) != nullptr) {
             if (*ent->d_name) {
                 std::string fileName = std::string(ent->d_name);
-
-                DIR *subDir;
-                struct dirent *subEnt;
+                DIR*           subDir;
+                struct dirent* subEnt;
                 if ((subDir = opendir((ANIMATED_MESH_LOCATION + fileName).c_str())) != nullptr) {
                     while ((subEnt = readdir(subDir)) != nullptr) {
 
                         if (*subEnt->d_name) {
                             LOG_INFO(subEnt->d_name, "\n");
 
-                            std::string lodFile = std::string(subEnt->d_name);
+                            std::string lodFile               = std::string(subEnt->d_name);
                             if (lodFile.find("lod") != std::string::npos) {
-                                std::string mapName = fileName + "/" + lodFile;
-                                lodFile = lodFile.substr(0, lodFile.size() - 4);
-                                _models[_strToUpper(lodFile)] = 
-                                    static_cast<Model*>(new AnimatedModel(ANIMATED_MESH_LOCATION + mapName));
+                                std::string mapName           = fileName + "/" + lodFile;
+                                lodFile                       = lodFile.substr(0, lodFile.size() - 4);
+                                _models[_strToUpper(lodFile)] = static_cast<Model*>(new AnimatedModel(ANIMATED_MESH_LOCATION + mapName));
                                 _modelNames.push_back(_strToUpper(lodFile));
                             }
                         }
@@ -284,14 +291,14 @@ void ModelBroker::_gatherModelNames() {
             if (*ent->d_name) {
                 std::string fileName = std::string(ent->d_name);
 
-                if (!fileName.empty() &&
-                    fileName != "." &&
-                    fileName != ".." &&
+                if (fileName.empty()      == false &&
+                    fileName              != "."   &&
+                    fileName              != ".."  &&
                     fileName.find(".ini") == std::string::npos) {
 
                     LOG_INFO(ent->d_name, "\n");
 
-                    std::string mapName = fileName + "/" + fileName + ".fbx";
+                    std::string mapName            = fileName + "/" + fileName + ".fbx";
                     _models[_strToUpper(fileName)] = new Model(SCENE_MESH_LOCATION + mapName);
                 }
             }
@@ -301,7 +308,4 @@ void ModelBroker::_gatherModelNames() {
     else {
         std::cout << "Problem reading from directory!" << std::endl;
     }
-
 }
-
-

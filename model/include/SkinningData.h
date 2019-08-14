@@ -25,17 +25,20 @@
 #include "fbxsdk.h"
 class SkinningData {
 
-    std::vector<int>          _indexes;
-    std::vector<float>        _weights;
-    std::vector<Matrix>       _frameVertexTransforms;
-    int                       _indexOffset;
+    std::vector<Matrix>  _frameVertexTransforms;
+    int                  _indexOffset;
+    std::vector<int>     _indexes;
+    std::vector<float>   _weights;
 
 public:
-    SkinningData(FbxCluster* skinData, FbxNode* node, int animationFrames, int indexOffset);
+    SkinningData(FbxCluster* skinData,
+                 FbxNode*    node,
+                 int         animationFrames,
+                 int         indexOffset);
     ~SkinningData();
 
-    std::vector<int>*         getIndexes();
-    std::vector<float>*       getWeights();
-    std::vector<Matrix>*      getFrameVertexTransforms();
-    int                       getIndexOffset();
+    std::vector<Matrix>* getFrameVertexTransforms();
+    int                  getIndexOffset();
+    std::vector<int>*    getIndexes();
+    std::vector<float>*  getWeights();
 };

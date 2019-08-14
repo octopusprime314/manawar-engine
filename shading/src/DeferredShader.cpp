@@ -162,6 +162,12 @@ void DeferredShader::runShader(std::vector<Light*>& lights,
         _shader->updateData("ssaoTexture", GL_TEXTURE9, ssao->getBlur()->getTexture());
     }
 
+    auto inverseProj = (lights[0]->getLightMVP().getProjectionMatrix() *
+                        lights[0]->getLightMVP().getViewMatrix() *
+                        lights[0]->getLightMVP().getModelMatrix()).inverse();
+
+    _shader->updateData("lightRayProjection", inverseProj.getFlatBuffer());
+
     if (EngineManager::getGraphicsLayer() == GraphicsLayer::OPENGL) {
         glDrawArrays(GL_TRIANGLE_STRIP, 0, (GLsizei)4);
     }

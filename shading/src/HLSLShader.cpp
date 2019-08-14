@@ -8,6 +8,13 @@
 #include "DXLayer.h"
 #include <vector>
 
+//Instead of adding dxil header files just include this for dxil shader reflection
+#define DXIL_FOURCC(ch0, ch1, ch2, ch3) (                            \
+  (uint32_t)(uint8_t)(ch0)        | (uint32_t)(uint8_t)(ch1) << 8  | \
+  (uint32_t)(uint8_t)(ch2) << 16  | (uint32_t)(uint8_t)(ch3) << 24   \
+  )
+constexpr uint32_t DFCC_DXIL = DXIL_FOURCC('D', 'X', 'I', 'L');
+
 // You can hit this in a debugger.
 // Set to 'true' to printf every shader that is linked or compiled.
 static volatile bool g_VerboseShaders = false;
@@ -33,10 +40,6 @@ HLSLShader::~HLSLShader() {
 
 }
 
-HLSLShader::HLSLShader(const HLSLShader& shader) {
-    *this = shader;
-}
-
 std::wstring HLSLShader::_stringToLPCWSTR(const std::string& s) {
     int len;
     int slength = (int)s.length() + 1;
@@ -48,64 +51,245 @@ std::wstring HLSLShader::_stringToLPCWSTR(const std::string& s) {
     return r;
 }
 
-void HLSLShader::build(std::vector<DXGI_FORMAT>* rtvs) {
+void HLSLShader::buildDXC(CComPtr<IDxcBlob>& pResultBlob,
+                          std::wstring       shaderString,
+                          std::wstring       shaderProfile,
+                          std::wstring       entryPoint) {
 
+   HRESULT                     initDLL = S_FALSE;
+   ComPtr<IDxcOperationResult> dxcResult;
+   CComPtr<IDxcBlobEncoding>   pSource;
+   CComPtr<IDxcLibrary>        pLibrary;
+   CComPtr<IDxcCompiler2>      dxcCompiler;
+   TCHAR                       fullPath[MAX_PATH];
+
+   if (!_dllSupport.IsEnabled()) {
+       initDLL = _dllSupport.Initialize();
+   }
+
+   _dllSupport.CreateInstance(  CLSID_DxcLibrary, &pLibrary);
+   pLibrary->CreateBlobFromFile(shaderString.c_str(), nullptr, &pSource);
+   _dllSupport.CreateInstance(  CLSID_DxcCompiler, &dxcCompiler);
+
+   dxcCompiler->Compile(pSource,
+                        shaderString. c_str(),
+                        entryPoint.   c_str(),
+                        shaderProfile.c_str(),
+                        nullptr,
+                        0,
+                        nullptr,
+                        0,
+                        nullptr,
+                        &dxcResult);
+
+   dxcResult->GetResult(&pResultBlob);
+
+   HRESULT result;
+   dxcResult->GetStatus(&result);
+   if (FAILED(result)) {
+       CComPtr<IDxcBlobEncoding> pErr;
+       dxcResult->GetErrorBuffer(&pErr);
+       OutputDebugStringA((char*)pErr->GetBufferPointer());
+       pResultBlob = nullptr;
+       return;
+   }
+
+   CComPtr<IDxcBlob>                pProgram;
+   CComPtr<IDxcBlobEncoding>        pDisassembleBlob;
+   ID3D12ShaderReflection*          reflectionInterface;
+   CComPtr<IDxcContainerReflection> pReflection;
+   UINT32                           shaderIdx;
+
+   dxcResult->GetResult(&pProgram);
+   _dllSupport.CreateInstance(CLSID_DxcContainerReflection, &pReflection);
+   pReflection->Load(pProgram);
+   pReflection->FindFirstPartKind(DFCC_DXIL, &shaderIdx);
+   pReflection->GetPartReflection(shaderIdx,
+                                  __uuidof(ID3D12ShaderReflection),
+                                  (void**)&reflectionInterface);
+    
+   for (int i = 0; result == S_OK; i++) {
+
+        D3D12_SIGNATURE_PARAMETER_DESC varDesc;
+        result = reflectionInterface->GetInputParameterDesc(i, &varDesc);
+        if (result == S_OK) {
+            _inputDescriptorTable[varDesc.SemanticName] = varDesc;
+        }
+    }
+    result = S_OK;
+    for (int i = 0; result == S_OK; i++) {
+        D3D12_SHADER_INPUT_BIND_DESC resourceDesc;
+        result = reflectionInterface->GetResourceBindingDesc(i, &resourceDesc);
+
+        if (result == S_OK) {
+            auto constBuff = reflectionInterface->GetConstantBufferByName(resourceDesc.Name);
+            if (constBuff != nullptr) {
+                ID3D12ShaderReflectionVariable* constBufferVar = nullptr;
+                for (int j = 0; ; j++) {
+                    constBufferVar = constBuff->GetVariableByIndex(j);
+                    D3D12_SHADER_VARIABLE_DESC* ref = new D3D12_SHADER_VARIABLE_DESC();
+                    auto isVariable = constBufferVar->GetDesc(ref);
+                    if (isVariable != S_OK) {
+                        break;
+                    }
+                    else {
+                        bool found = false;
+                        for (auto subIndex : _constBuffDescriptorTable[resourceDesc.Name]) {
+                            if (std::string(subIndex.Name).compare(std::string(ref->Name)) == 0) {
+                                found = true;
+                                break;
+                            }
+                        }
+                        if (!found) {
+                            _constBuffDescriptorTable[resourceDesc.Name].push_back(*ref);
+                        }
+                    }
+                }
+            }
+            _resourceDescriptorTable[resourceDesc.Name] = resourceDesc;
+        }
+    }
+
+    dxcCompiler->Disassemble(pProgram, &pDisassembleBlob);
+
+    std::string disassembleString((const char *)pDisassembleBlob->GetBufferPointer());
+}
+
+void HLSLShader::build(std::vector<DXGI_FORMAT>* rtvs) {
 
     auto device = DXLayer::instance()->getDevice();
 
     std::string shadersLocation = SHADERS_LOCATION;
-    shadersLocation += "hlsl/";
-
-    std::string fileName = shadersLocation + _pipelineShaderName;
+    shadersLocation            += "hlsl/";
+    std::string fileName        = shadersLocation + _pipelineShaderName;
     fileName.append(".hlsl");
+    auto shaderString           = _stringToLPCWSTR(fileName);
 
-    auto shaderString = _stringToLPCWSTR(fileName);
+    uint32_t          vsByteSize = 0;
+    void*             vsBuffer   = nullptr;
+    HRESULT           vsResult   = !S_OK;
+    uint32_t          psByteSize = 0;
+    void*             psBuffer   = nullptr;
+    HRESULT           psResult   = !S_OK;
+    uint32_t          csByteSize = 0;
+    void*             csBuffer   = nullptr;
+    HRESULT           csResult   = !S_OK;
 
-    ComPtr<ID3DBlob> compiledVS;
-    ComPtr<ID3DBlob> errorsVS;
+    ComPtr<ID3DBlob>  compiledVS;
+    ComPtr<ID3DBlob>  compiledPS;
+    ComPtr<ID3DBlob>  compiledCS;
+    CComPtr<IDxcBlob> compiledDXILVS;
+    CComPtr<IDxcBlob> compiledDXILPS;
+    CComPtr<IDxcBlob> compiledDXILCS;
 
-    HRESULT vsResult = D3DCompileFromFile(shaderString.c_str(), 0,
-        D3D_COMPILE_STANDARD_FILE_INCLUDE, "VS", "vs_5_0", 0, 0,
-        compiledVS.GetAddressOf(), errorsVS.GetAddressOf());
+    // Forward shader is currently not properly compiling for the dxil compiler
+    // it seems that the TextureCube  depthMap : register(t3) is not showing up in the compiled dxil
+    // after looking at the dissassembly...not sure if the compiler or my code is at fault so
+    // fallback to the old fxc compiler for ForwardShader's VS
+    if (useDxcCompiler && fileName.find("forwardShader") == std::string::npos) {
+        std::wstring profile = L"vs_6_3";
+        if (EngineManager::getGraphicsLayer() == GraphicsLayer::DXR_EXPERIMENTAL) {
+            profile = L"vs_6_5";
+        }
+        buildDXC(compiledDXILVS,
+                 shaderString,
+                 profile,
+                 L"VS");
 
-    if (errorsVS) {
-        OutputDebugStringA((char*)errorsVS->GetBufferPointer());
+        if (compiledDXILVS != nullptr) {
+            vsByteSize = compiledDXILVS->GetBufferSize();
+            vsBuffer = compiledDXILVS->GetBufferPointer();
+            vsResult = S_OK;
+        }
+    }
+    else {
+
+        ComPtr<ID3DBlob> errorsVS;
+        vsResult = D3DCompileFromFile(shaderString.c_str(), 0,
+            D3D_COMPILE_STANDARD_FILE_INCLUDE, "VS", "vs_5_0", 0, 0,
+            compiledVS.GetAddressOf(), errorsVS.GetAddressOf());
+
+        if (vsResult != S_OK) {
+            OutputDebugStringA((char*)errorsVS->GetBufferPointer());
+        }
+        else {
+            vsByteSize = compiledVS->GetBufferSize();
+            vsBuffer   = compiledVS->GetBufferPointer();
+            _queryShaderResources(vsBuffer, vsByteSize);
+        }
+    }
+    // Forward shader is currently not properly compiling for the dxil compiler
+    // it seems that the TextureCube  depthMap : register(t3) is not showing up in the compiled dxil
+    // after looking at the dissassembly...not sure if the compiler or my code is at fault so
+    // fallback to the old fxc compiler for ForwardShader's PS
+    if (useDxcCompiler && fileName.find("forwardShader") == std::string::npos) {
+
+        std::wstring profile = L"ps_6_3";
+        if (EngineManager::getGraphicsLayer() == GraphicsLayer::DXR_EXPERIMENTAL) {
+            profile = L"ps_6_5";
+        }
+        buildDXC(compiledDXILPS,
+                 shaderString,
+                 profile,
+                 L"PS");
+
+        if (compiledDXILPS != nullptr) {
+            psByteSize = compiledDXILPS->GetBufferSize();
+            psBuffer = compiledDXILPS->GetBufferPointer();
+            psResult = S_OK;
+        }
+    }
+    else {
+        ComPtr<ID3DBlob> errorsPS;
+        psResult = D3DCompileFromFile(shaderString.c_str(), 0,
+            D3D_COMPILE_STANDARD_FILE_INCLUDE, "PS", "ps_5_0", 0, 0,
+            compiledPS.GetAddressOf(), errorsPS.GetAddressOf());
+
+        if (psResult != S_OK) {
+            OutputDebugStringA((char*)errorsPS->GetBufferPointer());
+        }
+        else{
+            psByteSize = compiledPS->GetBufferSize();
+            psBuffer   = compiledPS->GetBufferPointer();
+            _queryShaderResources(psBuffer, psByteSize);
+        }
     }
 
-    ComPtr<ID3DBlob> compiledPS;
-    ComPtr<ID3DBlob> errorsPS;
-    HRESULT psResult = D3DCompileFromFile(shaderString.c_str(), 0,
-        D3D_COMPILE_STANDARD_FILE_INCLUDE, "PS", "ps_5_0", 0, 0,
-        compiledPS.GetAddressOf(), errorsPS.GetAddressOf());
+    if (useDxcCompiler) {
 
-    if (errorsPS) {
-        OutputDebugStringA((char*)errorsPS->GetBufferPointer());
+        std::wstring profile = L"cs_6_3";
+        if (EngineManager::getGraphicsLayer() == GraphicsLayer::DXR_EXPERIMENTAL) {
+            profile = L"cs_6_5";
+        }
+        buildDXC(compiledDXILCS,
+                 shaderString,
+                 profile,
+                 L"CS");
+
+        if (compiledDXILCS != nullptr) {
+            csByteSize = compiledDXILCS->GetBufferSize();
+            csBuffer = compiledDXILCS->GetBufferPointer();
+            csResult = S_OK;
+        }
+    }
+    else {
+        ComPtr<ID3DBlob> errorsCS;
+        csResult = D3DCompileFromFile(shaderString.c_str(), 0,
+            D3D_COMPILE_STANDARD_FILE_INCLUDE, "CS", "cs_5_0", 0, 0,
+            compiledCS.GetAddressOf(), errorsCS.GetAddressOf());
+
+        if (csResult != S_OK) {
+            OutputDebugStringA((char*)errorsCS->GetBufferPointer());
+        }
+        else {
+            csByteSize = compiledCS->GetBufferSize();
+            csBuffer   = compiledCS->GetBufferPointer();
+            _queryShaderResources(csBuffer, csByteSize);
+        }
     }
 
-    ComPtr<ID3DBlob> compiledCS;
-    ComPtr<ID3DBlob> errorsCS;
-    HRESULT csResult = D3DCompileFromFile(shaderString.c_str(), 0,
-        D3D_COMPILE_STANDARD_FILE_INCLUDE, "CS", "cs_5_0", 0, 0,
-        compiledCS.GetAddressOf(), errorsCS.GetAddressOf());
-
-    if (csResult) {
-        OutputDebugStringA((char*)errorsCS->GetBufferPointer());
-    }
-
-    // Query shaders to properly build root signature
-
-    if (vsResult == S_OK) {
-        _queryShaderResources(compiledVS);
-    }
-    if (psResult == S_OK) {
-        _queryShaderResources(compiledPS);
-    }
-    if (csResult == S_OK) {
-        _queryShaderResources(compiledCS);
-    }
-
-    CD3DX12_ROOT_PARAMETER* RP = new CD3DX12_ROOT_PARAMETER[_resourceDescriptorTable.size()];
-    CD3DX12_DESCRIPTOR_RANGE* srvTableRange = nullptr; //reuse
+    CD3DX12_ROOT_PARAMETER* RP                  = new CD3DX12_ROOT_PARAMETER[_resourceDescriptorTable.size()];
+    CD3DX12_DESCRIPTOR_RANGE* srvTableRange     = nullptr; //reuse
     CD3DX12_DESCRIPTOR_RANGE* samplerTableRange = nullptr; //reuse
 
     int i = 0;
@@ -270,14 +454,14 @@ void HLSLShader::build(std::vector<DXGI_FORMAT>* rtvs) {
         pso.pRootSignature = _rootSignature.Get();
         if (vsResult == S_OK) {
             pso.VS = {
-                reinterpret_cast<BYTE*>(compiledVS->GetBufferPointer()),
-                compiledVS->GetBufferSize()
+                reinterpret_cast<BYTE*>(vsBuffer),
+                vsByteSize
             };
         }
         if (psResult == S_OK) {
             pso.PS = {
-                reinterpret_cast<BYTE*>(compiledPS->GetBufferPointer()),
-                compiledPS->GetBufferSize()
+                reinterpret_cast<BYTE*>(psBuffer),
+                psByteSize
             };
         }
         auto rasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
@@ -323,8 +507,8 @@ void HLSLShader::build(std::vector<DXGI_FORMAT>* rtvs) {
         pso.pRootSignature = _rootSignature.Get();
         if (csResult == S_OK) {
             pso.CS = {
-                reinterpret_cast<BYTE*>(compiledCS->GetBufferPointer()),
-                compiledCS->GetBufferSize()
+                reinterpret_cast<BYTE*>(csBuffer),
+                csByteSize
             };
         }
         pso.Flags = D3D12_PIPELINE_STATE_FLAG_NONE;
@@ -427,14 +611,14 @@ void HLSLShader::releaseOM(std::vector<RenderTexture> targets) {
     }
 }
 
-
-void HLSLShader::_queryShaderResources(ComPtr<ID3DBlob> shaderBlob) {
+void HLSLShader::_queryShaderResources(void*    shader,
+                                       uint32_t shaderSize) {
 
     ID3D12ShaderReflection* reflectionInterface;
-    D3DReflect(shaderBlob->GetBufferPointer(),
-        shaderBlob->GetBufferSize(),
-        IID_ID3D12ShaderReflection,
-        (void**)&reflectionInterface);
+    D3DReflect(shader,
+               shaderSize,
+               IID_ID3D12ShaderReflection,
+               (void**)&reflectionInterface);
 
     HRESULT result = S_OK;
 

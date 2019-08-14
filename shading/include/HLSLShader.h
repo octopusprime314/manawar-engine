@@ -35,6 +35,9 @@
 #include "RenderTexture.h"
 #include "GLIncludes.h"
 #include "Uniforms.h"
+#include "dxc/dxcapi.h"
+#include "dxc/dxcapi.use.h"
+#include <atlcomcli.h>
 
 using namespace Microsoft::WRL;
 
@@ -42,47 +45,64 @@ class Entity;
 class Light;
 class ShaderBroker;
 
+constexpr bool useDxcCompiler = true;
+
 //Simple shader loading class that should be derived from to create more complex shaders
 class HLSLShader : public Shader {
 
-    using InputDescriptors = std::map<std::string, D3D12_SIGNATURE_PARAMETER_DESC>;
-    using ResourceDescriptors = std::map<std::string, D3D12_SHADER_INPUT_BIND_DESC>;
+    using InputDescriptors     = std::map<std::string, D3D12_SIGNATURE_PARAMETER_DESC>;
+    using ResourceDescriptors  = std::map<std::string, D3D12_SHADER_INPUT_BIND_DESC>;
     using ConstBuffDescriptors = std::map<std::string, std::vector<D3D12_SHADER_VARIABLE_DESC>>;
 protected:
-    std::string                           _pipelineShaderName;
-    std::vector<D3D12_INPUT_ELEMENT_DESC> _inputLayout;
-    ComPtr<ID3D12PipelineState>           _psoState;
-    ComPtr<ID3D12RootSignature>           _rootSignature;
-    InputDescriptors                      _inputDescriptorTable;
-    ResourceDescriptors                   _resourceDescriptorTable;
-    ConstBuffDescriptors                  _constBuffDescriptorTable;
-    std::map<std::string, UINT>           _resourceIndexes;
-    void                                  _queryShaderResources(ComPtr<ID3DBlob> shaderBlob);
-    std::wstring                          _stringToLPCWSTR(const std::string& s);
+    std::string                            _pipelineShaderName;
+    std::vector<D3D12_INPUT_ELEMENT_DESC>  _inputLayout;
+    ComPtr<ID3D12PipelineState>            _psoState;
+    ComPtr<ID3D12RootSignature>            _rootSignature;
+    InputDescriptors                       _inputDescriptorTable;
+    ResourceDescriptors                    _resourceDescriptorTable;
+    ConstBuffDescriptors                   _constBuffDescriptorTable;
+    std::map<std::string, UINT>            _resourceIndexes;
+    void                                   _queryShaderResources(void*    shader,
+                                                                 uint32_t shaderSize);
+    std::wstring                           _stringToLPCWSTR(const std::string& s);
     std::map<std::string, ConstantBuffer*> _constantBuffers;
-
-    ResourceBuffer*                       _indexBuffer;
-    D3D12_INDEX_BUFFER_VIEW               _ibv;
+    ResourceBuffer*                        _indexBuffer;
+    D3D12_INDEX_BUFFER_VIEW                _ibv;
+    dxc::DxcDllSupport                     _dllSupport;
 public:
-    HLSLShader(std::string vertexShaderName, std::string fragmentShaderName = "", 
+    HLSLShader(std::string vertexShaderName,
+               std::string fragmentShaderName = "", 
                std::vector<DXGI_FORMAT>* rtvs = nullptr);
-    HLSLShader(const HLSLShader& shader);
     virtual ~HLSLShader();
-    void                                  draw(int offset, int instances, int numTriangles);
-    void                                  dispatch(int x, int y, int z);
-    void                                  build(std::vector<DXGI_FORMAT>* rtvs);
-    void                                  updateData(std::string id, void* data);
-    void                                  updateData(std::string dataName,
-                                                     int textureUnit,
-                                                     Texture* exture);
+
+    void                                  draw(      int offset,
+                                                     int instances,
+                                                     int numTriangles);
+    void                                  dispatch(  int x,
+                                                     int y,
+                                                     int z);
     void                                  updateData(std::string id,
-                                                     UINT textureUnit,
-                                                     Texture* texture,
-                                                     ImageData imageInfo);
+                                                     void*       data);
+    void                                  updateData(std::string dataName,
+                                                     int         textureUnit,
+                                                     Texture*    texture);
+    void                                  updateData(std::string id,
+                                                     UINT        textureUnit,
+                                                     Texture*    texture,
+                                                     ImageData   imageInfo);
+    static void                           setOM(     std::vector<RenderTexture> targets,
+                                                     int                        width,
+                                                     int                        height);
+    static void                           releaseOM( std::vector<RenderTexture> targets);
+    void                                  build(     std::vector<DXGI_FORMAT>*  rtvs);
+    void                                  buildDXC(  CComPtr<IDxcBlob>&         pResultBlob,
+                                                     std::wstring               shaderString,
+                                                     std::wstring               shaderProfile,
+                                                     std::wstring               entryPoint);
+
     void                                  bindAttributes(VAO* vao);
     void                                  unbindAttributes();
-    void                                  bind();
     void                                  unbind();
-    static void                           setOM(std::vector<RenderTexture> targets, int width, int height);
-    static void                           releaseOM(std::vector<RenderTexture> targets);
+    void                                  bind();
+
 };

@@ -4,10 +4,10 @@
 #include "EngineManager.h"
 #include "ShaderTable.h"
 
-const wchar_t* c_hitGroupName = L"MyHitGroup";
-const wchar_t* c_raygenShaderName = L"MyRaygenShader";
+const wchar_t* c_hitGroupName         = L"MyHitGroup";
+const wchar_t* c_raygenShaderName     = L"MyRaygenShader";
 const wchar_t* c_closestHitShaderName = L"MyClosestHitShader";
-const wchar_t* c_missShaderName = L"MyMissShader";
+const wchar_t* c_missShaderName       = L"MyMissShader";
 
 inline std::string BlobToUtf8(_In_ IDxcBlob *pBlob) {
     if (pBlob == nullptr) {
@@ -201,8 +201,7 @@ RayTracingPipelineShader::RayTracingPipelineShader(std::string shader,
 
     std::string libProfile = "lib_6_3";
     if (EngineManager::getGraphicsLayer() == GraphicsLayer::DXR_EXPERIMENTAL) {
-        libProfile = "lib_6_5";
-       
+        libProfile         = "lib_6_5";
     }
     CA2W shWide(libProfile.c_str(), CP_UTF8);
     dxcCompiler->Compile(pSource,

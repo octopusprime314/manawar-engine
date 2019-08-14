@@ -45,7 +45,7 @@ EngineManager::EngineManager(int*      argc,
                              HINSTANCE hInstance,
                              int       nCmdShow) {
 
-    _graphicsLayer = GraphicsLayer::OPENGL;
+    _graphicsLayer = GraphicsLayer::DX12;
 
     if (_graphicsLayer >= GraphicsLayer::DX12) {
 
@@ -64,6 +64,7 @@ EngineManager::EngineManager(int*      argc,
             HRESULT                         supportForSM6_5 = device->CheckFeatureSupport(D3D12_FEATURE_SHADER_MODEL,
                                                                                           &shaderModel,
                                                                                           sizeof(D3D12_FEATURE_DATA_SHADER_MODEL));
+
             if (D3D_SHADER_MODEL_6_5 == shaderModel.HighestShaderModel) {
                 //do something lol
             }

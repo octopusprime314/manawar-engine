@@ -8,6 +8,6 @@ void CS(int3 DTid : SV_DispatchThreadID) {
     
     //upsample by 4x4 kernels
     int2 ID = int2(DTid.xy);
-    float3 result = readTexture.Load(uint3(ID, 0)).rgb + writeTexture.Load(uint3(ID, 0)).rgb;
+    float3 result = readTexture.Load(uint3(ID, 0)).rgb + writeTexture.Load(ID.xy).rgb;
     writeTexture[ID] = float4(result, 1.0);
 }

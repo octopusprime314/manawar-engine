@@ -1,4 +1,4 @@
-#define USE_SHADER_MODEL_6_5 0
+#define USE_SHADER_MODEL_6_5 1
 
 struct SceneConstantBuffer
 {
@@ -87,39 +87,37 @@ void MyRaygenShader()
     // Trace the ray.
     // Set the ray's extents.
     RayDesc ray;
-    ray.Origin = origin;
-    ray.Direction = rayDir;
+    ray.Origin         = origin;
+    ray.Direction      = rayDir;
 
     // Set TMin to a non-zero small val(ue to avoid aliasing issues due to floating - point errors.
     // TMin should be kept small to prevent missing geometry at close contact areas.
-    ray.TMin = 0.001;
-    ray.TMax = 10000.0;
+    ray.TMin           = 0.001;
+    ray.TMax           = 10000.0;
     RayPayload payload = { float4(0, 0, 0, 0) };
 
 #if (USE_SHADER_MODEL_6_5 == 1)
     RayQuery<RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH> rayQuery;
     rayQuery.TraceRayInline(Scene,
-        RAY_FLAG_NONE,
-        ~0,
-        ray);
+                            RAY_FLAG_NONE,
+                            ~0,
+                            ray);
 
     //rayQuery.Proceed();
 
     if (rayQuery.Proceed() == false && rayQuery.CommittedStatus() == COMMITTED_TRIANGLE_HIT)
     {
-        float3   hitPosition = rayQuery.WorldRayOrigin() +
-            (rayQuery.CommittedRayT() * rayQuery.WorldRayDirection());
+        float3   hitPosition   = rayQuery.WorldRayOrigin() +
+                                 (rayQuery.CommittedRayT() * rayQuery.WorldRayDirection());
 
         float4x4 lightViewProj = mul(g_sceneCB.lightView, g_sceneCB.projection);
-        float4   clipSpace = mul(float4(hitPosition, 1), lightViewProj);
-        float    depth = clipSpace.z;
+        float4   clipSpace     = mul(float4(hitPosition, 1), lightViewProj);
+        float    depth         = clipSpace.z;
 
-        //float3x4 data = rayQuery.CommittedWorldToObject3x4();
-
-        float3x4 data = rayQuery.CandidateWorldToObject3x4();
-        data = mul(data, rayQuery.CandidateObjectToWorld3x4());
-        data = mul(data, rayQuery.CommittedObjectToWorld3x4());
-        data = mul(data, rayQuery.CommittedWorldToObject3x4());
+        float3x4 data          = rayQuery.CandidateWorldToObject3x4();
+        data                   = mul(data, rayQuery.CandidateObjectToWorld3x4());
+        data                   = mul(data, rayQuery.CommittedObjectToWorld3x4());
+        data                   = mul(data, rayQuery.CommittedWorldToObject3x4());
 
         if (data[0][0] > 0.0f)
         {

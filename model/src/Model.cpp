@@ -7,24 +7,26 @@
 
 TextureBroker* Model::_textureManager = TextureBroker::instance();
 
-Model::Model(std::string name, ModelClass classId) :
+Model::Model(std::string name,
+             ModelClass classId) :
     _isInstanced(false),
-    _classId(classId),
-    _name(name.substr(name.find_last_of("/") + 1)),
-    _fbxLoader(new FbxLoader(name)) {
+    _classId(    classId),
+    _name(       name.substr(name.find_last_of("/") + 1)),
+    _fbxLoader(  new FbxLoader(name)) {
 
     //If the model loaded is a scene then all of the model instances have been added as entities
     //in the fbx constructor call so jump out of model constructor
     if (name.find("scene") != std::string::npos) {
         return;
     }
-    _name = _name.substr(0, _name.size() - 4); //trim .fbx off
+
+    //trim .fbx off
+    _name = _name.substr(0, _name.size() - 4);
     _vao.push_back(new VAO());
+
     //Populate model with fbx file data and recursivelty search with the root node of the scene
     _fbxLoader->loadModel(this, _fbxLoader->getScene()->GetRootNode());
-
     _vao.back()->setPrimitiveOffsetId(0);
-
 
     //If class is generic model then deallocate fbx object,
     //otherwise let derived class clean up _fbxLoader object
@@ -32,7 +34,7 @@ Model::Model(std::string name, ModelClass classId) :
     if (_classId == ModelClass::ModelType) {
 
         //Load default shader
-        _shaderProgram = static_cast<StaticShader*>(ShaderBroker::instance()->getShader("staticShader"));
+        _shaderProgram    = static_cast<StaticShader*>(ShaderBroker::instance()->getShader("staticShader"));
 
         if (_name.find("tile") != std::string::npos) {
             //If the object is a standard model then it is modeled with triangles
@@ -41,7 +43,6 @@ Model::Model(std::string name, ModelClass classId) :
         else {
             _geometryType = GeometryType::Sphere;
         }
-
         std::string colliderName = name.substr(0, name.find_last_of("/") + 1) + "collider.fbx";
         //Load in geometry fbx object
         FbxLoader geometryLoader(colliderName);
@@ -74,8 +75,8 @@ void Model::addVAO(ModelClass classType) {
 
 void Model::updateModel(Model* model) {
     std::lock_guard<std::mutex> lockGuard(_updateLock);
-    this->_geometry       = model->_geometry;
-    this->_vao            = model->_vao;
+    this->_geometry = model->_geometry;
+    this->_vao      = model->_vao;
 }
 
 std::vector<VAO*>* Model::getVAO() {
@@ -121,13 +122,15 @@ std::vector<std::string> Model::getTextureNames() {
     return _textureRecorder;
 }
 
-void Model::addTexture(std::string textureName, int stride) {
+void Model::addTexture(std::string textureName,
+                       int         stride) {
     _vao[_vao.size() - 1]->addTextureStride(std::pair<std::string, int>(textureName, stride));
     _textureManager->addTexture(textureName);
-    _textureRecorder.push_back(textureName);
+    _textureRecorder.push_back( textureName);
 }
 
-void Model::addLayeredTexture(std::vector<std::string> textureNames, int stride) {
+void Model::addLayeredTexture(std::vector<std::string> textureNames,
+                              int                      stride) {
 
     //Encode layered into string to notify shader what type of texture is used
     std::string sumString = "Layered";
@@ -162,7 +165,7 @@ void Model::addGeometrySphere(Sphere sphere) {
 
 std::string Model::_getModelName(std::string name) {
     std::string modelName = name;
-    modelName = modelName.substr(0, modelName.find_first_of("/"));
+    modelName             = modelName.substr(0, modelName.find_first_of("/"));
     return modelName;
 }
 
@@ -182,7 +185,7 @@ void Model::setInstances(std::vector<Vector4> offsets) {
         _offsets[i++] = offset.gety();
         _offsets[i++] = offset.getz();
     }
-    _instances = static_cast<int>(offsets.size());
+    _instances   = static_cast<int>(offsets.size());
 }
 
 bool Model::getIsInstancedModel() {

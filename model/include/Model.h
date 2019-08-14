@@ -49,53 +49,65 @@ enum class ModelClass {
 class Model {
 
 public:
-
     //Default model to type to base class
-    Model(std::string name, ModelClass classId = ModelClass::ModelType);
+    Model(std::string name,
+          ModelClass  classId = ModelClass::ModelType);
+
     virtual ~Model();
-    std::vector<VAO*>*          getVAO(); //Used for dynamic additions
-    RenderBuffers*              getRenderBuffers();
-    ModelClass                  getClassType();
-    size_t                      getArrayCount();
-    void                        addTexture(std::string textureName, int stride);
-    void                        addLayeredTexture(std::vector<std::string> textureNames, int stride);
-    AssetTexture*               getTexture(std::string textureName);
-    LayeredTexture*             getLayeredTexture(std::string textureName);
-    GeometryType                getGeometryType();
-    Geometry*                   getGeometry();
+    void                        addLayeredTexture(  std::vector<std::string> textureNames,
+                                                    int                      stride);
+    void                        addTexture(         std::string textureName,
+                                                    int         stride);
+    void                        setInstances(       std::vector<Vector4> offsets);
+    LayeredTexture*             getLayeredTexture(  std::string textureName);
+    AssetTexture*               getTexture(         std::string textureName);
+    void                        addVAO(             ModelClass classType);
     void                        addGeometryTriangle(Triangle triangle);
-    void                        addGeometrySphere(Sphere sphere);
-    void                        setAABB(Cube* aabbCube);
-    Cube*                       getAABB();
-    void                        setGfxAABB(Cube* gfxAABB);
-    Cube*                       getGfxAABB();
-    void                        setInstances(std::vector<Vector4> offsets); //is this model used for instancing
+    void                        runShader(          Entity* entity);
+    void                        setAABB(            Cube* aabbCube);
+    void                        addGeometrySphere(  Sphere sphere);
+    void                        setGfxAABB(         Cube* gfxAABB);
+    virtual void                updateModel(        Model* model);
     bool                        getIsInstancedModel();
     float*                      getInstanceOffsets();
-    void                        runShader(Entity* entity);
-    void                        addVAO(ModelClass classType);
-    FbxLoader*                  getFbxLoader();
+    RenderBuffers*              getRenderBuffers();
     std::vector<std::string>    getTextureNames();
+    GeometryType                getGeometryType();
+    size_t                      getArrayCount();
+    ModelClass                  getClassType();
+    FbxLoader*                  getFbxLoader();
+    Geometry*                   getGeometry();
+    Cube*                       getGfxAABB();
+    Cube*                       getAABB();
     std::string                 getName();
-    virtual void                updateModel(Model* model);
-
+    std::vector<VAO*>*          getVAO();
 
 protected:
-    RenderBuffers               _renderBuffers; //Manages vertex, normal and texture data
-    std::vector<VAO*>           _vao; //Vao container
-    StaticShader*               _shaderProgram; //Container object of the Model's shader
-    FbxLoader*                  _fbxLoader; //Used to load fbx data and parse it into engine format
-    ModelClass                  _classId; //Used to identify which class is being used
-    static TextureBroker*       _textureManager; //Static texture manager for texture reuse purposes, all models have access
-    GeometryType                _geometryType; //Indicates whether the collision geometry is sphere or triangle based
-    Geometry                    _geometry; //Geometry object that contains all collision information for a model
-    bool                        _isInstanced;
-    float                       _offsets[900]; //300 x, y and z offsets
-    int                         _instances;
     std::string                 _getModelName(std::string name);
-    std::mutex                  _updateLock;
-    std::string                 _name;
-    Cube*                       _aabbCube;
-    Cube*                       _gfxAABB;
+
     std::vector<std::string>    _textureRecorder;
+    //Static texture manager for texture reuse purposes, all models have access
+    static TextureBroker*       _textureManager;
+    //Manages vertex, normal and texture data
+    RenderBuffers               _renderBuffers;
+    //Container object of the Model's shader
+    StaticShader*               _shaderProgram;
+    //Indicates whether the collision geometry is sphere or triangle based
+    GeometryType                _geometryType;
+    //300 x, y and z offsets
+    float                       _offsets[900];
+    bool                        _isInstanced;
+    std::mutex                  _updateLock;
+    int                         _instances;
+    //Used to load fbx data and parse it into engine format
+    FbxLoader*                  _fbxLoader;
+    Cube*                       _aabbCube;
+    //Geometry object that contains all collision information for a model
+    Geometry                    _geometry;
+    //Used to identify which class is being used
+    ModelClass                  _classId;
+    Cube*                       _gfxAABB;
+    std::string                 _name;
+    //Vao container
+    std::vector<VAO*>           _vao;
 };

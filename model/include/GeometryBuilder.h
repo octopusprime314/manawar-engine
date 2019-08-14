@@ -28,8 +28,9 @@
 
 namespace GeometryBuilder {
 
-
-    float* buildCubes(std::vector<Cube>* cubes, GLuint& vertexCount, GeometryConstruction geometryType) {
+    float* buildCubes(std::vector<Cube>*   cubes,
+                      GLuint&              vertexCount,
+                      GeometryConstruction geometryType) {
 
         //Making lines for cubes!!!!!
         unsigned long long vertices = 0;
@@ -39,9 +40,9 @@ namespace GeometryBuilder {
         else if (geometryType == GeometryConstruction::TRIANGLE_MESH) {
             vertices = cubes->size() * 36;
         }
-        vertexCount = static_cast<GLuint>(vertices);
+        vertexCount         = static_cast<GLuint>(vertices);
         //Now flatten vertices and normals out for opengl
-        size_t triBuffSize = vertices * 3;
+        size_t triBuffSize  = vertices * 3;
         float* flattenVerts = new float[triBuffSize]; //Only include the x y and z values not w
 
         int i = 0; //iterates through vertices indexes
@@ -274,17 +275,16 @@ namespace GeometryBuilder {
             else if (geometryType == GeometryConstruction::TRIANGLE_WIREFRAME) {
                 std::cout << "Triangle wireframe not supported!" << std::endl;
             }
-
         }
         return flattenVerts;       
     }
 
     float* buildTriangles(std::vector<Triangle>* triangles, GLuint& vertexCount) {
         //Making lines for triangles!!!!!
-        auto vertices = triangles->size() * 6;
-        vertexCount = static_cast<GLuint>(vertices);
+        auto vertices       = triangles->size() * 6;
+        vertexCount         = static_cast<GLuint>(vertices);
         //Now flatten vertices and normals out for opengl
-        size_t triBuffSize = vertices * 3;
+        size_t triBuffSize  = vertices * 3;
         float* flattenVerts = new float[triBuffSize]; //Only include the x y and z values not w
 
         int i = 0; //iterates through vertices indexes
@@ -326,21 +326,23 @@ namespace GeometryBuilder {
         else if (geometryType == GeometryConstruction::TRIANGLE_MESH) {
             vertices = (spheres->size() * (((stacks - 2) * (slices) * 36) + (2 * slices * 18))) / 2;
         }
-        vertexCount = static_cast<GLuint>(vertices / 3);
-        size_t triBuffSize = vertices;
+        vertexCount         = static_cast<GLuint>(vertices / 3);
+        size_t triBuffSize  = vertices;
         float* flattenVerts = new float[triBuffSize]; //Only include the x y and z values not w
-        int i = 0;
+        int i               = 0;
 
         for (Sphere sphere : *spheres) {
 
             for (int t = 0; t < stacks; t++) {// stacks are ELEVATION so they count theta
 
-                float theta1 = (static_cast<float>(t) / stacks)*PI;
+                float theta1 = (static_cast<float>(t)     / stacks)*PI;
                 float theta2 = (static_cast<float>(t + 1) / stacks)*PI;
 
-                for (int p = 0; p < slices; p++) { // slices are ORANGE SLICES so the count azimuth
+                // slices are ORANGE SLICES so the count azimuth
+                for (int p = 0; p < slices; p++) {
 
-                    float phi1 = (static_cast<float>(p) / slices) * 2 * PI; // azimuth goes around 0 .. 2*PI
+                    // azimuth goes around 0 .. 2*PI
+                    float phi1 = (static_cast<float>(p)     / slices) * 2 * PI;
                     float phi2 = (static_cast<float>(p + 1) / slices) * 2 * PI;
 
                     //phi2   phi1
@@ -351,7 +353,7 @@ namespace GeometryBuilder {
                     // 3------4 -- theta2
                     //
 
-                    float r = sphere.getRadius();
+                    float r     = sphere.getRadius();
                     auto center = sphere.getObjectPosition();
                     Vector4 vertex1(r*sin(phi1)*cos(theta1), r*sin(phi1)*sin(theta1), r*cos(phi1));
                     Vector4 vertex2(r*sin(phi2)*cos(theta1), r*sin(phi2)*sin(theta1), r*cos(phi2));
@@ -368,7 +370,8 @@ namespace GeometryBuilder {
 
                     if (geometryType == GeometryConstruction::LINE_WIREFRAME) {
                         // facing out
-                        if (t == 0) {// top cap
+                        // top cap
+                        if (t == 0) {
 
                             flattenVerts[i++] = vertex1.getx();
                             flattenVerts[i++] = vertex1.gety();
@@ -391,7 +394,8 @@ namespace GeometryBuilder {
                             flattenVerts[i++] = vertex1.gety();
                             flattenVerts[i++] = vertex1.getz();
                         }
-                        else if (t + 1 == stacks) {//end cap
+                        //end cap
+                        else if (t + 1 == stacks) {
 
                             flattenVerts[i++] = vertex3.getx();
                             flattenVerts[i++] = vertex3.gety();
@@ -414,8 +418,8 @@ namespace GeometryBuilder {
                             flattenVerts[i++] = vertex3.gety();
                             flattenVerts[i++] = vertex3.getz();
                         }
+                        // body, facing OUT:
                         else {
-                            // body, facing OUT:
 
                             flattenVerts[i++] = vertex1.getx();
                             flattenVerts[i++] = vertex1.gety();
@@ -462,7 +466,8 @@ namespace GeometryBuilder {
                     }
                     else if (geometryType == GeometryConstruction::TRIANGLE_MESH) {
                         // facing out
-                        if (t == 0) {// top cap
+                        // top cap
+                        if (t == 0) {
 
                             flattenVerts[i++] = vertex1.getx();
                             flattenVerts[i++] = vertex1.gety();
@@ -474,7 +479,8 @@ namespace GeometryBuilder {
                             flattenVerts[i++] = vertex4.gety();
                             flattenVerts[i++] = vertex4.getz();
                         }
-                        else if (t + 1 == stacks) {//end cap
+                        //end cap
+                        else if (t + 1 == stacks) {
 
                             flattenVerts[i++] = vertex3.getx();
                             flattenVerts[i++] = vertex3.gety();
@@ -486,8 +492,8 @@ namespace GeometryBuilder {
                             flattenVerts[i++] = vertex2.gety();
                             flattenVerts[i++] = vertex2.getz();
                         }
+                        // body, facing OUT:
                         else {
-                            // body, facing OUT:
 
                             flattenVerts[i++] = vertex1.getx();
                             flattenVerts[i++] = vertex1.gety();

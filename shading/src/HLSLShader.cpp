@@ -23,6 +23,7 @@ HLSLShader::HLSLShader(std::string pipelineShaderName, std::string fragmentShade
                        std::vector<DXGI_FORMAT>* rtvs) {
     //set vertex name
     _pipelineShaderName = pipelineShaderName;
+    _isASHeapCreated    = false;
     //build it
     build(rtvs);
 
@@ -288,12 +289,14 @@ void HLSLShader::build(std::vector<DXGI_FORMAT>* rtvs) {
         }
     }
 
-    CD3DX12_ROOT_PARAMETER* RP                  = new CD3DX12_ROOT_PARAMETER[_resourceDescriptorTable.size()];
-    CD3DX12_DESCRIPTOR_RANGE* srvTableRange     = nullptr; //reuse
-    CD3DX12_DESCRIPTOR_RANGE* samplerTableRange = nullptr; //reuse
-
+    CD3DX12_DESCRIPTOR_RANGE*                  srvTableRange     = nullptr;
+    CD3DX12_DESCRIPTOR_RANGE*                  samplerTableRange = nullptr;
+    std::vector<CD3DX12_ROOT_PARAMETER>        rootParameters{ _resourceDescriptorTable.size() };
+    std::map< D3D_SHADER_INPUT_TYPE, uint32_t> heapCounters;
     int i = 0;
     int rootParameterIndex = 0;
+    
+    // all b0 aka constant buffer and root constants must be in this loop
     for (auto resource : _resourceDescriptorTable) {
         if (resource.second.Type == D3D_SHADER_INPUT_TYPE::D3D_SIT_CBUFFER) {
 
@@ -304,53 +307,62 @@ void HLSLShader::build(std::vector<DXGI_FORMAT>* rtvs) {
 
             if (std::string(resource.second.Name).compare("objectData") == 0) { //use root constants for per model objects
                 
-                RP[resource.second.uID + rootParameterIndex].InitAsConstants(bytes / 4,
+                rootParameters[resource.second.uID + rootParameterIndex].InitAsConstants(bytes / 4,
                     resource.second.uID + rootParameterIndex);
                 _constantBuffers[resource.second.Name] = new ConstantBuffer(device, _constBuffDescriptorTable[resource.second.Name]);
                 _resourceIndexes[resource.second.Name] = resource.second.uID + rootParameterIndex;
             }
             else {
-                RP[resource.second.uID + rootParameterIndex].InitAsConstantBufferView(resource.second.uID + rootParameterIndex);
+                rootParameters[resource.second.uID + rootParameterIndex].InitAsConstantBufferView(resource.second.uID + rootParameterIndex);
                 _constantBuffers[resource.second.Name] = new ConstantBuffer(device, _constBuffDescriptorTable[resource.second.Name]);
                 _resourceIndexes[resource.second.Name] = resource.second.uID + rootParameterIndex;
             }
             i++;
+            heapCounters[resource.second.Type]++;
         }
     }
+    // all s0 aka sampler shader resources must be in this loop
     rootParameterIndex = static_cast<int>(_resourceIndexes.size());
     for (auto resource : _resourceDescriptorTable) {
         if (resource.second.Type == D3D_SHADER_INPUT_TYPE::D3D_SIT_SAMPLER && csResult != S_OK) {
             samplerTableRange = new CD3DX12_DESCRIPTOR_RANGE();
             samplerTableRange->Init(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, 1, 0);
-            RP[resource.second.uID + rootParameterIndex].InitAsDescriptorTable(1, samplerTableRange, D3D12_SHADER_VISIBILITY_PIXEL);
+            rootParameters[resource.second.uID + rootParameterIndex].InitAsDescriptorTable(1, samplerTableRange, D3D12_SHADER_VISIBILITY_PIXEL);
             _resourceIndexes[resource.second.Name] = resource.second.uID + rootParameterIndex;
             i++;
         }
     }
+    // all t0 aka SRV shader resources must be in this loop
     rootParameterIndex = static_cast<int>(_resourceIndexes.size());
     for (auto resource : _resourceDescriptorTable) {
-        if (resource.second.Type == D3D_SHADER_INPUT_TYPE::D3D_SIT_TEXTURE) {
+        // SRV or Raytracing acceleration structure aka 12
+        if (resource.second.Type == D3D_SHADER_INPUT_TYPE::D3D_SIT_TEXTURE ||
+            resource.second.Type == 12) {
             srvTableRange = new CD3DX12_DESCRIPTOR_RANGE();
             srvTableRange->Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, resource.second.uID);
             if (csResult == S_OK) {
-                RP[resource.second.uID + rootParameterIndex].InitAsDescriptorTable(1, srvTableRange);
+                rootParameters[resource.second.uID + rootParameterIndex].InitAsDescriptorTable(1, srvTableRange);
             }
             else {
-                RP[resource.second.uID + rootParameterIndex].InitAsDescriptorTable(1, srvTableRange, D3D12_SHADER_VISIBILITY_PIXEL);
+                rootParameters[resource.second.uID + rootParameterIndex].InitAsDescriptorTable(1, srvTableRange, D3D12_SHADER_VISIBILITY_PIXEL);
             }
             _resourceIndexes[resource.second.Name] = resource.second.uID + rootParameterIndex;
             i++;
+            heapCounters[resource.second.Type]++;
         }
     }
+    // all u0 aka UAV shader resources must be in this loop
     rootParameterIndex = static_cast<int>(_resourceIndexes.size());
     for (auto resource : _resourceDescriptorTable) {
         if (resource.second.Type == D3D_SHADER_INPUT_TYPE::D3D_SIT_UAV_RWTYPED) {
             srvTableRange = new CD3DX12_DESCRIPTOR_RANGE();
             srvTableRange->Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, resource.second.uID);
-            RP[resource.second.uID + rootParameterIndex].InitAsDescriptorTable(1, srvTableRange);
+            rootParameters[resource.second.uID + rootParameterIndex].InitAsDescriptorTable(1, srvTableRange);
             _resourceIndexes[resource.second.Name] = resource.second.uID + rootParameterIndex;
             i++;
+            heapCounters[resource.second.Type]++;
         }
+       
     }
 
     ComPtr<ID3DBlob> pOutBlob, pErrorBlob;
@@ -382,31 +394,31 @@ void HLSLShader::build(std::vector<DXGI_FORMAT>* rtvs) {
             samplerDesc.ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
 
             descRootSignature.Init(static_cast<UINT>(_resourceIndexes.size()),
-                &RP[0],
+                &rootParameters[0],
                 1,
                 &samplerDesc,
                 D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
         }
         else {
             descRootSignature.Init(static_cast<UINT>(_resourceIndexes.size()),
-                &RP[0],
-                0,
-                nullptr,
-                D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+                                                     &rootParameters[0],
+                                                     0,
+                                                     nullptr,
+                                                     D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
         }
     }
     else {
         descRootSignature.Init(static_cast<UINT>(_resourceIndexes.size()),
-            &RP[0],
-            0,
-            nullptr,
-            D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+                               &rootParameters[0],
+                               0,
+                               nullptr,
+                               D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
     }
 
     D3D12SerializeRootSignature(&descRootSignature,
-        D3D_ROOT_SIGNATURE_VERSION_1,
-        pOutBlob.GetAddressOf(),
-        pErrorBlob.GetAddressOf());
+                                D3D_ROOT_SIGNATURE_VERSION_1,
+                                pOutBlob.GetAddressOf(),
+                                pErrorBlob.GetAddressOf());
 
     if (pErrorBlob) {
         OutputDebugStringA((char*)pErrorBlob->GetBufferPointer());
@@ -682,18 +694,51 @@ void HLSLShader::updateData(std::string id, void* data) {
     }
 }
 
+void HLSLShader::updateRTAS(std::string            id,
+                            ComPtr<ID3D12Resource> rtAS) {
+
+    auto device  = DXLayer::instance()->getDevice();
+    auto cmdList = DXLayer::instance()->getCmdList();
+
+    if (_isASHeapCreated == false) {
+        //Create descriptor heap
+        D3D12_DESCRIPTOR_HEAP_DESC   srvHeapDesc;
+        ZeroMemory(&srvHeapDesc, sizeof(srvHeapDesc));
+        srvHeapDesc.NumDescriptors = 1;
+        srvHeapDesc.Type           = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+        srvHeapDesc.Flags          = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+        device->CreateDescriptorHeap(&srvHeapDesc, IID_PPV_ARGS(_rtASDescriptorHeap.GetAddressOf()));
+
+        //Create view of SRV for shader access
+        CD3DX12_CPU_DESCRIPTOR_HANDLE hDescriptor(_rtASDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
+        D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc          = {};
+        srvDesc.Shader4ComponentMapping                  = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+        srvDesc.ViewDimension                            = D3D12_SRV_DIMENSION_RAYTRACING_ACCELERATION_STRUCTURE;
+        srvDesc.RaytracingAccelerationStructure.Location = rtAS->GetGPUVirtualAddress();
+        device->CreateShaderResourceView(nullptr, &srvDesc, hDescriptor);
+
+        _isASHeapCreated = true;
+    }
+
+    ID3D12DescriptorHeap* descriptorHeaps[] = { _rtASDescriptorHeap.Get() };
+    cmdList->SetDescriptorHeaps(1, descriptorHeaps);
+
+    cmdList->SetGraphicsRootDescriptorTable(_resourceIndexes[id],
+                                            _rtASDescriptorHeap->GetGPUDescriptorHandleForHeapStart());
+}
+
 void HLSLShader::updateData(std::string dataName,
-    int textureUnit,
-    Texture* texture) {
+                            int         textureUnit,
+                            Texture*    texture) {
 
     auto cmdList = DXLayer::instance()->getCmdList();
     texture->bindToDXShader(cmdList, _resourceIndexes[dataName], _resourceIndexes);
 }
 
 void HLSLShader::updateData(std::string id,
-    UINT textureUnit,
-    Texture* texture,
-    ImageData imageInfo) {
+                            UINT        textureUnit,
+                            Texture*    texture,
+                            ImageData   imageInfo) {
 
     auto cmdList = DXLayer::instance()->getCmdList();
     texture->bindToDXShader(cmdList, _resourceIndexes[id], _resourceIndexes);

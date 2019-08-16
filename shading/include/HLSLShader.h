@@ -54,21 +54,28 @@ class HLSLShader : public Shader {
     using ResourceDescriptors  = std::map<std::string, D3D12_SHADER_INPUT_BIND_DESC>;
     using ConstBuffDescriptors = std::map<std::string, std::vector<D3D12_SHADER_VARIABLE_DESC>>;
 protected:
+
+    void                                   _queryShaderResources(void* shader,
+                                                                 uint32_t shaderSize);
+    std::wstring                           _stringToLPCWSTR(     const std::string& s);
+
+    ConstBuffDescriptors                   _constBuffDescriptorTable;
+    ResourceDescriptors                    _resourceDescriptorTable;
+    InputDescriptors                       _inputDescriptorTable;
     std::string                            _pipelineShaderName;
+    ComPtr<ID3D12DescriptorHeap>           _rtASDescriptorHeap;
+    std::map<std::string, UINT>            _resourceIndexes;
+    std::map<std::string, ConstantBuffer*> _constantBuffers;
+    bool                                   _isASHeapCreated;
+    ComPtr<ID3D12RootSignature>            _rootSignature;
+    ResourceBuffer*                        _indexBuffer;
+    dxc::DxcDllSupport                     _dllSupport;
     std::vector<D3D12_INPUT_ELEMENT_DESC>  _inputLayout;
     ComPtr<ID3D12PipelineState>            _psoState;
-    ComPtr<ID3D12RootSignature>            _rootSignature;
-    InputDescriptors                       _inputDescriptorTable;
-    ResourceDescriptors                    _resourceDescriptorTable;
-    ConstBuffDescriptors                   _constBuffDescriptorTable;
-    std::map<std::string, UINT>            _resourceIndexes;
-    void                                   _queryShaderResources(void*    shader,
-                                                                 uint32_t shaderSize);
-    std::wstring                           _stringToLPCWSTR(const std::string& s);
-    std::map<std::string, ConstantBuffer*> _constantBuffers;
-    ResourceBuffer*                        _indexBuffer;
     D3D12_INDEX_BUFFER_VIEW                _ibv;
-    dxc::DxcDllSupport                     _dllSupport;
+
+
+
 public:
     HLSLShader(std::string vertexShaderName,
                std::string fragmentShaderName = "", 
@@ -90,6 +97,9 @@ public:
                                                      UINT        textureUnit,
                                                      Texture*    texture,
                                                      ImageData   imageInfo);
+    void                                  updateRTAS(std::string            id,
+                                                     ComPtr<ID3D12Resource> rtAS);
+
     static void                           setOM(     std::vector<RenderTexture> targets,
                                                      int                        width,
                                                      int                        height);

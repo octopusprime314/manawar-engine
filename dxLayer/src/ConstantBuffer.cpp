@@ -55,7 +55,7 @@ void ConstantBuffer::update(ComPtr<ID3D12GraphicsCommandList> cmdList,
     
     if (id.compare("objectData") == 0) {
         cmdList->SetGraphicsRoot32BitConstants(0,
-                                               sizeInBytes / 4,
+                                               sizeInBytes   / 4,
                                                data,
                                                offsetInBytes / 4);
     }

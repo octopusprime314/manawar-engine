@@ -168,6 +168,8 @@ void DeferredShader::runShader(std::vector<Light*>& lights,
 
     _shader->updateData("lightRayProjection", inverseProj.getFlatBuffer());
 
+    _shader->updateRTAS("rtAS", EngineManager::getRTAS());
+
     if (EngineManager::getGraphicsLayer() == GraphicsLayer::OPENGL) {
         glDrawArrays(GL_TRIANGLE_STRIP, 0, (GLsizei)4);
     }

@@ -12,6 +12,9 @@ TextureCube skyboxNightTexture : register(t8); // Skybox night
 Texture2D   ssaoTexture        : register(t9); // Depth texture data array
 sampler     textureSampler     : register(s0);
 
+//Raytracing Acceleration Structure
+RaytracingAccelerationStructure rtAS : register(t10);
+
 cbuffer globalData             : register(b0) {
     float4x4 lightViewMatrix;                  // Light perspective's view matrix
     float4x4 lightProjectionMatrix;            // Light perspective's view matrix
@@ -71,9 +74,9 @@ struct PixelOut
 };
 
 // Generate a ray in world space for a camera pixel corresponding to an index from the dispatched 2D grid.
-inline void GenerateCameraRay(    uint2  uv,
-                              out float3 origin,
-                              out float3 direction)
+void GenerateCameraRay(    uint2  uv,
+                       out float3 origin,
+                       out float3 direction)
 {
     float2 screenPos = (2.0f * uv) - 1.0f;
 
@@ -89,38 +92,43 @@ inline void GenerateCameraRay(    uint2  uv,
 PixelOut PS(float4 posH : SV_POSITION,
             float2 uv   : UVOUT) {
 
-    //float3 rayDir;
-    //float3 origin;
-    //GenerateCameraRay(uv,
-    //                  origin,
-    //                  rayDir);
+    float depth = 0.0;
 
-    //// Trace the ray.
-    //// Set the ray's extents.
-    //RayDesc ray;
-    //ray.Origin    = origin;
-    //ray.Direction = rayDir;
-    //ray.TMin      = 0.001;
-    //ray.TMax      = 10000.0;
+    float3 rayDir;
+    float3 origin;
+    GenerateCameraRay(uv,
+                      origin,
+                      rayDir);
 
-    //RayQuery<RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH> rayQuery;
-    //rayQuery.TraceRayInline(Scene,
-    //                        RAY_FLAG_NONE,
-    //                        ~0,
-    //                        ray);
+    // Trace the ray.
+    // Set the ray's extents.
+    RayDesc ray;
+    ray.Origin    = origin;
+    ray.Direction = rayDir;
+    ray.TMin      = 0.001;
+    ray.TMax      = 10000.0;
+    
+    RayQuery<RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH> rayQuery;
+    rayQuery.TraceRayInline(rtAS,
+                            RAY_FLAG_NONE,
+                            ~0,
+                            ray);
 
-    //if (rayQuery.Proceed()         == false &&
-    //    rayQuery.CommittedStatus() == COMMITTED_TRIANGLE_HIT)
-    //{
-    //    float3   hitPosition = rayQuery.WorldRayOrigin() +
-    //                           (rayQuery.CommittedRayT() * rayQuery.WorldRayDirection());
+    if (rayQuery.Proceed()         == false &&
+        rayQuery.CommittedStatus() == COMMITTED_TRIANGLE_HIT)
+    {
+        float3   hitPosition   = rayQuery.WorldRayOrigin() +
+                                 (rayQuery.CommittedRayT() * rayQuery.WorldRayDirection());
+        
+        float4x4 lightViewProj = mul(lightViewMatrix, lightProjectionMatrix);
+        float4   clipSpace     = mul(float4(hitPosition, 1), lightViewProj);
+        depth                  = clipSpace.z;
+        //depth = 1.0;
+    }
 
-    //    float4x4 lightViewProj = mul(lightViewMatrix, lightProjectionMatrix);
-    //    float4   clipSpace     = mul(float4(hitPosition, 1), lightViewProj);
-    //    float    depth         = clipSpace.z;
-    //}
+    PixelOut pixel = { float4(depth, 0.0, 0.0, 0.0), 1.0 };
 
-    PixelOut pixel          = { float4(0.0, 0.0, 0.0, 0.0), 1.0 };
+    //PixelOut pixel          = { float4(0.0, 0.0, 0.0, 0.0), 1.0 };
 
     //extract position from depth texture
     float4 position         = float4(decodeLocation(uv), 1.0);

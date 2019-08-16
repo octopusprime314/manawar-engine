@@ -50,17 +50,24 @@ public:
     Shader();
     Shader(const Shader& shader);
     virtual      ~Shader();
-    virtual void draw(int offset, int instances, int numTriangles) = 0;
-    virtual void dispatch(int x, int y, int z) = 0;
-    virtual void updateData(std::string id, void* data) = 0;
-    virtual void updateData(std::string dataName,
-                            int textureUnit,
-                            Texture* texture) = 0;
+    virtual void draw(int offset,
+                      int instances,
+                      int numTriangles) = 0;
+    virtual void dispatch(int x,
+                          int y,
+                          int z) = 0;
     virtual void updateData(std::string id,
-                            GLuint textureUnit,
-                            Texture* texture,
-                            ImageData imageInfo) = 0;
-    virtual void bindAttributes(VAO* vao) = 0;
+                            void*       data) = 0;
+    virtual void updateData(std::string dataName,
+                            int         textureUnit,
+                            Texture*    texture) = 0;
+    virtual void updateData(std::string id,
+                            GLuint      textureUnit,
+                            Texture*    texture,
+                            ImageData   imageInfo) = 0;
+    virtual void updateRTAS(std::string            id,
+                            ComPtr<ID3D12Resource> rtAS) = 0;
+    virtual void bindAttributes(VAO*    vao) = 0;
     virtual void unbindAttributes() = 0;
     virtual void bind() = 0;
     virtual void unbind() = 0;

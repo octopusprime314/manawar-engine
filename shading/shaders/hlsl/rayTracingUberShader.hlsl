@@ -103,8 +103,6 @@ void MyRaygenShader()
                             ~0,
                             ray);
 
-    //rayQuery.Proceed();
-
     if (rayQuery.Proceed() == false && rayQuery.CommittedStatus() == COMMITTED_TRIANGLE_HIT)
     {
         float3   hitPosition   = rayQuery.WorldRayOrigin() +

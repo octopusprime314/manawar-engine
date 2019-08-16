@@ -40,6 +40,10 @@ inline void AllocateUploadBuffer(ID3D12Device*      pDevice,
     (*ppResource)->Unmap(0, nullptr);
 }
 
+ComPtr<ID3D12Resource> RayTracingPipelineShader::getRTAS() {
+    return _topLevelAccelerationStructure;
+}
+
 void RayTracingPipelineShader::_populateDefaultHeap(GpuToCpuBuffers& resources, UINT64 byteSize) {
     // The output buffer (created below) is on a default heap, so only the GPU can access it.
 

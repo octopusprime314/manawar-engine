@@ -121,6 +121,7 @@ class RayTracingPipelineShader : public PipelineShader {
     ComPtr<ID3D12Resource>              _copiedAS;
     D3D12_UNORDERED_ACCESS_VIEW_DESC    _uavDesc;
 
+
 public:
 
     RayTracingPipelineShader(                        std::string shader,
@@ -132,4 +133,5 @@ public:
                                                      Light* light);
 
     RenderTexture*                      getRayTracingTarget();
+    ComPtr<ID3D12Resource>              getRTAS();
 };

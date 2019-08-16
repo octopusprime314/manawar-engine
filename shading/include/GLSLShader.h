@@ -39,12 +39,16 @@ protected:
     std::string  _vertexShaderName;
     std::string  _fragmentShaderName;
     Uniforms*    _uniforms;
-    unsigned int _compile(char* filename, unsigned int type);
-    void         _link(unsigned int vertexSH, unsigned int fragmentSH,
-                       unsigned int geomSH, unsigned int computeSH);
+    unsigned int _compile(char*        filename,
+                          unsigned int type);
+    void         _link(unsigned int vertexSH,
+                       unsigned int fragmentSH,
+                       unsigned int geomSH,
+                       unsigned int computeSH);
 
 public:
-    GLSLShader(std::string vertexShaderName, std::string fragmentShaderName = "");
+    GLSLShader(std::string vertexShaderName,
+               std::string fragmentShaderName = "");
     GLSLShader(const GLSLShader& shader);
     virtual      ~GLSLShader();
     GLint        getShaderContext();
@@ -52,18 +56,25 @@ public:
     Uniforms*    getUniforms();
 
     void         updateShader(GLSLShader* shader);
-    void         draw(int offset, int instances, int numTriangles);
-    void         dispatch(int x, int y, int z);
+    void         draw(int offset,
+                      int instances,
+                      int numTriangles);
+    void         dispatch(int x,
+                          int y,
+                          int z);
     void         build();
-    void         updateData(std::string id, void* data);
-    void         updateData(std::string dataName,
-                            int textureUnit,
-                            Texture* texture);
     void         updateData(std::string id,
-                            GLuint textureUnit,
-                            Texture* texture,
-                            ImageData imageInfo);
-    void         bindAttributes(VAO* vao);
+                            void*       data);
+    void         updateData(std::string dataName,
+                            int         textureUnit,
+                            Texture*    texture);
+    void         updateData(std::string id,
+                            GLuint      textureUnit,
+                            Texture*    texture,
+                            ImageData   imageInfo);
+    void         updateRTAS(std::string            id,
+                            ComPtr<ID3D12Resource> rtAS) {};
+    void         bindAttributes(VAO*    vao);
     void         unbindAttributes();
     void         bind();
     void         unbind();

@@ -7,7 +7,9 @@
 
 unsigned int Entity::_idGenerator = 1;
 
-Entity::Entity(Model* model, ViewEvents* eventWrapper, MVP transforms) :
+Entity::Entity(Model*      model,
+               ViewEvents* eventWrapper,
+               MVP         transforms) :
     EventSubscriber(eventWrapper),
     _clock(MasterClock::instance()),
     _model(model),
@@ -69,7 +71,8 @@ Model* Entity::getModel() {
     auto pos = Vector4(_worldSpaceTransform.getFlatBuffer()[3],
                        _worldSpaceTransform.getFlatBuffer()[7],
                        _worldSpaceTransform.getFlatBuffer()[11]);
-    return ModelBroker::instance()->getModel(_model->getName(), pos);
+    return ModelBroker::instance()->getModel(_model->getName(),
+                                             pos);
 }
 Geometry* Entity::getGeometry() {
     return &_worldSpaceGeometry;
@@ -88,14 +91,16 @@ void Entity::_updateView(Matrix view) {
 
     _prevMVP.setView(_mvp.getViewMatrix());
 
-    _mvp.setView(view); //Receive updates when the view matrix has changed
+    //Receive updates when the view matrix has changed
+    _mvp.setView(view);
 
     //If view changes then change our normal matrix
     _mvp.setNormal(view.inverse().transpose());
 }
 
 void Entity::_updateProjection(Matrix projection) {
-    _mvp.setProjection(projection); //Receive updates when the projection matrix has changed
+    //Receive updates when the projection matrix has changed
+    _mvp.setProjection(projection);
 }
 
 bool Entity::getSelected() {
@@ -111,13 +116,15 @@ void Entity::_updateKinematics(int milliSeconds) {
     _state.update(milliSeconds);
     _prevMVP.setModel(_mvp.getModelMatrix());
 
-    Vector4 position = _state.getLinearPosition();
-    Matrix kinematicTransform = Matrix::translation(position.getx(), position.gety(), position.getz());
-    auto totalTransform = kinematicTransform * _worldSpaceTransform;
+    Vector4 position          = _state.getLinearPosition();
+    Matrix kinematicTransform = Matrix::translation(position.getx(),
+                                                    position.gety(),
+                                                    position.getz());
+    auto totalTransform       = kinematicTransform *
+                                _worldSpaceTransform;
     
     _worldSpaceGeometry.updateTransform(totalTransform);
     _mvp.setModel(totalTransform);
-    
 }
 
 void Entity::_updateGameState(EngineStateFlags state) {
@@ -176,7 +183,7 @@ void Entity::_generateVAOTiles() {
         globalRenderBuffer.addTextureMapName(textureName);
     }
 
-    unsigned int primitiveOffsetId = 0;
+    unsigned int primitiveOffsetId     = 0;
     unsigned int prevPrimitiveOffsetId = primitiveOffsetId;
     for (auto leaf : *leaves) {
 
@@ -199,12 +206,12 @@ void Entity::_generateVAOTiles() {
         for (auto triangleMap : textureTriangleMapper) {
 
             for (auto triangle : triangleMap.second) {
-                renderBuff.addVertex(_worldSpaceTransform * (*vertices)[triangle.first]);
-                renderBuff.addVertex(_worldSpaceTransform * (*vertices)[triangle.first + 1]);
-                renderBuff.addVertex(_worldSpaceTransform * (*vertices)[triangle.first + 2]);
-                renderBuff.addNormal((*normals)[triangle.first]);
-                renderBuff.addNormal((*normals)[triangle.first + 1]);
-                renderBuff.addNormal((*normals)[triangle.first + 2]);
+                renderBuff.addVertex( _worldSpaceTransform * (*vertices)[triangle.first]);
+                renderBuff.addVertex( _worldSpaceTransform * (*vertices)[triangle.first + 1]);
+                renderBuff.addVertex( _worldSpaceTransform * (*vertices)[triangle.first + 2]);
+                renderBuff.addNormal( (*normals)[triangle.first]);
+                renderBuff.addNormal( (*normals)[triangle.first + 1]);
+                renderBuff.addNormal( (*normals)[triangle.first + 2]);
                 renderBuff.addTexture((*textures)[triangle.first]);
                 renderBuff.addTexture((*textures)[triangle.first + 1]);
                 renderBuff.addTexture((*textures)[triangle.first + 2]);
@@ -217,12 +224,12 @@ void Entity::_generateVAOTiles() {
                 renderBuff.addTextureMapIndex(index2);
                 renderBuff.addTextureMapIndex(index3);
 
-                globalRenderBuffer.addVertex(_worldSpaceTransform * (*vertices)[triangle.first]);
-                globalRenderBuffer.addVertex(_worldSpaceTransform * (*vertices)[triangle.first + 1]);
-                globalRenderBuffer.addVertex(_worldSpaceTransform * (*vertices)[triangle.first + 2]);
-                globalRenderBuffer.addNormal((*normals)[triangle.first]);
-                globalRenderBuffer.addNormal((*normals)[triangle.first + 1]);
-                globalRenderBuffer.addNormal((*normals)[triangle.first + 2]);
+                globalRenderBuffer.addVertex( _worldSpaceTransform * (*vertices)[triangle.first]);
+                globalRenderBuffer.addVertex( _worldSpaceTransform * (*vertices)[triangle.first + 1]);
+                globalRenderBuffer.addVertex( _worldSpaceTransform * (*vertices)[triangle.first + 2]);
+                globalRenderBuffer.addNormal( (*normals)[triangle.first]);
+                globalRenderBuffer.addNormal( (*normals)[triangle.first + 1]);
+                globalRenderBuffer.addNormal( (*normals)[triangle.first + 2]);
                 globalRenderBuffer.addTexture((*textures)[triangle.first]);
                 globalRenderBuffer.addTexture((*textures)[triangle.first + 1]);
                 globalRenderBuffer.addTexture((*textures)[triangle.first + 2]);
@@ -241,11 +248,11 @@ void Entity::_generateVAOTiles() {
         if (renderBuff.getVertices()->size() > 0) {
 
             auto textureIndices = renderBuff.getTextureMapIndices();
-            auto textureNames = renderBuff.getTextureMapNames();
+            auto textureNames   = renderBuff.getTextureMapNames();
 
             int textureIndexCount = 0;
-            int prevTextureIndex = (*textureIndices)[0];
-            int previousCount = 0;
+            int prevTextureIndex  = (*textureIndices)[0];
+            int previousCount     = 0;
             for (int i = 0; i < textureIndices->size(); i++) {
                 int textureIndex = (*textureIndices)[i];
 
@@ -262,7 +269,7 @@ void Entity::_generateVAOTiles() {
 
                     _frustumVAOMapping[leafIndex].push_back(_frustumVAOs[_frustumVAOs.size() - 1]);
 
-                    previousCount += textureIndexCount;
+                    previousCount    += textureIndexCount;
                     textureIndexCount = 0;
                 }
 
@@ -308,10 +315,11 @@ void Entity::setLayeredTexture(LayeredTexture* layeredTexture) {
 }
 
 std::vector<VAO*>* Entity::getFrustumVAO() {
-    auto pos = Vector4(_worldSpaceTransform.getFlatBuffer()[3],
-                       _worldSpaceTransform.getFlatBuffer()[7],
-                       _worldSpaceTransform.getFlatBuffer()[11]);
-    auto model = ModelBroker::instance()->getModel(_model->getName(), pos);
+    auto pos   = Vector4(_worldSpaceTransform.getFlatBuffer()[3],
+                         _worldSpaceTransform.getFlatBuffer()[7],
+                         _worldSpaceTransform.getFlatBuffer()[11]);
+    auto model = ModelBroker::instance()->getModel(_model->getName(),
+                                                   pos);
 
     if (_gameState.frustumVisualEnabled) {
         auto vaoIndexes = _frustumCuller->getVisibleVAOs();
@@ -342,11 +350,15 @@ FrustumCuller* Entity::getFrustumCuller() {
 
 void Entity::setPosition(Vector4 position) {
 
-    Matrix kinematicTransform = Matrix::translation(position.getx(), position.gety(), position.getz());
-    auto totalTransform = kinematicTransform * _worldSpaceTransform;
+    Matrix kinematicTransform = Matrix::translation(position.getx(),
+                                                    position.gety(),
+                                                    position.getz());
+    auto totalTransform       = kinematicTransform *
+                                _worldSpaceTransform;
+
     Vector4 pos = Vector4(totalTransform.getFlatBuffer()[3],
-        totalTransform.getFlatBuffer()[7],
-        totalTransform.getFlatBuffer()[11]);
+                          totalTransform.getFlatBuffer()[7],
+                          totalTransform.getFlatBuffer()[11]);
 
     _state.setLinearPosition(pos);
     _worldSpaceGeometry.updateTransform(totalTransform);

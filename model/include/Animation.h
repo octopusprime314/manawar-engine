@@ -42,14 +42,17 @@ public:
     Animation();
     ~Animation();
 
-    int  getFrameCount();
-    void setFrames(int animationFrames);
-    void nextFrame(); //set to the next animation frame
-    void setBoneIndexWeights(std::vector<std::vector<int>>* boneIndexes, std::vector<std::vector<float>>* boneWeights);
-    void addBoneTransforms(std::vector<Matrix>* boneTransforms);
-    std::vector<Matrix>* getBones();
-    std::vector<std::vector<int>>* getBoneIndexes();
+    void setBoneIndexWeights(std::vector<std::vector<int>>*   boneIndexes,
+                             std::vector<std::vector<float>>* boneWeights);
+    void addBoneTransforms(  std::vector<Matrix>*             boneTransforms);
+    void addSkin(            std::vector<SkinningData>        skinData);
+    void setFrames(          int                              animationFrames);
+
     std::vector<std::vector<float>>* getBoneWeights();
-    void addSkin(std::vector<SkinningData> skinData);
-    std::vector<SkinningData>& getSkins();
+    std::vector<std::vector<int>>*   getBoneIndexes();
+    std::vector<SkinningData>&       getSkins();
+    std::vector<Matrix>*             getBones();
+    int                              getFrameCount();
+    void                             nextFrame();
+
 };

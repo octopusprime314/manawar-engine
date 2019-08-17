@@ -1,3 +1,4 @@
+#define USE_SHADER_MODEL_6_5 0
 // Object Declarations
 
 Texture2D   diffuseTexture     : register(t0); // Diffuse texture data array
@@ -12,8 +13,10 @@ TextureCube skyboxNightTexture : register(t8); // Skybox night
 Texture2D   ssaoTexture        : register(t9); // Depth texture data array
 sampler     textureSampler     : register(s0);
 
+#if (USE_SHADER_MODEL_6_5 == 1)
 //Raytracing Acceleration Structure
 RaytracingAccelerationStructure rtAS : register(t10);
+#endif
 
 cbuffer globalData             : register(b0) {
     float4x4 lightViewMatrix;                  // Light perspective's view matrix
@@ -93,7 +96,7 @@ PixelOut PS(float4 posH : SV_POSITION,
             float2 uv   : UVOUT) {
 
     float depth = 0.0;
-
+#if (USE_SHADER_MODEL_6_5 == 1)
     float3 rayDir;
     float3 origin;
     GenerateCameraRay(uv,
@@ -125,7 +128,7 @@ PixelOut PS(float4 posH : SV_POSITION,
         depth                  = clipSpace.z;
         //depth = 1.0;
     }
-
+#endif
     PixelOut pixel = { float4(depth, 0.0, 0.0, 0.0), 1.0 };
 
     //PixelOut pixel          = { float4(0.0, 0.0, 0.0, 0.0), 1.0 };

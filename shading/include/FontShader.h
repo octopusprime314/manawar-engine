@@ -31,5 +31,6 @@ protected:
 public:
     FontShader(std::string shaderName);
     virtual ~FontShader();
-    virtual void runShader(GLuint vao, std::string& s);
+    virtual void runShader(GLuint vao,
+                           std::string& s);
 };

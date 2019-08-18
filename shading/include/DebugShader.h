@@ -32,9 +32,9 @@ class DebugShader : public ShaderBase {
 
 public:
     DebugShader(std::string shaderName);
-    void runShader(MVP* mvp, 
-                   VAO *vao, 
-                   std::set<Triangle*> triangleIntersectionList,
-                   float* color,
+    void runShader(MVP*                 mvp,
+                   VAO*                 vao,
+                   std::set<Triangle*>  triangleIntersectionList,
+                   float*               color,
                    GeometryConstruction geometryType);
 };

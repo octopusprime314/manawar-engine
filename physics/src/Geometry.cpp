@@ -26,11 +26,13 @@ std::vector<Sphere>* Geometry::getSpheres() {
 
 void Geometry::updateTransform(Matrix transform) {
     for (size_t i = 0; i < _spheres.size(); ++i) {
-        _spheres[i].offsetTransform(transform); //Adds an offset to the position of the sphere
+        //Adds an offset to the position of the sphere
+        _spheres[i].offsetTransform(transform);
     }
 
     ////TODO if necessary
     //for(int i = 0; i < _triangles.size(); ++i){
-    //    _triangles[i].offsetPosition(position); //Adds an offset to the position of the sphere
+    //    //Adds an offset to the position of the sphere
+    //    _triangles[i].offsetPosition(position);
     //}
 }

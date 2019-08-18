@@ -9,7 +9,6 @@
 DeferredRenderer::DeferredRenderer() : 
     _mrtFBO(), 
     _deferredShader(static_cast<DeferredShader*>(ShaderBroker::instance()->getShader("deferredShader"))) {
-    
     _deferredShader->initCubeMaps();
 }
 
@@ -17,20 +16,29 @@ DeferredRenderer::~DeferredRenderer() {
 
 }
 
-void DeferredRenderer::deferredLighting(std::vector<Light*>& lights, ViewEventDistributor* viewEventDistributor,
-    SSAO* ssao, EnvironmentMap* environmentMap) {
-    _deferredShader->runShader(lights, viewEventDistributor, _mrtFBO, ssao, environmentMap);
+void DeferredRenderer::deferredLighting(std::vector<Light*>&  lights,
+                                        ViewEventDistributor* viewEventDistributor,
+                                        SSAO*                 ssao,
+                                        EnvironmentMap*       environmentMap) {
+    _deferredShader->runShader(lights,
+                               viewEventDistributor,
+                               _mrtFBO,
+                               ssao,
+                               environmentMap);
 }
 
 void DeferredRenderer::bind() {
 
     if (EngineManager::getGraphicsLayer() >= GraphicsLayer::DX12) {
 
-        HLSLShader::setOM(_mrtFBO.getTextures(), IOEventDistributor::screenPixelWidth, IOEventDistributor::screenPixelHeight);
+        HLSLShader::setOM(_mrtFBO.getTextures(),
+                          IOEventDistributor::screenPixelWidth,
+                          IOEventDistributor::screenPixelHeight);
     }
     else {
         //Bind frame buffer
-        glBindFramebuffer(GL_FRAMEBUFFER, _mrtFBO.getFrameBufferContext());
+        glBindFramebuffer(GL_FRAMEBUFFER,
+                          _mrtFBO.getFrameBufferContext());
 
         //Clear color buffer from frame buffer otherwise framebuffer will contain data from the last draw
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

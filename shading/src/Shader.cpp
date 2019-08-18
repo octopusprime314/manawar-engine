@@ -24,5 +24,5 @@ Shader::Shader(const Shader& shader) {
 
 bool Shader::_fileExists(const std::string& name) {
     std::ifstream f(name.c_str());
-    return f.good();
+    return        f.good();
 }

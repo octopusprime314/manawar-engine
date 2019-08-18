@@ -30,7 +30,7 @@ class ComputeShader : public ShaderBase {
 public:
     ComputeShader(std::string computeShaderName);
     ~ComputeShader();
-    void         runShader(Texture* writeTexture, 
-                           Texture* readTexture, 
+    void         runShader(Texture*      writeTexture, 
+                           Texture*      readTexture, 
                            TextureFormat format);
 };

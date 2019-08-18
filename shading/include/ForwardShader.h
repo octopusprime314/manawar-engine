@@ -32,7 +32,10 @@ class PointShadow;
 class ForwardShader : public ShaderBase {
 
 public:
-    ForwardShader(std::string vertexShaderName, std::string fragmentShaderName = "");
+    ForwardShader(std::string vertexShaderName,
+                  std::string fragmentShaderName = "");
     ~ForwardShader();
-    void runShader(Entity* entity, ViewEventDistributor* viewEventDistributor, std::vector<Light*>& lights);
+    void runShader(Entity*               entity,
+                   ViewEventDistributor* viewEventDistributor,
+                   std::vector<Light*>&  lights);
 };

@@ -35,5 +35,6 @@ protected:
 public:
     EffectShader(std::string shaderName);
     virtual      ~EffectShader();
-    virtual void runShader(Effect* effectObject, float seconds);
+    virtual void runShader(Effect* effectObject,
+                           float   seconds);
 };

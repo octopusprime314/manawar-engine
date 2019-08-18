@@ -20,21 +20,22 @@ ShadowPointShader::~ShadowPointShader() {
 
 }
 
-void ShadowPointShader::runShader(Entity* entity, Light* light, std::vector<Matrix> lightTransforms) {
+void ShadowPointShader::runShader(Entity*             entity,
+                                  Light*              light,
+                                  std::vector<Matrix> lightTransforms) {
 
     //Load in vbo buffers
-    auto model = entity->getModel();
+    auto model             = entity->getModel();
     std::vector<VAO*>* vao = model->getVAO();
-    MVP* modelMVP = entity->getMVP();
-    MVP lightMVP = light->getLightMVP();
+    MVP* modelMVP          = entity->getMVP();
+    MVP lightMVP           = light->getLightMVP();
 
     //Use one single shadow shader and replace the vbo buffer from each model
-    _shader->bind(); //use context for loaded shader
+    _shader->bind();
     
     for (auto vaoInstance : *vao) {
         glBindVertexArray(vaoInstance->getVAOShadowContext());
 
-        //glUniform mat4 combined model and world matrix, GL_TRUE is telling GL we are passing in the matrix as row major
         _shader->updateData("model", modelMVP->getModelBuffer());
 
         float* lightCubeTransforms = new float[6 * 16];
@@ -45,7 +46,7 @@ void ShadowPointShader::runShader(Entity* entity, Light* light, std::vector<Matr
                 lightCubeTransforms[index++] = mat[i];
             }
         }
-        //glUniform mat4 light cube map transforms, GL_TRUE is telling GL we are passing in the matrix as row major
+
         //6 faces and each transform is 16 floats in a 4x4 matrix
         _shader->updateData("shadowMatrices[0]", lightCubeTransforms);
         delete[] lightCubeTransforms;
@@ -57,8 +58,8 @@ void ShadowPointShader::runShader(Entity* entity, Light* light, std::vector<Matr
         //Set far plane for depth scaling
         //Quick trick to get far value out of projection matrix
         auto projMatrix = lightMVP.getProjectionBuffer();
-        float nearVal = (2.0f*projMatrix[11]) / (2.0f*projMatrix[10] - 2.0f);
-        float farVal = ((projMatrix[10] - 1.0f)*nearVal) / (projMatrix[10] + 1.0f);
+        float nearVal   = (2.0f*projMatrix[11]) / (2.0f*projMatrix[10] - 2.0f);
+        float farVal    = ((projMatrix[10] - 1.0f)*nearVal) / (projMatrix[10] + 1.0f);
         _shader->updateData("farPlane", &farVal);
 
         auto textureStrides = vaoInstance->getTextureStrides();

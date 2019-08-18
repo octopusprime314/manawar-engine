@@ -6,15 +6,24 @@
 Uniforms::Uniforms(GLuint shaderContext) {
     
     int uniformCount = 0;
-    glGetProgramiv(shaderContext, GL_ACTIVE_UNIFORMS, &uniformCount);
+    glGetProgramiv(shaderContext,
+                   GL_ACTIVE_UNIFORMS,
+                   &uniformCount);
 
     for (int i = 0; i < uniformCount; i++) {
 
         UniformData uniformData = {};
         GLchar      name[64]; 
-        glGetActiveUniform(shaderContext, (GLuint)i, sizeof(name), &uniformData.length, &uniformData.size, &uniformData.type, name);
-        uniformData.location = glGetUniformLocation(shaderContext, name);
-        _uniformMap[name] = uniformData;
+        glGetActiveUniform(shaderContext,
+                           (GLuint)i,
+                           sizeof(name),
+                           &uniformData.length,
+                           &uniformData.size,
+                           &uniformData.type,
+                           name);
+        uniformData.location = glGetUniformLocation(shaderContext,
+                                                    name);
+        _uniformMap[name]    = uniformData;
     }
 }
 
@@ -33,7 +42,8 @@ GLint Uniforms::getUniformLocation(std::string uniformName) {
     }
 }
 
-void Uniforms::updateUniform(std::string uniformName, void* value) {
+void Uniforms::updateUniform(std::string uniformName,
+                             void*       value) {
     
     //Clear out all the errors in the pipe before settings shader uniforms
     while (glGetError() != GL_NO_ERROR);
@@ -91,13 +101,15 @@ void Uniforms::updateUniform(std::string uniformName, void* value) {
             Matrix leftHandedMatrix(static_cast<float*>(value));
             //We need to transform only the view space
             bool isViewMatrix = false;
-            if (uniformName.find("view") != std::string::npos || uniformName.find("View") != std::string::npos ||
-                uniformName.find("normal") != std::string::npos || uniformName.find("Normal") != std::string::npos) {
+            if (uniformName.find("view")   != std::string::npos ||
+                uniformName.find("View")   != std::string::npos ||
+                uniformName.find("normal") != std::string::npos ||
+                uniformName.find("Normal") != std::string::npos) {
                 isViewMatrix = true;
             }
 
             rightHandedMatrix = Matrix::convertToRightHanded(leftHandedMatrix, isViewMatrix);
-            value = rightHandedMatrix.getFlatBuffer();
+            value             = rightHandedMatrix.getFlatBuffer();
         }
 
         glUniformMatrix4fv(_uniformMap[uniformName].location,
@@ -119,8 +131,8 @@ void Uniforms::updateUniform(std::string uniformName, void* value) {
 }
 
 void Uniforms::updateUniform(std::string uniformName,
-    GLuint textureUnit, 
-    GLuint textureContext) {
+                             GLuint      textureUnit,
+                             GLuint      textureContext) {
 
     //Clear out all the errors in the pipe before settings shader uniforms
     while (glGetError() != GL_NO_ERROR);
@@ -148,9 +160,9 @@ void Uniforms::updateUniform(std::string uniformName,
 }
 
 void Uniforms::updateUniform(std::string uniformName,
-    GLuint textureUnit,
-    GLuint textureContext,
-    ImageData imageInfo) { 
+                             GLuint      textureUnit,
+                             GLuint      textureContext,
+                             ImageData   imageInfo) { 
 
     //Clear out all the errors in the pipe before settings shader uniforms
     while (glGetError() != GL_NO_ERROR);
@@ -160,10 +172,22 @@ void Uniforms::updateUniform(std::string uniformName,
     case GL_IMAGE_2D:
         glUniform1i(_uniformMap[uniformName].location, textureUnit - GL_TEXTURE0);
         if (imageInfo.readOnly) {
-            glBindImageTexture(textureUnit - GL_TEXTURE0, textureContext, 0, GL_FALSE, 0, GL_READ_ONLY, imageInfo.format);
+            glBindImageTexture(textureUnit - GL_TEXTURE0,
+                               textureContext,
+                               0,
+                               GL_FALSE,
+                               0,
+                               GL_READ_ONLY,
+                               imageInfo.format);
         }
         else {
-            glBindImageTexture(textureUnit - GL_TEXTURE0, textureContext, 0, GL_FALSE, 0, GL_WRITE_ONLY, imageInfo.format);
+            glBindImageTexture(textureUnit - GL_TEXTURE0,
+                               textureContext,
+                               0,
+                               GL_FALSE,
+                               0,
+                               GL_WRITE_ONLY,
+                               imageInfo.format);
         }
         break;
     default:

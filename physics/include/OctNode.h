@@ -28,7 +28,8 @@
 
 template<typename T>
 class OctNode {
-    std::vector<OctNode*> _children; //8 children in an oct node
+    //8 children in an oct node
+    std::vector<OctNode*> _children;
     T                     _data;
 
     //Maps models to a list of triangles in the oct node
@@ -42,23 +43,31 @@ public:
     OctNode(T data) : _data(data) {
         _children.resize(8, nullptr);
     }
-    OctNode* insert(T data, int index) {
+    OctNode* insert(T data,
+                    int index) {
         _children[index] = new OctNode(data);
         return _children[index];
     }
-    void addGeometry(Entity* entity, Triangle* triangle) {
+    void addGeometry(Entity*   entity,
+                     Triangle* triangle) {
         _triangles[entity].insert(std::pair<int, Triangle*>(0, triangle));
     }
-    void addGeometry(Entity* entity, Triangle* triangle, unsigned int triangleIndex) {
-        _triangles[entity].insert(std::pair<int, Triangle*>(triangleIndex, triangle));
+    void addGeometry(Entity*      entity,
+                     Triangle*    triangle,
+                     unsigned int triangleIndex) {
+        _triangles[entity].insert(std::pair<int, Triangle*>(triangleIndex,
+                                                            triangle));
     }
-    void addGeometry(Entity* entity, Sphere* sphere) {
+    void addGeometry(Entity* entity,
+                     Sphere* sphere) {
         _spheres[entity].insert(sphere);
     }
-    void removeGeometry(Entity* entity, Triangle* triangle) {
+    void removeGeometry(Entity*   entity,
+                        Triangle* triangle) {
         //_triangles[entity].push_back(triangle);
     }
-    void removeGeometry(Entity* entity, Sphere* sphere) {
+    void removeGeometry(Entity* entity,
+                        Sphere* sphere) {
         _spheres[entity].insert(sphere);
     }
     std::unordered_map<Entity*, std::set<std::pair<int, Triangle*>>>* getTriangles() {
@@ -67,8 +76,8 @@ public:
     std::unordered_map<Entity*, std::set<Sphere*>>* getSpheres() {
         return &_spheres;
     }
-    OctNode<T>* getChild(int index) { return _children[index]; }
-    T getData() { return _data; }
 
+    OctNode<T>* getChild(int index)         { return _children[index]; }
+    T getData()                             { return _data; }
     std::vector<OctNode<T>*>& getChildren() { return _children; }
 };

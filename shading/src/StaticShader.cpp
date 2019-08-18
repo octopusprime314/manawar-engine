@@ -32,18 +32,18 @@ void StaticShader::runShader(Entity* entity) {
     //LOAD IN SHADER
     _shader->bind();
 
-    auto model = entity->getModel();
+    auto model      = entity->getModel();
     unsigned int id = entity->getID();
     _shader->updateData("id", &id);
 
-    std::vector<VAO*>* vao = entity->getFrustumVAO(); //Special vao call that factors in frustum culling for the scene
+    //Special vao call that factors in frustum culling for the scene
+    std::vector<VAO*>* vao = entity->getFrustumVAO();
     for (auto vaoInstance : *vao) {
         _shader->bindAttributes(vaoInstance);
         
         unsigned int primitiveOffsetId = vaoInstance->getPrimitiveOffsetId();
-       
-        MVP* mvp     = entity->getMVP();
-        MVP* prevMVP = entity->getPrevMVP();
+        MVP* mvp                       = entity->getMVP();
+        MVP* prevMVP                   = entity->getPrevMVP();
 
         _shader->updateData("model",      mvp->getModelBuffer());
         _shader->updateData("view",       mvp->getViewBuffer());
@@ -52,7 +52,7 @@ void StaticShader::runShader(Entity* entity) {
         _shader->updateData("prevModel",  prevMVP->getModelBuffer());
         _shader->updateData("prevView",   prevMVP->getViewBuffer());
 
-        auto textureStrides = vaoInstance->getTextureStrides();
+        auto textureStrides         = vaoInstance->getTextureStrides();
         unsigned int strideLocation = 0;
         for (auto textureStride : textureStrides) {
 
@@ -61,21 +61,20 @@ void StaticShader::runShader(Entity* entity) {
             if (textureStride.first.substr(0, 7) == "Layered") {
 
                 LayeredTexture* layeredTexture = entity->getLayeredTexture();
-
-                auto textures = layeredTexture->getTextures();
+                auto textures                  = layeredTexture->getTextures();
 
                 //We have a layered texture
                 int isLayered = 1;
                 _shader->updateData("isLayeredTexture", &isLayered);
 
-                _shader->updateData("tex0", GL_TEXTURE1, textures[0]);
-                _shader->updateData("tex1", GL_TEXTURE2, textures[1]);
-                _shader->updateData("tex2", GL_TEXTURE3, textures[2]);
-                _shader->updateData("tex3", GL_TEXTURE4, textures[3]);
+                _shader->updateData("tex0",      GL_TEXTURE1, textures[0]);
+                _shader->updateData("tex1",      GL_TEXTURE2, textures[1]);
+                _shader->updateData("tex2",      GL_TEXTURE3, textures[2]);
+                _shader->updateData("tex3",      GL_TEXTURE4, textures[3]);
                 _shader->updateData("alphatex0", GL_TEXTURE5, textures[4]);
                 
                 _shader->draw(strideLocation, 1, (GLsizei)textureStride.second);
-                strideLocation += textureStride.second;
+                strideLocation    += textureStride.second;
                 primitiveOffsetId += (textureStride.second / 3);
             }
             else {
@@ -86,10 +85,10 @@ void StaticShader::runShader(Entity* entity) {
                     //Not a layered texture
                     int isLayered = 0;
                     _shader->updateData("isLayeredTexture", &isLayered);
-
                     _shader->updateData("textureMap", GL_TEXTURE0, model->getTexture(textureStride.first));
 
-                    //Draw triangles using the bound buffer vertices at starting index 0 and number of vertices
+                    //Draw triangles using the bound buffer vertices
+                    //at starting index 0 and number of vertices
                     _shader->draw(strideLocation, 1, (GLsizei)textureStride.second);
                 }
                 strideLocation += textureStride.second;

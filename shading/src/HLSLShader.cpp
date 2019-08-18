@@ -19,7 +19,8 @@ constexpr uint32_t DFCC_DXIL = DXIL_FOURCC('D', 'X', 'I', 'L');
 // Set to 'true' to printf every shader that is linked or compiled.
 static volatile bool g_VerboseShaders = false;
 
-HLSLShader::HLSLShader(std::string pipelineShaderName, std::string fragmentShaderName,
+HLSLShader::HLSLShader(std::string pipelineShaderName,
+                       std::string fragmentShaderName,
                        std::vector<DXGI_FORMAT>* rtvs) {
     //set vertex name
     _pipelineShaderName = pipelineShaderName;
@@ -28,13 +29,15 @@ HLSLShader::HLSLShader(std::string pipelineShaderName, std::string fragmentShade
     build(rtvs);
 
     UINT indexBytes = static_cast<UINT>(4) * sizeof(UINT);
-    int indices[] = { 0,1,2,3 };
-    _indexBuffer = new ResourceBuffer(indices, indexBytes,
-        DXLayer::instance()->getCmdList(), DXLayer::instance()->getDevice());
+    int indices[]   = { 0,1,2,3 };
+    _indexBuffer    = new ResourceBuffer(indices,
+                                         indexBytes,
+                                         DXLayer::instance()->getCmdList(),
+                                         DXLayer::instance()->getDevice());
 
     _ibv.BufferLocation = _indexBuffer->getGPUAddress();
-    _ibv.Format = DXGI_FORMAT_R32_UINT;
-    _ibv.SizeInBytes = indexBytes;
+    _ibv.Format         = DXGI_FORMAT_R32_UINT;
+    _ibv.SizeInBytes    = indexBytes;
 }
 
 HLSLShader::~HLSLShader() {
@@ -43,8 +46,8 @@ HLSLShader::~HLSLShader() {
 
 std::wstring HLSLShader::_stringToLPCWSTR(const std::string& s) {
     int len;
-    int slength = (int)s.length() + 1;
-    len = MultiByteToWideChar(CP_ACP, 0, s.c_str(), slength, 0, 0);
+    int slength  = (int)s.length() + 1;
+    len          = MultiByteToWideChar(CP_ACP, 0, s.c_str(), slength, 0, 0);
     wchar_t* buf = new wchar_t[len];
     MultiByteToWideChar(CP_ACP, 0, s.c_str(), slength, buf, len);
     std::wstring r(buf);
@@ -151,20 +154,20 @@ void HLSLShader::buildDXC(CComPtr<IDxcBlob>& pResultBlob,
         }
     }
 
-    dxcCompiler->Disassemble(pProgram, &pDisassembleBlob);
-
-    std::string disassembleString((const char *)pDisassembleBlob->GetBufferPointer());
+    // Use this to inspect dxil generation
+    //dxcCompiler->Disassemble(pProgram, &pDisassembleBlob);
+    //std::string disassembleString((const char *)pDisassembleBlob->GetBufferPointer());
 }
 
 void HLSLShader::build(std::vector<DXGI_FORMAT>* rtvs) {
 
     auto device = DXLayer::instance()->getDevice();
 
-    std::string shadersLocation = SHADERS_LOCATION;
-    shadersLocation            += "hlsl/";
-    std::string fileName        = shadersLocation + _pipelineShaderName;
-    fileName.append(".hlsl");
-    auto shaderString           = _stringToLPCWSTR(fileName);
+    std::string shadersLocation  = SHADERS_LOCATION;
+    shadersLocation             += "hlsl/";
+    std::string fileName         = shadersLocation + _pipelineShaderName;
+    fileName.append(".hlsl");   
+    auto shaderString            = _stringToLPCWSTR(fileName);
 
     uint32_t          vsByteSize = 0;
     void*             vsBuffer   = nullptr;
@@ -199,16 +202,22 @@ void HLSLShader::build(std::vector<DXGI_FORMAT>* rtvs) {
 
         if (compiledDXILVS != nullptr) {
             vsByteSize = compiledDXILVS->GetBufferSize();
-            vsBuffer = compiledDXILVS->GetBufferPointer();
-            vsResult = S_OK;
+            vsBuffer   = compiledDXILVS->GetBufferPointer();
+            vsResult   = S_OK;
         }
     }
     else {
 
         ComPtr<ID3DBlob> errorsVS;
-        vsResult = D3DCompileFromFile(shaderString.c_str(), 0,
-            D3D_COMPILE_STANDARD_FILE_INCLUDE, "VS", "vs_5_0", 0, 0,
-            compiledVS.GetAddressOf(), errorsVS.GetAddressOf());
+        vsResult = D3DCompileFromFile(shaderString.c_str(),
+                                      0,
+                                      D3D_COMPILE_STANDARD_FILE_INCLUDE,
+                                      "VS",
+                                      "vs_5_0",
+                                      0,
+                                      0,
+                                      compiledVS.GetAddressOf(),
+                                      errorsVS.GetAddressOf());
 
         if (vsResult != S_OK) {
             OutputDebugStringA((char*)errorsVS->GetBufferPointer());
@@ -223,7 +232,8 @@ void HLSLShader::build(std::vector<DXGI_FORMAT>* rtvs) {
     // it seems that the TextureCube  depthMap : register(t3) is not showing up in the compiled dxil
     // after looking at the dissassembly...not sure if the compiler or my code is at fault so
     // fallback to the old fxc compiler for ForwardShader's PS
-    if (useDxcCompiler && fileName.find("forwardShader") == std::string::npos) {
+    if (useDxcCompiler &&
+        fileName.find("forwardShader") == std::string::npos) {
 
         std::wstring profile = L"ps_6_3";
         if (EngineManager::getGraphicsLayer() == GraphicsLayer::DXR_EXPERIMENTAL) {
@@ -236,15 +246,21 @@ void HLSLShader::build(std::vector<DXGI_FORMAT>* rtvs) {
 
         if (compiledDXILPS != nullptr) {
             psByteSize = compiledDXILPS->GetBufferSize();
-            psBuffer = compiledDXILPS->GetBufferPointer();
-            psResult = S_OK;
+            psBuffer   = compiledDXILPS->GetBufferPointer();
+            psResult   = S_OK;
         }
     }
     else {
         ComPtr<ID3DBlob> errorsPS;
-        psResult = D3DCompileFromFile(shaderString.c_str(), 0,
-            D3D_COMPILE_STANDARD_FILE_INCLUDE, "PS", "ps_5_0", 0, 0,
-            compiledPS.GetAddressOf(), errorsPS.GetAddressOf());
+        psResult = D3DCompileFromFile(shaderString.c_str(),
+                                      0,
+                                      D3D_COMPILE_STANDARD_FILE_INCLUDE,
+                                      "PS",
+                                      "ps_5_0",
+                                      0,
+                                      0,
+                                      compiledPS.GetAddressOf(),
+                                      errorsPS.GetAddressOf());
 
         if (psResult != S_OK) {
             OutputDebugStringA((char*)errorsPS->GetBufferPointer());
@@ -269,15 +285,21 @@ void HLSLShader::build(std::vector<DXGI_FORMAT>* rtvs) {
 
         if (compiledDXILCS != nullptr) {
             csByteSize = compiledDXILCS->GetBufferSize();
-            csBuffer = compiledDXILCS->GetBufferPointer();
-            csResult = S_OK;
+            csBuffer   = compiledDXILCS->GetBufferPointer();
+            csResult   = S_OK;
         }
     }
     else {
         ComPtr<ID3DBlob> errorsCS;
-        csResult = D3DCompileFromFile(shaderString.c_str(), 0,
-            D3D_COMPILE_STANDARD_FILE_INCLUDE, "CS", "cs_5_0", 0, 0,
-            compiledCS.GetAddressOf(), errorsCS.GetAddressOf());
+        csResult = D3DCompileFromFile(shaderString.c_str(),
+                                      0,
+                                      D3D_COMPILE_STANDARD_FILE_INCLUDE,
+                                      "CS",
+                                      "cs_5_0",
+                                      0,
+                                      0,
+                                      compiledCS.GetAddressOf(),
+                                      errorsCS.GetAddressOf());
 
         if (csResult != S_OK) {
             OutputDebugStringA((char*)errorsCS->GetBufferPointer());
@@ -308,8 +330,9 @@ void HLSLShader::build(std::vector<DXGI_FORMAT>* rtvs) {
             if (std::string(resource.second.Name).compare("objectData") == 0) { //use root constants for per model objects
                 
                 rootParameters[resource.second.uID + rootParameterIndex].InitAsConstants(bytes / 4,
-                    resource.second.uID + rootParameterIndex);
-                _constantBuffers[resource.second.Name] = new ConstantBuffer(device, _constBuffDescriptorTable[resource.second.Name]);
+                                                                                         resource.second.uID + rootParameterIndex);
+                _constantBuffers[resource.second.Name] = new ConstantBuffer(device,
+                                                                            _constBuffDescriptorTable[resource.second.Name]);
                 _resourceIndexes[resource.second.Name] = resource.second.uID + rootParameterIndex;
             }
             else {
@@ -327,7 +350,9 @@ void HLSLShader::build(std::vector<DXGI_FORMAT>* rtvs) {
         if (resource.second.Type == D3D_SHADER_INPUT_TYPE::D3D_SIT_SAMPLER && csResult != S_OK) {
             samplerTableRange = new CD3DX12_DESCRIPTOR_RANGE();
             samplerTableRange->Init(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, 1, 0);
-            rootParameters[resource.second.uID + rootParameterIndex].InitAsDescriptorTable(1, samplerTableRange, D3D12_SHADER_VISIBILITY_PIXEL);
+            rootParameters[resource.second.uID + rootParameterIndex].InitAsDescriptorTable(1,
+                                                                                           samplerTableRange,
+                                                                                           D3D12_SHADER_VISIBILITY_PIXEL);
             _resourceIndexes[resource.second.Name] = resource.second.uID + rootParameterIndex;
             i++;
         }
@@ -341,10 +366,13 @@ void HLSLShader::build(std::vector<DXGI_FORMAT>* rtvs) {
             srvTableRange = new CD3DX12_DESCRIPTOR_RANGE();
             srvTableRange->Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, resource.second.uID);
             if (csResult == S_OK) {
-                rootParameters[resource.second.uID + rootParameterIndex].InitAsDescriptorTable(1, srvTableRange);
+                rootParameters[resource.second.uID + rootParameterIndex].InitAsDescriptorTable(1,
+                                                                                               srvTableRange);
             }
             else {
-                rootParameters[resource.second.uID + rootParameterIndex].InitAsDescriptorTable(1, srvTableRange, D3D12_SHADER_VISIBILITY_PIXEL);
+                rootParameters[resource.second.uID + rootParameterIndex].InitAsDescriptorTable(1,
+                                                                                               srvTableRange,
+                                                                                               D3D12_SHADER_VISIBILITY_PIXEL);
             }
             _resourceIndexes[resource.second.Name] = resource.second.uID + rootParameterIndex;
             i++;
@@ -356,18 +384,20 @@ void HLSLShader::build(std::vector<DXGI_FORMAT>* rtvs) {
     for (auto resource : _resourceDescriptorTable) {
         if (resource.second.Type == D3D_SHADER_INPUT_TYPE::D3D_SIT_UAV_RWTYPED) {
             srvTableRange = new CD3DX12_DESCRIPTOR_RANGE();
-            srvTableRange->Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, resource.second.uID);
-            rootParameters[resource.second.uID + rootParameterIndex].InitAsDescriptorTable(1, srvTableRange);
+            srvTableRange->Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV,
+                                1,
+                                resource.second.uID);
+            rootParameters[resource.second.uID + rootParameterIndex].InitAsDescriptorTable(1,
+                                                                                           srvTableRange);
             _resourceIndexes[resource.second.Name] = resource.second.uID + rootParameterIndex;
             i++;
             heapCounters[resource.second.Type]++;
         }
-       
     }
 
-    ComPtr<ID3DBlob> pOutBlob, pErrorBlob;
+    ComPtr<ID3DBlob>            pOutBlob, pErrorBlob;
     CD3DX12_ROOT_SIGNATURE_DESC descRootSignature;
-    D3D12_STATIC_SAMPLER_DESC samplerDesc = {};
+    D3D12_STATIC_SAMPLER_DESC   samplerDesc = {};
     if (csResult == S_OK) {
 
         bool foundStaticSampler = false;
@@ -379,25 +409,25 @@ void HLSLShader::build(std::vector<DXGI_FORMAT>* rtvs) {
 
         if (foundStaticSampler) {
             
-            samplerDesc.Filter = D3D12_FILTER_MIN_MAG_LINEAR_MIP_POINT;
-            samplerDesc.AddressU = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
-            samplerDesc.AddressV = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
-            samplerDesc.AddressW = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
-            samplerDesc.MipLODBias = 0.0f;
-            samplerDesc.ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER;
-            samplerDesc.MinLOD = 0.0f;
-            samplerDesc.MaxLOD = D3D12_FLOAT32_MAX;
-            samplerDesc.MaxAnisotropy = 0;
-            samplerDesc.BorderColor = D3D12_STATIC_BORDER_COLOR_OPAQUE_BLACK;
-            samplerDesc.ShaderRegister = 0;
-            samplerDesc.RegisterSpace = 0;
+            samplerDesc.Filter           = D3D12_FILTER_MIN_MAG_LINEAR_MIP_POINT;
+            samplerDesc.AddressU         = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
+            samplerDesc.AddressV         = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
+            samplerDesc.AddressW         = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
+            samplerDesc.MipLODBias       = 0.0f;
+            samplerDesc.ComparisonFunc   = D3D12_COMPARISON_FUNC_NEVER;
+            samplerDesc.MinLOD           = 0.0f;
+            samplerDesc.MaxLOD           = D3D12_FLOAT32_MAX;
+            samplerDesc.MaxAnisotropy    = 0;
+            samplerDesc.BorderColor      = D3D12_STATIC_BORDER_COLOR_OPAQUE_BLACK;
+            samplerDesc.ShaderRegister   = 0;
+            samplerDesc.RegisterSpace    = 0;
             samplerDesc.ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
 
             descRootSignature.Init(static_cast<UINT>(_resourceIndexes.size()),
-                &rootParameters[0],
-                1,
-                &samplerDesc,
-                D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+                                   &rootParameters[0],
+                                   1,
+                                   &samplerDesc,
+                                   D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
         }
         else {
             descRootSignature.Init(static_cast<UINT>(_resourceIndexes.size()),
@@ -409,10 +439,10 @@ void HLSLShader::build(std::vector<DXGI_FORMAT>* rtvs) {
     }
     else {
         descRootSignature.Init(static_cast<UINT>(_resourceIndexes.size()),
-                               &rootParameters[0],
-                               0,
-                               nullptr,
-                               D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+                                                 &rootParameters[0],
+                                                 0,
+                                                 nullptr,
+                                                 D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
     }
 
     D3D12SerializeRootSignature(&descRootSignature,
@@ -426,9 +456,9 @@ void HLSLShader::build(std::vector<DXGI_FORMAT>* rtvs) {
 
 
     device->CreateRootSignature(1,
-        pOutBlob->GetBufferPointer(),
-        pOutBlob->GetBufferSize(),
-        IID_PPV_ARGS(_rootSignature.GetAddressOf()));
+                                pOutBlob->GetBufferPointer(),
+                                pOutBlob->GetBufferSize(),
+                                IID_PPV_ARGS(_rootSignature.GetAddressOf()));
 
     if (csResult != S_OK) {
         _inputLayout.push_back({
@@ -460,9 +490,10 @@ void HLSLShader::build(std::vector<DXGI_FORMAT>* rtvs) {
             D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,
             0
             });
+
         D3D12_GRAPHICS_PIPELINE_STATE_DESC pso;
         ZeroMemory(&pso, sizeof(D3D12_GRAPHICS_PIPELINE_STATE_DESC));
-        pso.InputLayout = { _inputLayout.data(), static_cast<UINT>(_inputLayout.size()) };
+        pso.InputLayout    = { _inputLayout.data(), static_cast<UINT>(_inputLayout.size()) };
         pso.pRootSignature = _rootSignature.Get();
         if (vsResult == S_OK) {
             pso.VS = {
@@ -476,12 +507,13 @@ void HLSLShader::build(std::vector<DXGI_FORMAT>* rtvs) {
                 psByteSize
             };
         }
-        auto rasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
-        rasterizerState.CullMode = D3D12_CULL_MODE_NONE; //disabled culling 
-        pso.RasterizerState = rasterizerState;
-        pso.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
-        pso.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
-        pso.SampleMask = UINT_MAX;
+        auto rasterizerState      = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+        //disabled culling
+        rasterizerState.CullMode  = D3D12_CULL_MODE_NONE;
+        pso.RasterizerState       = rasterizerState;
+        pso.BlendState            = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
+        pso.DepthStencilState     = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
+        pso.SampleMask            = UINT_MAX;
         pso.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
 
         bool foundDepthStencil = false;
@@ -489,7 +521,7 @@ void HLSLShader::build(std::vector<DXGI_FORMAT>* rtvs) {
             int j = 0;
             for (auto rtv : *rtvs) {
                 if (rtv == DXGI_FORMAT_D32_FLOAT || rtv == DXGI_FORMAT_R32_TYPELESS) {
-                    foundDepthStencil = true;
+                    foundDepthStencil   = true;
                 }
                 else {
                     pso.RTVFormats[j++] = rtv;
@@ -502,7 +534,7 @@ void HLSLShader::build(std::vector<DXGI_FORMAT>* rtvs) {
         }
 
         pso.SampleDesc.Quality = 0;
-        pso.SampleDesc.Count = 1;
+        pso.SampleDesc.Count   = 1;
 
         if (foundDepthStencil) {
             pso.DSVFormat = DXGI_FORMAT_D32_FLOAT;
@@ -529,8 +561,11 @@ void HLSLShader::build(std::vector<DXGI_FORMAT>* rtvs) {
 
 }
 
-void HLSLShader::setOM(std::vector<RenderTexture> targets, int width, int height) {
-    auto device = DXLayer::instance()->getDevice();
+void HLSLShader::setOM(std::vector<RenderTexture> targets,
+                       int                        width,
+                       int                        height) {
+
+    auto device  = DXLayer::instance()->getDevice();
     auto cmdList = DXLayer::instance()->getCmdList();
 
     D3D12_VIEWPORT viewPort =
@@ -545,16 +580,21 @@ void HLSLShader::setOM(std::vector<RenderTexture> targets, int width, int height
 
     // Scissor rectangle
 
-    D3D12_RECT rectScissor = { 0, 0, (LONG)width,(LONG)height};
+    D3D12_RECT rectScissor = { 0,
+                               0,
+                               static_cast<LONG>(width),
+                               static_cast<LONG>(height)};
 
-    D3D12_CPU_DESCRIPTOR_HANDLE* handles = new D3D12_CPU_DESCRIPTOR_HANDLE[targets.size() - 1];
-    int handleIndex = 0;
     CD3DX12_CPU_DESCRIPTOR_HANDLE dsvHandle;
-    bool containsDepthStencil = false;
-    UINT rtvCount = 0;
+    D3D12_CPU_DESCRIPTOR_HANDLE* handles = new D3D12_CPU_DESCRIPTOR_HANDLE[targets.size() - 1];
+    int handleIndex                      = 0;
+    bool containsDepthStencil            = false;
+    UINT rtvCount                        = 0;
     for (auto buffer : targets) {
-        if (buffer.getFormat() == DXGI_FORMAT_D32_FLOAT || buffer.getFormat() == DXGI_FORMAT_R32_TYPELESS) {
-            dsvHandle = buffer.getHandle();
+        if (buffer.getFormat() == DXGI_FORMAT_D32_FLOAT ||
+            buffer.getFormat() == DXGI_FORMAT_R32_TYPELESS) {
+
+            dsvHandle            = buffer.getHandle();
             buffer.bindTarget(D3D12_RESOURCE_STATE_DEPTH_WRITE);
             containsDepthStencil = true;
         }
@@ -567,54 +607,49 @@ void HLSLShader::setOM(std::vector<RenderTexture> targets, int width, int height
 
     const float clear[] = { 0.0f, 0.0f, 0.0f, 1.000f };
 
-    cmdList->RSSetViewports(1, &viewPort);
+    cmdList->RSSetViewports(   1, &viewPort);
     cmdList->RSSetScissorRects(1, &rectScissor);
 
     if (containsDepthStencil) {
-        cmdList->OMSetRenderTargets(
-            rtvCount,
-            handles,
-            false,
-            &dsvHandle);
+        cmdList->OMSetRenderTargets(rtvCount,
+                                    handles,
+                                    false,
+                                    &dsvHandle);
     }
     else {
-        cmdList->OMSetRenderTargets(
-            rtvCount,
-            handles,
-            false,
-            nullptr);
+        cmdList->OMSetRenderTargets(rtvCount,
+                                    handles,
+                                    false,
+                                    nullptr);
     }
 
     int rtvIndex = 0;
     for (int i = 0; i < targets.size(); i++) {
 
         // Clear target
-        if (targets[i].getFormat() == DXGI_FORMAT_D32_FLOAT || targets[i].getFormat() == DXGI_FORMAT_R32_TYPELESS) {
+        if (targets[i].getFormat() == DXGI_FORMAT_D32_FLOAT ||
+            targets[i].getFormat() == DXGI_FORMAT_R32_TYPELESS) {
 
-            cmdList->ClearDepthStencilView(
-                dsvHandle,
-                D3D12_CLEAR_FLAG_DEPTH,
-                1.0f,
-                0,
-                NULL,
-                0
-            );
+            cmdList->ClearDepthStencilView(dsvHandle,
+                                           D3D12_CLEAR_FLAG_DEPTH,
+                                           1.0f,
+                                           0,
+                                           NULL,
+                                           0);
         }
         else {
-
-            cmdList->ClearRenderTargetView(
-                handles[rtvIndex++],
-                clear,
-                NULL,
-                0
-            );
+            cmdList->ClearRenderTargetView(handles[rtvIndex++],
+                                           clear,
+                                           NULL,
+                                           0);
         }
     }
 }
 
 void HLSLShader::releaseOM(std::vector<RenderTexture> targets) {
     for (auto buffer : targets) {
-        if (buffer.getFormat() == DXGI_FORMAT_D32_FLOAT || buffer.getFormat() == DXGI_FORMAT_R32_TYPELESS) {
+        if (buffer.getFormat() == DXGI_FORMAT_D32_FLOAT ||
+            buffer.getFormat() == DXGI_FORMAT_R32_TYPELESS) {
             buffer.unbindTarget(D3D12_RESOURCE_STATE_DEPTH_WRITE);
         }
         else {
@@ -645,7 +680,6 @@ void HLSLShader::_queryShaderResources(void*    shader,
     for (int i = 0; result == S_OK; i++) {
         D3D12_SHADER_INPUT_BIND_DESC resourceDesc;
         result = reflectionInterface->GetResourceBindingDesc(i, &resourceDesc);
-        
         if (result == S_OK) {
             auto constBuff = reflectionInterface->GetConstantBufferByName(resourceDesc.Name);
             if (constBuff != nullptr) {
@@ -653,12 +687,12 @@ void HLSLShader::_queryShaderResources(void*    shader,
                 for (int j = 0; ; j++) {
                     constBufferVar = constBuff->GetVariableByIndex(j);
                     D3D12_SHADER_VARIABLE_DESC* ref = new D3D12_SHADER_VARIABLE_DESC();
-                    auto isVariable = constBufferVar->GetDesc(ref);
+                    auto isVariable                 = constBufferVar->GetDesc(ref);
                     if (isVariable != S_OK) {
                         break;
                     }
                     else {
-                        bool found = false;
+                        bool found    = false;
                         for (auto subIndex : _constBuffDescriptorTable[resourceDesc.Name]) {
                             if (std::string(subIndex.Name).compare(std::string(ref->Name)) == 0) {
                                 found = true;
@@ -676,7 +710,8 @@ void HLSLShader::_queryShaderResources(void*    shader,
     }
 }
 
-void HLSLShader::updateData(std::string id, void* data) {
+void HLSLShader::updateData(std::string id,
+                            void*       data) {
     
     auto cmdList = DXLayer::instance()->getCmdList();
     for (auto constBuffEntry : _constBuffDescriptorTable) {
@@ -775,15 +810,20 @@ void HLSLShader::bindAttributes(VAO* vao) {
     }
 }
 
-void HLSLShader::unbindAttributes() {
-}
-
-void HLSLShader::dispatch(int x, int y, int z) {
+void HLSLShader::dispatch(int x,
+                          int y,
+                          int z) {
 
     DXLayer::instance()->getCmdList()->Dispatch(x, y, z);
 }
 
-void HLSLShader::draw(int offset, int instances, int numTriangles) {
+void HLSLShader::draw(int offset,
+                      int instances,
+                      int numTriangles) {
 
-    DXLayer::instance()->getCmdList()->DrawIndexedInstanced(numTriangles, 1, offset, 0, 0);
+    DXLayer::instance()->getCmdList()->DrawIndexedInstanced(numTriangles,
+                                                            1,
+                                                            offset,
+                                                            0,
+                                                            0);
 }

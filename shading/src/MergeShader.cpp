@@ -24,10 +24,12 @@ MergeShader::~MergeShader() {
 
 }
 
-void MergeShader::runShader(Texture* deferredTexture, Texture* velocityTexture) {
+void MergeShader::runShader(Texture* deferredTexture,
+                            Texture* velocityTexture) {
 
     //LOAD IN SHADER
-    _shader->bind(); //use context for loaded shader
+    //use context for loaded shader
+    _shader->bind();
     if (EngineManager::getGraphicsLayer() == GraphicsLayer::OPENGL) {
 
         glBindVertexArray(_dummyVAO);
@@ -51,6 +53,5 @@ void MergeShader::runShader(Texture* deferredTexture, Texture* velocityTexture) 
     }
 
     _shader->unbindAttributes();
-
     _shader->unbind();
 }

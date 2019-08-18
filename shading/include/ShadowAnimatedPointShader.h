@@ -30,5 +30,7 @@ class ShadowAnimatedPointShader : public ShadowPointShader {
 public:
     ShadowAnimatedPointShader(std::string shaderName);
     virtual      ~ShadowAnimatedPointShader();
-    void         runShader(Entity* entity, Light* light, std::vector<Matrix> lightTransforms);
+    void         runShader(Entity*             entity,
+                           Light*              light,
+                           std::vector<Matrix> lightTransforms);
 };

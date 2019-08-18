@@ -23,9 +23,7 @@
 #pragma once
 #include <string>
 #include <iostream>
-
 #include <vector>
-
 #include <wrl.h>
 #include <d3d12.h>
 #include "d3dx12.h"
@@ -77,9 +75,9 @@ protected:
 
 
 public:
-    HLSLShader(std::string vertexShaderName,
-               std::string fragmentShaderName = "", 
-               std::vector<DXGI_FORMAT>* rtvs = nullptr);
+    HLSLShader(std::string               vertexShaderName,
+               std::string               fragmentShaderName = "",
+               std::vector<DXGI_FORMAT>* rtvs               = nullptr);
     virtual ~HLSLShader();
 
     void                                  draw(      int offset,
@@ -111,7 +109,7 @@ public:
                                                      std::wstring               entryPoint);
 
     void                                  bindAttributes(VAO* vao);
-    void                                  unbindAttributes();
+    void                                  unbindAttributes() {};
     void                                  unbind();
     void                                  bind();
 

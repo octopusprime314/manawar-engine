@@ -23,7 +23,9 @@ SSAOShader::~SSAOShader() {
 
 }
 
-void SSAOShader::runShader(SSAO* ssao, MRTFrameBuffer* mrtBuffer, ViewEventDistributor* viewEventDistributor) {
+void SSAOShader::runShader(SSAO*                 ssao,
+                           MRTFrameBuffer*       mrtBuffer,
+                           ViewEventDistributor* viewEventDistributor) {
 
     //LOAD IN SHADER
     _shader->bind();
@@ -35,13 +37,15 @@ void SSAOShader::runShader(SSAO* ssao, MRTFrameBuffer* mrtBuffer, ViewEventDistr
         _shader->bindAttributes(nullptr);
     }
 
-    _shader->updateData("projection", viewEventDistributor->getProjection().getFlatBuffer());
-    _shader->updateData("projectionToViewMatrix", viewEventDistributor->getProjection().inverse().getFlatBuffer());
+    _shader->updateData("projection",
+                        viewEventDistributor->getProjection().getFlatBuffer());
+    _shader->updateData("projectionToViewMatrix",
+                        viewEventDistributor->getProjection().inverse().getFlatBuffer());
     
     auto kernel = ssao->getKernel();
-    float* kernelArray = nullptr;
+    float* kernelArray  = nullptr;
     if (EngineManager::getGraphicsLayer() == GraphicsLayer::OPENGL) {
-        kernelArray = new float[3 * kernel.size()];
+        kernelArray     = new float[3 * kernel.size()];
         int kernelIndex = 0;
         for (auto& vec : kernel) {
             float* kernelBuff = vec.getFlatBuffer();
@@ -51,7 +55,7 @@ void SSAOShader::runShader(SSAO* ssao, MRTFrameBuffer* mrtBuffer, ViewEventDistr
         }
     }
     else {
-        kernelArray = new float[4 * kernel.size()];
+        kernelArray     = new float[4 * kernel.size()];
         int kernelIndex = 0;
         for (auto& vec : kernel) {
             float* kernelBuff = vec.getFlatBuffer();

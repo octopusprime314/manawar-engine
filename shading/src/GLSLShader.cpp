@@ -10,7 +10,8 @@
 // Set to 'true' to printf every shader that is linked or compiled.
 static volatile bool g_VerboseShaders = false;
 
-GLSLShader::GLSLShader(std::string vertexShaderName, std::string fragmentShaderName) {
+GLSLShader::GLSLShader(std::string vertexShaderName,
+                       std::string fragmentShaderName) {
     //set vertex name
     _vertexShaderName = vertexShaderName;
     //set fragment name if different from vertex shader name
@@ -68,10 +69,10 @@ void GLSLShader::build() {
 
     //Compile each shader
     if (fileExists(fileNameVert)) {
-        vertexSH = _compile((char*)fileNameVert.c_str(), GL_VERTEX_SHADER);
+        vertexSH   = _compile((char*)fileNameVert.c_str(), GL_VERTEX_SHADER);
     }
     else {
-        vertexSH = -1;
+        vertexSH   = -1;
     }
     if (fileExists(fileNameFrag)) {
         fragmentSH = _compile((char*)fileNameFrag.c_str(), GL_FRAGMENT_SHADER);
@@ -80,24 +81,29 @@ void GLSLShader::build() {
         fragmentSH = -1;
     }
     if (fileExists(fileNameGeom)) {
-        geomSH = _compile((char*)fileNameGeom.c_str(), GL_GEOMETRY_SHADER);
+        geomSH     = _compile((char*)fileNameGeom.c_str(), GL_GEOMETRY_SHADER);
     }
     else {
-        geomSH = -1;
+        geomSH     = -1;
     }
     if (fileExists(fileNameCompute)) {
-        computeSH = _compile((char*)fileNameCompute.c_str(), GL_COMPUTE_SHADER);
+        computeSH  = _compile((char*)fileNameCompute.c_str(), GL_COMPUTE_SHADER);
     }
     else {
-        computeSH = -1;
+        computeSH  = -1;
     }
 
     //Link shaders
-    _link(vertexSH, fragmentSH, geomSH, computeSH);
+    _link(vertexSH,
+          fragmentSH,
+          geomSH,
+          computeSH);
 }
 
-void GLSLShader::_link(unsigned int vertexSH, unsigned int fragmentSH,
-                   unsigned int geomSH, unsigned int computeSH) {
+void GLSLShader::_link(unsigned int vertexSH,
+                       unsigned int fragmentSH,
+                       unsigned int geomSH,
+                       unsigned int computeSH) {
     _shaderContext = glCreateProgram();
 
     if (vertexSH != -1) {
@@ -152,19 +158,17 @@ void GLSLShader::_link(unsigned int vertexSH, unsigned int fragmentSH,
 }
 
 // Loading shader function
-unsigned int GLSLShader::_compile(char* filename, unsigned int type)
+unsigned int GLSLShader::_compile(char*        filename,
+                                  unsigned int type)
 {
-    FILE *pfile;
-    unsigned int handle;
+    FILE*         pfile;
+    unsigned int  handle;
     const GLchar* files[1];
-
-    // shader Compilation variable
-    GLint result;
-    GLint errorLoglength;
-    char* errorLogText;
-    GLsizei actualErrorLogLength;
-
-    char buffer[400000];
+    GLint         result;
+    GLint         errorLoglength;
+    char*         errorLogText;
+    GLsizei       actualErrorLogLength;
+    char          buffer[400000];
     memset(buffer, 0, 400000);
 
     errno_t err = fopen_s(&pfile, filename, "rb");
@@ -174,7 +178,6 @@ unsigned int GLSLShader::_compile(char* filename, unsigned int type)
     }
 
     fread(buffer, sizeof(char), 400000, pfile);
-
     fclose(pfile);
 
     handle = glCreateShader(type);
@@ -185,11 +188,10 @@ unsigned int GLSLShader::_compile(char* filename, unsigned int type)
     }
 
     files[0] = (const GLchar*)buffer;
-    glShaderSource(
-        handle, //The handle to our shader
-        1, //The number of files.
-        files, //An array of const char * data, which represents the source code of theshaders
-        nullptr);
+    glShaderSource(handle,  //The handle to our shader
+                   1,       //The number of files.
+                   files,   //An array of const char * data, which represents the source code of theshaders
+                   nullptr);
 
     glCompileShader(handle);
 
@@ -197,10 +199,10 @@ unsigned int GLSLShader::_compile(char* filename, unsigned int type)
     glGetShaderiv(handle, GL_COMPILE_STATUS, &result);
 
     // If an error was detected.
-    if (result) {
-        if (g_VerboseShaders) {
-            printf("Shader #%d compiled (filename = \"%s\")\n", handle, filename);
-        }
+    if (result &&
+        g_VerboseShaders) {
+
+        printf("Shader #%d compiled (filename = \"%s\")\n", handle, filename);
     }
     else {
         //We failed to compile.
@@ -234,7 +236,8 @@ GLint GLSLShader::getLocation(std::string uniformName) {
     return _uniforms->getUniformLocation(uniformName);
 }
 
-void GLSLShader::updateData(std::string id, void* data) {
+void GLSLShader::updateData(std::string id,
+                            void*       data) {
     _uniforms->updateUniform(id, data);
 }
 
@@ -247,18 +250,23 @@ void GLSLShader::unbind() {
 }
 
 void GLSLShader::updateData(std::string dataName,
-    int textureUnit,
-    Texture* texture) {
+                            int         textureUnit,
+                            Texture*    texture) {
 
-    _uniforms->updateUniform(dataName, textureUnit, texture->getContext());
+    _uniforms->updateUniform(dataName,
+                             textureUnit,
+                             texture->getContext());
 }
 
 void GLSLShader::updateData(std::string id,
-    GLuint textureUnit,
-    Texture* texture,
-    ImageData imageInfo) {
+                            GLuint      textureUnit,
+                            Texture*    texture,
+                            ImageData   imageInfo) {
 
-    _uniforms->updateUniform(id, textureUnit, texture->getContext(), imageInfo);
+    _uniforms->updateUniform(id,
+                             textureUnit,
+                             texture->getContext(),
+                             imageInfo);
 }
 
 void GLSLShader::bindAttributes(VAO* vao) {
@@ -267,7 +275,7 @@ void GLSLShader::bindAttributes(VAO* vao) {
 
 void GLSLShader::unbindAttributes() {
     glBindVertexArray(0);
-    glBindTexture(GL_TEXTURE_2D, 0); //Unbind texture
+    glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 Uniforms* GLSLShader::getUniforms() {
@@ -276,14 +284,18 @@ Uniforms* GLSLShader::getUniforms() {
 
 void GLSLShader::updateShader(GLSLShader* shader) {
     this->_shaderContext = shader->getShaderContext();
-    this->_uniforms = shader->getUniforms();
+    this->_uniforms      = shader->getUniforms();
 }
 
-void GLSLShader::dispatch(int x, int y, int z) {
+void GLSLShader::dispatch(int x,
+                          int y,
+                          int z) {
     glDispatchCompute(x, y, z);
 }
 
-void GLSLShader::draw(int offset, int instances, int numTriangles) {
+void GLSLShader::draw(int offset,
+                      int instances,
+                      int numTriangles) {
 
     glDrawArrays(GL_TRIANGLES, offset, (GLsizei)numTriangles);
 }

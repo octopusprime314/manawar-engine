@@ -40,11 +40,11 @@ class DeferredRenderer {
 public:
     DeferredRenderer();
     ~DeferredRenderer();
-    void deferredLighting(std::vector<Light*>& lights, 
-        ViewEventDistributor* viewEventDistributor,
-        SSAO* ssao,
-        EnvironmentMap* environmentMap);
-    void bind();
-    void unbind();
+    void            deferredLighting(std::vector<Light*>&  lights,
+                                     ViewEventDistributor* viewEventDistributor,
+                                     SSAO*                 ssao,
+                                     EnvironmentMap*       environmentMap);
     MRTFrameBuffer* getGBuffers();
+    void            unbind();
+    void            bind();
 };

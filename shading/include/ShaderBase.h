@@ -28,7 +28,7 @@ protected:
 public:
     ShaderBase();
     ShaderBase(const ShaderBase& shader);
-    virtual      ~ShaderBase();
-    Shader*      getShader();
+    virtual ~ShaderBase();
+    Shader* getShader();
 
 };

@@ -28,11 +28,13 @@ class Sphere {
     Vector4 _position;
     Matrix  _modelTransform;
 public:
-    Sphere(float radius, Vector4 position);
+    Sphere(float   radius,
+           Vector4 position);
     ~Sphere();
-    float   getRadius();
-    Vector4 getPosition();
+    //Offsets the sphere's current position
+    void    offsetTransform(Matrix transform);
     Vector4 getObjectPosition();
     float   getObjectRadius();
-    void    offsetTransform(Matrix transform); //Offsets the sphere's current position
+    Vector4 getPosition();
+    float   getRadius();
 };

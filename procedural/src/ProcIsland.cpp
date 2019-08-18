@@ -11,8 +11,8 @@
 static float ScaleNoiseToTerrainHeight(float noise)
 {
     constexpr float scale = 5.f;
-    constexpr float max = 1.7f * scale;
-    constexpr float min = -2.f * scale;
+    constexpr float max   = 1.7f * scale;
+    constexpr float min   = -2.f * scale;
 
     // TODO: We may want to make this nonlinear.
     return (max - min) * noise + min;
@@ -21,28 +21,32 @@ static float ScaleNoiseToTerrainHeight(float noise)
 static Model* GenerateTerrain()
 {
     // Generate geometry
-    constexpr int minX = 80;
-    constexpr int maxX = 95;
-    constexpr int minZ = 80;
-    constexpr int maxZ = 110;
-
-    constexpr unsigned dX = maxX - minX;
-    constexpr unsigned dZ = maxZ - minZ;
-    constexpr float delta = 0.2f;
+    constexpr int minX        = 80;
+    constexpr int maxX        = 95;
+    constexpr int minZ        = 80;
+    constexpr int maxZ        = 110;
+                              
+    constexpr unsigned dX     = maxX - minX;
+    constexpr unsigned dZ     = maxZ - minZ;
+    constexpr float delta     = 0.2f;
     constexpr unsigned stride = unsigned(dX / delta + 0.5f) + 1;
 
     static_assert(minX <= maxX, "Check X min/max bounds");
     static_assert(minZ <= maxZ, "Check Z min/max bounds");
-    static_assert(delta > 0.f, "Check your delta");
+    static_assert(delta > 0.f,  "Check your delta");
 
     // Generate Vertices. We'll do indices and normals after.
     std::vector<Vector4> verts;
     verts.reserve(static_cast<int>(((maxX - minX) / delta + 1.f) *
-        ((maxZ - minZ) / delta + 1.f)));
+                                   ((maxZ - minZ) / delta + 1.f)));
     for (float z = minZ; z <= maxZ; z += delta) {
         for (float x = minX; x <= maxX; x += delta) {
-            float y = ScaleNoiseToTerrainHeight(kNoise.turbulence(2500.f*x / 150.f, 3250.f*z / 150 + 400, 9));
-            verts.emplace_back(x - minX - dX / 2, y, z - minZ - dZ / 2, 1.f);
+            float y = ScaleNoiseToTerrainHeight(kNoise.turbulence(2500.f*x / 150.f,
+                                                                  3250.f*z / 150 + 400,
+                                                                  9));
+            verts.emplace_back(x - minX - dX / 2,
+                               y,
+                               z - minZ - dZ / 2, 1.f);
         }
     }
 
@@ -54,13 +58,13 @@ static Model* GenerateTerrain()
         if ((b + 1) % stride == 0) {
             continue;
         }
-        indices.emplace_back(b + stride);   assert((b + stride) < verts.size());
-        indices.emplace_back(b + 1);        assert((b + 1) < verts.size());
-        indices.emplace_back(b + 0);        assert((b + 0) < verts.size());
+        indices.emplace_back(b + stride);     assert((b + stride) < verts.size());
+        indices.emplace_back(b + 1);          assert((b + 1) < verts.size());
+        indices.emplace_back(b + 0);          assert((b + 0) < verts.size());
 
-        indices.emplace_back(b + stride);   assert((b + stride) < verts.size());
+        indices.emplace_back(b + stride);     assert((b + stride) < verts.size());
         indices.emplace_back(b + 1 + stride); assert((b + 1 + stride) < verts.size());
-        indices.emplace_back(b + 1);        assert((b + 1) < verts.size());
+        indices.emplace_back(b + 1);          assert((b + 1) < verts.size());
     }
 
     // Populate Normals
@@ -70,9 +74,10 @@ static Model* GenerateTerrain()
         Vector4 vert1 = verts[indices[i + 1]];
         Vector4 vert2 = verts[indices[i + 2]];
 
-        Vector4 a = vert0 - vert1;
-        Vector4 b = vert0 - vert2;
+        Vector4 a      = vert0 - vert1;
+        Vector4 b      = vert0 - vert2;
         Vector4 normal = a.crossProduct(b);
+
         assert(normal.getMagnitude() > 1e-6f);
         assert(normal.gety() > 0.f);
         normal.normalize();
@@ -103,8 +108,8 @@ static Model* GenerateTerrain()
 
     RenderBuffers renderBuffers;
     *renderBuffers.getVertices() = std::move(verts);
-    *renderBuffers.getIndices() = std::move(indices);
-    *renderBuffers.getNormals() = std::move(normals);
+    *renderBuffers.getIndices()  = std::move(indices);
+    *renderBuffers.getNormals()  = std::move(normals);
     *renderBuffers.getTextures() = std::move(texs);
     // This is a relatively expensive copy, and I don't think we need it. (???)
     // *renderBuffers.getDebugNormals() = *renderBuffers.getNormals();

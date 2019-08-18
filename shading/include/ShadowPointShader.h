@@ -29,5 +29,7 @@ class ShadowPointShader : public ShaderBase {
 public:
     ShadowPointShader(std::string shaderName);
     virtual      ~ShadowPointShader();
-    void         runShader(Entity* entity, Light* light, std::vector<Matrix> lightTransforms);
+    void         runShader(Entity*             entity,
+                           Light*              light,
+                           std::vector<Matrix> lightTransforms);
 };

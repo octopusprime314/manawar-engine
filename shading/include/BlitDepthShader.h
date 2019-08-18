@@ -31,5 +31,6 @@ class BlitDepthShader : public ShaderBase {
 public:
     BlitDepthShader();
     ~BlitDepthShader();
-    void runShader(RenderTexture* inDepthBuffer, RenderTexture* outDepthBuffer);
+    void runShader(RenderTexture* inDepthBuffer,
+                   RenderTexture* outDepthBuffer);
 };

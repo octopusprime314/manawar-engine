@@ -1,6 +1,5 @@
 #define USE_SHADER_MODEL_6_5 0
 // Object Declarations
-
 Texture2D   diffuseTexture     : register(t0); // Diffuse texture data array
 Texture2D   normalTexture      : register(t1); // Normal texture data array
 Texture2D   velocityTexture    : register(t2); // Velocity texture data array
@@ -19,22 +18,20 @@ RaytracingAccelerationStructure rtAS : register(t10);
 #endif
 
 cbuffer globalData             : register(b0) {
-    float4x4 lightViewMatrix;                  // Light perspective's view matrix
-    float4x4 lightProjectionMatrix;            // Light perspective's view matrix
-    float4x4 inverseView;                      // Light perspective's view matrix
-    float4x4 lightMapViewMatrix;               // Light perspective's view matrix
-    float4x4 viewToModelMatrix;                // Inverse camera view space matrix
-    float4x4 projectionToViewMatrix;           // Inverse projection matrix
-    float4x4 normalMatrix;                     // inverse transpose of view matrix
-    float3   pointLightPositions[20];          // Max lights is 20 for now
-    float3   pointLightColors[20];             // Max lights is 20 for now
-    float    pointLightRanges[20];             // Max lights is 20 for now
+    int      views;
+    float4x4 inverseView;
+    float4x4 normalMatrix;
     int      numPointLights;
-    int      views;                            // views set to 0 is diffuse mapping,
-                                               // set to 1 is shadow mapping
-                                               // and set to 2 is normal mapping
     float3   lightDirection;
-    float4x4 lightRayProjection;               // tracerayinline light projection matrix
+    float4x4 lightViewMatrix;
+    float4x4 viewToModelMatrix;
+    float4x4 lightRayProjection;
+    float4x4 lightMapViewMatrix;
+    float3   pointLightColors[20];
+    float    pointLightRanges[20];
+    float4x4 lightProjectionMatrix;
+    float4x4 projectionToViewMatrix;
+    float3   pointLightPositions[20];
 }
 
 static const float2 poissonDisk[4] = {
@@ -59,16 +56,16 @@ float3 decodeLocation(float2 uv) {
     return homogenousLocation.xyz / homogenousLocation.w;
 }
 
-void VS(    uint   id    : SV_VERTEXID,
-        out float4 oPosH : SV_POSITION,
-        out float2 oUV   : UVOUT) {
+void VS(    uint   id          : SV_VERTEXID,
+        out float4 outPosition : SV_POSITION,
+        out float2 outUV         : UVOUT) {
 
-    oPosH.x = (float)(id / 2) * 4.0 - 1.0;
-    oPosH.y = (float)(id % 2) * 4.0 - 1.0;
-    oPosH.z = 0.0;
-    oPosH.w = 1.0;
-    oUV.x   =       (float)(id / 2) * 2.0;
-    oUV.y   = 1.0 - (float)(id % 2) * 2.0;
+    outPosition.x = (float)(id / 2) * 4.0 - 1.0;
+    outPosition.y = (float)(id % 2) * 4.0 - 1.0;
+    outPosition.z = 0.0;
+    outPosition.w = 1.0;
+    outUV.x       =       (float)(id / 2) * 2.0;
+    outUV.y       = 1.0 - (float)(id % 2) * 2.0;
 }
 struct PixelOut
 {
@@ -130,8 +127,6 @@ PixelOut PS(float4 posH : SV_POSITION,
     }
 #endif
     PixelOut pixel = { float4(depth, 0.0, 0.0, 0.0), 1.0 };
-
-    //PixelOut pixel          = { float4(0.0, 0.0, 0.0, 0.0), 1.0 };
 
     //extract position from depth texture
     float4 position         = float4(decodeLocation(uv), 1.0);

@@ -12,24 +12,20 @@ cbuffer      objectData         : register(b0)
 // Constant Buffer data
 cbuffer      globalData         : register(b1)
 {
-    //float4x4 prevModel;             // Previous Model transformation matrix
-    //float4x4 prevView;              // Previous View/Camera transformation matrix
-    float4x4 view;                    // View/Camera transformation matrix
-    float4x4 projection;              // Projection transformation matrix
-    float4x4 normalMatrix;            // Normal matrix
-                                      
-    float4x4 lightViewMatrix;         // Light perspective's view matrix
-    float4x4 lightMapViewMatrix;      // Light perspective's view matrix
-    float4x4 viewToModelMatrix;       // Inverse camera view space matrix
-
-    float3   pointLightPositions[20]; // max lights is 20 for now
-    float3   pointLightColors[20];    // max lights is 20 for now
-    float    pointLightRanges[20];    // max lights is 20 for now
+    float3   pointLightPositions[20];
+    float3   pointLightColors[20];
+    float    pointLightRanges[20];
+    float4x4 lightMapViewMatrix;
+    float4x4 viewToModelMatrix;
+    float4x4 lightViewMatrix;
     int      numPointLights;
-    int      views;                   // views set to 0 is diffuse mapping,
-                                      // set to 1 is shadow mapping 
-                                      // and set to 2 is normal mapping
     float3   lightDirection;
+    float4x4 normalMatrix;
+    float4x4 projection;
+    float4x4 prevModel;
+    float4x4 prevView;
+    int      views;
+    float4x4 view;
 }
 
 static const float2 poissonDisk[4] = {
@@ -43,23 +39,23 @@ static const float pointLightShadowEffect = 0.2;
 static const float shadowEffect           = 0.6;
 static const float ambient                = 0.3;
 
-void VS(    float3 iPosL   : POSITION,
-            float3 iNormal : NORMAL,
-            float2 iUV     : UV,
-        out float4 oPosH   : SV_POSITION,
-        out float3 oNormal : NORMALOUT,
-        out float2 oUV     : UVOUT) {
+void VS(    float3 inPosition  : POSITION,
+            float3 inNormal    : NORMAL,
+            float2 inUV        : UV,
+        out float4 outPosition : SV_POSITION,
+        out float3 outNormal   : NORMALOUT,
+        out float2 outUV       : UVOUT) {
 
     float4x4 mv  = mul(model, view);
     float4x4 mvp = mul(mv, projection);
-    oPosH        = mul(float4(iPosL, 1.0f), mvp);
-    oUV          = iUV;
-    oNormal      = mul(float4(iNormal, 1.0f), normalMatrix).rgb;
+    outPosition  = mul(float4(inPosition, 1.0f), mvp);
+    outUV        = inUV;
+    outNormal    = mul(float4(inNormal, 1.0f), normalMatrix).rgb;
 }
 
 struct PixelOut
 {
-            float4 color  : SV_Target;
+    float4 color  : SV_Target;
 };
 
 PixelOut PS(float4 posH   : SV_POSITION,

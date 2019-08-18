@@ -190,7 +190,8 @@ void HLSLShader::build(std::vector<DXGI_FORMAT>* rtvs) {
     // it seems that the TextureCube  depthMap : register(t3) is not showing up in the compiled dxil
     // after looking at the dissassembly...not sure if the compiler or my code is at fault so
     // fallback to the old fxc compiler for ForwardShader's VS
-    if (useDxcCompiler && fileName.find("forwardShader") == std::string::npos) {
+    if (useDxcCompiler &&
+        fileName.find("forwardShader") == std::string::npos) {
         std::wstring profile = L"vs_6_3";
         if (EngineManager::getGraphicsLayer() == GraphicsLayer::DXR_EXPERIMENTAL) {
             profile = L"vs_6_5";

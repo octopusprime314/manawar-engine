@@ -35,18 +35,18 @@ uint64_t nowMs();
 // We define this here because this file is basically main.
 volatile bool g_AssertOnBadOpenGlCall = false;
 
-std::vector<Entity*>      EngineManager::_entityList;
+RayTracingPipelineShader* EngineManager::_rayTracingPipeline = nullptr;
+Entity*                   EngineManager::_shadowEntity       = nullptr;
 std::mutex                EngineManager::_entityListLock;
 GraphicsLayer             EngineManager::_graphicsLayer;
-Entity*                   EngineManager::_shadowEntity = nullptr;
-RayTracingPipelineShader* EngineManager::_rayTracingPipeline = nullptr;
+std::vector<Entity*>      EngineManager::_entityList;
 
 EngineManager::EngineManager(int*      argc,
                              char**    argv,
                              HINSTANCE hInstance,
                              int       nCmdShow) {
 
-    _graphicsLayer = GraphicsLayer::OPENGL;
+    _graphicsLayer = GraphicsLayer::DX12;
 
     if (_graphicsLayer >= GraphicsLayer::DX12) {
 

@@ -42,7 +42,7 @@ public:
     DeferredShader(std::string shaderName);
     virtual ~DeferredShader();
     void runShader(std::vector<Light*>&  lights,
-                   ViewEventDistributor* viewEventDistributor, 
+                   ViewEventDistributor* viewEventDistributor,
                    MRTFrameBuffer&       mrtFBO,
                    SSAO*                 ssao,
                    EnvironmentMap*       environmentMap);

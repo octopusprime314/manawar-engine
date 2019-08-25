@@ -1,25 +1,23 @@
 #version 430
 
-//number of invocations needs to be the size of the write texture
+// number of invocations needs to be the size of the write texture
 
 uniform layout(r8) readonly image2D readTexture;
 uniform layout(r8) writeonly image2D writeTexture;
 
-layout (local_size_x = 16, local_size_y = 16) in;
- 
+layout(local_size_x = 16, local_size_y = 16) in;
+
 void main() {
-	
-	ivec2 ID = ivec2(gl_GlobalInvocationID.xy);
-	float result = 0.0;
-	
-	//4x4 blocks downsampling
-	int sampleRate = 4;
-	for(int x = 0; x < sampleRate; ++x)
-	{
-		for(int y = 0; y < sampleRate; ++y) 
-		{
-			result += imageLoad(readTexture, ivec2((ID.x * sampleRate) + x, (ID.y * sampleRate) + y)).r;
-		}
-	}
-	imageStore(writeTexture, ID, vec4(vec3(result.r / 16.0), 1.0));
+
+    ivec2 ID     = ivec2(gl_GlobalInvocationID.xy);
+    float result = 0.0;
+
+    // 4x4 blocks downsampling
+    int sampleRate = 4;
+    for (int x = 0; x < sampleRate; ++x) {
+        for (int y = 0; y < sampleRate; ++y) {
+            result += imageLoad(readTexture, ivec2((ID.x * sampleRate) + x, (ID.y * sampleRate) + y)).r;
+        }
+    }
+    imageStore(writeTexture, ID, vec4(vec3(result.r / 16.0), 1.0));
 }

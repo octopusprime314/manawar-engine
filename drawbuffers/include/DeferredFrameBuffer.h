@@ -30,6 +30,8 @@ class DeferredFrameBuffer {
 
     GLuint        _frameBufferContext;
     RenderTexture _renderTexture;
+    RenderTexture _debug0Texture;
+    RenderTexture _debug1Texture;
     RenderTexture _depthTexture;
 
 public:
@@ -39,5 +41,6 @@ public:
     GLuint        getTextureContext();
     Texture*      getDepthTexture();
     Texture*      getRenderTexture();
-
+    Texture*      getDebug0Texture();
+    Texture*      getDebug1Texture();
 };

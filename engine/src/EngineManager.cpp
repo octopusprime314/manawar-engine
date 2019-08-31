@@ -458,53 +458,74 @@ void EngineManager::_postDraw() {
         _terminal->display();
     }
     else {
+
         //unbind fbo
         _deferredRenderer->unbind();
 
         //Only compute ssao for opaque objects
         _ssaoPass->computeSSAO(_deferredRenderer->getGBuffers(),
-                               _viewManager);
+            _viewManager);
 
         RenderTexture* renderTexture = static_cast<RenderTexture*>(_deferredFBO->getRenderTexture());
-        RenderTexture* depthTexture  = static_cast<RenderTexture*>(_deferredFBO->getDepthTexture());
+        RenderTexture* depthTexture = static_cast<RenderTexture*>(_deferredFBO->getDepthTexture());
+        RenderTexture* debug0Texture = static_cast<RenderTexture*>(_deferredFBO->getDebug0Texture());
+        RenderTexture* debug1Texture = static_cast<RenderTexture*>(_deferredFBO->getDebug1Texture());
 
-        HLSLShader::setOM({ *renderTexture, *depthTexture },
+        HLSLShader::setOM({ *renderTexture, *debug0Texture, *debug1Texture, *depthTexture },
                           IOEventDistributor::screenPixelWidth,
                           IOEventDistributor::screenPixelHeight);
 
-        //Pass lights to deferred shading pass
-        _deferredRenderer->deferredLighting(_lightList,
-                                            _viewManager,
-                                            nullptr,
-                                            nullptr);
+        if (_viewManager->getViewState() == Camera::ViewState::DEFERRED_LIGHTING) {
 
-        _forwardRenderer->forwardLighting(_entityList,
-                                          _viewManager,
-                                          _lightList);
 
-        // Lights - including the fire point lights
-        for (Light* light : _lightList) {
-            light->render();
+            //Pass lights to deferred shading pass
+            _deferredRenderer->deferredLighting(_lightList,
+                _viewManager,
+                _ssaoPass,
+                nullptr);
+
+            _forwardRenderer->forwardLighting(_entityList,
+                _viewManager,
+                _lightList);
+
+            // Lights - including the fire point lights
+            for (Light* light : _lightList) {
+                light->render();
+            }
+
+            HLSLShader::releaseOM({ *renderTexture, *debug0Texture, *debug1Texture, *depthTexture });
+
+            //Compute bloom from deferred fbo texture
+            _bloom->compute(_deferredFBO->getRenderTexture());
+
+            //If adding a second texture then all writes are to this texture second param
+            _add->compute(_deferredFBO->getRenderTexture(), _bloom->getTexture());
+            _add->uavBarrier();
+
+            HLSLShader::setOM({ *renderTexture, *debug0Texture, *debug1Texture, *depthTexture },
+                              IOEventDistributor::screenPixelWidth,
+                              IOEventDistributor::screenPixelHeight);
+
+            Texture* velocityTexture = &_deferredRenderer->getGBuffers()->getTextures()[2];
+            _mergeShader->runShader(_bloom->getTexture(), velocityTexture);
+
+            HLSLShader::releaseOM({ *renderTexture, *debug0Texture, *debug1Texture, *depthTexture });
+
+            DXLayer::instance()->present(_deferredFBO->getRenderTexture());
         }
+        else
+        {
 
-        HLSLShader::releaseOM({ *renderTexture, *depthTexture });
+            //Pass lights to deferred shading pass
+            _deferredRenderer->deferredLighting(_lightList,
+                                                _viewManager,
+                                                _ssaoPass,
+                                                nullptr);
 
-        //Compute bloom from deferred fbo texture
-        _bloom->compute(_deferredFBO->getRenderTexture());
+            HLSLShader::releaseOM({ *renderTexture, *debug0Texture, *debug1Texture, *depthTexture });
 
-        //If adding a second texture then all writes are to this texture second param
-        _add->compute(_deferredFBO->getRenderTexture(), _bloom->getTexture());
-        _add->uavBarrier();
+            DXLayer::instance()->present(_deferredFBO->getRenderTexture());
 
-        HLSLShader::setOM({ *renderTexture, *depthTexture },
-                          IOEventDistributor::screenPixelWidth,
-                          IOEventDistributor::screenPixelHeight);
-
-        Texture* velocityTexture = &_deferredRenderer->getGBuffers()->getTextures()[2];
-        _mergeShader->runShader(_bloom->getTexture(), velocityTexture);
-
-        HLSLShader::releaseOM({ *renderTexture, *depthTexture });
-
-        DXLayer::instance()->present(_deferredFBO->getRenderTexture());
+        }
     }
 }

@@ -345,6 +345,7 @@ RayTracingPipelineShader::RayTracingPipelineShader(std::string shader,
         _geometryDesc[modelIndex].Triangles.VertexBuffer.StartAddress  = vertexGPUAddress;
         _geometryDesc[modelIndex].Triangles.VertexBuffer.StrideInBytes = sizeof(Vertex);
 
+
         _indexBuffer.push_back(D3DBuffer());
         _vertexBuffer.push_back(D3DBuffer());
         _indexBuffer[modelIndex].resource  = (*entity.second->getFrustumVAO())[0]->getIndexResource()->getResource();
@@ -359,10 +360,16 @@ RayTracingPipelineShader::RayTracingPipelineShader(std::string shader,
                                                   _geometryDesc[modelIndex].Triangles.VertexCount,
                                                   static_cast<UINT>(_geometryDesc[modelIndex].Triangles.VertexBuffer.StrideInBytes));
 
-        // Mark the geometry as opaque. 
-        // PERFORMANCE TIP: mark geometry as opaque whenever applicable as it can enable important ray processing optimizations.
-        // Note: When rays encounter opaque geometry an any hit shader will not be executed whether it is present or not.
-        _geometryDesc[modelIndex].Flags = D3D12_RAYTRACING_GEOMETRY_FLAG_OPAQUE;
+        //If model is a tree then add non opaque flag to indicate transparency
+        if (entity.first.find("tree") != std::string::npos) {
+            _geometryDesc[modelIndex].Flags = D3D12_RAYTRACING_GEOMETRY_FLAG_NONE;
+        }
+        else {
+            // Mark the geometry as opaque. 
+            // PERFORMANCE TIP: mark geometry as opaque whenever applicable as it can enable important ray processing optimizations.
+            // Note: When rays encounter opaque geometry an any hit shader will not be executed whether it is present or not.
+            _geometryDesc[modelIndex].Flags = D3D12_RAYTRACING_GEOMETRY_FLAG_OPAQUE;
+        }
         modelIndex++;
     }
 

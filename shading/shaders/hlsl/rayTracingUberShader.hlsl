@@ -97,9 +97,9 @@ void MyRaygenShader()
     RayPayload payload = { float4(0, 0, 0, 0) };
 
 #if (USE_SHADER_MODEL_6_5 == 1)
-    RayQuery<RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH> rayQuery;
+    RayQuery<RAY_FLAG_FORCE_OPAQUE> rayQuery;
     rayQuery.TraceRayInline(Scene,
-                            RAY_FLAG_NONE,
+                            RAY_FLAG_FORCE_OPAQUE,
                             ~0,
                             ray);
 
@@ -112,10 +112,11 @@ void MyRaygenShader()
         float4   clipSpace     = mul(float4(hitPosition, 1), lightViewProj);
         float    depth         = clipSpace.z;
 
-        float3x4 data          = rayQuery.CandidateWorldToObject3x4();
-        data                   = mul(data, rayQuery.CandidateObjectToWorld3x4());
-        data                   = mul(data, rayQuery.CommittedObjectToWorld3x4());
+        float3x4 data          = rayQuery.CommittedObjectToWorld3x4();
         data                   = mul(data, rayQuery.CommittedWorldToObject3x4());
+        // Only test when getting a valid candidate
+        //data                   = mul(data, rayQuery.CandidateObjectToWorld3x4());
+        //data                   = mul(data, rayQuery.CandidateWorldToObject3x4());
 
         if (data[0][0] > 0.0f)
         {
@@ -123,9 +124,9 @@ void MyRaygenShader()
         }
         else
         {
-            payload.color += float4(1.0, 0.0, 0.0, 1.0f);
+            payload.color += float4(depth * 0.9998, depth * 0.9998, depth * 0.9998, 1.0f);
+            //payload.color += float4(1.0, 0.0, 0.0, 1.0f);
         }
-
     }
     else
     {
@@ -196,12 +197,18 @@ void MyClosestHitShader(inout RayPayload payload, in MyAttributes attr)
     //payload.color = float4(abs(rayDir.zzz), 1.0f);
     //payload.color = float4(abs(screenPos), 0.0, 1.0f);
 
-    float3 hitPosition = HitWorldPosition();
+    float3   hitPosition   = HitWorldPosition();
     float4x4 lightViewProj = mul(g_sceneCB.lightView, g_sceneCB.projection);
-    float4 clipSpace = mul(float4(hitPosition, 1), lightViewProj);
-    payload.color = float4(clipSpace.z, clipSpace.z, clipSpace.z, 1.0);
+    float4   clipSpace     = mul(float4(hitPosition, 1), lightViewProj);
+    payload.color          = float4(clipSpace.z, clipSpace.z, clipSpace.z, 1.0);
 
-    //payload.color = float4(0.0, 1.0, 0.0, 1.0);
+
+    //float2 xy        = DispatchRaysIndex() + 0.5f; // center in the middle of the pixel.
+    //float2 screenPos = xy / DispatchRaysDimensions().xy * 2.0 - 1.0;
+    //// Invert Y for DirectX-style coordinates.
+    //screenPos.y = -screenPos.y;
+    //payload.color = float4(screenPos.y, screenPos.y, 0.0, 1.0);
+
 
 }
 
@@ -210,5 +217,11 @@ void MyMissShader(inout RayPayload payload)
 {
     float4 background = float4(1.0f, 0.0f, 0.0f, 0.0f);
     payload.color = background;
+
+    //float2 xy = DispatchRaysIndex() + 0.5f; // center in the middle of the pixel.
+    //float2 screenPos = xy / DispatchRaysDimensions().xy * 2.0 - 1.0;
+    //// Invert Y for DirectX-style coordinates.
+    //screenPos.y = -screenPos.y;
+    //payload.color = float4(screenPos.y, screenPos.y, 0.0, 1.0);
 
 }

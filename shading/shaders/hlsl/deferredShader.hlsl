@@ -1,3 +1,5 @@
+#define USE_SHADER_MODEL_6_5 1
+
 // Object Declarations
 
 Texture2D   diffuseTexture     : register(t0); // Diffuse texture data array
@@ -12,8 +14,11 @@ TextureCube skyboxNightTexture : register(t8); // Skybox night
 Texture2D   ssaoTexture        : register(t9); // Depth texture data array
 sampler     textureSampler     : register(s0);
 
+#if (USE_SHADER_MODEL_6_5 == 1)
 //Raytracing Acceleration Structure
 RaytracingAccelerationStructure rtAS : register(t10);
+Texture2D   transparencyTexture      : register(t11); // transparency test texture
+#endif
 
 cbuffer globalData             : register(b0) {
     float4x4 lightViewMatrix;                  // Light perspective's view matrix
@@ -69,16 +74,21 @@ void VS(    uint   id    : SV_VERTEXID,
 }
 struct PixelOut
 {
-    float4 color : SV_Target;
-    float  depth : SV_Depth;
+    float4 color  : SV_Target0;
+    float4 debug0 : SV_Target1;
+    float4 debug1 : SV_Target2;
+    float  depth  : SV_Depth;
 };
 
 // Generate a ray in world space for a camera pixel corresponding to an index from the dispatched 2D grid.
-void GenerateCameraRay(    uint2  uv,
+void GenerateCameraRay(    float2 uv,
                        out float3 origin,
                        out float3 direction)
 {
     float2 screenPos = (2.0f * uv) - 1.0f;
+
+    // Invert Y for DirectX-style coordinates.
+    screenPos.y = -screenPos.y;
 
     // Unproject the pixel coordinate into a ray.
     float4 world     = mul(float4(screenPos, 0, 1), lightRayProjection);
@@ -92,43 +102,13 @@ void GenerateCameraRay(    uint2  uv,
 PixelOut PS(float4 posH : SV_POSITION,
             float2 uv   : UVOUT) {
 
-    float depth = 0.0;
 
-    float3 rayDir;
-    float3 origin;
-    GenerateCameraRay(uv,
-                      origin,
-                      rayDir);
+    const float bias = 0.005; //removes shadow acne by adding a small bias
 
-    // Trace the ray.
-    // Set the ray's extents.
-    RayDesc ray;
-    ray.Origin    = origin;
-    ray.Direction = rayDir;
-    ray.TMin      = 0.001;
-    ray.TMax      = 10000.0;
-    
-    RayQuery<RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH> rayQuery;
-    rayQuery.TraceRayInline(rtAS,
-                            RAY_FLAG_NONE,
-                            ~0,
-                            ray);
-
-    if (rayQuery.Proceed()         == false &&
-        rayQuery.CommittedStatus() == COMMITTED_TRIANGLE_HIT)
-    {
-        float3   hitPosition   = rayQuery.WorldRayOrigin() +
-                                 (rayQuery.CommittedRayT() * rayQuery.WorldRayDirection());
-        
-        float4x4 lightViewProj = mul(lightViewMatrix, lightProjectionMatrix);
-        float4   clipSpace     = mul(float4(hitPosition, 1), lightViewProj);
-        depth                  = clipSpace.z;
-        //depth = 1.0;
-    }
-
-    PixelOut pixel = { float4(depth, 0.0, 0.0, 0.0), 1.0 };
-
-    //PixelOut pixel          = { float4(0.0, 0.0, 0.0, 0.0), 1.0 };
+    PixelOut pixel   = { float4(0.0, 0.0, 0.0, 0.0),
+                         float4(0.0, 0.0, 0.0, 0.0),
+                         float4(0.0, 0.0, 0.0, 0.0),
+                         1.0 };
 
     //extract position from depth texture
     float4 position         = float4(decodeLocation(uv), 1.0);
@@ -160,6 +140,86 @@ PixelOut PS(float4 posH : SV_POSITION,
     shadowMappingMap                    = shadowMappingMap / shadowMappingMap.w;
     float2 shadowTextureCoordinatesMap  = mul(shadowMappingMap.xy, 0.5) + float2(0.5,0.5);
 
+    //TODO: need to fix cpu
+    float2 invertedYCoord = float2(shadowTextureCoordinates.x, -shadowTextureCoordinates.y);
+
+    const float MAX_DEPTH   = 10000.0;
+    float       rtDepth     = MAX_DEPTH;
+    float directionalShadow = 1.0;
+
+    float3 rayDir;
+    float3 origin;
+
+    // Why does the y component of the shadow texture mapping need to be 1.0 - yCoord?
+    GenerateCameraRay(float2(shadowTextureCoordinates.x, 1.0 - shadowTextureCoordinates.y),
+                      origin,
+                      rayDir);
+
+#if (USE_SHADER_MODEL_6_5 == 1)
+
+
+    // Trace the ray.
+    // Set the ray's extents.
+    RayDesc ray;
+    ray.Origin    = origin;
+    ray.Direction = rayDir;
+    ray.TMin      = 0.001;
+    ray.TMax      = MAX_DEPTH;
+
+    RayQuery<RAY_FLAG_NONE> rayQuery;
+    rayQuery.TraceRayInline(rtAS,
+                            RAY_FLAG_NONE,
+                            ~0,
+                            ray);
+
+    //Transparency testing
+    while (rayQuery.Proceed() == true)
+    {
+        if (rayQuery.CandidateType() == CANDIDATE_NON_OPAQUE_TRIANGLE) {
+            float3   hitPosition   = rayQuery.WorldRayOrigin() +
+                                     (rayQuery.CandidateTriangleRayT() * rayQuery.WorldRayDirection());
+
+            float4x4 lightViewProj = mul(lightViewMatrix, lightProjectionMatrix);
+            float4   clipSpace     = mul(float4(hitPosition, 1), lightViewProj);
+
+            if (transparencyTexture.Sample(textureSampler, rayQuery.CandidateTriangleBarycentrics()).a > 0.1) {
+                rayQuery.CommitNonOpaqueTriangleHit();
+                //rtDepth = 0;// clipSpace.z;
+            }
+        }
+    }
+    if (rayQuery.CommittedStatus() == COMMITTED_TRIANGLE_HIT)
+    {
+        float3   hitPosition = rayQuery.WorldRayOrigin() +
+                              (rayQuery.CommittedRayT() * rayQuery.WorldRayDirection());
+
+        float4x4 lightViewProj = mul(lightViewMatrix, lightProjectionMatrix);
+        float4   clipSpace = mul(float4(hitPosition, 1), lightViewProj);
+        rtDepth = clipSpace.z;
+    }
+    
+    /*if (rayQuery.CandidateType() == CANDIDATE_NON_OPAQUE_TRIANGLE)
+    {
+        rtDepth = 0.0f;
+    }*/
+
+    //Opaque geometry
+    /*if (rayQuery.Proceed()         == false &&
+        rayQuery.CommittedStatus() == COMMITTED_TRIANGLE_HIT)
+    {
+        float3   hitPosition   = rayQuery.WorldRayOrigin() +
+                                 (rayQuery.CommittedRayT() * rayQuery.WorldRayDirection());
+
+        float4x4 lightViewProj = mul(lightViewMatrix, lightProjectionMatrix);
+        float4   clipSpace     = mul(float4(hitPosition, 1), lightViewProj);
+        rtDepth                = clipSpace.z;
+
+        if (transparencyTexture.Sample(textureSampler, rayQuery.CommittedTriangleBarycentrics()).a <= 0.1) {
+            rtDepth = MAX_DEPTH;
+        }
+    }*/
+#endif
+
     if (views == 0) {
         //Detects if there is no screen space information and then displays skybox!
         if (normal.x == 0.0 &&
@@ -179,15 +239,17 @@ PixelOut PS(float4 posH : SV_POSITION,
         else {
             float3 pointLighting    = float3(0.0, 0.0, 0.0);
             float totalShadow       = 1.0;
-            float directionalShadow = 1.0;
             float pointShadow       = 1.0;
-            //TODO: need to fix cpu
-            float2 invertedYCoord   = float2(shadowTextureCoordinates.x, -shadowTextureCoordinates.y);
-            float d                 = cameraDepthTexture.Sample(textureSampler, invertedYCoord).r;
+
+#if (USE_SHADER_MODEL_6_5 == 0)
+
+            float d = cameraDepthTexture.Sample(textureSampler, invertedYCoord).r;
+#else
+            float d = rtDepth;
+#endif
             //illumination is from directional light but we don't want to illuminate when the sun is past the horizon
             //aka night time
             if (normalizedLight.y <= 0.0) {
-                const float bias = 0.005; //removes shadow acne by adding a small bias
                 //Only shadow in textures space
                 if (shadowTextureCoordinates.x <= 1.0 &&
                     shadowTextureCoordinates.x >= 0.0 &&
@@ -256,9 +318,20 @@ PixelOut PS(float4 posH : SV_POSITION,
         pixel.depth = 0.1;
     }
     else if (views == 7) {
-        float depth = mapDepthTexture.Sample(textureSampler, uv).x;
+        float2 screenPos = (2.0f * uv) - 1.0f;
+        // Invert Y for DirectX-style coordinates.
+        screenPos.y = -screenPos.y;
+        //pixel.color = float4(screenPos.x, screenPos.y, 0.0, 1.0);
+        
+        float depth = rtDepth;
         pixel.color = float4(depth, depth, depth, 1.0);
         pixel.depth = 0.1;
+
+        pixel.debug0 = float4(float3(origin.xyz), 1.0);
+        pixel.debug1 = float4(float3(rayDir.xyz), 1.0);
+
+        //pixel.color = float4(float3(abs(origin.xyz)), 1.0);
+        //pixel.depth = abs(origin.x);
     }
     else if (views == 8) {
         float3 cubeMapTexCoords = mul(float4(position.xyz,1.0), viewToModelMatrix).xyz -
@@ -268,7 +341,9 @@ PixelOut PS(float4 posH : SV_POSITION,
         pixel.depth             = 0.1;
     }
     else if (views == 9) {
-        //Draw geometry visualizer
+        float depth = mapDepthTexture.Sample(textureSampler, uv).x;
+        pixel.color = float4(depth, depth, depth, 1.0);
+        pixel.depth = 0.1;
     }
     return pixel;
 }

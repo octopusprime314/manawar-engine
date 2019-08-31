@@ -15,6 +15,9 @@ DeferredShader::DeferredShader(std::string shaderName) {
         std::vector<DXGI_FORMAT>* formats = new std::vector<DXGI_FORMAT>();
         formats->push_back(DXGI_FORMAT_R8G8B8A8_UNORM);
         formats->push_back(DXGI_FORMAT_D32_FLOAT);
+        // Ray tracing debugging render target
+        formats->push_back(DXGI_FORMAT_R32G32B32A32_FLOAT);
+        formats->push_back(DXGI_FORMAT_R32G32B32A32_FLOAT);
         _shader = new HLSLShader(shaderName, "", formats);
     }
 }
@@ -153,6 +156,9 @@ void DeferredShader::runShader(std::vector<Light*>& lights,
     if (directionalShadowTextures.size() > 1 && directionalShadowTextures[1] != nullptr) {
         _shader->updateData("mapDepthTexture", GL_TEXTURE5, directionalShadowTextures[1]->getDepthTexture());
     }
+    else {
+        _shader->updateData("cameraDepthTexture", GL_TEXTURE5, directionalShadowTextures[0]->getDepthTexture());
+    }
     if (pointShadowTexture != nullptr) {
         _shader->updateData("depthMap", GL_TEXTURE6, pointShadowTexture->getDepthTexture());
     }
@@ -169,6 +175,9 @@ void DeferredShader::runShader(std::vector<Light*>& lights,
     _shader->updateData("lightRayProjection", inverseProj.getFlatBuffer());
 
     _shader->updateRTAS("rtAS", EngineManager::getRTAS());
+
+    AssetTexture* leafTexture = TextureBroker::instance()->getTexture("../assets/textures/trees\\oak leaf.dds");
+    _shader->updateData("transparencyTexture", GL_TEXTURE11, leafTexture);
 
     if (EngineManager::getGraphicsLayer() == GraphicsLayer::OPENGL) {
         glDrawArrays(GL_TRIANGLE_STRIP, 0, (GLsizei)4);

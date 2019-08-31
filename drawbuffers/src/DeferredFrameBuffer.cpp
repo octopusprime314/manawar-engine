@@ -6,6 +6,12 @@ DeferredFrameBuffer::DeferredFrameBuffer() :
     _renderTexture(IOEventDistributor::screenPixelWidth,
                    IOEventDistributor::screenPixelHeight,
                    TextureFormat::RGBA_UNSIGNED_BYTE),
+    _debug0Texture(IOEventDistributor::screenPixelWidth,
+                   IOEventDistributor::screenPixelHeight,
+                   TextureFormat::RGBA_FLOAT),
+    _debug1Texture(IOEventDistributor::screenPixelWidth,
+                   IOEventDistributor::screenPixelHeight,
+                   TextureFormat::RGBA_FLOAT),
     _depthTexture( IOEventDistributor::screenPixelWidth,
                    IOEventDistributor::screenPixelHeight,
                    TextureFormat::DEPTH32_FLOAT) {
@@ -73,4 +79,10 @@ Texture* DeferredFrameBuffer::getRenderTexture() {
 }
 Texture* DeferredFrameBuffer::getDepthTexture() {
     return &_depthTexture;
+}
+Texture* DeferredFrameBuffer::getDebug0Texture() {
+    return &_debug0Texture;
+}
+Texture* DeferredFrameBuffer::getDebug1Texture() {
+    return &_debug1Texture;
 }

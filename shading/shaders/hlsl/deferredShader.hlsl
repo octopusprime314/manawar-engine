@@ -183,6 +183,7 @@ PixelOut PS(float4 posH : SV_POSITION,
         if (rayQuery.CandidateType() == CANDIDATE_NON_OPAQUE_TRIANGLE) {
 
             float  alphaValue   = 1.0f;
+            float2 barycentrics = rayQuery.CandidateTriangleBarycentrics();
             barycentrics = float2(-barycentrics.x, -barycentrics.y);
             if (rayQuery.CandidateInstanceID() == 1) {
                 alphaValue = transparencyTexture1.Sample(textureSampler, barycentrics).a;

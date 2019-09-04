@@ -81,6 +81,7 @@ public:
     Cube*                       getAABB();
     std::string                 getName();
     std::vector<VAO*>*          getVAO();
+    unsigned int                getId();
 
 protected:
     std::string                 _getModelName(std::string name);
@@ -88,6 +89,7 @@ protected:
     std::vector<std::string>    _textureRecorder;
     //Static texture manager for texture reuse purposes, all models have access
     static TextureBroker*       _textureManager;
+    static unsigned int         _modelIdTagger;
     //Manages vertex, normal and texture data
     RenderBuffers               _renderBuffers;
     //Container object of the Model's shader
@@ -98,6 +100,7 @@ protected:
     float                       _offsets[900];
     bool                        _isInstanced;
     std::mutex                  _updateLock;
+
     int                         _instances;
     //Used to load fbx data and parse it into engine format
     FbxLoader*                  _fbxLoader;
@@ -107,6 +110,8 @@ protected:
     //Used to identify which class is being used
     ModelClass                  _classId;
     Cube*                       _gfxAABB;
+    //used to identify model, used for ray tracing
+    unsigned int                _modelId;
     std::string                 _name;
     //Vao container
     std::vector<VAO*>           _vao;

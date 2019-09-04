@@ -1,4 +1,4 @@
-#define USE_SHADER_MODEL_6_5 1
+#define USE_SHADER_MODEL_6_5 0
 
 struct SceneConstantBuffer
 {

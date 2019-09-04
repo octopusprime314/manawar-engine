@@ -94,12 +94,13 @@ public:
                   int       nCmdShow);
 
     ~EngineManager();
-    static Entity*                addEntity(Model* model,
-                                            Matrix transform,
-                                            bool temporaryModel);
+    static Entity*                   addEntity(Model* model,
+                                               Matrix transform,
+                                               bool temporaryModel);
 
-    static void                   removeEntity(Entity* entity);
-    static std::vector<Entity*>*  getEntityList();
-    static GraphicsLayer          getGraphicsLayer();
-    static ComPtr<ID3D12Resource> getRTAS();
+    static void                      removeEntity(Entity* entity);
+    static std::vector<Entity*>*     getEntityList();
+    static GraphicsLayer             getGraphicsLayer();
+    static RayTracingPipelineShader* getRTPipeline();
+
 };

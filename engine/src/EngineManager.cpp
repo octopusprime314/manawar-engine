@@ -307,8 +307,8 @@ std::vector<Entity*>* EngineManager::getEntityList() {
     return &_entityList;
 }
 
-ComPtr<ID3D12Resource> EngineManager::getRTAS() {
-    return _rayTracingPipeline->getRTAS();
+RayTracingPipelineShader* EngineManager::getRTPipeline() {
+    return _rayTracingPipeline;
 }
 
 void EngineManager::_preDraw() {
@@ -334,24 +334,24 @@ void EngineManager::_preDraw() {
 
     if (_graphicsLayer >= GraphicsLayer::DX12) {
 
-        if (_useRaytracing) {
-            _rayTracingPipeline->doRayTracing(_entityList[0], _lightList[0]);
-            //DXLayer::instance()->present(_rayTracingPipeline->getRayTracingTarget());
+        //if (_useRaytracing) {
+        //    _rayTracingPipeline->doRayTracing(_entityList[0], _lightList[0]);
+        //    //DXLayer::instance()->present(_rayTracingPipeline->getRayTracingTarget());
 
-            auto depthTexture = static_cast<RenderTexture*>((
-                                static_cast<ShadowedDirectionalLight*>(_lightList[0]))->getDepthTexture());
+        //    auto depthTexture = static_cast<RenderTexture*>((
+        //                        static_cast<ShadowedDirectionalLight*>(_lightList[0]))->getDepthTexture());
 
-            HLSLShader::setOM({ *depthTexture },
-                              depthTexture->getWidth(),
-                              depthTexture->getHeight());
+        //    HLSLShader::setOM({ *depthTexture },
+        //                      depthTexture->getWidth(),
+        //                      depthTexture->getHeight());
 
-            auto depthBlit = static_cast<BlitDepthShader*>(ShaderBroker::instance()->getShader("blitDepthShader"));
+        //    auto depthBlit = static_cast<BlitDepthShader*>(ShaderBroker::instance()->getShader("blitDepthShader"));
 
-            depthBlit->runShader(_rayTracingPipeline->getRayTracingTarget(),
-                                 depthTexture);
+        //    depthBlit->runShader(_rayTracingPipeline->getRayTracingTarget(),
+        //                         depthTexture);
 
-            HLSLShader::releaseOM({ *depthTexture });
-        }
+        //    HLSLShader::releaseOM({ *depthTexture });
+        //}
     }
 
     //Establish an offscreen Frame Buffer Object to generate G buffers for deferred shading

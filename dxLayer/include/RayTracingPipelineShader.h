@@ -96,6 +96,7 @@ class RayTracingPipelineShader : public PipelineShader {
     ComPtr<ID3D12RootSignature>         _raytracingGlobalRootSignature;
     ComPtr<ID3D12RootSignature>         _raytracingLocalRootSignature;
     UINT                                _descriptorsAllocated;
+    std::map<Entity*, AssetTexture*>    _transparencyTextures;
     ComPtr<ID3D12Resource>              _hitGroupShaderTable;
     AlignedSceneConstantBuffer*         _mappedConstantData;
     D3D12_DESCRIPTOR_HEAP_DESC          _descriptorHeapDesc;
@@ -121,7 +122,6 @@ class RayTracingPipelineShader : public PipelineShader {
     ComPtr<ID3D12Resource>              _copiedAS;
     D3D12_UNORDERED_ACCESS_VIEW_DESC    _uavDesc;
 
-
 public:
 
     RayTracingPipelineShader(                        std::string shader,
@@ -134,4 +134,5 @@ public:
 
     RenderTexture*                      getRayTracingTarget();
     ComPtr<ID3D12Resource>              getRTAS();
+    std::map<Entity*, AssetTexture*>&   getTransparentTextures();
 };

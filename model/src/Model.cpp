@@ -6,13 +6,15 @@
 #include "FrustumCuller.h"
 
 TextureBroker* Model::_textureManager = TextureBroker::instance();
+unsigned int   Model::_modelIdTagger = 0;
 
 Model::Model(std::string name,
-             ModelClass classId) :
+             ModelClass  classId) :
     _isInstanced(false),
     _classId(    classId),
     _name(       name.substr(name.find_last_of("/") + 1)),
-    _fbxLoader(  new FbxLoader(name)) {
+    _fbxLoader(  new FbxLoader(name)),
+    _modelId(    0) {
 
     //If the model loaded is a scene then all of the model instances have been added as entities
     //in the fbx constructor call so jump out of model constructor
@@ -27,6 +29,8 @@ Model::Model(std::string name,
     //Populate model with fbx file data and recursivelty search with the root node of the scene
     _fbxLoader->loadModel(this, _fbxLoader->getScene()->GetRootNode());
     _vao.back()->setPrimitiveOffsetId(0);
+
+    _modelId = _modelIdTagger++;
 
     //If class is generic model then deallocate fbx object,
     //otherwise let derived class clean up _fbxLoader object
@@ -81,6 +85,10 @@ void Model::updateModel(Model* model) {
 
 std::vector<VAO*>* Model::getVAO() {
     return &_vao;
+}
+
+unsigned int Model::getId() {
+    return _modelId;
 }
 
 ModelClass Model::getClassType() {

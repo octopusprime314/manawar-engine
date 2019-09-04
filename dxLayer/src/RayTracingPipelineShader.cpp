@@ -44,6 +44,11 @@ ComPtr<ID3D12Resource> RayTracingPipelineShader::getRTAS() {
     return _topLevelAccelerationStructure;
 }
 
+std::map<Entity*, AssetTexture*>& RayTracingPipelineShader::getTransparentTextures() {
+    return _transparencyTextures;
+}
+
+
 void RayTracingPipelineShader::_populateDefaultHeap(GpuToCpuBuffers& resources, UINT64 byteSize) {
     // The output buffer (created below) is on a default heap, so only the GPU can access it.
 
@@ -405,11 +410,11 @@ RayTracingPipelineShader::RayTracingPipelineShader(std::string shader,
     auto bufferDesc           = CD3DX12_RESOURCE_DESC::Buffer(sizeBuildInfo, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
     
     _dxrDevice->CreateCommittedResource(&uploadHeapProperties,
-                                    D3D12_HEAP_FLAG_NONE,
-                                    &bufferDesc,
-                                    D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
-                                    nullptr,
-                                    IID_PPV_ARGS(&_scratchResource));
+                                        D3D12_HEAP_FLAG_NONE,
+                                        &bufferDesc,
+                                        D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
+                                        nullptr,
+                                        IID_PPV_ARGS(&_scratchResource));
 
     modelIndex = 0;
     for (auto model : bottomLevelInstances) {
@@ -450,6 +455,9 @@ RayTracingPipelineShader::RayTracingPipelineShader(std::string shader,
                                             IID_PPV_ARGS(&_topLevelAccelerationStructure));
     }
 
+
+    auto textureBroker = TextureBroker::instance();
+
     // Create an instance desc for the bottom-level acceleration structure.
     _instanceDesc         = new D3D12_RAYTRACING_INSTANCE_DESC[instanceCount];
     UINT bottomLevelIndex = 0;
@@ -457,8 +465,47 @@ RayTracingPipelineShader::RayTracingPipelineShader(std::string shader,
     for (auto instanceTransform : bottomLevelInstances) {
         
         for (auto instance : instanceTransform.second) {
+
+            //If model is a tree then add non opaque flag to indicate transparency
+            if (instance->getModel()->getName().find("tree") != std::string::npos) {
+
+                auto textureNames = instance->getModel()->getTextureNames();
+                for (std::string textureName : textureNames) {
+                    if (textureName.find("leaf") != std::string::npos) {
+
+                        AssetTexture* texture = textureBroker->getTexture(textureName);
+                        bool exists = false;
+                        Entity* existingEntity = nullptr;
+                        for (auto pairing : _transparencyTextures) {
+                            if (pairing.second->getName().compare(texture->getName()) == 0) {
+                                exists = true;
+                                existingEntity = pairing.first;
+                            }
+                        }
+                        if (exists == false) {
+
+                            _transparencyTextures[instance] = texture;
+                            instance->setRayTracingTextureId(_transparencyTextures.size());
+
+                            // There should only be one transparent texture for a tree
+                            break;
+                        }
+                        else if (texture->getTransparency() == true &&
+                            exists == true &&
+                            existingEntity != nullptr) {
+
+                            instance->setRayTracingTextureId(existingEntity->getRayTracingTextureId());
+                            // There should only be one transparent texture for a tree
+                            break;
+                        }
+                    }
+                }
+            }
+
             memcpy(&_instanceDesc[i].Transform, instance->getWorldSpaceTransform().getFlatBuffer(), sizeof(float) * 12);
             _instanceDesc[i].InstanceMask                        = 1;
+            // Used to identify which geomtry contains non opaque geometry like leaves and bushes
+            _instanceDesc[i].InstanceID                          = instance->getRayTracingTextureId();
             _instanceDesc[i].InstanceContributionToHitGroupIndex = 0;
             _instanceDesc[i].AccelerationStructure = 
                 (_bottomLevelAccelerationStructure[bottomLevelIndex])->GetGPUVirtualAddress();

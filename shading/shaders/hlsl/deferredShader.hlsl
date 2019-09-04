@@ -17,7 +17,12 @@ sampler     textureSampler     : register(s0);
 #if (USE_SHADER_MODEL_6_5 == 1)
 //Raytracing Acceleration Structure
 RaytracingAccelerationStructure rtAS : register(t10);
-Texture2D   transparencyTexture      : register(t11); // transparency test texture
+Texture2D   transparencyTexture1     : register(t11); // transparency texture 1
+Texture2D   transparencyTexture2     : register(t12); // transparency texture 2
+Texture2D   transparencyTexture3     : register(t13); // transparency texture 3
+Texture2D   transparencyTexture4     : register(t14); // transparency texture 4
+Texture2D   transparencyTexture5     : register(t15); // transparency texture 5
+
 #endif
 
 cbuffer globalData             : register(b0) {
@@ -176,32 +181,45 @@ PixelOut PS(float4 posH : SV_POSITION,
     while (rayQuery.Proceed() == true)
     {
         if (rayQuery.CandidateType() == CANDIDATE_NON_OPAQUE_TRIANGLE) {
-            float3   hitPosition   = rayQuery.WorldRayOrigin() +
-                                     (rayQuery.CandidateTriangleRayT() * rayQuery.WorldRayDirection());
 
-            float4x4 lightViewProj = mul(lightViewMatrix, lightProjectionMatrix);
-            float4   clipSpace     = mul(float4(hitPosition, 1), lightViewProj);
-
-            if (transparencyTexture.Sample(textureSampler, rayQuery.CandidateTriangleBarycentrics()).a > 0.1) {
-                rayQuery.CommitNonOpaqueTriangleHit();
-                //rtDepth = 0;// clipSpace.z;
+            float  alphaValue   = 1.0f;
+            barycentrics = float2(-barycentrics.x, -barycentrics.y);
+            if (rayQuery.CandidateInstanceID() == 1) {
+                alphaValue = transparencyTexture1.Sample(textureSampler, barycentrics).a;
             }
+            else if (rayQuery.CandidateInstanceID() == 2) {
+                alphaValue = transparencyTexture2.Sample(textureSampler, barycentrics).a;
+            }
+            else if (rayQuery.CandidateInstanceID() == 3) {
+                alphaValue = transparencyTexture3.Sample(textureSampler, barycentrics).a;
+            }
+            else if (rayQuery.CandidateInstanceID() == 4) {
+                alphaValue = transparencyTexture4.Sample(textureSampler, barycentrics).a;
+            }
+            else if (rayQuery.CandidateInstanceID() == 5) {
+                alphaValue = transparencyTexture5.Sample(textureSampler, barycentrics).a;
+            }
+
+            if (alphaValue > 0.1) {
+                rayQuery.CommitNonOpaqueTriangleHit();
+            }
+
+            /*if (rayQuery.CandidateInstanceID() == 5) {
+                if (transparencyTexture1.Sample(textureSampler, rayQuery.CandidateTriangleBarycentrics()).a > 0.1) {
+                    rayQuery.CommitNonOpaqueTriangleHit();
+                }
+            }*/
         }
     }
     if (rayQuery.CommittedStatus() == COMMITTED_TRIANGLE_HIT)
     {
-        float3   hitPosition = rayQuery.WorldRayOrigin() +
-                              (rayQuery.CommittedRayT() * rayQuery.WorldRayDirection());
+        float3   hitPosition   = rayQuery.WorldRayOrigin() +
+                                (rayQuery.CommittedRayT() * rayQuery.WorldRayDirection());
 
         float4x4 lightViewProj = mul(lightViewMatrix, lightProjectionMatrix);
-        float4   clipSpace = mul(float4(hitPosition, 1), lightViewProj);
-        rtDepth = clipSpace.z;
+        float4   clipSpace     = mul(float4(hitPosition, 1), lightViewProj);
+        rtDepth                = clipSpace.z;
     }
-    
-    /*if (rayQuery.CandidateType() == CANDIDATE_NON_OPAQUE_TRIANGLE)
-    {
-        rtDepth = 0.0f;
-    }*/
 
     //Opaque geometry
     /*if (rayQuery.Proceed()         == false &&

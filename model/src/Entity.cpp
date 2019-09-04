@@ -15,7 +15,8 @@ Entity::Entity(Model* model, ViewEvents* eventWrapper, MVP transforms) :
     _selected(false),
     _frustumRenderBuffers(new std::vector<RenderBuffers>()),
     _gameState(EngineState::getEngineState()),
-    _layeredTexture(nullptr) {
+    _layeredTexture(nullptr),
+    _rayTracingTextureId(0) {
 
     _worldSpaceTransform = transforms.getModelMatrix();
     _mvp.setProjection(transforms.getProjectionMatrix());
@@ -114,10 +115,18 @@ void Entity::_updateKinematics(int milliSeconds) {
     Vector4 position = _state.getLinearPosition();
     Matrix kinematicTransform = Matrix::translation(position.getx(), position.gety(), position.getz());
     auto totalTransform = kinematicTransform * _worldSpaceTransform;
-    
+
     _worldSpaceGeometry.updateTransform(totalTransform);
     _mvp.setModel(totalTransform);
-    
+
+}
+
+unsigned int Entity::getRayTracingTextureId() {
+    return _rayTracingTextureId;
+}
+
+void Entity::setRayTracingTextureId(unsigned int rtId) {
+    _rayTracingTextureId = rtId;
 }
 
 void Entity::_updateGameState(EngineStateFlags state) {

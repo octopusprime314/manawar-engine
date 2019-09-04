@@ -61,8 +61,11 @@ public:
     LayeredTexture*             getLayeredTexture();
     void                        setLayeredTexture(LayeredTexture* layeredTexture);
     void                        setMVP(MVP mvp);
+    unsigned int                getRayTracingTextureId();
+    void                        setRayTracingTextureId(unsigned int rtId);
 protected:
 
+    unsigned int                _rayTracingTextureId;
     VAOMap                      _frustumVAOMapping;
     std::vector<VAO*>           _frustumVAOs; //vaos that are in view for entity
     FrustumCuller*              _frustumCuller;

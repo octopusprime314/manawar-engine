@@ -4,6 +4,7 @@
 #include "GLSLShader.h"
 #include "HLSLShader.h"
 #include "EngineManager.h"
+#include "RayTracingPipelineShader.h"
 
 DeferredShader::DeferredShader(std::string shaderName) {
 
@@ -174,10 +175,20 @@ void DeferredShader::runShader(std::vector<Light*>& lights,
 
     _shader->updateData("lightRayProjection", inverseProj.getFlatBuffer());
 
-    _shader->updateRTAS("rtAS", EngineManager::getRTAS());
+    RayTracingPipelineShader* rtPipeline = EngineManager::getRTPipeline();
+    auto transparentTextures             = rtPipeline->getTransparentTextures();
 
-    AssetTexture* leafTexture = TextureBroker::instance()->getTexture("../assets/textures/trees\\oak leaf.dds");
-    _shader->updateData("transparencyTexture", GL_TEXTURE11, leafTexture);
+    _shader->updateRTAS("rtAS", rtPipeline->getRTAS());
+
+    for (auto texture : transparentTextures) {
+        _shader->updateData("transparencyTexture" + std::to_string(texture.first->getRayTracingTextureId()),
+                            GL_TEXTURE10 + texture.first->getRayTracingTextureId(),
+                            texture.second);
+    }
+    /*AssetTexture* leafTexture = TextureBroker::instance()->getTexture("../assets/textures/trees\\oak leaf.dds");
+    _shader->updateData("transparencyTexture1",
+                        GL_TEXTURE11,
+                        leafTexture);*/
 
     if (EngineManager::getGraphicsLayer() == GraphicsLayer::OPENGL) {
         glDrawArrays(GL_TRIANGLE_STRIP, 0, (GLsizei)4);

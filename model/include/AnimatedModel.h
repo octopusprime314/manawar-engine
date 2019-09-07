@@ -29,25 +29,25 @@
 class AnimatedModel : public Model {
 
 protected:
-    std::vector<Animation*> _animations;
+    //Used to tell the animated model a new animation needs to be loaded to gpu
+    bool                    _animationUpdateRequest;
     int                     _currentAnimation;
-    bool                    _animationUpdateRequest; //Used to tell the animated model a new animation needs to be loaded to gpu
-    std::mutex              _updateLock;
-
-    GLuint                  _indexContext;
     GLuint                  _weightContext;
+    GLuint                  _indexContext;
+    std::vector<Animation*> _animations;
+    std::mutex              _updateLock;
     std::vector<Matrix>*    _currBones;
-
 
 public:
     AnimatedModel(std::string name);
     ~AnimatedModel();
     void                    addAnimation(Animation* animation);
-    Animation*              getAnimation(); //Return current animation
-    GLuint                  getIndexContext();
-    GLuint                  getWeightContext();
-    std::vector<Matrix>*    getBones();
-    void                    updateAnimation();
+    virtual void            updateModel( Model*     model);
     void                    triggerNextFrame();
-    virtual void            updateModel(Model* model);
+    GLuint                  getWeightContext();
+    GLuint                  getIndexContext();
+    void                    updateAnimation();
+    //Return current animation
+    Animation*              getAnimation();
+    std::vector<Matrix>*    getBones();
 };

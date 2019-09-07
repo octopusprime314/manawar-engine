@@ -30,5 +30,6 @@ class ShadowAnimatedShader : public ShadowStaticShader {
 public:
     ShadowAnimatedShader(std::string shaderName);
     virtual     ~ShadowAnimatedShader();
-    void        runShader(Entity* entity, Light* light);
+    void        runShader(Entity* entity,
+                          Light*  light);
 };

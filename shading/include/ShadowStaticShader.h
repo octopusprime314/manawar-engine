@@ -31,5 +31,6 @@ class ShadowStaticShader : public ShaderBase {
 public:
     ShadowStaticShader(std::string shaderName);
     virtual     ~ShadowStaticShader();
-    void        runShader(Entity* entity, Light* light);
+    void        runShader(Entity* entity,
+                          Light*  light);
 };

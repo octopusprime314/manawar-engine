@@ -9,22 +9,23 @@ ShadowAnimatedPointShader::~ShadowAnimatedPointShader() {
 
 }
 
-void ShadowAnimatedPointShader::runShader(Entity* entity, Light* light, std::vector<Matrix> lightTransforms) {
+void ShadowAnimatedPointShader::runShader(Entity*             entity,
+                                          Light*              light,
+                                          std::vector<Matrix> lightTransforms) {
 
     AnimatedModel* animationModel = static_cast<AnimatedModel*>(entity->getModel());
 
     //Load in vbo buffers
     std::vector<VAO*>* vao = animationModel->getVAO();
-    MVP* modelMVP = entity->getMVP();
-    MVP lightMVP = light->getLightMVP();
+    MVP* modelMVP          = entity->getMVP();
+    MVP lightMVP           = light->getLightMVP();
 
     //Use one single shadow shader and replace the vbo buffer from each model
-    _shader->bind(); //use context for loaded shader
+    _shader->bind();
 
     for (auto vaoInstance : *vao) {
         glBindVertexArray(vaoInstance->getVAOShadowContext());
 
-        //glUniform mat4 combined model and world matrix, GL_TRUE is telling GL we are passing in the matrix as row major
         _shader->updateData("model", modelMVP->getModelBuffer());
 
         float* lightCubeTransforms = new float[6 * 16];
@@ -35,7 +36,6 @@ void ShadowAnimatedPointShader::runShader(Entity* entity, Light* light, std::vec
                 lightCubeTransforms[index++] = mat[i];
             }
         }
-        //glUniform mat4 light cube map transforms, GL_TRUE is telling GL we are passing in the matrix as row major
         //6 faces and each transform is 16 floats in a 4x4 matrix
         _shader->updateData("shadowMatrices[0]", lightCubeTransforms);
         delete[] lightCubeTransforms;
@@ -47,12 +47,12 @@ void ShadowAnimatedPointShader::runShader(Entity* entity, Light* light, std::vec
         //Set far plane for depth scaling
         //Quick trick to get far value out of projection matrix
         auto projMatrix = lightMVP.getProjectionBuffer();
-        float nearVal = (2.0f*projMatrix[11]) / (2.0f*projMatrix[10] - 2.0f);
-        float farVal = ((projMatrix[10] - 1.0f)*nearVal) / (projMatrix[10] + 1.0f);
+        float nearVal   = (2.0f*projMatrix[11]) / (2.0f*projMatrix[10] - 2.0f);
+        float farVal    = ((projMatrix[10] - 1.0f)*nearVal) / (projMatrix[10] + 1.0f);
         _shader->updateData("farPlane", &farVal);
 
         //Bone uniforms
-        auto bones = animationModel->getBones();
+        auto bones        = animationModel->getBones();
         float* bonesArray = new float[16 * 150]; //4x4 times number of bones
         int bonesArrayIndex = 0;
         for (auto bone : *bones) {
@@ -64,7 +64,7 @@ void ShadowAnimatedPointShader::runShader(Entity* entity, Light* light, std::vec
         _shader->updateData("bones[0]", bonesArray);
         delete[] bonesArray;
 
-        auto textureStrides = vaoInstance->getTextureStrides();
+        auto textureStrides       = vaoInstance->getTextureStrides();
         unsigned int verticesSize = 0;
         for (auto textureStride : textureStrides) {
             verticesSize += textureStride.second;
@@ -75,5 +75,5 @@ void ShadowAnimatedPointShader::runShader(Entity* entity, Light* light, std::vec
 
         glBindVertexArray(0);
     }
-    glUseProgram(0);//end using this shader
+    glUseProgram(0);
 }

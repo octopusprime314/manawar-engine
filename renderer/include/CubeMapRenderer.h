@@ -31,14 +31,19 @@
 class CubeMapRenderer {
 
 protected:
-    CubeMap             _cubeTextureMap; //Contains 6 size for point light shadow rendering
-    bool                _isDepth; //Depth or color buffer cube map renderer
+    //Contains 6 size for point light shadow rendering
+    CubeMap             _cubeTextureMap;
     std::vector<Matrix> _transforms;
+    //Depth or color buffer cube map renderer
+    bool                _isDepth;
 public:
-    CubeMapRenderer(GLuint width, GLuint height, bool isDepth);
+    CubeMapRenderer(GLuint width,
+                    GLuint height,
+                    bool   isDepth);
     ~CubeMapRenderer();
 
-    void                preCubeFaceRender(std::vector<Entity*> entityList, MVP* mvp);
+    void                preCubeFaceRender(std::vector<Entity*> entityList,
+                                          MVP*                 mvp);
     void                postCubeFaceRender();
     Texture*            getCubeMapTexture();
 };

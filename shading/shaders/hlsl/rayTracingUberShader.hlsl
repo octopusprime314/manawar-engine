@@ -3,9 +3,9 @@
 struct SceneConstantBuffer
 {
     float4x4 projectionToWorld;
-    float4 cameraPosition;
-    float4 lightPosition;
-    float4 lightDirection;
+    float4   cameraPosition;
+    float4   lightPosition;
+    float4   lightDirection;
     float4x4 projection;
     float4x4 lightView;
 };
@@ -33,29 +33,34 @@ struct RayPayload
 
 typedef BuiltInTriangleIntersectionAttributes MyAttributes;
 
-RaytracingAccelerationStructure Scene         : register(t0, space0);
-RWTexture2D<float4> RenderTarget              : register(u0);
-ByteAddressBuffer Indices                     : register(t1, space0);
-StructuredBuffer<Vertex> Vertices             : register(t2, space0);
-ConstantBuffer<SceneConstantBuffer> g_sceneCB : register(b0);
+RaytracingAccelerationStructure Scene       : register(t0, space0);
+RWTexture2D<float4> RenderTarget            : register(u0);
+ByteAddressBuffer Indices                   : register(t1, space0);
+StructuredBuffer<Vertex> Vertices           : register(t2, space0);
+ConstantBuffer<SceneConstantBuffer> sceneCB : register(b0);
 
 
 // Retrieve hit world position.
 float3 HitWorldPosition()
 {
-    return WorldRayOrigin() + RayTCurrent() * WorldRayDirection();
+    return WorldRayOrigin() +
+           RayTCurrent()    *
+           WorldRayDirection();
 }
 
 // Retrieve attribute at a hit position interpolated from vertex attributes using the hit's barycentrics.
-float3 HitAttribute(float3 vertexAttribute[3], BuiltInTriangleIntersectionAttributes attr)
+float3 HitAttribute(float3                                vertexAttribute[3],
+                    BuiltInTriangleIntersectionAttributes attr)
 {
     return vertexAttribute[0] +
-        attr.barycentrics.x * (vertexAttribute[1] - vertexAttribute[0]) +
-        attr.barycentrics.y * (vertexAttribute[2] - vertexAttribute[0]);
+           attr.barycentrics.x * (vertexAttribute[1] - vertexAttribute[0]) +
+           attr.barycentrics.y * (vertexAttribute[2] - vertexAttribute[0]);
 }
 
 // Generate a ray in world space for a camera pixel corresponding to an index from the dispatched 2D grid.
-inline void GenerateCameraRay(uint2 index, out float3 origin, out float3 direction)
+inline void GenerateCameraRay(    uint2  index,
+                              out float3 origin,
+                              out float3 direction)
 {
     float2 xy = index + 0.5f; // center in the middle of the pixel.
     float2 screenPos = xy / DispatchRaysDimensions().xy * 2.0 - 1.0;
@@ -64,16 +69,16 @@ inline void GenerateCameraRay(uint2 index, out float3 origin, out float3 directi
     screenPos.y = -screenPos.y;
 
     // Unproject the pixel coordinate into a ray.
-    float4 world = mul(float4(screenPos, 0, 1), g_sceneCB.projectionToWorld);
+    float4 world = mul(float4(screenPos, 0, 1), sceneCB.projectionToWorld);
 
     world.xyz /= world.w;
     //Projection matrix
-    //origin = g_sceneCB.cameraPosition.xyz;
+    //origin = sceneCB.cameraPosition.xyz;
     //direction = normalize(world.xyz - origin);
 
     //Orthographic matrix
     origin = world.xyz;
-    direction = g_sceneCB.lightDirection.xyz;
+    direction = sceneCB.lightDirection.xyz;
 }
 
 [shader("raygeneration")]
@@ -108,7 +113,7 @@ void MyRaygenShader()
         float3   hitPosition   = rayQuery.WorldRayOrigin() +
                                  (rayQuery.CommittedRayT() * rayQuery.WorldRayDirection());
 
-        float4x4 lightViewProj = mul(g_sceneCB.lightView, g_sceneCB.projection);
+        float4x4 lightViewProj = mul(sceneCB.lightView, sceneCB.projection);
         float4   clipSpace     = mul(float4(hitPosition, 1), lightViewProj);
         float    depth         = clipSpace.z;
 
@@ -148,7 +153,7 @@ void MyRaygenShader()
     //                             (rayQuery2.CommittedRayT() *
     //                                 rayQuery2.WorldRayDirection());
     //
-    //    float4x4 lightViewProj = mul(g_sceneCB.lightView, g_sceneCB.projection);
+    //    float4x4 lightViewProj = mul(sceneCB.lightView, sceneCB.projection);
     //    float4   clipSpace     = mul(float4(hitPosition, 1), lightViewProj);
     //    float    depth         = clipSpace.z;
     //
@@ -167,61 +172,19 @@ void MyRaygenShader()
     RenderTarget[DispatchRaysIndex().xy] = payload.color;
 }
 
-//float getDepth()
-//{
-//    float3 hitPosition = WorldRayOrigin() + RayTCurrent() * WorldRayDirection();
-//
-//    float4x4 lightViewProj = mul(g_sceneCB.lightView, g_sceneCB.projection);
-//    float4 clipSpace = mul(float4(hitPosition, 1), lightViewProj);
-//    return clipSpace.z;
-//}
-
 [shader("closesthit")]
-void MyClosestHitShader(inout RayPayload payload, in MyAttributes attr)
+void MyClosestHitShader(inout RayPayload   payload,
+                        in    MyAttributes attr)
 {
-    //float3 rayDir;
-    //float3 origin;
-
-    //float2 xy = DispatchRaysIndex().xy + 0.5f; // center in the middle of the pixel.
-    //float2 screenPos = xy / DispatchRaysDimensions().xy * 2.0 - 1.0;
-
-    //// Invert Y for DirectX-style coordinates.
-    //screenPos.y = -screenPos.y;
-
-    //// Unproject the pixel coordinate into a ray.
-    //float4 world = mul(float4(screenPos, 0, 1), g_sceneCB.projectionToWorld);
-
-    //world.xyz /= world.w;
-
-    //payload.color = float4(world.zzz, 1.0f);
-    //payload.color = float4(abs(rayDir.zzz), 1.0f);
-    //payload.color = float4(abs(screenPos), 0.0, 1.0f);
-
     float3   hitPosition   = HitWorldPosition();
-    float4x4 lightViewProj = mul(g_sceneCB.lightView, g_sceneCB.projection);
+    float4x4 lightViewProj = mul(sceneCB.lightView, sceneCB.projection);
     float4   clipSpace     = mul(float4(hitPosition, 1), lightViewProj);
     payload.color          = float4(clipSpace.z, clipSpace.z, clipSpace.z, 1.0);
-
-
-    //float2 xy        = DispatchRaysIndex() + 0.5f; // center in the middle of the pixel.
-    //float2 screenPos = xy / DispatchRaysDimensions().xy * 2.0 - 1.0;
-    //// Invert Y for DirectX-style coordinates.
-    //screenPos.y = -screenPos.y;
-    //payload.color = float4(screenPos.y, screenPos.y, 0.0, 1.0);
-
-
 }
 
 [shader("miss")]
 void MyMissShader(inout RayPayload payload)
 {
     float4 background = float4(1.0f, 0.0f, 0.0f, 0.0f);
-    payload.color = background;
-
-    //float2 xy = DispatchRaysIndex() + 0.5f; // center in the middle of the pixel.
-    //float2 screenPos = xy / DispatchRaysDimensions().xy * 2.0 - 1.0;
-    //// Invert Y for DirectX-style coordinates.
-    //screenPos.y = -screenPos.y;
-    //payload.color = float4(screenPos.y, screenPos.y, 0.0, 1.0);
-
+    payload.color     = background;
 }

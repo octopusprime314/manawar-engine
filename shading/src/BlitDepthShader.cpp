@@ -20,12 +20,10 @@ BlitDepthShader::~BlitDepthShader() {
 
 }
 
-void BlitDepthShader::runShader(RenderTexture* inDepthBuffer, RenderTexture* outDepthBuffer) {
+void BlitDepthShader::runShader(RenderTexture* inDepthBuffer,
+                                RenderTexture* outDepthBuffer) {
 
-
-    //LOAD IN SHADER
     _shader->bind();
-
     if(EngineManager::getGraphicsLayer() == GraphicsLayer::OPENGL) {
         glBindVertexArray(_dummyVAO);
     }
@@ -41,7 +39,6 @@ void BlitDepthShader::runShader(RenderTexture* inDepthBuffer, RenderTexture* out
     else {
         _shader->draw(0, 1, 3);
     }
-
     _shader->unbindAttributes();
     _shader->unbind();
 }

@@ -40,57 +40,71 @@ class Entity : public EventSubscriber {
 public:
 
     //Default model to type to base class
-    Entity(Model* model, ViewEvents* eventWrapper, MVP worldSpaceTransform = MVP());
+    Entity(Model*      model,
+           ViewEvents* eventWrapper,
+           MVP         worldSpaceTransform = MVP());
     virtual ~Entity();
+
+    void                        setRayTracingTextureId(unsigned int    rtId);
+    void                        setLayeredTexture(     LayeredTexture* layeredTexture);
+    void                        setPosition(           Vector4         position);
+    void                        setVelocity(           Vector4         velocity);
+    void                        setSelected(           bool            isSelected);
+    bool                        isID(                  unsigned int    entityID);
+
+    Matrix                      getWorldSpaceTransform();
+    unsigned int                getRayTracingTextureId();
+    LayeredTexture*             getLayeredTexture();
+    FrustumCuller*              getFrustumCuller();
+    std::vector<RenderBuffers>* getRenderBuffers();
+    StateVector*                getStateVector();
+    std::vector<VAO*>*          getFrustumVAO();
+    VAOMap                      getVAOMapping();
+    void                        setMVP(MVP mvp);
+    bool                        getSelected();
+    Geometry*                   getGeometry();
+    MVP*                        getPrevMVP();
     Model*                      getModel();
     MVP*                        getMVP();
-    MVP*                        getPrevMVP();
-    StateVector*                getStateVector();
-    void                        setPosition(Vector4 position);
-    void                        setVelocity(Vector4 velocity);
-    std::vector<VAO*>*          getFrustumVAO();
-    FrustumCuller*              getFrustumCuller();
-    VAOMap                      getVAOMapping();
     unsigned int                getID();
-    bool                        isID(unsigned int entityID);
-    void                        setSelected(bool isSelected);
-    bool                        getSelected();
-    std::vector<RenderBuffers>* getRenderBuffers();
-    Matrix                      getWorldSpaceTransform();
-    Geometry*                   getGeometry();
-    LayeredTexture*             getLayeredTexture();
-    void                        setLayeredTexture(LayeredTexture* layeredTexture);
-    void                        setMVP(MVP mvp);
-    unsigned int                getRayTracingTextureId();
-    void                        setRayTracingTextureId(unsigned int rtId);
+
 protected:
-
-    unsigned int                _rayTracingTextureId;
-    VAOMap                      _frustumVAOMapping;
-    std::vector<VAO*>           _frustumVAOs; //vaos that are in view for entity
-    FrustumCuller*              _frustumCuller;
-    StateVector                 _state; //Kinematics
-    MasterClock*                _clock; //Used to coordinate time with the world
-    Model*                      _model; //Graphics data
-    MVP                         _mvp; //Model view matrix container
-    Matrix                      _worldSpaceTransform;
-    MVP                         _prevMVP; //Previous Model view matrix container for motion blur
-    static unsigned int         _idGenerator; //id generator that is incremented every time a new Entity is added
-    unsigned int                _id; //used to identify entities, used for picking
-    bool                        _selected;
     std::vector<RenderBuffers>* _frustumRenderBuffers;
-    EngineStateFlags            _gameState;
-    Geometry                    _worldSpaceGeometry; //Entity space geometry
+    unsigned int                _rayTracingTextureId;
+    Matrix                      _worldSpaceTransform;
+    //Entity space geometry
+    Geometry                    _worldSpaceGeometry;
+    VAOMap                      _frustumVAOMapping;
     LayeredTexture*             _layeredTexture;
+    FrustumCuller*              _frustumCuller;
+    std::vector<VAO*>           _frustumVAOs;
+    //id generator that is incremented every time a new Entity is added
+    static unsigned int         _idGenerator;
+    EngineStateFlags            _gameState;
+    bool                        _selected;
+    //Previous Model view matrix container for motion blur
+    MVP                         _prevMVP;
+    StateVector                 _state;
+    MasterClock*                _clock;
+    Model*                      _model;
+    MVP                         _mvp;
+    unsigned int                _id;
 
+    void                        _updateReleaseKeyboard(int              key,
+                                                       int              x,
+                                                       int              y) {};
+    void                        _updateGameState(      EngineStateFlags state);
+    void                        _updateKeyboard(       int              key,
+                                                       int              x,
+                                                       int              y) {};
+    void                        _updateMouse(          double           x,
+                                                       double           y) {};
+    void                        _updateProjection(     Matrix           projection);
+    void                        _updateKinematics(     int              milliSeconds);
+    void                        _updateAnimation(      int              milliSeconds);
+    void                        _updateView(           Matrix           view);
     void                        _generateVAOTiles();
-    void                        _updateKeyboard(int key, int x, int y) {}; //Do stuff based on keyboard upate
-    void                        _updateReleaseKeyboard(int key, int x, int y) {};
-    void                        _updateMouse(double x, double y) {}; //Do stuff based on mouse update
-    void                        _updateDraw(); //Do draw stuff
-    void                        _updateGameState(EngineStateFlags state);
-    void                        _updateView(Matrix view); //Get view matrix updates
-    void                        _updateProjection(Matrix projection); //Get projection matrix updates
-    void                        _updateKinematics(int milliSeconds);
-    void                        _updateAnimation(int milliSeconds);
+    void                        _updateDraw();
+
+
 };

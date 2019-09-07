@@ -21,7 +21,8 @@
 
 ShaderBroker* ShaderBroker::_broker = nullptr;
 
-ShaderBroker* ShaderBroker::instance() { //Only initializes the static pointer once
+//Only initializes the static pointer once
+ShaderBroker* ShaderBroker::instance() {
     if (_broker == nullptr) {
         _broker = new ShaderBroker();
     }
@@ -37,7 +38,7 @@ ShaderBroker::~ShaderBroker() {
 //helper function to capitalize everything
 std::string ShaderBroker::_strToUpper(std::string s) {
     std::transform(s.begin(), s.end(), s.begin(),
-        [](unsigned char c) { return std::toupper(c); } // correct
+        [](unsigned char c) { return std::toupper(c); }
     );
     return s;
 }
@@ -53,9 +54,7 @@ ShaderBase* ShaderBroker::getShader(std::string shaderName) {
 }
 
 void ShaderBroker::recompileShader(std::string shaderName) {
-
     std::string upperCaseMapName = _strToUpper(shaderName);
-
     if (_shaders.find(upperCaseMapName) != _shaders.end()) {
 
         //auto shader = new Shader(upperCaseMapName);
@@ -71,10 +70,11 @@ void ShaderBroker::recompileShader(std::string shaderName) {
 
 void ShaderBroker::_gatherShaderNames()
 {
-    bool isFile = false;
-    DIR *dir;
-    struct dirent *ent;
-    std::string shadersLocation = SHADERS_LOCATION;
+    DIR*           dir;
+    struct dirent* ent;
+    std::string    shadersLocation = SHADERS_LOCATION;
+    bool           isFile = false;
+
     if (EngineManager::getGraphicsLayer() == GraphicsLayer::OPENGL) {
         shadersLocation += "glsl/";
     }
@@ -90,16 +90,17 @@ void ShaderBroker::_gatherShaderNames()
             if (*ent->d_name) {
                 std::string fileName = std::string(ent->d_name);
            
-                if (!fileName.empty() && 
-                    fileName != "." && 
-                    fileName != ".." && 
+                if (!fileName.empty()                       &&
+                    fileName != "."                         &&
+                    fileName != ".."                        &&
                     fileName.find(".") != std::string::npos &&
                     fileName.find(".ini") == std::string::npos) {
                     
                     LOG_INFO(ent->d_name, "\n");
 
-                    std::string mapName = fileName.substr(0, fileName.find("."));
+                    std::string mapName          = fileName.substr(0, fileName.find("."));
                     std::string upperCaseMapName = _strToUpper(mapName);
+
                     if (mapName == "staticShader") {
                         _shaders[upperCaseMapName] = new StaticShader(mapName);
                     }
@@ -109,7 +110,8 @@ void ShaderBroker::_gatherShaderNames()
                     else if (mapName == "animatedShadowShader") {
                         _shaders[upperCaseMapName] = new ShadowAnimatedShader(mapName);
                     }
-                    else if (mapName == "waterShader" || mapName == "fireShader") {
+                    else if (mapName == "waterShader" ||
+                             mapName == "fireShader") {
                         _shaders[upperCaseMapName] = new EffectShader(mapName);
                     }
                     else if (mapName == "staticShadowShader") {
@@ -133,17 +135,17 @@ void ShaderBroker::_gatherShaderNames()
                     else if (mapName == "deferredShader") {
                         _shaders[upperCaseMapName] = new DeferredShader(mapName);
                     }
-                    else if (mapName == "add" || 
-                        mapName == "blurHorizontalShaderRGB" || 
-                        mapName == "blurShader" || 
-                        mapName == "blurVerticalShaderRGB" || 
-                        mapName == "downsample" || 
-                        mapName == "downsampleRGB" ||
-                        mapName == "highLuminanceFilter" ||
-                        mapName == "motionBlur" ||
-                        mapName == "upsample" ||
-                        mapName == "upsampleRGB" ||
-                        mapName == "mipGen") {
+                    else if (mapName == "add"                     ||
+                             mapName == "blurHorizontalShaderRGB" ||
+                             mapName == "blurShader"              ||
+                             mapName == "blurVerticalShaderRGB"   ||
+                             mapName == "downsample"              ||
+                             mapName == "downsampleRGB"           ||
+                             mapName == "highLuminanceFilter"     ||
+                             mapName == "motionBlur"              ||
+                             mapName == "upsample"                ||
+                             mapName == "upsampleRGB"             ||
+                             mapName == "mipGen") {
                         _shaders[upperCaseMapName] = new ComputeShader(mapName);
                     }
                     else if (mapName == "fontShader") {

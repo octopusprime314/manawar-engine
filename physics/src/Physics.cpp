@@ -5,7 +5,8 @@
 //Make OSP (Octal Space Partioner) a 2000 cubic block and ensure only 500 primitives at maximum
 //are within a subspace of the OSP
 Physics::Physics() : 
-    _octalSpacePartioner(2000, 500),
+    _octalSpacePartioner(2000,
+                         500),
     _debugShader(static_cast<DebugShader*>(ShaderBroker::instance()->getShader("debugShader"))) {
 
 }
@@ -17,7 +18,9 @@ Physics::~Physics() {
 void Physics::run() {
 
     MasterClock* clock = MasterClock::instance();
-    clock->subscribeKinematicsRate(std::bind(&Physics::_physicsProcess, this, std::placeholders::_1));
+    clock->subscribeKinematicsRate(std::bind(&Physics::_physicsProcess,
+                                             this,
+                                             std::placeholders::_1));
 }
 
 void Physics::addEntities(std::vector<Entity*> entities) {
@@ -35,7 +38,8 @@ void Physics::addEntities(std::vector<Entity*> entities) {
         }
     }
 
-    _octalSpacePartioner.generateGeometryOSP(_entities); //Generate the octal space partition for collision efficiency
+    //Generate the octal space partition for collision efficiency
+    _octalSpacePartioner.generateGeometryOSP(_entities);
 
     _octTreeGraphic = new GeometryGraphic(_octalSpacePartioner.getCubes());
 }
@@ -54,10 +58,10 @@ void Physics::visualize() {
         float color[] = { 0.0, 0.0, 1.0 };
 
         _debugShader->runShader(_entities[i]->getMVP(),
-            geometryGraphic->getVAO(), 
-            _triangleIntersectionList[_entities[i]],
-            color,
-            GeometryConstruction::LINE_WIREFRAME);
+                                geometryGraphic->getVAO(), 
+                                _triangleIntersectionList[_entities[i]],
+                                color,
+                                GeometryConstruction::LINE_WIREFRAME);
         i++;
     }
 
@@ -71,7 +75,6 @@ void Physics::visualize() {
     //    GeometryConstruction::LINE_WIREFRAME);
 
     std::lock_guard<std::mutex> lockGuard(_lock);
-
     _triangleIntersectionList.clear();
 }
 
@@ -82,8 +85,7 @@ void Physics::_physicsProcess(int milliseconds) {
 
     //Returns the subspace partitioning node leaves to test for primitive collisions
     //The nodes necessary to test for collisions are only the end nodes of the oct tree
-
-    std::vector<bool> prevContactStates;
+    std::vector<bool>       prevContactStates;
     std::map<Entity*, bool> newContactStates;
     for (Entity* entity : _entities) {
         prevContactStates.push_back(entity->getStateVector()->getContact());
@@ -93,35 +95,39 @@ void Physics::_physicsProcess(int milliseconds) {
 
     for (OctNode<Cube*> * subspaceNode : *ospEndNodes) {
 
-        auto sphereMaps = subspaceNode->getSpheres();
+        auto sphereMaps   = subspaceNode->getSpheres();
         auto triangleMaps = subspaceNode->getTriangles();
 
         //Sphere on sphere detections
-        /*for (std::pair<Entity* const, std::set<Sphere*>>& sphereMapA : *sphereMaps) {*/
         for (auto sphereMapA = sphereMaps->begin(); sphereMapA != sphereMaps->end(); sphereMapA++) {
 
             StateVector* modelSphereStateA = sphereMapA->first->getStateVector();
 
             if (modelSphereStateA->getActive()) {
 
-                //for (std::pair<Entity* const, std::set<Sphere*>>& sphereMapB : *sphereMaps) {
                 for (auto sphereMapB = sphereMapA; sphereMapB != sphereMaps->end(); sphereMapB++) {
 
-                    //Only do detections for different models, do not detect an overlap for a model on itself...
+                    //Only do detections for different models,
+                    //do not detect an overlap for a model on itself...
                     if (sphereMapA->first != sphereMapB->first) {
 
                         StateVector* modelSphereStateB = sphereMapB->first->getStateVector();
-                        if (modelSphereStateB->getActive()) { //Only test for collisions if one of the models is active
+                        //Only test for collisions if one of the models is active
+                        if (modelSphereStateB->getActive()) {
 
                             std::set<Sphere*>& spheresA = sphereMapA->second;
                             std::set<Sphere*>& spheresB = sphereMapB->second;
 
                             for (Sphere* sphereA : spheresA) {
                                 for (Sphere* sphereB : spheresB) {
-                                    //If an overlap between a sphere and a sphere is detected then process the overlap resolution
+                                    //If an overlap between a sphere and a sphere is detected,
+                                    //then process the overlap resolution
                                     if (GeometryMath::sphereSphereDetection(*sphereA, *sphereB)) {
 
-                                        GeometryMath::sphereSphereResolution(sphereMapA->first, *sphereA, sphereMapB->first, *sphereB);
+                                        GeometryMath::sphereSphereResolution(sphereMapA->first,
+                                                                             *sphereA,
+                                                                             sphereMapB->first,
+                                                                             *sphereB);
                                     }
                                 }
                             }
@@ -139,27 +145,32 @@ void Physics::_physicsProcess(int milliseconds) {
             for (std::pair<Entity* const, std::set<std::pair<int, Triangle*>>>& triangleMap : *triangleMaps) {
                
                 StateVector* modelTriangleState = triangleMap.first->getStateVector();
-                if (modelSphereState->getActive() || modelTriangleState->getActive()) { //Only test for collisions if one of the models is active
+                //Only test for collisions if one of the models is active
+                if (modelSphereState->getActive() ||
+                    modelTriangleState->getActive()) {
 
                     std::set<std::pair<int, Triangle*>>& triangles = triangleMap.second;
-                    std::set<Sphere*>& spheres = sphereMap.second;
-
+                    std::set<Sphere*>& spheres                     = sphereMap.second;
 
                     for (Sphere* sphere : spheres) {
 
                         if (GeometryMath::sphereCubeDetection(sphere, subspaceNode->getData())) {
 
                             bool prevContactState = modelSphereState->getContact();
-                            bool newContactState = false;
+                            bool newContactState  = false;
 
                             std::lock_guard<std::mutex> lockGuard(_lock);
 
                             int i = 0;
                             for (auto triangle : triangles) {
-                                //If an overlap between a sphere and a triangle is detected then process the overlap resolution
+                                //If an overlap between a sphere and a triangle is detected,
+                                //then process the overlap resolution
                                 if (GeometryMath::sphereTriangleDetection(*sphere, *triangle.second)) {
 
-                                    GeometryMath::sphereTriangleResolution(sphereMap.first, *sphere, triangleMap.first, *triangle.second);
+                                    GeometryMath::sphereTriangleResolution(sphereMap.first,
+                                                                           *sphere,
+                                                                           triangleMap.first,
+                                                                           *triangle.second);
                                     newContactState = true;
                                     _triangleIntersectionList[sphereMap.first].insert(triangle.second);
                                 }
@@ -174,7 +185,7 @@ void Physics::_physicsProcess(int milliseconds) {
                         }
                         else {
                             //TODO: Fix me because this was causing a crash most likely
-                            // from removing a geometry from the oct node and iterating at the same time.
+                            //from removing a geometry from the oct node and iterating at the same time.
                             //Remove geometry from osp node
                             //subspaceNode->removeGeometry(sphereMap.first, sphere);
                         }
@@ -189,7 +200,8 @@ void Physics::_physicsProcess(int milliseconds) {
 
     int i = 0;
     for (Entity* entity : _entities) {
-        if (prevContactStates[i++] && !newContactStates[entity]) {
+        if (prevContactStates[i++] &&
+            !newContactStates[entity]) {
             entity->getStateVector()->setContact(false);
         }
     }
@@ -198,24 +210,30 @@ void Physics::_physicsProcess(int milliseconds) {
 void Physics::_slowDetection() {
 
     // Slow collision detection that does not involve space partitioning
-    int entityPosition = 1; //Used to prevent redudant collision tests
+    // Used to prevent redudant collision tests
+    int entityPosition = 1;
     for (auto entity : _entities) {
 
         auto model = entity->getModel();
         for (int entityIndex = entityPosition; entityIndex < _entities.size(); ++entityIndex) {
             GeometryType geomTypeA = model->getGeometryType();
-            auto entityTest = _entities[entityIndex];
+            Entity* entityTest     = _entities[entityIndex];
             GeometryType geomTypeB = entityTest->getModel()->getGeometryType();
-            if (geomTypeA == GeometryType::Triangle && geomTypeB == GeometryType::Sphere) {
-                GeometryMath::spheresTrianglesDetection(entityTest->getGeometry(), entity->getGeometry());
+            if (geomTypeA == GeometryType::Triangle &&
+                geomTypeB == GeometryType::Sphere) {
+                GeometryMath::spheresTrianglesDetection(entityTest->getGeometry(),
+                                                        entity->getGeometry());
             }
-            else if (geomTypeA == GeometryType::Sphere && geomTypeB == GeometryType::Triangle) {
-                GeometryMath::spheresTrianglesDetection(entity->getGeometry(), entityTest->getGeometry());
+            else if (geomTypeA == GeometryType::Sphere &&
+                     geomTypeB == GeometryType::Triangle) {
+                GeometryMath::spheresTrianglesDetection(entity->getGeometry(),
+                                                        entityTest->getGeometry());
             }
-            else if (geomTypeA == GeometryType::Sphere && geomTypeB == GeometryType::Sphere) {
-                GeometryMath::spheresSpheresDetection(entity->getGeometry(), entityTest->getGeometry());
+            else if (geomTypeA == GeometryType::Sphere &&
+                     geomTypeB == GeometryType::Sphere) {
+                GeometryMath::spheresSpheresDetection(entity->getGeometry(),
+                                                      entityTest->getGeometry());
             }
-
         }
         ++entityPosition;
     }

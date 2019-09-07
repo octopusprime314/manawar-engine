@@ -34,12 +34,13 @@ class MergeShader : public ShaderBase {
 protected:
     ResourceBuffer*          _vertexBuffer;
     ResourceBuffer*          _indexBuffer;
+    GLuint                   _dummyVAO;
     D3D12_INDEX_BUFFER_VIEW  _ibv;
     D3D12_VERTEX_BUFFER_VIEW _vbv;
-    GLuint                   _dummyVAO;
     VAO*                     _vao;
 public:
     MergeShader();
     virtual ~MergeShader();
-    virtual void runShader(Texture* deferredTexture, Texture* velocityTexture);
+    virtual void runShader(Texture* deferredTexture,
+                           Texture* velocityTexture);
 };

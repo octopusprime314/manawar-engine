@@ -20,13 +20,14 @@ ShadowStaticShader::~ShadowStaticShader() {
 
 }
 
-void ShadowStaticShader::runShader(Entity* entity, Light* light) {
+void ShadowStaticShader::runShader(Entity* entity,
+                                   Light*  light) {
 
     //Load in vbo buffers
-    auto model = entity->getModel();
+    auto model             = entity->getModel();
     std::vector<VAO*>* vao = model->getVAO();
-    MVP* modelMVP = entity->getMVP();
-    MVP lightMVP = light->getLightMVP();
+    MVP* modelMVP          = entity->getMVP();
+    MVP lightMVP           = light->getLightMVP();
 
     //LOAD IN SHADER
     _shader->bind();
@@ -37,10 +38,8 @@ void ShadowStaticShader::runShader(Entity* entity, Light* light) {
 
         MVP* mvp = entity->getMVP();
 
-        _shader->updateData("model", mvp->getModelBuffer());
-
-        _shader->updateData("view", lightMVP.getViewBuffer());
-
+        _shader->updateData("model",      mvp->getModelBuffer());
+        _shader->updateData("view",       lightMVP.getViewBuffer());
         _shader->updateData("projection", lightMVP.getProjectionBuffer());
 
         auto textureStrides = vaoInstance->getTextureStrides();

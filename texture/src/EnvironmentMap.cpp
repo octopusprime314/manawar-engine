@@ -1,20 +1,14 @@
 #include "EnvironmentMap.h"
 #include "Entity.h"
 
-EnvironmentMap::EnvironmentMap(GLuint width, GLuint height) :
-    CubeMapRenderer(width, height, false),
-    _environmentShader("environmentShader")/*,
-    _animatedShader("animatedShader")*/ {
+EnvironmentMap::EnvironmentMap(GLuint width, GLuint height)
+    : CubeMapRenderer(width, height, false), _environmentShader("environmentShader") {}
 
-}
-
-EnvironmentMap::~EnvironmentMap() {
-
-}
+EnvironmentMap::~EnvironmentMap() {}
 
 void EnvironmentMap::render(std::vector<Entity*> entityList, MVP* mvp) {
 
-    //Prepare cube face transforms
+    // Prepare cube face transforms
     preCubeFaceRender(entityList, mvp);
 
     for (Entity* entity : entityList) {
@@ -23,6 +17,6 @@ void EnvironmentMap::render(std::vector<Entity*> entityList, MVP* mvp) {
         }
     }
 
-    //Clean up cube face render contexts
+    // Clean up cube face render contexts
     postCubeFaceRender();
 }

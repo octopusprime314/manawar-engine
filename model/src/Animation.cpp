@@ -10,7 +10,8 @@ Animation::~Animation() {
 
 void Animation::nextFrame() {
 
-    _currentAnimationFrame++; //Increment the animation frame counter for next call
+    //Increment the animation frame counter for next call
+    _currentAnimationFrame++;
 
     if (_currentAnimationFrame >= _boneTransforms.size()) {
         _currentAnimationFrame = 0;
@@ -24,7 +25,8 @@ void Animation::setFrames(int animationFrames) {
     _animationFrames = animationFrames;
 }
 
-void Animation::setBoneIndexWeights(std::vector<std::vector<int>>* boneIndexes, std::vector<std::vector<float>>* boneWeights) {
+void Animation::setBoneIndexWeights(std::vector<std::vector<int>>*   boneIndexes,
+                                    std::vector<std::vector<float>>* boneWeights) {
     _boneIndexes = boneIndexes;
     _boneWeights = boneWeights;
 }

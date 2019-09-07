@@ -28,7 +28,7 @@
 
 enum class GeometryType {
     Triangle = 0,
-    Sphere = 1
+    Sphere   = 1
 };
 
 class Geometry {
@@ -39,9 +39,9 @@ class Geometry {
 public:
     Geometry();
     ~Geometry();
-    void                   addTriangle(Triangle triangle);
-    void                   addSphere(Sphere sphere);
+    void                   updateTransform(Matrix   transform);
+    void                   addTriangle(    Triangle triangle);
+    void                   addSphere(      Sphere   sphere);
     std::vector<Triangle>* getTriangles();
     std::vector<Sphere>*   getSpheres();
-    void                   updateTransform(Matrix transform);
 };

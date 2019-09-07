@@ -143,14 +143,14 @@ public:
                                             FbxSkin* pSkin,
                                             FbxNode* node,
                                             FbxMesh* mesh);
-                                            
+
     void            loadModel(              Model* model,
                                             FbxNode* node = nullptr);
-                                            
+
     void            loadModelData(          Model* model,
                                             FbxMesh* meshNode,
                                             FbxNode* childNode);
-                                            
+
     void            buildAnimationFrames(   AnimatedModel* model,
                                             std::vector<SkinningData>& skins);
                                             

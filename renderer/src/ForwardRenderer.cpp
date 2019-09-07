@@ -9,8 +9,10 @@
 #include "ViewEventDistributor.h"
 
 ForwardRenderer::ForwardRenderer() :
-    _forwardShader(static_cast<ForwardShader*>(ShaderBroker::instance()->getShader("forwardShader"))),
-    _instancedForwardShader(static_cast<InstancedForwardShader*>(ShaderBroker::instance()->getShader("instancedShader"))) {
+    _forwardShader(static_cast<ForwardShader*>(
+                   ShaderBroker::instance()->getShader("forwardShader"))),
+    _instancedForwardShader(static_cast<InstancedForwardShader*>(
+                            ShaderBroker::instance()->getShader("instancedShader"))) {
 
 }
 
@@ -18,8 +20,9 @@ ForwardRenderer::~ForwardRenderer() {
 
 }
 
-void ForwardRenderer::forwardLighting(std::vector<Entity*>& entityList, ViewEventDistributor* viewEventDistributor, 
-    std::vector<Light*>& lights) {
+void ForwardRenderer::forwardLighting(std::vector<Entity*>& entityList,
+                                      ViewEventDistributor* viewEventDistributor, 
+                                      std::vector<Light*>&  lights) {
 
     Matrix inverseViewProjection = ModelBroker::getViewManager()->getView().inverse() *
                                    ModelBroker::getViewManager()->getProjection().inverse();
@@ -29,10 +32,14 @@ void ForwardRenderer::forwardLighting(std::vector<Entity*>& entityList, ViewEven
         if (FrustumCuller::getVisibleAABB(entity, inverseViewProjection)) {
             auto model = entity->getModel();
             if (!model->getIsInstancedModel()) {
-                _forwardShader->runShader(entity, viewEventDistributor, lights);
+                _forwardShader->runShader(         entity,
+                                                   viewEventDistributor,
+                                                   lights);
             }
             else {
-                _instancedForwardShader->runShader(entity, viewEventDistributor, lights);
+                _instancedForwardShader->runShader(entity,
+                                                   viewEventDistributor,
+                                                   lights);
             }
         }
     }

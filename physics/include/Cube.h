@@ -28,7 +28,10 @@ class Cube {
     float   _width;  //z dimension
     Vector4 _center;
 public:
-    Cube(float length, float height, float width, Vector4 center);
+    Cube(float   length,
+         float   height,
+         float   width,
+         Vector4 center);
     float   getLength(); //x dimension
     float   getHeight(); //y dimension
     float   getWidth();  //z dimenion

@@ -28,14 +28,15 @@ class OctTree {
     OctNode<T>* _root;
 
 public:
-    OctTree() {};
+    OctTree()  {};
     ~OctTree() {};
     OctNode<T>* getRoot() { return _root; }
-    OctNode<T>* insert(OctNode<T>* node, T data) {
+    OctNode<T>* insert(OctNode<T>* node,
+                       T           data) {
 
         if (node != nullptr) {
             std::vector<OctNode<T>*>& children = node->getChildren();
-            int childCount = 0;
+            int childCount                     = 0;
             for (OctNode<T>* child : children) {
                 if (child == nullptr) {
                     //When an open space in the oct node is found break out and return new node

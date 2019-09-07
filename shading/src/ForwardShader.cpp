@@ -11,15 +11,19 @@
 #include "HLSLShader.h"
 #include "EngineManager.h"
 
-ForwardShader::ForwardShader(std::string vertexShaderName, std::string fragmentShaderName) {
+ForwardShader::ForwardShader(std::string vertexShaderName,
+                             std::string fragmentShaderName) {
     if (EngineManager::getGraphicsLayer() == GraphicsLayer::OPENGL) {
-        _shader = new GLSLShader(vertexShaderName, fragmentShaderName);
+        _shader = new GLSLShader(vertexShaderName,
+                                 fragmentShaderName);
     }
     else {
         std::vector<DXGI_FORMAT>* formats = new std::vector<DXGI_FORMAT>();
         formats->push_back(DXGI_FORMAT_R8G8B8A8_UNORM);
         formats->push_back(DXGI_FORMAT_D32_FLOAT);
-        _shader = new HLSLShader(vertexShaderName, "", formats);
+        _shader = new HLSLShader(vertexShaderName,
+                                 "",
+                                 formats);
     }
 }
 
@@ -27,14 +31,15 @@ ForwardShader::~ForwardShader() {
 
 }
 
-void ForwardShader::runShader(Entity* entity, ViewEventDistributor* viewEventDistributor,
-    std::vector<Light*>& lights) {
+void ForwardShader::runShader(Entity*               entity,
+                              ViewEventDistributor* viewEventDistributor,
+                              std::vector<Light*>&  lights) {
 
     auto model = entity->getModel();
     if (model->getClassType() != ModelClass::AnimatedModelType)
     {
         //LOAD IN SHADER
-        _shader->bind(); //use context for loaded shader
+        _shader->bind();
 
         //LOAD IN VAO
         std::vector<VAO*>* vao = entity->getFrustumVAO();
@@ -42,7 +47,6 @@ void ForwardShader::runShader(Entity* entity, ViewEventDistributor* viewEventDis
             _shader->bindAttributes(vaoInstance);
 
             MVP* mvp = entity->getMVP();
-
             _shader->updateData("model",        mvp->getModelBuffer());
             _shader->updateData("view",         mvp->getViewBuffer());
             _shader->updateData("projection",   mvp->getProjectionBuffer());
@@ -60,18 +64,19 @@ void ForwardShader::runShader(Entity* entity, ViewEventDistributor* viewEventDis
                 }
             }
             //Constant max of 20 lights in shader
-            float* lightPosArray = new float[3 * 20];
+            float* lightPosArray    = new float[3 * 20];
             float* lightColorsArray = new float[3 * 20];
             float* lightRangesArray = new float[20];
-            int lightArrayIndex = 0;
-            int lightRangeIndex = 0;
+            int lightArrayIndex     = 0;
+            int lightRangeIndex     = 0;
             for (auto& light : lights) {
                 //If point light then add to uniforms
                 if (light->getType() == LightType::POINT ||
                     light->getType() == LightType::SHADOWED_POINT) {
                     //Point lights need to remain stationary so move lights with camera space changes
-                    auto pos = viewEventDistributor->getView() * light->getPosition();
-                    float* posBuff = pos.getFlatBuffer();
+                    auto pos         = viewEventDistributor->getView() *
+                                       light->getPosition();
+                    float* posBuff   = pos.getFlatBuffer();
                     float* colorBuff = light->getColor().getFlatBuffer();
                     for (int i = 0; i < 3; i++) {
                         lightPosArray[lightArrayIndex] = posBuff[i];
@@ -82,28 +87,32 @@ void ForwardShader::runShader(Entity* entity, ViewEventDistributor* viewEventDis
                 }
             }
 
-            _shader->updateData("numPointLights", &pointLights);
-            _shader->updateData("pointLightColors[0]", lightColorsArray);
-            _shader->updateData("pointLightRanges[0]", lightRangesArray);
+            _shader->updateData("numPointLights",         &pointLights);
+            _shader->updateData("pointLightColors[0]",    lightColorsArray);
+            _shader->updateData("pointLightRanges[0]",    lightRangesArray);
             _shader->updateData("pointLightPositions[0]", lightPosArray);
-            delete[] lightPosArray;  delete[] lightColorsArray; delete[] lightRangesArray;
+            delete[] lightPosArray;
+            delete[] lightColorsArray;
+            delete[] lightRangesArray;
 
             //Change of basis from camera view position back to world position
-            if (lights.size() > 0 && lights[0] != nullptr) {
-                MVP lightMVP = lights[0]->getLightMVP();
+            if (lights.size() > 0 &
+                lights[0] != nullptr) {
+                MVP lightMVP              = lights[0]->getLightMVP();
                 Matrix cameraToLightSpace = lightMVP.getProjectionMatrix() *
-                    lightMVP.getViewMatrix() *
-                    viewEventDistributor->getView().inverse();
+                                            lightMVP.getViewMatrix()       *
+                                            viewEventDistributor->getView().inverse();
 
                 _shader->updateData("lightViewMatrix", cameraToLightSpace.getFlatBuffer());
             }
 
-            if (lights.size() > 1 && lights[1] != nullptr) {
+            if (lights.size() > 1 &&
+                lights[1] != nullptr) {
                 //Change of basis from camera view position back to world position
-                MVP lightMapMVP = lights[1]->getLightMVP();
+                MVP lightMapMVP              = lights[1]->getLightMVP();
                 Matrix cameraToLightMapSpace = lightMapMVP.getProjectionMatrix() *
-                    lightMapMVP.getViewMatrix() *
-                    viewEventDistributor->getView().inverse();
+                                               lightMapMVP.getViewMatrix()       *
+                                               viewEventDistributor->getView().inverse();
 
                 _shader->updateData("lightMapViewMatrix", cameraToLightMapSpace.getFlatBuffer());
             }
@@ -125,7 +134,7 @@ void ForwardShader::runShader(Entity* entity, ViewEventDistributor* viewEventDis
                 }
             }
 
-            auto textureStrides = vaoInstance->getTextureStrides();
+            auto textureStrides         = vaoInstance->getTextureStrides();
             unsigned int strideLocation = 0;
             for (auto textureStride : textureStrides) {
 
@@ -135,23 +144,21 @@ void ForwardShader::runShader(Entity* entity, ViewEventDistributor* viewEventDis
                 if (textureStride.first.substr(0, 7) != "Layered" &&
                     model->getTexture(textureStride.first)->getTransparency()) {
 
-                    _shader->updateData("textureMap", GL_TEXTURE0, model->getTexture(textureStride.first));
+                    _shader->updateData("textureMap",             GL_TEXTURE0, model->getTexture(textureStride.first));
                     if (directionalShadowTextures.size() > 0) {
                         _shader->updateData("cameraDepthTexture", GL_TEXTURE1, directionalShadowTextures[0]->getDepthTexture());
                     }
                     if (directionalShadowTextures.size() > 1) {
-                        _shader->updateData("mapDepthTexture", GL_TEXTURE2, directionalShadowTextures[1]->getDepthTexture());
+                        _shader->updateData("mapDepthTexture",    GL_TEXTURE2, directionalShadowTextures[1]->getDepthTexture());
                     }
                     if (pointShadowTexture != nullptr) {
-                        _shader->updateData("depthMap", GL_TEXTURE3, pointShadowTexture->getDepthTexture());
+                        _shader->updateData("depthMap",           GL_TEXTURE3, pointShadowTexture->getDepthTexture());
                     }
-
                     //Draw triangles using the bound buffer vertices at starting index 0 and number of vertices
                     _shader->draw(strideLocation, 1, (GLsizei)textureStride.second);
                 }
                 strideLocation += textureStride.second;
             }
-
             _shader->unbindAttributes();
         }
         _shader->unbind();

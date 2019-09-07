@@ -32,17 +32,22 @@ class Entity;
 
 class FrustumCuller {
     OSP*              _octalSpacePartitioner;
-    DebugShader*      _debugShader;
     GeometryGraphic*  _octTreeGraphic;
+    DebugShader*      _debugShader;
     std::vector<Cube> _singleAABB;
 public:
-    FrustumCuller(Entity* entity, float aabbDimension, int aabbMaxTriangles);
-    FrustumCuller(Entity* entity, Cube aabbCube);
-    OSP* getOSP();
-    void visualize();
-    std::vector<int> getVisibleVAOs();
-    bool             getVisibleVAO(Entity* entity);
-    static bool      getVisibleAABB(Entity* entity, Matrix inverseViewProjection);
-    static bool      getVisibleOBB(Entity* entity, Matrix inverseViewProjection, 
-                                   Light* light);
+    FrustumCuller(                   Entity* entity,
+                                     float   aabbDimension,
+                                     int     aabbMaxTriangles);
+    FrustumCuller(                   Entity* entity,
+                                     Cube    aabbCube);
+    bool              getVisibleVAO( Entity* entity);
+    static bool       getVisibleAABB(Entity* entity,
+                                     Matrix inverseViewProjection);
+    static bool       getVisibleOBB( Entity* entity,
+                                     Matrix inverseViewProjection, 
+                                     Light* light);
+    std::vector<int>  getVisibleVAOs();
+    void              visualize();
+    OSP*              getOSP();
 };

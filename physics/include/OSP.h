@@ -29,25 +29,41 @@
 #include <map>
 
 class OSP {
-    std::vector<OctNode<Cube*>*>       _frustumLeaves; //AABBs that are visible in the frustum
-    std::vector<OctNode<Cube*>*>       _ospLeaves; //End nodes that are used for collision testing
-    OctTree<Cube*>                     _octTree; //Make a Cube Octary tree
-    float                              _cubicDimension; //Describes the cubic 3D space dimensions of the OSP volume
-    int                                _maxGeometries; //The largest amount of geometry items in a subspace of _dimension^3
-    int                                _subSpace;  //The smallest 3D cubic space a tree
-    void                               _buildOctetTree(Cube* rectangle, OctNode<Cube*>* node);
-    bool                               _insertSphereSubspaces(Entity* entity, Sphere& sphere, OctNode<Cube*>* node);
-    void                               _getChildren(std::vector<Cube>* cubes, OctNode<Cube*>* node);
-    std::map<Sphere*, std::set<Cube*>> _sphereCubeCache; //Caches previous list of subspace cubes for early out testing
+
+    bool                               _insertSphereSubspaces(Entity* entity,
+                                                              Sphere& sphere,
+                                                              OctNode<Cube*>* node);
+    void                               _buildOctetTree(       Cube* rectangle,
+                                                              OctNode<Cube*>* node);
+    void                               _getChildren(          std::vector<Cube>* cubes,
+                                                              OctNode<Cube*>* node);
+
+    //Caches previous list of subspace cubes for early out testing
+    std::map<Sphere*, std::set<Cube*>> _sphereCubeCache;
+    //Describes the cubic 3D space dimensions of the OSP volume
+    float                              _cubicDimension;
+    //The largest amount of geometry items in a subspace of _dimension^3
+    int                                _maxGeometries;
+    //AABBs that are visible in the frustum
+    std::vector<OctNode<Cube*>*>       _frustumLeaves;
+    //End nodes that are used for collision testing
+    std::vector<OctNode<Cube*>*>       _ospLeaves;
+    //The smallest 3D cubic space a tree
+    int                                _subSpace;
+    //Make a Cube Octary tree
+    OctTree<Cube*>                     _octTree;
+
 public:
-    OSP(float cubicDimension, int maxGeometries);
+    OSP(float cubicDimension,
+        int   maxGeometries);
     ~OSP();
-    std::vector<Cube>*                 getCubes();
-    std::vector<Cube>*                 getFrustumCubes();
     void                               generateGeometryOSP(std::vector<Entity*>& entities);
-    void                               generateRenderOSP(Entity* entity);
-    void                               updateOSP(std::vector<Entity*>& entities);
-    std::vector<OctNode<Cube*>*>*      getOSPLeaves();
-    std::vector<OctNode<Cube*>*>*      getFrustumLeaves();
+    void                               generateRenderOSP(  Entity*               entity);
+    void                               updateOSP(          std::vector<Entity*>& entities);
     std::vector<int>                   getVisibleFrustumCulling();
+    std::vector<OctNode<Cube*>*>*      getFrustumLeaves();
+    std::vector<Cube>*                 getFrustumCubes();
+    std::vector<OctNode<Cube*>*>*      getOSPLeaves();
+    std::vector<Cube>*                 getCubes();
+ 
 };

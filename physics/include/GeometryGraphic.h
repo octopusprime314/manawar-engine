@@ -32,8 +32,8 @@ class GeometryGraphic {
 
 public:
     GeometryGraphic(std::vector<Triangle>* triangles);
-    GeometryGraphic(std::vector<Sphere>* spheres);
-    GeometryGraphic(std::vector<Cube>* cubes);
+    GeometryGraphic(std::vector<Sphere>*   spheres);
+    GeometryGraphic(std::vector<Cube>*     cubes);
     ~GeometryGraphic();
     VAO* getVAO();
 };

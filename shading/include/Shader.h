@@ -68,8 +68,8 @@ public:
     virtual void updateRTAS(std::string            id,
                             ComPtr<ID3D12Resource> rtAS) = 0;
     virtual void bindAttributes(VAO*    vao) = 0;
-    virtual void unbindAttributes() = 0;
-    virtual void bind() = 0;
-    virtual void unbind() = 0;
+    virtual void unbindAttributes()          = 0;
+    virtual void bind()                      = 0;
+    virtual void unbind()                    = 0;
 
 };

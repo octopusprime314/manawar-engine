@@ -36,15 +36,15 @@ class DeferredShader : public ShaderBase {
 
     AssetTexture* _skyBoxDayTexture;
     AssetTexture* _skyBoxNightTexture;
-    GLuint   _vaoContext;
+    GLuint        _vaoContext;
 
 public:
     DeferredShader(std::string shaderName);
     virtual ~DeferredShader();
-    void runShader(std::vector<Light*>& lights,
-                   ViewEventDistributor* viewEventDistributor, 
-                   MRTFrameBuffer& mrtFBO,
-                   SSAO* ssao,
-                   EnvironmentMap* environmentMap);
+    void runShader(std::vector<Light*>&  lights,
+                   ViewEventDistributor* viewEventDistributor,
+                   MRTFrameBuffer&       mrtFBO,
+                   SSAO*                 ssao,
+                   EnvironmentMap*       environmentMap);
     void initCubeMaps();
 };

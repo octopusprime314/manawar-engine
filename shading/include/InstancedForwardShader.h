@@ -32,5 +32,7 @@ class InstancedForwardShader : public ForwardShader {
 public:
     InstancedForwardShader(std::string shaderName);
     virtual ~InstancedForwardShader();
-    virtual void runShader(Entity* entity, ViewEventDistributor* viewEventDistributor, std::vector<Light*>& lights);
+    virtual void runShader(Entity*               entity,
+                           ViewEventDistributor* viewEventDistributor,
+                           std::vector<Light*>&  lights);
 };

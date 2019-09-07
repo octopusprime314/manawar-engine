@@ -1,17 +1,15 @@
 #version 430
 
-//number of invocations needs to be the size of the write texture
-
 uniform layout(rgba8) readonly image2D readTexture;
 uniform layout(rgba8) writeonly image2D writeTexture;
 
-layout (local_size_x = 16, local_size_y = 16) in;
- 
+layout(local_size_x = 16, local_size_y = 16) in;
+
 void main() {
-	
-	//upsample by 4x4 kernels
-	ivec2 ID = ivec2(gl_GlobalInvocationID.xy);
-	//every 4x4 block of pixels fetches in only one pixel from the read texture
-	vec3 result = imageLoad(readTexture, ID/4).rgb;
-	imageStore(writeTexture, ID, vec4(result, 1.0));
+
+    // upsample by 4x4 kernels
+    ivec2 ID = ivec2(gl_GlobalInvocationID.xy);
+    // every 4x4 block of pixels fetches in only one pixel from the read texture
+    vec3 result = imageLoad(readTexture, ID / 4).rgb;
+    imageStore(writeTexture, ID, vec4(result, 1.0));
 }

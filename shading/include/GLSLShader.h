@@ -50,33 +50,33 @@ public:
     GLSLShader(std::string vertexShaderName,
                std::string fragmentShaderName = "");
     GLSLShader(const GLSLShader& shader);
-    virtual      ~GLSLShader();
-    GLint        getShaderContext();
-    GLint        getLocation(std::string uniformName);
-    Uniforms*    getUniforms();
+    virtual ~GLSLShader();
 
     void         updateShader(GLSLShader* shader);
-    void         draw(int offset,
-                      int instances,
-                      int numTriangles);
-    void         dispatch(int x,
-                          int y,
-                          int z);
-    void         build();
-    void         updateData(std::string id,
-                            void*       data);
-    void         updateData(std::string dataName,
-                            int         textureUnit,
-                            Texture*    texture);
-    void         updateData(std::string id,
-                            GLuint      textureUnit,
-                            Texture*    texture,
-                            ImageData   imageInfo);
-    void         updateRTAS(std::string            id,
-                            ComPtr<ID3D12Resource> rtAS) {};
-    void         bindAttributes(VAO*    vao);
+    void         updateData(  std::string   id,
+                              void*         data);
+    void         updateData(  std::string   dataName,
+                              int           textureUnit,
+                              Texture*      texture);
+    void         updateData(  std::string   id,
+                              GLuint        textureUnit,
+                              Texture*      texture,
+                              ImageData     imageInfo);
+    void         draw(        int           offset,
+                              int           instances,
+                              int           numTriangles);
+    void         dispatch(    int           x,
+                              int           y,
+                              int           z);
+    void         updateRTAS(  std::string            id,
+                              ComPtr<ID3D12Resource> rtAS) {};
+    void         bindAttributes(VAO*                 vao);
+    GLint        getLocation(   std::string          uniformName);
     void         unbindAttributes();
-    void         bind();
+    GLint        getShaderContext();
+    Uniforms*    getUniforms();
     void         unbind();
+    void         build();
+    void         bind();
 
 };

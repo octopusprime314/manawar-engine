@@ -1,23 +1,17 @@
 #include "LayeredTexture.h"
 #include "AssetTexture.h"
 
-LayeredTexture::LayeredTexture(std::vector<AssetTexture*> textures) {
+LayeredTexture::LayeredTexture(std::vector<AssetTexture*> textures) { _textures = textures; }
+
+LayeredTexture::LayeredTexture(std::vector<AssetTexture*>         textures,
+                               ComPtr<ID3D12GraphicsCommandList>& cmdList,
+                               ComPtr<ID3D12Device>&              device) {
     _textures = textures;
 }
 
-LayeredTexture::LayeredTexture(std::vector<AssetTexture*> textures,
-    ComPtr<ID3D12GraphicsCommandList>& cmdList,
-    ComPtr<ID3D12Device>& device) {
-    _textures = textures;
-}
+LayeredTexture::~LayeredTexture() {}
 
-LayeredTexture::~LayeredTexture() {
-
-}
-
-std::vector<AssetTexture*> LayeredTexture::getTextures() {
-    return _textures;
-}
+std::vector<AssetTexture*> LayeredTexture::getTextures() { return _textures; }
 
 void LayeredTexture::setTexture(AssetTexture* texture) {
     for (int i = 0; i < _textures.size(); i++) {
@@ -37,4 +31,3 @@ void LayeredTexture::updateTexture(std::string textureName, FIBITMAP* pixelData)
         }
     }
 }
-

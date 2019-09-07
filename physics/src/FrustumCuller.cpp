@@ -5,21 +5,26 @@
 #include "ViewEventDistributor.h"
 #include "GeometryMath.h"
 
-FrustumCuller::FrustumCuller(Entity* entity, float aabbDimension, int aabbMaxTriangles) :
-    _octalSpacePartitioner(new OSP(aabbDimension, aabbMaxTriangles)),
+FrustumCuller::FrustumCuller(Entity* entity,
+                             float   aabbDimension,
+                             int     aabbMaxTriangles) :
+    _octalSpacePartitioner(new OSP(aabbDimension,
+                                   aabbMaxTriangles)),
     _debugShader(static_cast<DebugShader*>(ShaderBroker::instance()->getShader("debugShader"))) {
-      
-    _octalSpacePartitioner->generateRenderOSP(entity); //Generate 
+ 
+    //Generate 
+    _octalSpacePartitioner->generateRenderOSP(entity);
 
     auto frustumAABBs = _octalSpacePartitioner->getFrustumLeaves();
-    _octTreeGraphic = new GeometryGraphic(_octalSpacePartitioner->getFrustumCubes());
+    _octTreeGraphic   = new GeometryGraphic(_octalSpacePartitioner->getFrustumCubes());
 }
 
-FrustumCuller::FrustumCuller(Entity* entity, Cube aabbCube) :
+FrustumCuller::FrustumCuller(Entity* entity,
+                             Cube    aabbCube) :
     _octalSpacePartitioner(nullptr),
     _debugShader(static_cast<DebugShader*>(ShaderBroker::instance()->getShader("debugShader"))) {
 
-    _singleAABB = { aabbCube };
+    _singleAABB     = { aabbCube };
     _octTreeGraphic = new GeometryGraphic(&_singleAABB);
 }
 
@@ -32,13 +37,13 @@ void FrustumCuller::visualize() {
     float color[] = { 0.0, 1.0, 0.0 };
     //Grab any model's mvp
     MVP mvp;
-    mvp.setView(ModelBroker::getViewManager()->getView());
+    mvp.setView(      ModelBroker::getViewManager()->getView());
     mvp.setProjection(ModelBroker::getViewManager()->getProjection());
     _debugShader->runShader(&mvp,
-        _octTreeGraphic->getVAO(),
-        {},
-        color,
-        GeometryConstruction::LINE_WIREFRAME);
+                            _octTreeGraphic->getVAO(),
+                            {},
+                            color,
+                            GeometryConstruction::LINE_WIREFRAME);
 }
 
 std::vector<int> FrustumCuller::getVisibleVAOs() {
@@ -50,21 +55,32 @@ std::vector<int> FrustumCuller::getVisibleVAOs() {
 bool FrustumCuller::getVisibleVAO(Entity* entity) {
     
     Matrix inverseViewProjection = ModelBroker::getViewManager()->getFrustumView().inverse() *
-            ModelBroker::getViewManager()->getFrustumProjection().inverse();
+                                   ModelBroker::getViewManager()->getFrustumProjection().inverse();
 
     std::vector<Vector4> frustumPlanes;
-    GeometryMath::getFrustumPlanes(inverseViewProjection, frustumPlanes);
+    GeometryMath::getFrustumPlanes(inverseViewProjection,
+                                   frustumPlanes);
 
-    auto pos = entity->getStateVector()->getLinearPosition();
-    auto center = Matrix::translation(pos.getx(), pos.gety(), pos.getz()) * 
-        _singleAABB[0].getCenter();
+    auto pos    = entity->getStateVector()->getLinearPosition();
+    auto center = Matrix::translation(pos.getx(),
+                                      pos.gety(),
+                                      pos.getz()) * 
+                                      _singleAABB[0].getCenter();
     auto length = _singleAABB[0].getLength();
     auto height = _singleAABB[0].getHeight();
-    auto width = _singleAABB[0].getWidth();
-    Vector4 mins(center.getx() - length / 2.0f, center.gety() - height / 2.0f, center.getz() - width / 2.0f);
-    Vector4 maxs(center.getx() + length / 2.0f, center.gety() + height / 2.0f, center.getz() + width / 2.0f);
+    auto width  = _singleAABB[0].getWidth();
 
-    std::vector<Cube> cubes = { Cube(length, height, width, center) };
+    Vector4 mins(center.getx() - length / 2.0f,
+                 center.gety() - height / 2.0f,
+                 center.getz() - width  / 2.0f);
+    Vector4 maxs(center.getx() + length / 2.0f,
+                 center.gety() + height / 2.0f,
+                 center.getz() + width  / 2.0f);
+
+    std::vector<Cube> cubes = { Cube(length,
+                                     height,
+                                     width,
+                                     center) };
     _octTreeGraphic = new GeometryGraphic(&cubes);
 
     if (GeometryMath::frustumAABBDetection(frustumPlanes, mins, maxs)) {
@@ -75,27 +91,33 @@ bool FrustumCuller::getVisibleVAO(Entity* entity) {
     }
 }
 
-bool FrustumCuller::getVisibleAABB(Entity* entity, Matrix inverseViewProjection){
+bool FrustumCuller::getVisibleAABB(Entity* entity,
+                                   Matrix  inverseViewProjection){
 
     std::vector<Vector4> frustumPlanes;
-    GeometryMath::getFrustumPlanes(inverseViewProjection, frustumPlanes);
+    GeometryMath::getFrustumPlanes(inverseViewProjection,
+                                   frustumPlanes);
 
     Cube*   entityAABB = entity->getModel()->getGfxAABB();
     Matrix  trans      = entity->getWorldSpaceTransform();
     Vector4 center     = trans * (entityAABB->getCenter() +
                                   entity->getStateVector()->getLinearPosition());
-    float* buffer      = entity->getWorldSpaceTransform().getFlatBuffer();
+    float*  buffer     = entity->getWorldSpaceTransform().getFlatBuffer();
 
-    Vector4 A = Vector4(buffer[0], buffer[1], buffer[2]);
-    Vector4 B = Vector4(buffer[4], buffer[5], buffer[6]);
-    Vector4 C = Vector4(buffer[8], buffer[9], buffer[10]);
+    Vector4 A          = Vector4(buffer[0], buffer[1], buffer[2]);
+    Vector4 B          = Vector4(buffer[4], buffer[5], buffer[6]);
+    Vector4 C          = Vector4(buffer[8], buffer[9], buffer[10]);
 
-    auto length = entityAABB->getLength() * A.getMagnitude();
-    auto height = entityAABB->getHeight() * B.getMagnitude();
-    auto width  = entityAABB->getWidth()  * C.getMagnitude();
+    auto length        = entityAABB->getLength() * A.getMagnitude();
+    auto height        = entityAABB->getHeight() * B.getMagnitude();
+    auto width         = entityAABB->getWidth()  * C.getMagnitude();
 
-    Vector4 mins(center.getx() - length / 2.0f, center.gety() - height / 2.0f, center.getz() - width / 2.0f);
-    Vector4 maxs(center.getx() + length / 2.0f, center.gety() + height / 2.0f, center.getz() + width / 2.0f);
+    Vector4 mins(center.getx() - length / 2.0f,
+                 center.gety() - height / 2.0f,
+                 center.getz() - width  / 2.0f);
+    Vector4 maxs(center.getx() + length / 2.0f,
+                 center.gety() + height / 2.0f,
+                 center.getz() + width  / 2.0f);
 
     if (GeometryMath::frustumAABBDetection(frustumPlanes, mins, maxs)) {
 
@@ -136,13 +158,14 @@ bool FrustumCuller::getVisibleOBB(Entity* entity, Matrix inverseViewProjection, 
     auto    height     = entityAABB->getHeight() * bRot.getMagnitude();
     auto    width      = entityAABB->getWidth()  * cRot.getMagnitude();
     auto    pos        = entity->getStateVector()->getLinearPosition().getFlatBuffer();
-    /*Matrix translation = Matrix::translation(-buffer[3], buffer[7], buffer[11]) *
-                         Matrix::translation(entityAABB->getCenter().getx(), entityAABB->getCenter().gety(), entityAABB->getCenter().getz()) * 
-                         Matrix::translation(pos[0], pos[1], pos[2]);*/
-    Matrix  trans       = entity->getWorldSpaceTransform();
-    Matrix translation = trans * (Matrix::translation(entityAABB->getCenter().getx(), entityAABB->getCenter().gety(), entityAABB->getCenter().getz()))
-                                * Matrix::translation(pos[0], pos[1], pos[2]);
-    float  planeY      = fabs(light->getRange()) / /*8.0f*/2.0f;
+    Matrix  trans      = entity->getWorldSpaceTransform();
+    float   planeY     = fabs(light->getRange()) / 2.0f;
+    Matrix translation = trans * (Matrix::translation(entityAABB->getCenter().getx(),
+                                                      entityAABB->getCenter().gety(),
+                                                      entityAABB->getCenter().getz()))
+                                * Matrix::translation(pos[0],
+                                                      pos[1],
+                                                      pos[2]);
 
     lightView.getFlatBuffer()[3]  = 0.0f;
     lightView.getFlatBuffer()[7]  = 0.0f;
@@ -159,8 +182,12 @@ bool FrustumCuller::getVisibleOBB(Entity* entity, Matrix inverseViewProjection, 
     points.push_back(Vector4(+(length / 2.0f), +(height / 2.0f) + planeY, +(width / 2.0f)));
 
 
-    float min[3] = { (std::numeric_limits<float>::max)(), (std::numeric_limits<float>::max)(), (std::numeric_limits<float>::max)() };
-    float max[3] = { (std::numeric_limits<float>::min)(), (std::numeric_limits<float>::min)(), (std::numeric_limits<float>::min)() };
+    float min[3] = { (std::numeric_limits<float>::max)(),
+                     (std::numeric_limits<float>::max)(),
+                     (std::numeric_limits<float>::max)() };
+    float max[3] = { (std::numeric_limits<float>::min)(),
+                     (std::numeric_limits<float>::min)(),
+                     (std::numeric_limits<float>::min)() };
 
     for (int i = 0; i < points.size(); i++) {
         float* a = points[i].getFlatBuffer();
@@ -189,11 +216,13 @@ bool FrustumCuller::getVisibleOBB(Entity* entity, Matrix inverseViewProjection, 
     Vector4 mins(min[0], min[1], min[2]);
     Vector4 maxs(max[0], max[1], max[2]);
 
-    //Matrix lightInverseViewProjection = lightView.inverse() * translation/*.inverse()*/ * inverseViewProjection;
-    Matrix lightInverseViewProjection = lightView.inverse() * translation.inverse() * inverseViewProjection;
+    Matrix lightInverseViewProjection = lightView.inverse()   *
+                                        translation.inverse() *
+                                        inverseViewProjection;
 
     std::vector<Vector4> frustumPlanes;
-    GeometryMath::getFrustumPlanes(lightInverseViewProjection, frustumPlanes);
+    GeometryMath::getFrustumPlanes(lightInverseViewProjection,
+                                   frustumPlanes);
 
     if (GeometryMath::frustumAABBDetection(frustumPlanes, mins, maxs)) {
 

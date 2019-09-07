@@ -18,26 +18,23 @@ EnvironmentShader::~EnvironmentShader() {
 
 }
 
-void EnvironmentShader::runShader(Entity* entity, std::vector<Matrix> viewTransforms) {
+void EnvironmentShader::runShader(Entity*             entity,
+                                  std::vector<Matrix> viewTransforms) {
 
     //LOAD IN SHADER
-    _shader->bind(); //use context for loaded shader
+    _shader->bind();
 
-    auto model = entity->getModel();
+    auto model             = entity->getModel();
     std::vector<VAO*>* vao = model->getVAO();
     for (auto vaoInstance : *vao) {
         glBindVertexArray(vaoInstance->getVAOContext());
 
         MVP* mvp = entity->getMVP();
-
-        //glUniform mat4 combined model and world matrix, GL_TRUE is telling GL we are passing in the matrix as row major
         _shader->updateData("model", mvp->getModelBuffer());
-
-        //glUniform mat4 view matrix, GL_TRUE is telling GL we are passing in the matrix as row major
-        _shader->updateData("view", mvp->getViewBuffer());
+        _shader->updateData("view",  mvp->getViewBuffer());
 
         float* lightCubeTransforms = new float[6 * 16];
-        int index = 0;
+        int index                  = 0;
         for (Matrix lightTransform : viewTransforms) {
             float* mat = lightTransform.getFlatBuffer();
             for (int i = 0; i < 16; ++i) {
@@ -49,7 +46,7 @@ void EnvironmentShader::runShader(Entity* entity, std::vector<Matrix> viewTransf
         _shader->updateData("viewMatrices[0]", lightCubeTransforms);
         delete[] lightCubeTransforms;
 
-        auto textureStrides = vaoInstance->getTextureStrides();
+        auto textureStrides         = vaoInstance->getTextureStrides();
         unsigned int strideLocation = 0;
         for (auto textureStride : textureStrides) {
 
@@ -57,23 +54,23 @@ void EnvironmentShader::runShader(Entity* entity, std::vector<Matrix> viewTransf
             if (textureStride.first.substr(0, 7) == "Layered") {
 
                 LayeredTexture* layeredTexture = model->getLayeredTexture(textureStride.first);
-                auto textures = layeredTexture->getTextures();
+                auto textures                  = layeredTexture->getTextures();
 
                 //We have a layered texture
                 int isLayered = 1;
                 _shader->updateData("isLayeredTexture", &isLayered);
 
                 if (textures.size() > 4) {
-                    _shader->updateData("tex0", GL_TEXTURE1, textures[0]);
-                    _shader->updateData("tex1", GL_TEXTURE2, textures[1]);
-                    _shader->updateData("tex2", GL_TEXTURE3, textures[2]);
-                    _shader->updateData("tex3", GL_TEXTURE4, textures[3]);
+                    _shader->updateData("tex0",      GL_TEXTURE1, textures[0]);
+                    _shader->updateData("tex1",      GL_TEXTURE2, textures[1]);
+                    _shader->updateData("tex2",      GL_TEXTURE3, textures[2]);
+                    _shader->updateData("tex3",      GL_TEXTURE4, textures[3]);
                     _shader->updateData("alphatex0", GL_TEXTURE5, textures[7]);
                 }
                 else {
-                    _shader->updateData("tex0", GL_TEXTURE1, textures[0]);
-                    _shader->updateData("tex1", GL_TEXTURE2, textures[1]);
-                    _shader->updateData("tex2", GL_TEXTURE3, textures[2]);
+                    _shader->updateData("tex0",      GL_TEXTURE1, textures[0]);
+                    _shader->updateData("tex1",      GL_TEXTURE2, textures[1]);
+                    _shader->updateData("tex2",      GL_TEXTURE3, textures[2]);
                     _shader->updateData("alphatex0", GL_TEXTURE5, textures[3]);
                 }
                 glDrawArrays(GL_TRIANGLES, strideLocation, (GLsizei)textureStride.second);
@@ -86,7 +83,6 @@ void EnvironmentShader::runShader(Entity* entity, std::vector<Matrix> viewTransf
                     //Not layered texture
                     int isLayered = 0;
                     _shader->updateData("isLayeredTexture", &isLayered);
-
                     _shader->updateData("textureMap", GL_TEXTURE0, model->getTexture(textureStride.first));
 
                     //Draw triangles using the bound buffer vertices at starting index 0 and number of triangles
@@ -96,7 +92,7 @@ void EnvironmentShader::runShader(Entity* entity, std::vector<Matrix> viewTransf
             }
         }
         glBindVertexArray(0);
-        glBindTexture(GL_TEXTURE_2D, 0); //Unbind texture
+        glBindTexture(GL_TEXTURE_2D, 0);
     }
-    glUseProgram(0);//end using this shader
+    glUseProgram(0);
 }

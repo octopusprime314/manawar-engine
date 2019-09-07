@@ -31,5 +31,7 @@ class SSAOShader : public ShaderBase {
 public:
     SSAOShader();
     ~SSAOShader();
-    void runShader(SSAO* ssao, MRTFrameBuffer* mrtBuffer, ViewEventDistributor* viewEventDistributor);
+    void runShader(SSAO*                 ssao,
+                   MRTFrameBuffer*       mrtBuffer,
+                   ViewEventDistributor* viewEventDistributor);
 };

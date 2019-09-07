@@ -5,14 +5,14 @@ cbuffer objectData : register(b0)
 }
 cbuffer globalData : register(b1)
 {
-    float4x4 view;		 // View/Camera transformation matrix
-    float4x4 projection; // Projection transformation matrix
+    float4x4 view;
+    float4x4 projection;
 }
 
-void VS(float3 iPosL : POSITION,
-    out float4 oPosH : SV_POSITION) {
+void VS(in  float3 inPosition  : POSITION,
+        out float4 outPosition : SV_POSITION) {
 
-    float4x4 mv = mul(model, view);
-    float4x4 mvp = mul(mv, projection);
-    oPosH = mul(float4(iPosL, 1.0f), mvp);
+    float4x4 mv  = mul(model, view);
+    float4x4 mvp = mul(mv,    projection);
+    outPosition  = mul(float4(inPosition, 1.0f), mvp);
 }

@@ -34,14 +34,16 @@ using ShaderMap = std::map<std::string, ShaderBase*>;
 
 class ShaderBroker {
     ShaderBroker();
+
+    std::string          _strToUpper(std::string s);
+    void                 _gatherShaderNames();
     ShaderMap            _shaders;
     static ShaderBroker* _broker;
-    void                 _gatherShaderNames();
-    std::string          _strToUpper(std::string s);
 public:
-    static ShaderBroker* instance();
     ~ShaderBroker();
-    ShaderBase*          getShader(std::string shaderName);
-    void                 compileShaders();
     void                 recompileShader(std::string shaderName);
+    ShaderBase*          getShader(      std::string shaderName);
+    void                 compileShaders();
+    static ShaderBroker* instance();
+
 };

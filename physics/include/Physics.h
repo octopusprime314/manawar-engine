@@ -28,20 +28,25 @@
 using ModelIntersections = std::map<Entity*, std::set<Triangle*>>;
 class Physics {
 
-    OSP                           _octalSpacePartioner;
-    std::vector<Entity*>          _entities; //Entities containing collision Geometry
-    std::vector<GeometryGraphic*> _graphics; //Visual objects for debugging physics
-    void                          _physicsProcess(int milliseconds); //Physics processing thread
-    void                          _slowDetection(); //Keep the slow collision detection around for testing purposes
-    DebugShader*                  _debugShader;
-    GeometryGraphic*              _octTreeGraphic;
+    //Physics processing thread
+    void                          _physicsProcess(int milliseconds);
+    //Keep the slow collision detection around for testing purposes
+    void                          _slowDetection();
+
     ModelIntersections            _triangleIntersectionList;
+    OSP                           _octalSpacePartioner;
+    GeometryGraphic*              _octTreeGraphic;
+    DebugShader*                  _debugShader;
+    //Entities containing collision Geometry
+    std::vector<Entity*>          _entities;
+    //Visual objects for debugging physics
+    std::vector<GeometryGraphic*> _graphics;
     std::mutex                    _lock;
 public:
     Physics();
     ~Physics();
-    void                          run();
     void                          addEntities(std::vector<Entity*> entities);
     void                          addEntity(Entity* entity);
     void                          visualize();
+    void                          run();
 };

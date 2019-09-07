@@ -171,14 +171,19 @@ void DeferredShader::runShader(std::vector<Light*>&  lights,
     _shader->updateData("lightRayProjection", inverseProj.getFlatBuffer());
 
     RayTracingPipelineShader* rtPipeline = EngineManager::getRTPipeline();
-    auto transparentTextures             = rtPipeline->getTransparentTextures();
 
-    _shader->updateRTAS("rtAS", rtPipeline->getRTAS());
+    if ((EngineManager::getGraphicsLayer() == GraphicsLayer::DXR_EXPERIMENTAL) &&
+        (rtPipeline                        != nullptr)) {
+    
+        auto transparentTextures = rtPipeline->getTransparentTextures();
 
-    for (auto texture : transparentTextures) {
-        _shader->updateData("transparencyTexture" + std::to_string(texture.first->getRayTracingTextureId()),
-                            GL_TEXTURE10 + texture.first->getRayTracingTextureId(),
-                            texture.second);
+        _shader->updateRTAS("rtAS", rtPipeline->getRTAS());
+
+        for (auto texture : transparentTextures) {
+            _shader->updateData("transparencyTexture" + std::to_string(texture.first->getRayTracingTextureId()),
+                                GL_TEXTURE10 + texture.first->getRayTracingTextureId(),
+                                texture.second);
+        }
     }
 
     if (EngineManager::getGraphicsLayer() == GraphicsLayer::OPENGL) {

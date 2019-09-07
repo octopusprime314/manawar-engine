@@ -50,12 +50,11 @@ EngineManager::EngineManager(int*      argc,
 
     if (_graphicsLayer >= GraphicsLayer::DX12) {
 
-        if (_graphicsLayer == GraphicsLayer::DXR_EXPERIMENTAL) {
-            D3D12EnableExperimentalFeatures(1,
-                                            &D3D12ExperimentalShaderModels,
-                                            nullptr,
-                                            0);
-        }
+        // Disables the need for the dxil.dll validation step in the compiler chain
+        D3D12EnableExperimentalFeatures(1,
+                                        &D3D12ExperimentalShaderModels,
+                                        nullptr,
+                                        0);
 
         DXLayer::initialize(hInstance, nCmdShow);
 
@@ -68,6 +67,9 @@ EngineManager::EngineManager(int*      argc,
 
             if (D3D_SHADER_MODEL_6_5 == shaderModel.HighestShaderModel) {
                 //do something lol
+            } 
+            else {
+                assert("Why isn't there support for this feature...probably the D3D12.dll doesn't support it");
             }
         }
     }
@@ -332,26 +334,26 @@ void EngineManager::_preDraw() {
         }
     }
 
-    if (_graphicsLayer >= GraphicsLayer::DX12) {
+    if (_graphicsLayer == GraphicsLayer::DXR) {
 
-        //if (_useRaytracing) {
-        //    _rayTracingPipeline->doRayTracing(_entityList[0], _lightList[0]);
-        //    //DXLayer::instance()->present(_rayTracingPipeline->getRayTracingTarget());
+        if (_useRaytracing) {
+            _rayTracingPipeline->doRayTracing(_entityList[0], _lightList[0]);
+            //DXLayer::instance()->present(_rayTracingPipeline->getRayTracingTarget());
 
-        //    auto depthTexture = static_cast<RenderTexture*>((
-        //                        static_cast<ShadowedDirectionalLight*>(_lightList[0]))->getDepthTexture());
+            auto depthTexture = static_cast<RenderTexture*>((
+                                static_cast<ShadowedDirectionalLight*>(_lightList[0]))->getDepthTexture());
 
-        //    HLSLShader::setOM({ *depthTexture },
-        //                      depthTexture->getWidth(),
-        //                      depthTexture->getHeight());
+            HLSLShader::setOM({ *depthTexture },
+                              depthTexture->getWidth(),
+                              depthTexture->getHeight());
 
-        //    auto depthBlit = static_cast<BlitDepthShader*>(ShaderBroker::instance()->getShader("blitDepthShader"));
+            auto depthBlit = static_cast<BlitDepthShader*>(ShaderBroker::instance()->getShader("blitDepthShader"));
 
-        //    depthBlit->runShader(_rayTracingPipeline->getRayTracingTarget(),
-        //                         depthTexture);
+            depthBlit->runShader(_rayTracingPipeline->getRayTracingTarget(),
+                                 depthTexture);
 
-        //    HLSLShader::releaseOM({ *depthTexture });
-        //}
+            HLSLShader::releaseOM({ *depthTexture });
+        }
     }
 
     //Establish an offscreen Frame Buffer Object to generate G buffers for deferred shading

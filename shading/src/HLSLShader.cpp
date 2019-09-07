@@ -60,59 +60,66 @@ void HLSLShader::buildDXC(CComPtr<IDxcBlob>& pResultBlob,
                           std::wstring       shaderProfile,
                           std::wstring       entryPoint) {
 
-   HRESULT                     initDLL = S_FALSE;
-   ComPtr<IDxcOperationResult> dxcResult;
-   CComPtr<IDxcBlobEncoding>   pSource;
-   CComPtr<IDxcLibrary>        pLibrary;
-   CComPtr<IDxcCompiler2>      dxcCompiler;
-   TCHAR                       fullPath[MAX_PATH];
+    HRESULT                     initDLL = S_FALSE;
+    ComPtr<IDxcOperationResult> dxcResult;
+    CComPtr<IDxcBlobEncoding>   pSource;
+    CComPtr<IDxcLibrary>        pLibrary;
+    CComPtr<IDxcCompiler2>      dxcCompiler;
+    TCHAR                       fullPath[MAX_PATH];
 
-   if (!_dllSupport.IsEnabled()) {
-       initDLL = _dllSupport.Initialize();
-   }
+    if (!_dllSupport.IsEnabled()) {
+        initDLL = _dllSupport.Initialize();
+    }
 
-   _dllSupport.CreateInstance(  CLSID_DxcLibrary, &pLibrary);
-   pLibrary->CreateBlobFromFile(shaderString.c_str(), nullptr, &pSource);
-   _dllSupport.CreateInstance(  CLSID_DxcCompiler, &dxcCompiler);
+    _dllSupport.CreateInstance(  CLSID_DxcLibrary, &pLibrary);
+    pLibrary->CreateBlobFromFile(shaderString.c_str(), nullptr, &pSource);
+    _dllSupport.CreateInstance(  CLSID_DxcCompiler, &dxcCompiler);
 
-   dxcCompiler->Compile(pSource,
-                        shaderString. c_str(),
-                        entryPoint.   c_str(),
-                        shaderProfile.c_str(),
-                        nullptr,
-                        0,
-                        nullptr,
-                        0,
-                        nullptr,
-                        &dxcResult);
+    DxcDefine define;
+    define.Name      = L"USE_SHADER_MODEL_6_5";
+    define.Value     = L"0";
+    if (EngineManager::getGraphicsLayer() == GraphicsLayer::DXR_EXPERIMENTAL) {
+        define.Value = L"1";
+    }
 
-   dxcResult->GetResult(&pResultBlob);
+    dxcCompiler->Compile(pSource,
+                         shaderString. c_str(),
+                         entryPoint.   c_str(),
+                         shaderProfile.c_str(),
+                         nullptr,
+                         0,
+                         &define,
+                         1,
+                         nullptr,
+                         &dxcResult);
 
-   HRESULT result;
-   dxcResult->GetStatus(&result);
-   if (FAILED(result)) {
-       CComPtr<IDxcBlobEncoding> pErr;
-       dxcResult->GetErrorBuffer(&pErr);
-       OutputDebugStringA((char*)pErr->GetBufferPointer());
-       pResultBlob = nullptr;
-       return;
-   }
+    dxcResult->GetResult(&pResultBlob);
 
-   CComPtr<IDxcBlob>                pProgram;
-   CComPtr<IDxcBlobEncoding>        pDisassembleBlob;
-   ID3D12ShaderReflection*          reflectionInterface;
-   CComPtr<IDxcContainerReflection> pReflection;
-   UINT32                           shaderIdx;
+    HRESULT result;
+    dxcResult->GetStatus(&result);
+    if (FAILED(result)) {
+        CComPtr<IDxcBlobEncoding> pErr;
+        dxcResult->GetErrorBuffer(&pErr);
+        OutputDebugStringA((char*)pErr->GetBufferPointer());
+        pResultBlob = nullptr;
+        return;
+    }
 
-   dxcResult->GetResult(&pProgram);
-   _dllSupport.CreateInstance(CLSID_DxcContainerReflection, &pReflection);
-   pReflection->Load(pProgram);
-   pReflection->FindFirstPartKind(DFCC_DXIL, &shaderIdx);
-   pReflection->GetPartReflection(shaderIdx,
-                                  __uuidof(ID3D12ShaderReflection),
-                                  (void**)&reflectionInterface);
+    CComPtr<IDxcBlob>                pProgram;
+    CComPtr<IDxcBlobEncoding>        pDisassembleBlob;
+    ID3D12ShaderReflection*          reflectionInterface;
+    CComPtr<IDxcContainerReflection> pReflection;
+    UINT32                           shaderIdx;
+
+    dxcResult->GetResult(&pProgram);
+    _dllSupport.CreateInstance(CLSID_DxcContainerReflection, &pReflection);
+    pReflection->Load(pProgram);
+    pReflection->FindFirstPartKind(DFCC_DXIL, &shaderIdx);
+    pReflection->GetPartReflection(shaderIdx,
+                                    __uuidof(ID3D12ShaderReflection),
+                                    (void**)&reflectionInterface);
     
-   for (int i = 0; result == S_OK; i++) {
+    for (int i = 0; result == S_OK; i++) {
 
         D3D12_SIGNATURE_PARAMETER_DESC varDesc;
         result = reflectionInterface->GetInputParameterDesc(i, &varDesc);

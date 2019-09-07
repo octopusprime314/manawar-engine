@@ -208,16 +208,26 @@ RayTracingPipelineShader::RayTracingPipelineShader(std::string shader,
     pLibrary  ->CreateBlobFromFile(fullPathWstring.c_str(), nullptr, &pSource);
     _dllSupport.CreateInstance(CLSID_DxcCompiler, &dxcCompiler);
 
+    DxcDefine define;
+    define.Name  = L"USE_SHADER_MODEL_6_5";
+    define.Value = L"0";
+
     std::string libProfile = "lib_6_3";
     if (EngineManager::getGraphicsLayer() == GraphicsLayer::DXR_EXPERIMENTAL) {
         libProfile         = "lib_6_5";
+        define.Value       = L"1";
     }
     CA2W shWide(libProfile.c_str(), CP_UTF8);
     dxcCompiler->Compile(pSource,
                          L"rayTracingUberShader.hlsl",
                          L"",
                          shWide,
-                         nullptr, 0, nullptr, 0, nullptr, &dxcResult);
+                         nullptr,
+                         0,
+                         &define,
+                         1,
+                         nullptr,
+                         &dxcResult);
 
     ComPtr<IDxcBlob> pResultBlob;
     dxcResult->GetResult(&pResultBlob);

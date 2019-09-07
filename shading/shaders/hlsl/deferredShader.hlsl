@@ -1,5 +1,3 @@
-#define USE_SHADER_MODEL_6_5 1
-
 // Object Declarations
 Texture2D   diffuseTexture     : register(t0); // Diffuse texture data array
 Texture2D   normalTexture      : register(t1); // Normal texture data array
@@ -21,7 +19,6 @@ Texture2D   transparencyTexture2     : register(t12); // transparency texture 2
 Texture2D   transparencyTexture3     : register(t13); // transparency texture 3
 Texture2D   transparencyTexture4     : register(t14); // transparency texture 4
 Texture2D   transparencyTexture5     : register(t15); // transparency texture 5
-
 #endif
 
 cbuffer globalData             : register(b0) {
@@ -322,9 +319,6 @@ PixelOut PS(float4 posH : SV_POSITION,
 
         pixel.debug0 = float4(float3(origin.xyz), 1.0);
         pixel.debug1 = float4(float3(rayDir.xyz), 1.0);
-
-        //pixel.color = float4(float3(abs(origin.xyz)), 1.0);
-        //pixel.depth = abs(origin.x);
     }
     else if (views == 8) {
         float3 cubeMapTexCoords = mul(float4(position.xyz,1.0), viewToModelMatrix).xyz -

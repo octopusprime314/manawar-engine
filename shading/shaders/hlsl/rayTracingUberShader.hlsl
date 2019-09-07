@@ -1,5 +1,3 @@
-#define USE_SHADER_MODEL_6_5 0
-
 struct SceneConstantBuffer
 {
     float4x4 projectionToWorld;

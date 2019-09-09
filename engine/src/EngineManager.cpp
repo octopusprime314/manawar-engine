@@ -47,7 +47,7 @@ EngineManager::EngineManager(int*      argc,
                              HINSTANCE hInstance,
                              int       nCmdShow) {
 
-    _graphicsLayer = GraphicsLayer::DXR_EXPERIMENTAL;
+    _graphicsLayer = GraphicsLayer::DX12;
 
     if (_graphicsLayer >= GraphicsLayer::DX12) {
 

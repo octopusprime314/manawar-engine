@@ -67,19 +67,30 @@ FbxLoader::FbxLoader(std::string name) :
             
             std::string modelName  = transform.first.substr(0, transform.first.find_first_of("_"));
             Model* modelToInstance = modelBroker->getModel(modelName);
-            if (modelToInstance != nullptr && tileTextureInstances != _tileTextures.end()) {
-                auto entity        = EngineManager::addEntity(modelToInstance, transform.second, false);
-                auto textureBroker             = TextureBroker::instance();
-                std::string layeredTextureName = "Layered";
-                for (auto& texture : tileTextureInstances->second) {
-                    layeredTextureName += texture;
+            if (modelToInstance != nullptr) {
+
+                auto entity    = EngineManager::addEntity(modelToInstance, transform.second, false);
+                bool isLayered = false;
+                for (auto textureName : modelToInstance->getTextureNames()) {
+                    if (textureName.find("alphamap") != std::string::npos) {
+                        isLayered = true;
+                        break;
+                    }
                 }
-                auto layeredTexture = textureBroker->getLayeredTexture(layeredTextureName);
-                entity->setLayeredTexture(layeredTexture);
-                tileTextureInstances++;
-            }
-            else {
-                std::cout << "Model name doesn't exist for instancing: " << transform.first << std::endl;
+                if (isLayered) {
+
+                    auto textureBroker             = TextureBroker::instance();
+                    std::string layeredTextureName = "Layered";
+                    for (auto& texture : tileTextureInstances->second) {
+                        layeredTextureName += texture;
+                    }
+                    auto layeredTexture = textureBroker->getLayeredTexture(layeredTextureName);
+                    entity->setLayeredTexture(layeredTexture);
+                    tileTextureInstances++;
+                }
+                else {
+                    std::cout << "Model name doesn't exist for instancing: " << transform.first << std::endl;
+                }
             }
         }
     }

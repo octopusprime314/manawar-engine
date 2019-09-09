@@ -28,6 +28,7 @@
 #include "DXLayer.h"
 #include "HLSLShader.h"
 #include "BlitDepthShader.h"
+#include "TileGenerator.h"
 #include <chrono>
 
 using namespace std::chrono;
@@ -46,7 +47,7 @@ EngineManager::EngineManager(int*      argc,
                              HINSTANCE hInstance,
                              int       nCmdShow) {
 
-    _graphicsLayer = GraphicsLayer::DXR_EXPERIMENTAL;
+    _graphicsLayer = GraphicsLayer::OPENGL;
 
     if (_graphicsLayer >= GraphicsLayer::DX12) {
 
@@ -131,6 +132,14 @@ EngineManager::EngineManager(int*      argc,
     _mergeShader      = static_cast<MergeShader*>(ShaderBroker::instance()->getShader("mergeShader"));
     //_environmentMap  = new EnvironmentMap(2000, 2000);
 
+    if (_graphicsLayer == GraphicsLayer::OPENGL) {
+        _terminal = Terminal::instance();
+        _terminal->initTerminal(_deferredRenderer->getGBuffers(), _entityList);
+    }
+
+    // Use tile generator to create a randomly generated scene based on a rules system
+    generateScene("SPAWN-TEST");
+
     Vector4 sunLocation(0.0f, 0.0f, 700.0f);
 
     MVP lightMapMVP;
@@ -186,10 +195,6 @@ EngineManager::EngineManager(int*      argc,
                                                                _entityList);
             dxLayer->fenceCommandList();
         }
-    }
-    else {
-        _terminal = new Terminal(_deferredRenderer->getGBuffers(),
-                                 _entityList);
     }
 
     //_audioManager->startAll();
@@ -457,7 +462,7 @@ void EngineManager::_postDraw() {
                                                 _environmentMap);
         }
 
-        _terminal->display();
+        _terminal->processCommands();
     }
     else {
 

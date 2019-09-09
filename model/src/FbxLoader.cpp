@@ -67,18 +67,16 @@ FbxLoader::FbxLoader(std::string name) :
             
             std::string modelName  = transform.first.substr(0, transform.first.find_first_of("_"));
             Model* modelToInstance = modelBroker->getModel(modelName);
-            if (modelToInstance != nullptr) {
+            if (modelToInstance != nullptr && tileTextureInstances != _tileTextures.end()) {
                 auto entity        = EngineManager::addEntity(modelToInstance, transform.second, false);
-                if (modelToInstance->getName().find("tile") != std::string::npos) {
-                    auto textureBroker             = TextureBroker::instance();
-                    std::string layeredTextureName = "Layered";
-                    for (auto& texture : tileTextureInstances->second) {
-                        layeredTextureName += texture;
-                    }
-                    auto layeredTexture = textureBroker->getLayeredTexture(layeredTextureName);
-                    entity->setLayeredTexture(layeredTexture);
-                    tileTextureInstances++;
+                auto textureBroker             = TextureBroker::instance();
+                std::string layeredTextureName = "Layered";
+                for (auto& texture : tileTextureInstances->second) {
+                    layeredTextureName += texture;
                 }
+                auto layeredTexture = textureBroker->getLayeredTexture(layeredTextureName);
+                entity->setLayeredTexture(layeredTexture);
+                tileTextureInstances++;
             }
             else {
                 std::cout << "Model name doesn't exist for instancing: " << transform.first << std::endl;

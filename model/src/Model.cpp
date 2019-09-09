@@ -39,14 +39,8 @@ Model::Model(std::string name,
 
         //Load default shader
         _shaderProgram    = static_cast<StaticShader*>(ShaderBroker::instance()->getShader("staticShader"));
+        _geometryType     = GeometryType::Triangle;
 
-        if (_name.find("tile") != std::string::npos) {
-            //If the object is a standard model then it is modeled with triangles
-            _geometryType = GeometryType::Triangle;
-        }
-        else {
-            _geometryType = GeometryType::Sphere;
-        }
         std::string colliderName = name.substr(0, name.find_last_of("/") + 1) + "collider.fbx";
         //Load in geometry fbx object
         FbxLoader geometryLoader(colliderName);

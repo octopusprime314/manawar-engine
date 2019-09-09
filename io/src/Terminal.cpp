@@ -4,41 +4,150 @@
 #include <algorithm>
 #include "EngineManager.h"
 
-ShaderBroker* Terminal::_shaderManager = ShaderBroker::instance();
-ModelBroker*  Terminal::_modelManager  = ModelBroker::instance();
+ShaderBroker* Terminal::_shaderManager    = ShaderBroker::instance();
+ModelBroker*  Terminal::_modelManager     = ModelBroker::instance();
+Terminal*     Terminal::_terminalInstance = nullptr;
+
 
 using namespace std::placeholders;
 
-Terminal::Terminal(MRTFrameBuffer* gBuffers,
-                   std::vector<Entity*> entityList) :
-    
+void Terminal::initTerminal(MRTFrameBuffer*      gBuffers,
+                            std::vector<Entity*> entityList) {
+
+     _gBuffers = gBuffers;
+
+    _picker    = new Picker(gBuffers,
+                            std::bind(&Terminal::_mousePosition, this, _1, _2),
+                            std::bind(&Terminal::_mouseDeletion, this, _1));
+}
+
+Terminal::Terminal() :
     _fontRenderer("ubuntu_mono_regular.fnt"),
     _gameState(EngineState::getEngineState()),
     _commandString("|"),
     _commandHistoryIndex(0),
-    _gBuffers(gBuffers),
+    _gBuffers(nullptr),
     _modelNameIndex(0) {
-    
-    //Added global history for quick debugging of model creator
+
+        // Added global history for quick debugging of model creator
     _commandHistory.push_back("ADDTILE SANDBOX TERRAINTILE 0 0 0 1 SNOW.JPG DIRT.JPG ROCKS.JPG GRASS.JPG|");
     _commandHistory.push_back("MOUSEADD SANDBOX DEADTREE 0.0 0.0 0.0 0.025|");
     _commandHistory.push_back("MOUSEDELETE SANDBOX|");
     _commandHistory.push_back("SAVE SANDBOX|");
 
-    _picker = new Picker(gBuffers, 
-                         std::bind(&Terminal::_mousePosition, this, _1, _2),
-                         std::bind(&Terminal::_mouseDeletion, this, _1));
-
-    IOEvents::subscribeToKeyboard(       std::bind(&Terminal::_updateKeyboard, this, _1, _2, _3));
+    IOEvents::subscribeToKeyboard(std::bind(&Terminal::_updateKeyboard, this, _1, _2, _3));
     IOEvents::subscribeToReleaseKeyboard(std::bind(&Terminal::_updateReleaseKeyboard, this, _1, _2, _3));
-    IOEvents::subscribeToGameState(      std::bind(&Terminal::_updateGameState, this, _1));
+    IOEvents::subscribeToGameState(std::bind(&Terminal::_updateGameState, this, _1));
 }
 
-Terminal::~Terminal() {
-
+Terminal::~Terminal() { 
+    delete _terminalInstance;
 }
 
-void Terminal::display() {
+void Terminal::processCommand(std::string command) { _commandProcessor(command); }
+
+Terminal* Terminal::instance() {
+    if (_terminalInstance == nullptr) {
+        _terminalInstance = new Terminal();
+    }
+    return _terminalInstance;
+}
+
+void Terminal::_commandProcessor(std::string command) {
+    auto        location    = command.find(' ');
+    std::string commandType = command.substr(0, location);
+
+    if (commandType == "RECOMPILE") {
+        std::string shaderName = command.substr(command.find(' ') + 1);
+        _shaderManager->recompileShader(shaderName);
+    }
+    else if (commandType == "UPDATE") {
+        std::string modelName = command.substr(command.find(' ') + 1);
+        _modelManager->updateModel(modelName);
+    }
+    else if (commandType == "ADD") {
+        command                = command.substr(command.find(' ') + 1);
+        std::string modelName  = command.substr(0, command.find(' '));
+        command                = command.substr(command.find(' ') + 1);
+        std::string modelToAdd = command.substr(0, command.find(' '));
+        command                = command.substr(command.find(' ') + 1);
+        std::string xStr       = command.substr(0, command.find(' '));
+        command                = command.substr(command.find(' ') + 1);
+        std::string yStr       = command.substr(0, command.find(' '));
+        command                = command.substr(command.find(' ') + 1);
+        std::string zStr       = command.substr(0, command.find(' '));
+        command                = command.substr(command.find(' ') + 1);
+        std::string scale      = command.substr(0, command.find(' '));
+
+        _modelManager->addModel(modelName,
+                                modelToAdd,
+                                Vector4(static_cast<float>(atof(xStr.c_str())),
+                                        static_cast<float>(atof(yStr.c_str())),
+                                        static_cast<float>(atof(zStr.c_str())),
+                                        static_cast<float>(atof(scale.c_str()))),
+                                Vector4(0.0, 0.0, 0.0));
+    }
+    else if (commandType == "ADDTILE") {
+        command                = command.substr(command.find(' ') + 1);
+        std::string modelName  = command.substr(0, command.find(' '));
+        command                = command.substr(command.find(' ') + 1);
+        std::string modelToAdd = command.substr(0, command.find(' '));
+        command                = command.substr(command.find(' ') + 1);
+        std::string xStr       = command.substr(0, command.find(' '));
+        command                = command.substr(command.find(' ') + 1);
+        std::string yStr       = command.substr(0, command.find(' '));
+        command                = command.substr(command.find(' ') + 1);
+        std::string zStr       = command.substr(0, command.find(' '));
+        command                = command.substr(command.find(' ') + 1);
+        std::string scale      = command.substr(0, command.find(' '));
+        command                = command.substr(command.find(' ') + 1);
+        std::string rChannel   = command.substr(0, command.find(' '));
+        command                = command.substr(command.find(' ') + 1);
+        std::string gChannel   = command.substr(0, command.find(' '));
+        command                = command.substr(command.find(' ') + 1);
+        std::string bChannel   = command.substr(0, command.find(' '));
+        command                = command.substr(command.find(' ') + 1);
+        std::string aChannel   = command.substr(0, command.find(' '));
+        _modelManager->addTileModel(modelName,
+                                    modelToAdd,
+                                    Vector4(static_cast<float>(atof(xStr.c_str())),
+                                            static_cast<float>(atof(yStr.c_str())),
+                                            static_cast<float>(atof(zStr.c_str())),
+                                            static_cast<float>(atof(scale.c_str()))), 
+                                    { rChannel, gChannel, bChannel, aChannel });
+    }
+    else if (commandType == "MOUSEADD") {
+        command                = command.substr(command.find(' ') + 1);
+        std::string modelName  = command.substr(0, command.find(' '));
+        command                = command.substr(command.find(' ') + 1);
+        std::string modelToAdd = command.substr(0, command.find(' '));
+
+        //Updates currently selected model that will be placed on entities
+        _mousePosition(_picker->getLastPickedPosition(), false);
+
+        if (modelToAdd == "*") {
+            auto modelCount = _modelManager->getModelNames().size();
+            _modelNameIndex++;
+            _modelNameIndex = _modelNameIndex % modelCount;
+        }
+    }
+    else if (commandType == "SAVE") {
+        command               = command.substr(command.find(' ') + 1);
+        std::string modelName = command.substr(0, command.find(' '));
+        _modelManager->saveModel(modelName);
+        _picker->saveMutableTextures();
+    }
+    else if (commandType == "CLEAR") {
+        command               = command.substr(command.find(' ') + 1);
+        std::string modelName = command.substr(0, command.find(' '));
+        _modelManager->clearChanges(modelName);
+    }
+    else if (commandType == "UNDO") {
+        //TODO: Undo previous change to scene
+    }
+}
+
+void Terminal::processCommands() {
     
     if (_gameState.worldEditorModeEnabled) {
 
@@ -50,98 +159,8 @@ void Terminal::display() {
     }
 
     if (_commandToProcess.size() > 0) {
-
-        auto location       = _commandToProcess.find(' ');
-        std::string command = _commandToProcess.substr(0, location);
-
-        if (command == "RECOMPILE") {
-            std::string shaderName = _commandToProcess.substr(location + 1);
-            _shaderManager->recompileShader(shaderName);
-        }
-        else if (command == "UPDATE") {
-            std::string modelName = _commandToProcess.substr(location + 1);
-            _modelManager->updateModel(modelName);
-        }
-        else if (command == "ADD") {
-            _commandToProcess      = _commandToProcess.substr(_commandToProcess.find(' ') + 1);
-            std::string modelName  = _commandToProcess.substr(0, _commandToProcess.find(' '));
-            _commandToProcess      = _commandToProcess.substr(_commandToProcess.find(' ') + 1);
-            std::string modelToAdd = _commandToProcess.substr(0, _commandToProcess.find(' '));
-            _commandToProcess      = _commandToProcess.substr(_commandToProcess.find(' ') + 1);
-            std::string xStr       = _commandToProcess.substr(0, _commandToProcess.find(' '));
-            _commandToProcess      = _commandToProcess.substr(_commandToProcess.find(' ') + 1);
-            std::string yStr       = _commandToProcess.substr(0, _commandToProcess.find(' '));
-            _commandToProcess      = _commandToProcess.substr(_commandToProcess.find(' ') + 1);
-            std::string zStr       = _commandToProcess.substr(0, _commandToProcess.find(' '));
-            _commandToProcess      = _commandToProcess.substr(_commandToProcess.find(' ') + 1);
-            std::string scale      = _commandToProcess.substr(0, _commandToProcess.find(' '));
-
-            _modelManager->addModel(modelName,
-                                    modelToAdd,
-                                    Vector4(static_cast<float>(atof(xStr.c_str())),
-                                            static_cast<float>(atof(yStr.c_str())),
-                                            static_cast<float>(atof(zStr.c_str())),
-                                            static_cast<float>(atof(scale.c_str()))),
-                                    Vector4(0.0, 0.0, 0.0));
-        }
-        else if (command == "ADDTILE") {
-            _commandToProcess      = _commandToProcess.substr(_commandToProcess.find(' ') + 1);
-            std::string modelName  = _commandToProcess.substr(0, _commandToProcess.find(' '));
-            _commandToProcess      = _commandToProcess.substr(_commandToProcess.find(' ') + 1);
-            std::string modelToAdd = _commandToProcess.substr(0, _commandToProcess.find(' '));
-            _commandToProcess      = _commandToProcess.substr(_commandToProcess.find(' ') + 1);
-            std::string xStr       = _commandToProcess.substr(0, _commandToProcess.find(' '));
-            _commandToProcess      = _commandToProcess.substr(_commandToProcess.find(' ') + 1);
-            std::string yStr       = _commandToProcess.substr(0, _commandToProcess.find(' '));
-            _commandToProcess      = _commandToProcess.substr(_commandToProcess.find(' ') + 1);
-            std::string zStr       = _commandToProcess.substr(0, _commandToProcess.find(' '));
-            _commandToProcess      = _commandToProcess.substr(_commandToProcess.find(' ') + 1);
-            std::string scale      = _commandToProcess.substr(0, _commandToProcess.find(' '));
-            _commandToProcess      = _commandToProcess.substr(_commandToProcess.find(' ') + 1);
-            std::string rChannel   = _commandToProcess.substr(0, _commandToProcess.find(' '));
-            _commandToProcess      = _commandToProcess.substr(_commandToProcess.find(' ') + 1);
-            std::string gChannel   = _commandToProcess.substr(0, _commandToProcess.find(' '));
-            _commandToProcess      = _commandToProcess.substr(_commandToProcess.find(' ') + 1);
-            std::string bChannel   = _commandToProcess.substr(0, _commandToProcess.find(' '));
-            _commandToProcess      = _commandToProcess.substr(_commandToProcess.find(' ') + 1);
-            std::string aChannel   = _commandToProcess.substr(0, _commandToProcess.find(' '));
-            _modelManager->addTileModel(modelName,
-                                        modelToAdd,
-                                        Vector4(static_cast<float>(atof(xStr.c_str())),
-                                                static_cast<float>(atof(yStr.c_str())),
-                                                static_cast<float>(atof(zStr.c_str())),
-                                                static_cast<float>(atof(scale.c_str()))), 
-                                        { rChannel, gChannel, bChannel, aChannel });
-        }
-        else if (command == "MOUSEADD") {
-            _commandToProcess      = _commandToProcess.substr(_commandToProcess.find(' ') + 1);
-            std::string modelName  = _commandToProcess.substr(0, _commandToProcess.find(' '));
-            _commandToProcess      = _commandToProcess.substr(_commandToProcess.find(' ') + 1);
-            std::string modelToAdd = _commandToProcess.substr(0, _commandToProcess.find(' '));
-
-            //Updates currently selected model that will be placed on entities
-            _mousePosition(_picker->getLastPickedPosition(), false);
-
-            if (modelToAdd == "*") {
-                auto modelCount = _modelManager->getModelNames().size();
-                _modelNameIndex++;
-                _modelNameIndex = _modelNameIndex % modelCount;
-            }
-        }
-        else if (command == "SAVE") {
-            _commandToProcess     = _commandToProcess.substr(_commandToProcess.find(' ') + 1);
-            std::string modelName = _commandToProcess.substr(0, _commandToProcess.find(' '));
-            _modelManager->saveModel(modelName);
-            _picker->saveMutableTextures();
-        }
-        else if (command == "CLEAR") {
-            _commandToProcess     = _commandToProcess.substr(_commandToProcess.find(' ') + 1);
-            std::string modelName = _commandToProcess.substr(0, _commandToProcess.find(' '));
-            _modelManager->clearChanges(modelName);
-        }
-        else if (command == "UNDO") {
-            //TODO: Undo previous change to scene
-        }
+        _commandProcessor(_commandToProcess);
+        // Clear out all commands
         _commandToProcess = "";
     }
 }

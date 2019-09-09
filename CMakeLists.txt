@@ -141,8 +141,8 @@ target_link_libraries(manawar-engine           ${CMAKE_SOURCE_DIR}/libs/fmod/lib
 
 #pre fetches assets and dependencies during cmake -G configuration
 FetchContent_Populate(data
-                      URL        https://www.dropbox.com/s/9h8h3nvwk1gxyaw/data.zip?dl=0
-                      URL_HASH   MD5=24bc3ac2cd656569db2f7b64cbc47088
+                      URL        https://www.dropbox.com/s/3lcw7rxf6ej6jsv/data1.0.zip?dl=0
+                      URL_HASH   MD5=fd8742f259fcc4ab70aa6b79a3dfcc7a
                       SOURCE_DIR data)
 
 #Copy over the contents of the unzipped folder                    

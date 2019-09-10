@@ -3,6 +3,8 @@
 #include "Picker.h"
 #include <algorithm>
 #include "EngineManager.h"
+#include <iostream>
+#include <string>
 
 ShaderBroker* Terminal::_shaderManager    = ShaderBroker::instance();
 ModelBroker*  Terminal::_modelManager     = ModelBroker::instance();
@@ -44,7 +46,31 @@ Terminal::~Terminal() {
     delete _terminalInstance;
 }
 
-void Terminal::processCommand(std::string command) { _commandProcessor(command); }
+void Terminal::processCommand(std::string command) {
+    // If mouse pathing mode is enabled then edit tiles with terrain painting system
+    if (command.find("MOUSEPATHING") != std::string::npos) {
+
+        command = command.substr(command.find_first_of(" ") + 1);
+        int button       = std::atoi(command.substr(0, command.find_first_of(" ")).c_str());
+        command          = command.substr(command.find_first_of(" ") + 1);
+        int action       = std::atoi(command.substr(0, command.find_first_of(" ")).c_str());
+        command          = command.substr(command.find_first_of(" ") + 1);
+        int tileWidthX   = std::atoi(command.substr(0, command.find_first_of(" ")).c_str());
+        command          = command.substr(command.find_first_of(" ") + 1);
+        int tileWidthY   = std::atoi(command.substr(0, command.find_first_of(" ")).c_str());
+        command          = command.substr(command.find_first_of(" ") + 1);
+        int entityID     = std::atoi(command.substr(0, command.find_first_of(" ")).c_str());
+        command          = command.substr(command.find_first_of(" ") + 1);
+
+        // Button is left or middle button mouse click.  0 is left, 2 is middle.
+        // Left indicates a write to terrain and Middle indicates to switch to the next texture option.
+        // Action is press or release mouse button.  0 is release, 1 is press.
+        // X and Y are the screen space location of the mouse button click or release.
+        _picker->editTile(button, action, tileWidthX, tileWidthY, entityID);
+    } else {
+        _commandProcessor(command);
+    }
+}
 
 Terminal* Terminal::instance() {
     if (_terminalInstance == nullptr) {

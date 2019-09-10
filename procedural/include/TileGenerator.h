@@ -1,15 +1,26 @@
 #pragma once
 #include <string>
 
+// Currently not using enum class because of strongly typing
+
 // Indicates what type of geometry will be included in the tile
 // No coincidence with magic the gathering mana :)
-enum class TileID {
-    PLAINS   = 0,
-    SWAMP    = 1,
-    FOREST   = 2,
-    MOUNTAIN = 3,
-    ISLAND   = 4,
-    LENGTH   = 5
+enum TileID {
+    Plains         = 0,
+    Swamp          = 1,
+    Forest         = 2,
+    Mountain       = 3,
+    Island         = 4,
+    TileIdLength   = 5
+};
+
+enum TileDirection {
+    None                = 0,
+    Left                = 1,
+    Right               = 2,
+    Up                  = 3,
+    Down                = 4,
+    TileDirectionLength = 5
 };
 
 struct TileData {

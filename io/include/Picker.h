@@ -38,10 +38,13 @@ class Picker {
                                                             int    y,
                                                             bool   mouseDrag,
                                                             bool   mouseClick);
+    void                                     _editTile(     int x,
+                                                            int y,
+                                                            int entityID);
     void                                     _keyboardPress(int    key,
                                                             int    x,
                                                             int    y);
-    
+
     MutableTextures                          _mutableTextureCache;
     std::function<bool(Entity*)>             _mouseDeleteCallback;
     bool                                     _leftMousePressed;
@@ -60,7 +63,12 @@ public:
            std::function<bool(Vector4,bool)> terminalCallback,
            std::function<bool(Entity*)>      mouseDeleteCallback);
     ~Picker();
-
+    
+    void                                     editTile(int button,
+                                                      int action,
+                                                      int x,
+                                                      int y,
+                                                      int entityID);
     Vector4                                  getLastPickedPosition();
     void                                     saveMutableTextures();
     void                                     updateIdBuffer();

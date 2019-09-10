@@ -1,5 +1,6 @@
 #include "TileGenerator.h"
 #include "Terminal.h"
+#include "EngineManager.h"
 #include <iostream>
 
 void generateScene(std::string sceneName) {
@@ -9,8 +10,6 @@ void generateScene(std::string sceneName) {
     // fbx but for now I will inject string commands to the terminal interface.
 
     Terminal* terminal = Terminal::instance();
-
-    //terminal->processCommand("CREATE SPAWN-TEST");
 
     // First define the extents of the world and use the hardcoded tile size of 200x200
     const int   tileWidth       = 200;
@@ -25,15 +24,22 @@ void generateScene(std::string sceneName) {
     const int   halfWidthTiles  = numWidthTiles  / 2;
     const int   halfLengthTiles = numLengthTiles / 2;
     const int   typesOfTrees    = 3;
-    const int   numTreesToPlace = 10;
+    const int   numTreesToPlace = 5;
     const float maxRandomValue  = static_cast<float>(RAND_MAX);
 
+    const std::vector<Entity*>* entityList = nullptr;
+    
     // Establish a seed for the random number generator
     srand(time(NULL));
+
+    // Small temporary hack that sets the texture for pathing and painting terrain to non background texture
+    // Send a middle mouse button click to change texture
+    terminal->processCommand("MOUSEPATHING 2 1 0 0 0");
 
     for (int tileWidthIndex = -halfWidthTiles; tileWidthIndex < halfWidthTiles; tileWidthIndex++) {
         for (int tileLengthIndex = -halfLengthTiles; tileLengthIndex < halfLengthTiles; tileLengthIndex++) {
 
+            // First add a tile
             std::string command = "ADDTILE " + sceneName + " FOREST ";
             command            += std::to_string(tileWidthIndex * tileWidth)   + " ";
             command            += std::to_string(0)                            + " "; // Keep height 0 for now
@@ -42,8 +48,78 @@ void generateScene(std::string sceneName) {
             command            += "SNOW.JPG DIRT.JPG ROCKS.JPG GRASS.JPG";
             terminal->processCommand(command);
 
+            // Get latest entity list based on the previous addition of a tile which is guaranteed to be at the end :)
+            entityList   = EngineManager::getEntityList();
+            int entityID = entityList->back()->getID();
 
-            // Add 10 random types of trees within random locations of the tile
+            float tileWidthMin  = (tileWidthIndex  * tileWidth)  - (tileHalfWidth);
+            float tileWidthMax  = (tileWidthIndex  * tileWidth)  + (tileHalfWidth);
+            float tileLengthMin = (tileLengthIndex * tileLength) - (tileHalfLength);
+            float tileLengthMax = (tileLengthIndex * tileLength) + (tileHalfLength);
+
+            // Second add paths and terrain painting of the tile
+            int pathWidthLocation  = tileWidthMin  + tileHalfWidth;
+            int pathLengthLocation = tileLengthMin + tileHalfLength;
+
+            while ((pathWidthLocation  > tileWidthMin)  &&
+                   (pathWidthLocation  < tileWidthMax)  &&
+                   (pathLengthLocation > tileLengthMin) &&
+                   (pathLengthLocation < tileLengthMax)) {
+
+                // Left mouse click command
+                command = "MOUSEPATHING 0 1 ";
+
+                command += std::to_string(pathWidthLocation)  + " ";
+                command += std::to_string(pathLengthLocation) + " ";
+                command += std::to_string(entityID);
+
+                terminal->processCommand(command);
+
+                TileDirection nextPathLocationWidth  = static_cast<TileDirection>(rand() % TileDirection::TileDirectionLength);
+                TileDirection nextPathLocationLength = static_cast<TileDirection>(rand() % TileDirection::TileDirectionLength);
+
+                for (int pathPass = 0; pathPass < 2; pathPass++) {
+                    TileDirection direction = pathPass ? nextPathLocationLength : nextPathLocationWidth;
+
+                    switch (direction) {
+                        case Left: 
+                        {
+                            if (pathPass == 0) {
+                                pathWidthLocation--;
+                            }
+                            break;
+                        }
+                        case Right:
+                        {
+                            if (pathPass == 0) {
+                                pathWidthLocation++;
+                            }
+                            break;
+                        }
+                        case Up:
+                        {
+                            if (pathPass == 1) {
+                                pathLengthLocation--;
+                            }
+                            break;
+                        }
+                        case Down:
+                        {
+                            if (pathPass == 1) {
+                                pathLengthLocation++;
+                            }
+                            break;
+                        }
+                        case None: 
+                        {
+                            break;
+                        }
+                    };
+                }
+            }
+
+            // Third add models to the tile
+            // Add random types of trees within random locations of the tile
             // The selection of trees we have are tree3, tree7 and tree8 for the time being
             for (int treeIndex = 0; treeIndex < numTreesToPlace; treeIndex++) {
 
@@ -62,11 +138,6 @@ void generateScene(std::string sceneName) {
                     command += "TREE8 ";
                 }
 
-                float tileWidthMin  = (tileWidthIndex  * tileWidth)  - (tileHalfWidth);
-                float tileWidthMax  = (tileWidthIndex  * tileWidth)  + (tileHalfWidth);
-                float tileLengthMin = (tileLengthIndex * tileLength) - (tileHalfLength);
-                float tileLengthMax = (tileLengthIndex * tileLength) + (tileHalfLength);
-
                 // Place between the min and max extents of the width and length of the tile
                 float widthScale    = (static_cast<float>(rand()) / maxRandomValue);
                 float lengthScale   = (static_cast<float>(rand()) / maxRandomValue);
@@ -79,18 +150,8 @@ void generateScene(std::string sceneName) {
                 command += std::to_string(scale)                                      + " "; // w component for scaling
 
                 terminal->processCommand(command);
-                //terminal->processCommand("ADD SPAWN-TEST TREE3 0.0 0.0 0.0 0.125");
             }
-
         }
     }
     terminal->processCommand("SAVE SPAWN-TEST");
-
-    // Test commands
-    //terminal->processCommand("ADDTILE SPAWN-TEST FOREST 0 0 0 1 SNOW.JPG DIRT.JPG ROCKS.JPG GRASS.JPG");
-    //terminal->processCommand("ADDTILE SPAWN-TEST SWAMP 0 0 200 1 SNOW.JPG DIRT.JPG ROCKS.JPG GRASS.JPG");
-    //terminal->processCommand("ADDTILE SPAWN-TEST PLAINS 0 0 -200 1 SNOW.JPG DIRT.JPG ROCKS.JPG GRASS.JPG");
-    //terminal->processCommand("ADDTILE SPAWN-TEST MOUNTAIN 200 0 0 1 SNOW.JPG DIRT.JPG ROCKS.JPG GRASS.JPG");
-    //terminal->processCommand("ADDTILE SPAWN-TEST ISLAND -200 0 0 1 SNOW.JPG DIRT.JPG ROCKS.JPG GRASS.JPG");
-    //terminal->processCommand("ADD SPAWN-TEST TREE3 0.0 0.0 0.0 0.125");
 }

@@ -684,7 +684,9 @@ void FbxLoader::addTileToScene(Model*                   modelAddedTo,
 
                                     if (std::string(textureFbx->GetFileName()).find("alpha") != std::string::npos) {
 
-                                        std::string alphaMapName = modelName + "/alphamapclone";
+                                        std::string folderNameOfModel = modelAddedTo->getName().substr(
+                                            0, modelAddedTo->getName().find_last_of("."));
+                                        std::string alphaMapName = folderNameOfModel + "/alphamapclone";
                                         alphaMapName += std::to_string(static_cast<int>(location.getx())) + "_" +
                                                         std::to_string(static_cast<int>(location.gety())) + "_" +
                                                         std::to_string(static_cast<int>(location.getz()));

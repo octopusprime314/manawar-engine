@@ -9,6 +9,7 @@ enum class TileID {
     FOREST   = 2,
     MOUNTAIN = 3,
     ISLAND   = 4,
+    LENGTH   = 5
 };
 
 struct TileData {

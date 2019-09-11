@@ -52,19 +52,15 @@ void generateScene(std::string sceneName) {
             entityList   = EngineManager::getEntityList();
             int entityID = entityList->back()->getID();
 
-            float tileWidthMin  = (tileWidthIndex  * tileWidth)  - (tileHalfWidth);
-            float tileWidthMax  = (tileWidthIndex  * tileWidth)  + (tileHalfWidth);
-            float tileLengthMin = (tileLengthIndex * tileLength) - (tileHalfLength);
-            float tileLengthMax = (tileLengthIndex * tileLength) + (tileHalfLength);
-
             // Second add paths and terrain painting of the tile
-            int pathWidthLocation  = tileWidthMin  + tileHalfWidth;
-            int pathLengthLocation = tileLengthMin + tileHalfLength;
+            // and make sure the path is within the extents of the tile terrain texture
+            int pathWidthLocation  = tileHalfWidth;
+            int pathLengthLocation = tileHalfLength;
 
-            while ((pathWidthLocation  > tileWidthMin)  &&
-                   (pathWidthLocation  < tileWidthMax)  &&
-                   (pathLengthLocation > tileLengthMin) &&
-                   (pathLengthLocation < tileLengthMax)) {
+            while ((pathWidthLocation  >= 0)         &&
+                   (pathWidthLocation  <  tileWidth) &&
+                   (pathLengthLocation >= 0)         &&
+                   (pathLengthLocation <  tileLength)) {
 
                 // Left mouse click command
                 command = "MOUSEPATHING 0 1 ";
@@ -117,6 +113,9 @@ void generateScene(std::string sceneName) {
                     };
                 }
             }
+
+            float tileWidthMin  = (tileWidthIndex  * tileWidth)  - tileHalfWidth;
+            float tileLengthMin = (tileLengthIndex * tileLength) - tileHalfLength;
 
             // Third add models to the tile
             // Add random types of trees within random locations of the tile

@@ -253,10 +253,6 @@ void Picker::editTile(int button,
 
 void Picker::_editTile(int x, int y, int entityID) {
 
-    //if (x <= 0 || x >= IOEventDistributor::screenPixelWidth || y <= 0 || y >= IOEventDistributor::screenPixelHeight) {
-    //    return;
-    //}
-
     auto entityList = *EngineManager::getEntityList();
 
     for (auto entity : entityList) {
@@ -278,15 +274,6 @@ void Picker::_editTile(int x, int y, int entityID) {
                     for (auto texture : layeredTextures) {
                         if (texture->getName().find("alphamap") != std::string::npos) {
 
-                            Vector4     tileExtents;
-                            std::string extentsInString =
-                                texture->getName().substr(texture->getName().find("clone") + 5);
-                            int xPosOfTile  = std::atoi(extentsInString.substr(0, extentsInString.find("_")).c_str());
-                            extentsInString = extentsInString.substr(extentsInString.find("_") + 1);
-                            int yPosOfTile  = std::atoi(extentsInString.substr(0, extentsInString.find("_")).c_str());
-                            extentsInString = extentsInString.substr(extentsInString.find("_") + 1);
-                            int zPosOfTile  = std::atoi(extentsInString.substr(0, extentsInString.find(".")).c_str());
-
                             MutableTexture* alphaMapEditor = nullptr;
                             if (_mutableTextureCache.find(texture->getName()) != _mutableTextureCache.end()) {
                                 alphaMapEditor = _mutableTextureCache.find(texture->getName())->second;
@@ -295,38 +282,11 @@ void Picker::_editTile(int x, int y, int entityID) {
                                 _mutableTextureCache.insert(
                                     std::pair<std::string, MutableTexture*>(texture->getName(), alphaMapEditor));
                             }
-                            float width  = static_cast<float>(alphaMapEditor->getWidth());
-                            float height = static_cast<float>(alphaMapEditor->getHeight());
-
-                            float xOffset = width / 2.0f;
-                            float zOffset = height / 2.0f;
-
-                            float xCentroid   = x;
-                            float zCentroid   = y;
-                            float totalRadius = (width / 2) + _pickingRadius;
-
-                            if (xCentroid >= xPosOfTile - totalRadius && xCentroid <= xPosOfTile + totalRadius &&
-                                zCentroid >= zPosOfTile - totalRadius && zCentroid <= zPosOfTile + totalRadius) {
-
-                                if (xCentroid < xOffset) {
-                                    float multiplier = ceilf(fabs(xCentroid) / width);
-                                    xCentroid += multiplier * width;
-                                }
-
-                                if (zCentroid < zOffset) {
-                                    float multiplier = ceilf(fabs(zCentroid) / height);
-                                    zCentroid += multiplier * height;
-                                }
-
-                                int xPosition   = static_cast<int>(xCentroid + xOffset) % static_cast<int>(width);
-                                int zPosition   = static_cast<int>(zCentroid + zOffset) % static_cast<int>(height);
-
-                                alphaMapEditor->editTextureData(xPosition,
-                                                                zPosition,
-                                                                _pixelEditValue,
-                                                                false,
-                                                                _pickingRadius);
-                            }
+                            alphaMapEditor->editTextureData(x,
+                                                            y,
+                                                            _pixelEditValue,
+                                                            false,
+                                                            _pickingRadius);
                         }
                     }
                 }

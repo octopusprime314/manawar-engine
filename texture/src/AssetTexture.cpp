@@ -60,6 +60,7 @@ void AssetTexture::updateTexture(FIBITMAP* data) {
     void*        pixelData    = static_cast<void*>(FreeImage_GetBits(data));
     if (bytesToWrite != _sizeInBytes) {
         _bits = new BYTE[bytesToWrite];
+        _sizeInBytes = bytesToWrite;
     }
     memcpy(_bits, pixelData, bytesToWrite);
 

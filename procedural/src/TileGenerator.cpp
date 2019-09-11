@@ -26,9 +26,10 @@ void generateScene(std::string sceneName) {
     const int   typesOfTrees    = 3;
     const int   numTreesToPlace = 5;
     const float maxRandomValue  = static_cast<float>(RAND_MAX);
+    int         entityIDMap[numWidthTiles][numLengthTiles];
 
     const std::vector<Entity*>* entityList = nullptr;
-    
+
     // Establish a seed for the random number generator
     srand(time(NULL));
 
@@ -36,8 +37,8 @@ void generateScene(std::string sceneName) {
     // Send a middle mouse button click to change texture
     terminal->processCommand("MOUSEPATHING 2 1 0 0 0");
 
-    for (int tileWidthIndex = -halfWidthTiles; tileWidthIndex < halfWidthTiles; tileWidthIndex++) {
-        for (int tileLengthIndex = -halfLengthTiles; tileLengthIndex < halfLengthTiles; tileLengthIndex++) {
+    for (int tileWidthIndex = -halfWidthTiles; tileWidthIndex <= halfWidthTiles; tileWidthIndex++) {
+        for (int tileLengthIndex = -halfLengthTiles; tileLengthIndex <= halfLengthTiles; tileLengthIndex++) {
 
             // First add a tile
             std::string command = "ADDTILE " + sceneName + " FOREST ";
@@ -50,69 +51,8 @@ void generateScene(std::string sceneName) {
 
             // Get latest entity list based on the previous addition of a tile which is guaranteed to be at the end :)
             entityList   = EngineManager::getEntityList();
-            int entityID = entityList->back()->getID();
-
-            // Second add paths and terrain painting of the tile
-            // and make sure the path is within the extents of the tile terrain texture
-            int pathWidthLocation  = tileHalfWidth;
-            int pathLengthLocation = tileHalfLength;
-
-            while ((pathWidthLocation  >= 0)         &&
-                   (pathWidthLocation  <  tileWidth) &&
-                   (pathLengthLocation >= 0)         &&
-                   (pathLengthLocation <  tileLength)) {
-
-                // Left mouse click command
-                command = "MOUSEPATHING 0 1 ";
-
-                command += std::to_string(pathWidthLocation)  + " ";
-                command += std::to_string(pathLengthLocation) + " ";
-                command += std::to_string(entityID);
-
-                terminal->processCommand(command);
-
-                TileDirection nextPathLocationWidth  = static_cast<TileDirection>(rand() % TileDirection::TileDirectionLength);
-                TileDirection nextPathLocationLength = static_cast<TileDirection>(rand() % TileDirection::TileDirectionLength);
-
-                for (int pathPass = 0; pathPass < 2; pathPass++) {
-                    TileDirection direction = pathPass ? nextPathLocationLength : nextPathLocationWidth;
-
-                    switch (direction) {
-                        case Left: 
-                        {
-                            if (pathPass == 0) {
-                                pathWidthLocation--;
-                            }
-                            break;
-                        }
-                        case Right:
-                        {
-                            if (pathPass == 0) {
-                                pathWidthLocation++;
-                            }
-                            break;
-                        }
-                        case Up:
-                        {
-                            if (pathPass == 1) {
-                                pathLengthLocation--;
-                            }
-                            break;
-                        }
-                        case Down:
-                        {
-                            if (pathPass == 1) {
-                                pathLengthLocation++;
-                            }
-                            break;
-                        }
-                        case None: 
-                        {
-                            break;
-                        }
-                    };
-                }
-            }
+            // Stores an entityID for every tile
+            entityIDMap[tileWidthIndex + halfWidthTiles][tileLengthIndex + halfLengthTiles] = entityList->back()->getID();
 
             float tileWidthMin  = (tileWidthIndex  * tileWidth)  - tileHalfWidth;
             float tileLengthMin = (tileLengthIndex * tileLength) - tileHalfLength;
@@ -152,5 +92,98 @@ void generateScene(std::string sceneName) {
             }
         }
     }
+
+    int pathWidthLocation  = tileHalfWidth;
+    int pathLengthLocation = tileHalfLength;
+    int tileWidthIndex     = numWidthTiles  / 2;
+    int tileLengthIndex    = numLengthTiles / 2;
+
+    // Second add paths and terrain painting of the tile
+    // and make sure the path is within the extents of the tile terrain texture
+    while (tileWidthIndex  >= 0             &&
+           tileWidthIndex  <  numWidthTiles &&
+           tileLengthIndex >= 0             &&
+           tileLengthIndex <  numLengthTiles) {
+
+        int entityID = entityIDMap[tileWidthIndex][tileLengthIndex];
+
+        while ((pathWidthLocation  >= 0)         &&
+               (pathWidthLocation  <  tileWidth) &&
+               (pathLengthLocation >= 0)         &&
+               (pathLengthLocation <  tileLength)) {
+
+            // Left mouse click command
+            std::string command = "MOUSEPATHING 0 1 ";
+            command += std::to_string(pathWidthLocation)  + " ";
+            command += std::to_string(pathLengthLocation) + " ";
+            command += std::to_string(entityID);
+
+            terminal->processCommand(command);
+
+            TileDirection nextPathLocationWidth  = static_cast<TileDirection>(rand() % TileDirection::TileDirectionLength);
+            TileDirection nextPathLocationLength = static_cast<TileDirection>(rand() % TileDirection::TileDirectionLength);
+
+            for (int pathPass = 0; pathPass < 2; pathPass++) {
+                TileDirection direction = pathPass ? nextPathLocationLength : nextPathLocationWidth;
+
+                switch (direction) {
+                    case Left:
+                    {
+                        if (pathPass == 0) {
+                            pathWidthLocation--;
+                        }
+                        break;
+                    }
+                    case Right:
+                    {
+                        if (pathPass == 0) {
+                            pathWidthLocation++;
+                        }
+                        break;
+                    }
+                    case Up:
+                    {
+                        if (pathPass == 1) {
+                            pathLengthLocation--;
+                        }
+                        break;
+                    }
+                    case Down:
+                    {
+                        if (pathPass == 1) {
+                            pathLengthLocation++;
+                        }
+                        break;
+                    }
+                    case None: 
+                    {
+                        break;
+                    }
+                };
+            }
+        }
+
+        if (pathWidthLocation < 0) {
+            tileWidthIndex--;
+            // Location when jumping into another tile
+            pathWidthLocation = tileWidth - 1;
+        }
+        if (pathWidthLocation >= tileWidth) {
+            tileWidthIndex++;
+            // Location when jumping into another tile
+            pathWidthLocation = 0;
+        }
+        if (pathLengthLocation < 0) {
+            tileLengthIndex--;
+            // Location when jumping into another tile
+            pathLengthLocation = tileLength - 1;
+        }
+        if (pathLengthLocation >= tileLength) {
+            tileLengthIndex++;
+            // Location when jumping into another tile
+            pathLengthLocation = 0;
+        }
+    }
+
     terminal->processCommand("SAVE SPAWN-TEST");
 }

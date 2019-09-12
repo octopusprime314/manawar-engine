@@ -99,7 +99,7 @@ EngineManager::EngineManager(int*      argc,
                                 0.1f,
                                 5000.0f);
 
-    _viewManager->setView(      Matrix::translation(0, -5.0f, 0),
+    _viewManager->setView(      Matrix::translation(0, 15, -60),
                                 Matrix::rotationAroundY(0.0f),
                                 Matrix());
 

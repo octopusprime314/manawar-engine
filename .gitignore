@@ -60,7 +60,7 @@ Temporary Items
 ReBoot.v11.suo
 *.exe
 *.ilk
-assets
+assets*
 libs
 build
 buildtest

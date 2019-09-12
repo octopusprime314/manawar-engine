@@ -141,8 +141,8 @@ target_link_libraries(manawar-engine           ${CMAKE_SOURCE_DIR}/libs/fmod/lib
 
 #pre fetches assets and dependencies during cmake -G configuration
 FetchContent_Populate(data
-                      URL        https://www.dropbox.com/s/3lcw7rxf6ej6jsv/data1.0.zip?dl=0
-                      URL_HASH   MD5=fd8742f259fcc4ab70aa6b79a3dfcc7a
+                      URL        https://www.dropbox.com/s/zhyqvvt6ogubh9y/RT1.1.zip?dl=0
+                      URL_HASH   MD5=c17c41c95840ea3f85e071578ef09b80
                       SOURCE_DIR data)
 
 #Copy over the contents of the unzipped folder                    
@@ -154,7 +154,9 @@ file(REMOVE_RECURSE ${CMAKE_SOURCE_DIR}/build/data/)
 add_custom_command(TARGET manawar-engine POST_BUILD
                    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/libs/freeimage/lib/FreeImage.dll $<TARGET_FILE_DIR:manawar-engine>
                    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/libs/fmod/lib/fmod64.dll         $<TARGET_FILE_DIR:manawar-engine> 
-                   COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/libs/dx/lib/dxcompiler.dll       $<TARGET_FILE_DIR:manawar-engine>)
+                   COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/libs/dx/lib/dxcompiler.dll       $<TARGET_FILE_DIR:manawar-engine>
+				   COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/libs/dx/lib/D3D12.dll            $<TARGET_FILE_DIR:manawar-engine>
+				   COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/libs/dx/lib/d3d12SDKLayers.dll   $<TARGET_FILE_DIR:manawar-engine>)
                    #COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/libs/dx/lib/dxil.dll             $<TARGET_FILE_DIR:manawar-engine>)
 
 install(TARGETS manawar-engine RUNTIME DESTINATION bin)

@@ -170,6 +170,12 @@ void Terminal::_commandProcessor(std::string command) {
     }
     else if (commandType == "UNDO") {
         //TODO: Undo previous change to scene
+    } 
+    else if (commandType == "INCREASE_PAINT_SIZE") {
+        _picker->keyboardPress(GLFW_KEY_UP, 0, 0);
+    }
+    else if (commandType == "DECREASE_PAINT_SIZE") {
+        _picker->keyboardPress(GLFW_KEY_DOWN, 0, 0);
     }
 }
 

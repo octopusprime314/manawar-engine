@@ -28,22 +28,20 @@
 using MutableTextures = std::unordered_map<std::string, MutableTexture*>;
 
 class Picker {
-    void                                     _mouseClick(   int    button,
-                                                            int    action,
-                                                            int    x,
-                                                            int    y);
-    void                                     _mouseMove(    double x,
-                                                            double y);
-    void                                     _editData(     int    x,
-                                                            int    y,
-                                                            bool   mouseDrag,
-                                                            bool   mouseClick);
-    void                                     _editTile(     int x,
-                                                            int y,
-                                                            int entityID);
-    void                                     _keyboardPress(int    key,
-                                                            int    x,
-                                                            int    y);
+    void                                     _mouseClick(int    button,
+                                                         int    action,
+                                                         int    x,
+                                                         int    y);
+    void                                     _mouseMove( double x,
+                                                         double y);
+    void                                     _editData(  int    x,
+                                                         int    y,
+                                                         bool   mouseDrag,
+                                                         bool   mouseClick);
+    void                                     _editTile(  int    x,
+                                                         int    y,
+                                                         int    entityID);
+
 
     MutableTextures                          _mutableTextureCache;
     std::function<bool(Entity*)>             _mouseDeleteCallback;
@@ -64,11 +62,14 @@ public:
            std::function<bool(Entity*)>      mouseDeleteCallback);
     ~Picker();
     
-    void                                     editTile(int button,
-                                                      int action,
-                                                      int x,
-                                                      int y,
-                                                      int entityID);
+    void                                     editTile(     int button,
+                                                           int action,
+                                                           int x,
+                                                           int y,
+                                                           int entityID);
+    void                                     keyboardPress(int key,
+                                                           int x,
+                                                           int y);
     Vector4                                  getLastPickedPosition();
     void                                     saveMutableTextures();
     void                                     updateIdBuffer();

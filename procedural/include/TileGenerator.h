@@ -14,6 +14,13 @@ enum TileID {
     TileIdLength   = 5
 };
 
+enum TileFlag { 
+    NoFlag         = 0,
+    Path           = 1,
+    Item           = 2,
+    TileFlagLength = 3
+};
+
 enum TileDirection {
     None                = 0,
     Left                = 1,

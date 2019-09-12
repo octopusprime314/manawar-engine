@@ -16,7 +16,7 @@ Picker::Picker(MRTFrameBuffer*                    mrt,
 
     IOEvents::subscribeToMouseClick(std::bind(&Picker::_mouseClick,    this, _1, _2, _3, _4));
     IOEvents::subscribeToMouse(     std::bind(&Picker::_mouseMove,     this, _1, _2        ));
-    IOEvents::subscribeToKeyboard(  std::bind(&Picker::_keyboardPress, this, _1, _2, _3    ));
+    IOEvents::subscribeToKeyboard(  std::bind(&Picker::keyboardPress, this, _1, _2, _3    ));
 }
 
 Picker::~Picker() {
@@ -55,9 +55,9 @@ void Picker::updateIdBuffer() {
 
 }
 
-void Picker::_keyboardPress(int key,
-                            int x,
-                            int y) {
+void Picker::keyboardPress(int key,
+                           int x,
+                           int y) {
 
     if (key == GLFW_KEY_UP) {
         _pickingRadius++;
@@ -334,9 +334,9 @@ void Picker::_mouseClick(int button, int action, int x, int y) {
         _textureSelection %= 4;
     }
     else if (button == GLFW_MOUSE_BUTTON_LEFT &&
-                action == GLFW_PRESS             &&
-                x >= 0                           &&
-                y >= 0) {
+             action == GLFW_PRESS             &&
+             x >= 0                           &&
+             y >= 0) {
         _editData(x, y, false, true);
     }
     _mousePosition = Vector4(static_cast<float>(x), static_cast<float>(y), 0.0f);

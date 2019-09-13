@@ -136,7 +136,8 @@ EngineManager::EngineManager(int*      argc,
         _terminal = Terminal::instance();
         _terminal->initTerminal(_deferredRenderer->getGBuffers(), _entityList);
         // Use tile generator to create a randomly generated scene based on a rules system
-        generateScene("SPAWN-TEST");
+        _pathCounter = 0;
+        //generateScene("SPAWN-TEST");
     }
 
     Vector4 sunLocation(0.0f, 0.0f, 700.0f);
@@ -373,6 +374,10 @@ void EngineManager::_postDraw() {
 
         //unbind fbo
         _deferredRenderer->unbind();
+
+        if ((++_pathCounter) % 2 == 0) {
+            //updatePath("SPAWN-TEST");
+        }
 
         if (_viewManager->getViewState() == Camera::ViewState::DEFERRED_LIGHTING) {
 

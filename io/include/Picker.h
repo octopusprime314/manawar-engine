@@ -38,9 +38,10 @@ class Picker {
                                                          int    y,
                                                          bool   mouseDrag,
                                                          bool   mouseClick);
-    void                                     _editTile(  int    x,
-                                                         int    y,
-                                                         int    entityID);
+    void                                     _editTile(  int         x,
+                                                         int         y,
+                                                         int         entityID,
+                                                         std::string scene);
 
 
     MutableTextures                          _mutableTextureCache;
@@ -62,11 +63,12 @@ public:
            std::function<bool(Entity*)>      mouseDeleteCallback);
     ~Picker();
     
-    void                                     editTile(     int button,
-                                                           int action,
-                                                           int x,
-                                                           int y,
-                                                           int entityID);
+    void                                     editTile(     int         button,
+                                                           int         action,
+                                                           int         x,
+                                                           int         y,
+                                                           int         entityID,
+                                                           std::string scene);
     void                                     keyboardPress(int key,
                                                            int x,
                                                            int y);

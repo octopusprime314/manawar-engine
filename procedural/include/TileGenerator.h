@@ -35,3 +35,5 @@ struct TileData {
 };
 
 void generateScene(std::string sceneName);
+// Debug aid to observe how the path creation is done
+void updatePath(   std::string sceneName);

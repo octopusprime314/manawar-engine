@@ -22,12 +22,15 @@ enum TileFlag {
 };
 
 enum TileDirection {
-    None                = 0,
-    Left                = 1,
-    Right               = 2,
-    Up                  = 3,
-    Down                = 4,
-    TileDirectionLength = 5
+    North               = 0,
+    East                = 1,
+    South               = 2,
+    West                = 3,
+    NorthEast           = 4,
+    SouthEast           = 5,
+    NorthWest           = 6,
+    SouthWest           = 7,
+    TileDirectionLength = 8
 };
 
 struct TileData {

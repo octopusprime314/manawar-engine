@@ -133,9 +133,11 @@ void MutableTexture::editTextureData(int xPosition, int yPosition, Vector4 textu
 
                 int    deltaX         = abs(x - xPosition);
                 int    deltaY         = abs(y - yPosition);
-                double computedRadius = sqrt(static_cast<double>(deltaX * deltaX + deltaY * deltaY));
-
-                if (computedRadius <= radius) {
+                // Use for circular painting on a texture
+                //double computedRadius = sqrt(static_cast<double>(deltaX * deltaX + deltaY * deltaY));
+                //if (computedRadius <= (radius + 2)) {
+                if (deltaX <= radius &&
+                    deltaY <= radius) {
                     bits[0] = static_cast<unsigned int>(texturePixel.getx()); // blue
                     bits[1] = static_cast<unsigned int>(texturePixel.gety()); // green
                     bits[2] = static_cast<unsigned int>(texturePixel.getz()); // red
@@ -146,7 +148,7 @@ void MutableTexture::editTextureData(int xPosition, int yPosition, Vector4 textu
                     bits[2] = bitmapToRead[2];
                     bits[3] = bitmapToRead[3];
                 }
-                bits += 4; // pointer math
+                bits         += 4; // pointer math
                 bitmapToRead += 4;
             }
         }

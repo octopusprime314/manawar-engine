@@ -106,13 +106,23 @@ void Terminal::_commandProcessor(std::string command) {
         command                = command.substr(command.find(' ') + 1);
         std::string scale      = command.substr(0, command.find(' '));
 
+        command                = command.substr(command.find(' ') + 1);
+        std::string xRot       = command.substr(0, command.find(' '));
+        command                = command.substr(command.find(' ') + 1);
+        std::string yRot       = command.substr(0, command.find(' '));
+        command                = command.substr(command.find(' ') + 1);
+        std::string zRot       = command.substr(0, command.find(' '));
+
         _modelManager->addModel(modelName,
                                 modelToAdd,
                                 Vector4(static_cast<float>(atof(xStr.c_str())),
                                         static_cast<float>(atof(yStr.c_str())),
                                         static_cast<float>(atof(zStr.c_str())),
                                         static_cast<float>(atof(scale.c_str()))),
-                                Vector4(0.0, 0.0, 0.0));
+                                Vector4(static_cast<float>(atof(xRot.c_str())),
+                                        static_cast<float>(atof(yRot.c_str())),
+                                        static_cast<float>(atof(zRot.c_str())),
+                                        1.0f));
     }
     else if (commandType == "ADDTILE") {
         command                = command.substr(command.find(' ') + 1);

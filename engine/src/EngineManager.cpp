@@ -48,6 +48,7 @@ EngineManager::EngineManager(int*      argc,
                              int       nCmdShow) {
 
     _graphicsLayer = GraphicsLayer::OPENGL;
+    _generatorMode = true;
 
     if (_graphicsLayer >= GraphicsLayer::DX12) {
 
@@ -135,9 +136,12 @@ EngineManager::EngineManager(int*      argc,
     if (_graphicsLayer == GraphicsLayer::OPENGL) {
         _terminal = Terminal::instance();
         _terminal->initTerminal(_deferredRenderer->getGBuffers(), _entityList);
-        // Use tile generator to create a randomly generated scene based on a rules system
-        _pathCounter = 0;
-        generateScene("SPAWN-TEST");
+
+        if (_generatorMode) {
+            // Use tile generator to create a randomly generated scene based on a rules system
+            _pathCounter = 0;
+            generateScene("SPAWN-TEST");
+        }
     }
 
     Vector4 sunLocation(0.0f, 0.0f, 700.0f);
@@ -375,7 +379,10 @@ void EngineManager::_postDraw() {
         //unbind fbo
         _deferredRenderer->unbind();
 
-        if ((++_pathCounter) % 20 == 0) {
+
+        if ((_generatorMode == true) &&
+            ((++_pathCounter) % 20 == 0)) {
+
             updatePath("SPAWN-TEST");
         }
 

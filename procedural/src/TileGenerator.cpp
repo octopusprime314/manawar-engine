@@ -143,6 +143,8 @@ void generateScene(std::string sceneName) {
 
     Terminal* terminal = Terminal::instance();
 
+    srand(time(NULL));
+
     const std::vector<Entity*>* entityList = nullptr;
 
     for (int tileIndexW = -halfWidthTiles; tileIndexW <= halfWidthTiles; tileIndexW++) {
@@ -166,8 +168,8 @@ void generateScene(std::string sceneName) {
 
                 int treeWidthLocation  = ((rand() % tileWidth));
                 int treeLengthLocation = ((rand() % tileLength));
-                treeWidthLocation     -= treeWidthLocation % pathPixelDiameter;
-                treeLengthLocation    -= treeWidthLocation % pathPixelDiameter;
+                treeWidthLocation     -= treeWidthLocation  % pathPixelDiameter;
+                treeLengthLocation    -= treeLengthLocation % pathPixelDiameter;
 
                 int tileWidthMin       = (tileIndexW * tileWidth)  - tileHalfWidth;
                 int tileLengthMin      = (tileIndexL * tileLength) - tileHalfLength;
@@ -193,12 +195,17 @@ void generateScene(std::string sceneName) {
                 // Scale model between 0.25 and 0.75
                 float scale = ((static_cast<float>(rand()) / maxRandomValue) * 0.5f) + 0.25f;
 
+                // Rotate tree around Y axis
+                float yRot  = static_cast<float>(rand() % 360);
+
                 // Place to the left or right of the path, etc.
                 command += std::to_string(tileWidthMin  + treeWidthLocation)  + " ";
                 command += std::to_string(0)                                  + " "; // Keep height 0 for now
                 command += std::to_string(tileLengthMin + treeLengthLocation) + " ";
                 command += std::to_string(scale)                              + " "; // w component for scaling
-
+                command += std::to_string(0)                                  + " ";
+                command += std::to_string(yRot)                               + " "; // rotation around y
+                command += std::to_string(0)                                  + " ";
                 terminal->processCommand(command);
             }
         }
@@ -224,6 +231,8 @@ void updatePath(std::string sceneName) {
     // I know this should be lifted to a generic wrapper that edits the 
     // fbx but for now I will inject string commands to the terminal interface.
     Terminal* terminal  = Terminal::instance();
+
+    srand(time(NULL));
 
     // Second add paths and terrain painting of the tile
     // and make sure the path is within the extents of the tile terrain texture
@@ -298,7 +307,8 @@ void updatePath(std::string sceneName) {
                 // If every direction has been taken and no paths are taken then the path is stuck so quit early
                 directionFlags |=
                     static_cast<unsigned int>(pow(2.0f, static_cast<float>(nextPathDirection)));
-                if (directionFlags == static_cast<unsigned int>(pow(2.0f, static_cast<float>(TileDirection::TileDirectionLength))) - 1) {
+                if (directionFlags == static_cast<unsigned int>(pow(2.0f, static_cast<float>(TileDirection::TileDirectionLength)) - 1)) {
+                    terminal->processCommand("SAVE SPAWN-TEST");
                     proceduralGenDone = true;
                     return;
                 }
@@ -314,8 +324,8 @@ void updatePath(std::string sceneName) {
                 int  sign            = (direction[0] * tempDirection[0]) + (direction[1] * tempDirection[1]);
 
                 if ((tileGridValue != Path) &&
-                    (tileGridValue != Item) &&
-                    (sign          >= 0.0f)) {
+                    (tileGridValue != Item)/* &&
+                    (sign          >= 0.0f)*/) {
 
                     int prevEntityID = entityIDMap[prevTileWidthIndex][prevTileLengthIndex];
 

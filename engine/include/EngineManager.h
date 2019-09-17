@@ -64,6 +64,7 @@ class EngineManager {
     EnvironmentMap*              _environmentMap;
     static GraphicsLayer         _graphicsLayer;
     bool                         _useRaytracing;
+    bool                         _generatorMode;
     // Manages audio playback
     AudioManager*                _audioManager;
     //manages the view/camera matrix from the user's perspective

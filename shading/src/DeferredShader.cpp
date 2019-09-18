@@ -89,10 +89,10 @@ void DeferredShader::runShader(std::vector<Light*>&  lights,
         }
     }
 
-    _shader->updateData("numPointLights",         &pointLights);
-    _shader->updateData("pointLightColors[0]",    lightColorsArray);
-    _shader->updateData("pointLightRanges[0]",    lightRangesArray);
-    _shader->updateData("pointLightPositions[0]", lightPosArray);
+    //_shader->updateData("numPointLights",         &pointLights);
+    //_shader->updateData("pointLightColors[0]",    lightColorsArray);
+    //_shader->updateData("pointLightRanges[0]",    lightRangesArray);
+    //_shader->updateData("pointLightPositions[0]", lightPosArray);
 
     delete[] lightPosArray;
     delete[] lightColorsArray;

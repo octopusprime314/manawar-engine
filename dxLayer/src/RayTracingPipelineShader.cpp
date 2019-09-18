@@ -215,7 +215,7 @@ RayTracingPipelineShader::RayTracingPipelineShader(std::string shader,
     std::string libProfile = "lib_6_3";
     if (EngineManager::getGraphicsLayer() == GraphicsLayer::DXR_EXPERIMENTAL) {
         libProfile         = "lib_6_5";
-        define.Value       = L"1";
+        define.Value       = L"0";
     }
     CA2W shWide(libProfile.c_str(), CP_UTF8);
     dxcCompiler->Compile(pSource,
@@ -514,6 +514,8 @@ RayTracingPipelineShader::RayTracingPipelineShader(std::string shader,
 
             memcpy(&_instanceDesc[i].Transform, instance->getWorldSpaceTransform().getFlatBuffer(), sizeof(float) * 12);
             _instanceDesc[i].InstanceMask                        = 1;
+            // do not overwrite geometry flags for bottom levels, this caused the non opaque and opaqueness of bottom levels to be random
+            _instanceDesc[i].Flags                               = D3D12_RAYTRACING_INSTANCE_FLAG_NONE;
             // Used to identify which geomtry contains non opaque geometry like leaves and bushes
             _instanceDesc[i].InstanceID                          = instance->getRayTracingTextureId();
             _instanceDesc[i].InstanceContributionToHitGroupIndex = 0;

@@ -324,21 +324,25 @@ void EngineManager::_preDraw() {
         DXLayer::instance()->initCmdLists();
     }
 
-    if (_viewManager->getViewState() == Camera::ViewState::POINT_SHADOW      ||
-        _viewManager->getViewState() == Camera::ViewState::DEFERRED_LIGHTING ||
-        _viewManager->getViewState() == Camera::ViewState::CAMERA_SHADOW     ||
-        _viewManager->getViewState() == Camera::ViewState::MAP_SHADOW) {
+    // GraphicsLayer::DX12 renders shadows using the raserization path
+    // GraphicsLayer::DXR  renders shadows using the DXR path
+    // GraphicsLayer::DXR_EXPERIMENTAL doesn't use either of these paths and uses the deferred pixel shader to generate shadows
+    if (_graphicsLayer == GraphicsLayer::DX12) {
+        if (_viewManager->getViewState() == Camera::ViewState::POINT_SHADOW      ||
+            _viewManager->getViewState() == Camera::ViewState::DEFERRED_LIGHTING ||
+            _viewManager->getViewState() == Camera::ViewState::CAMERA_SHADOW     ||
+            _viewManager->getViewState() == Camera::ViewState::MAP_SHADOW) {
        
-        //send all vbo data to point light shadow pre pass
-        for (Light* light : _lightList) {
-            //ray trace the second direcional light
-            if (_useRaytracing == false || light == _lightList[0]) {
-                light->renderShadow(_entityList);
+            //send all vbo data to point light shadow pre pass
+            for (Light* light : _lightList) {
+                //ray trace the second direcional light
+                if (_useRaytracing == false || light == _lightList[0]) {
+                    light->renderShadow(_entityList);
+                }
             }
         }
     }
-
-    if (_graphicsLayer == GraphicsLayer::DXR) {
+    else if (_graphicsLayer == GraphicsLayer::DXR) {
 
         if (_useRaytracing) {
             _rayTracingPipeline->doRayTracing(_entityList[0], _lightList[0]);

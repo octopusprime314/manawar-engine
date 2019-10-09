@@ -104,8 +104,8 @@ void MutableTexture::editTextureData(int xPosition, int yPosition, Vector4 textu
     int  textureWidth  = texture->getWidth();
     int  textureHeight = texture->getHeight();
 
-    if (xPosition >= 0 && xPosition < (textureWidth + radius) && yPosition >= 0 &&
-        yPosition < (textureHeight + radius)) {
+    if (xPosition >= -radius && xPosition < (textureWidth + radius) &&
+        yPosition >= -radius && yPosition < (textureHeight + radius)) {
 
         FIBITMAP* bitmap = nullptr;
         if (_originalData == nullptr) {
@@ -135,11 +135,10 @@ void MutableTexture::editTextureData(int xPosition, int yPosition, Vector4 textu
                 int    deltaY         = abs(y - yPosition);
 
                 // Use for circular painting on a texture
-                //double computedRadius = sqrt(static_cast<double>(deltaX * deltaX + deltaY * deltaY));
-                //bool   addRandomness  = (rand() % 2 == 1);
-                //if (computedRadius <= (radius) && addRandomness) {
-                if (deltaX <= radius &&
-                    deltaY <= radius) {
+                double computedRadius = sqrt(static_cast<double>(deltaX * deltaX + deltaY * deltaY));
+                if (computedRadius <= radius) {
+                //if (deltaX <= radius &&
+                //    deltaY <= radius) {
                     bits[0] = static_cast<unsigned int>(texturePixel.getx()); // blue
                     bits[1] = static_cast<unsigned int>(texturePixel.gety()); // green
                     bits[2] = static_cast<unsigned int>(texturePixel.getz()); // red

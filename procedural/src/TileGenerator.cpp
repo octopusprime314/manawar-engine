@@ -37,6 +37,16 @@ int prevPathLengthLocation = pathLengthLocation;
 // Identifies a tile within the grid's entity ID for access
 int entityIDMap[numWidthTiles][numLengthTiles];
 
+// Radial pathing data
+// 360 degrees of rotation for the next path direction
+const int   fullCircleInDegrees         = 360;
+const int   rotationPathOffsetInDegress = 5;
+const int   rotationPathVariations      = fullCircleInDegrees / rotationPathOffsetInDegress;
+const float degToRad                    = PI / 180.0f;
+
+int prevRotationInDegress = 0;
+int currRotationInDegrees = 0;
+
 // Flags used to identify what type of object is at this location in the grid
 TileFlag tileGridFlag[widthOfWorld / pathPixelDiameter][lengthOfWorld / pathPixelDiameter];
 
@@ -66,71 +76,38 @@ void paintTiles(int         widthLocation,
 
     //Checks to see if neighboring tiles need to be colored as well
 
-    // Strattling tile to the right of current
-    if (widthLocation >= tileWidth) {
+    // Straddling tile to the right of current
+    if (widthLocation >= (tileWidth - pathPixelRadius)) {
 
-        paintTile(0,
+        paintTile(widthLocation - tileWidth,
                   lengthLocation,
                   entityIDMap[tileWidthIndex + 1][tileLengthIndex],
                   name);
     }
-    // Strattling tile to the left of current
-    if (widthLocation <= 0) {
+    // Straddling tile to the left of current
+    if (widthLocation <= pathPixelRadius) {
 
-        paintTile(tileWidth,
+        paintTile(tileWidth + widthLocation,
                   lengthLocation,
                   entityIDMap[tileWidthIndex - 1][tileLengthIndex],
                   name);
     }
-    // Strattling tile to the top of current
-    if (lengthLocation >= tileLength) {
+
+    // Straddling tile to the top of current
+    if (lengthLocation >= (tileLength - pathPixelRadius)) {
 
         paintTile(widthLocation,
-                  0,
+                  lengthLocation - tileLength,
                   entityIDMap[tileWidthIndex][tileLengthIndex + 1],
                   name);
     }
-    // Strattling tile to the bottom of current
-    if (lengthLocation <= 0) {
+
+    //// Straddling tile to the bottom of current
+    if (lengthLocation <= pathPixelRadius) {
 
         paintTile(widthLocation,
-                  tileLength,
+                  tileLength + lengthLocation,
                   entityIDMap[tileWidthIndex][tileLengthIndex - 1],
-                  name);
-    }
-    
-    // Check for corners
-    if (widthLocation  >= tileWidth &&
-        lengthLocation >= tileLength) {
-
-        paintTile(0,
-                  0,
-                  entityIDMap[tileWidthIndex + 1][tileLengthIndex + 1],
-                  name);
-    }
-    else if (widthLocation  >= tileWidth &&
-             lengthLocation <= 0) {
-
-        paintTile(0,
-                  tileLength,
-                  entityIDMap[tileWidthIndex + 1][tileLengthIndex - 1],
-                  name);
-    }
-    else if (lengthLocation <= 0 &&
-             widthLocation  <= 0) {
-
-        paintTile(tileWidth,
-                  tileLength,
-                  entityIDMap[tileWidthIndex - 1][tileLengthIndex - 1],
-                  name);
-
-    }
-    else if (lengthLocation >= tileLength &&
-             widthLocation  <= 0) {
-
-        paintTile(tileWidth,
-                  0,
-                  entityIDMap[tileWidthIndex - 1][tileLengthIndex + 1],
                   name);
     }
 }
@@ -251,67 +228,17 @@ void updatePath(std::string sceneName) {
             while (!foundLocationWithoutPath) {
 
                 // Find the next path location
-                TileDirection nextPathDirection =
-                    static_cast<TileDirection>(rand() % TileDirection::TileDirectionLength);
 
-                int proposedPathWidthLocation  = pathWidthLocation;
-                int proposedPathLengthLocation = pathLengthLocation;
+                float proposedPathWidthLocation  = pathWidthLocation;
+                float proposedPathLengthLocation = pathLengthLocation;
 
-                switch (nextPathDirection) {
-                    case North:
-                    {
-                        proposedPathLengthLocation += pathPixelDiameter;
-                        break;
-                    }
-                    case East:
-                    {
-                        proposedPathWidthLocation  += pathPixelDiameter;
-                        break;
-                    }
-                    case South:
-                    {
-                        proposedPathLengthLocation -= pathPixelDiameter;
-                        break;
-                    }
-                    case West:
-                    {
-                        proposedPathWidthLocation  -= pathPixelDiameter;
-                        break;
-                    }
-                    case NorthEast:
-                    {
-                        proposedPathWidthLocation  += pathPixelDiameter;
-                        proposedPathLengthLocation += pathPixelDiameter;
-                        break;
-                    }
-                    case SouthEast:
-                    {
-                        proposedPathWidthLocation  += pathPixelDiameter;
-                        proposedPathLengthLocation -= pathPixelDiameter;
-                        break;
-                    }
-                    case NorthWest:
-                    {
-                        proposedPathWidthLocation  -= pathPixelDiameter;
-                        proposedPathLengthLocation += pathPixelDiameter;
-                        break;
-                    }
-                    case SouthWest:
-                    {
-                        proposedPathWidthLocation  -= pathPixelDiameter;
-                        proposedPathLengthLocation -= pathPixelDiameter;
-                        break;
-                    }
-                };
+                // 0 degrees is North, 90 is East, 180 is South, 270 is West
+                //currRotationInDegrees      += ((rand() % 3) - 1) * rotationPathOffsetInDegress;
+                currRotationInDegrees      = 45;
+                proposedPathLengthLocation += pathPixelRadius * cos(currRotationInDegrees * degToRad);
+                proposedPathWidthLocation  += pathPixelRadius * sin(currRotationInDegrees * degToRad);
 
-                // If every direction has been taken and no paths are taken then the path is stuck so quit early
-                directionFlags |=
-                    static_cast<unsigned int>(pow(2.0f, static_cast<float>(nextPathDirection)));
-                if (directionFlags == static_cast<unsigned int>(pow(2.0f, static_cast<float>(TileDirection::TileDirectionLength)) - 1)) {
-                    terminal->processCommand("SAVE SPAWN-TEST");
-                    proceduralGenDone = true;
-                    return;
-                }
+                /*
 
                 // Flag grid location as having a path here
                 TileFlag tileGridValue =
@@ -324,8 +251,8 @@ void updatePath(std::string sceneName) {
                 int  sign            = (direction[0] * tempDirection[0]) + (direction[1] * tempDirection[1]);
 
                 if ((tileGridValue != Path) &&
-                    (tileGridValue != Item)/* &&
-                    (sign          >= 0.0f)*/) {
+                    (tileGridValue != Item) &&
+                    (sign          >= 0.0f)) {*/
 
                     int prevEntityID = entityIDMap[prevTileWidthIndex][prevTileLengthIndex];
 
@@ -349,28 +276,28 @@ void updatePath(std::string sceneName) {
                     pathWidthLocation        = proposedPathWidthLocation;
                     pathLengthLocation       = proposedPathLengthLocation;
                     foundLocationWithoutPath = true;
-                    direction[0]             = tempDirection[0];
-                    direction[1]             = tempDirection[1];
+                    //direction[0]             = tempDirection[0];
+                    //direction[1]             = tempDirection[1];
 
                     if (pathWidthLocation <= 0) {
                         tileWidthIndex--;
                         // Location when jumping into another tile
-                        pathWidthLocation = tileWidth;
+                        pathWidthLocation += tileWidth;
                     }
                     else if (pathWidthLocation >= tileWidth) {
                         tileWidthIndex++;
                         // Location when jumping into another tile
-                        pathWidthLocation = 0;
+                        pathWidthLocation = pathWidthLocation % tileWidth;
                     }
                     if (pathLengthLocation <= 0) {
                         tileLengthIndex--;
                         // Location when jumping into another tile
-                        pathLengthLocation = tileLength;
+                        pathLengthLocation += tileLength;
                     }
                     else if (pathLengthLocation >= tileLength) {
                         tileLengthIndex++;
                         // Location when jumping into another tile
-                        pathLengthLocation = 0;
+                        pathLengthLocation = pathLengthLocation % tileLength;
                     }
 
                     // Draw the current tile
@@ -388,7 +315,7 @@ void updatePath(std::string sceneName) {
                     // Flag grid location as having a path here
                     tileGridFlag[((tileWidthIndex  * tileWidth)  + pathWidthLocation)  / pathPixelDiameter]
                                 [((tileLengthIndex * tileLength) + pathLengthLocation) / pathPixelDiameter] = Path;
-                }
+                //}
             }
 
             //// Chance of placing a tree near the path

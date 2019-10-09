@@ -245,9 +245,7 @@ void Picker::editTile(int button,
             _textureSelection %= 4;
         }
         else if (button == GLFW_MOUSE_BUTTON_LEFT &&
-                 action == GLFW_PRESS             &&
-                 x >= 0                           &&
-                 y >= 0) {
+                 action == GLFW_PRESS) {
 
             _editTile(x, y, entityID, scene);
         }

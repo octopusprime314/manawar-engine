@@ -233,8 +233,7 @@ void updatePath(std::string sceneName) {
                 float proposedPathLengthLocation = pathLengthLocation;
 
                 // 0 degrees is North, 90 is East, 180 is South, 270 is West
-                //currRotationInDegrees      += ((rand() % 3) - 1) * rotationPathOffsetInDegress;
-                currRotationInDegrees      = 45;
+                currRotationInDegrees      += ((rand() % 3) - 1) * rotationPathOffsetInDegress;
                 proposedPathLengthLocation += pathPixelRadius * cos(currRotationInDegrees * degToRad);
                 proposedPathWidthLocation  += pathPixelRadius * sin(currRotationInDegrees * degToRad);
 

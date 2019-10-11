@@ -429,7 +429,7 @@ void EngineManager::_postDraw() {
 
             for (auto entity : _entityList) {
                 if (entity->getSelected()) {
-                    entity->getFrustumCuller()->visualize();
+                    //entity->getFrustumCuller()->visualize();
                 }
             }
 

@@ -6,17 +6,17 @@
 // First define the extents of the world and use the hardcoded tile size of 200x200
 const int   tileWidth       = 200;
 const int   tileLength      = 200;
-const int   tileHalfWidth   = tileWidth / 2;
+const int   tileHalfWidth   = tileWidth  / 2;
 const int   tileHalfLength  = tileLength / 2;
-const int   widthOfWorld    = 10000;
-const int   lengthOfWorld   = 10000;
-const int   heightOfWorld   = 10000;
-const int   numWidthTiles   = widthOfWorld / tileWidth;
-const int   numLengthTiles  = lengthOfWorld / tileLength;
-const int   halfWidthTiles  = numWidthTiles / 2;
+const int   widthOfWorld    = 5000;
+const int   lengthOfWorld   = 5000;
+const int   heightOfWorld   = 5000;
+const int   numWidthTiles   = widthOfWorld   / tileWidth;
+const int   numLengthTiles  = lengthOfWorld  / tileLength;
+const int   halfWidthTiles  = numWidthTiles  / 2;
 const int   halfLengthTiles = numLengthTiles / 2;
 const int   typesOfTrees    = 3;
-const int   numTreesToPlace = 5;
+const int   numTreesToPlace = 1;
 const float maxRandomValue  = static_cast<float>(RAND_MAX);
 const int   pathPixelRadius = 10;
 const int   pathPixelDiameter      = pathPixelRadius * 2;
@@ -48,9 +48,12 @@ int prevRotationInDegrees = 0;
 int currRotationInDegrees = 0;
 
 // Flags used to identify what type of object is at this location in the grid
-TileFlag tileGridFlag[widthOfWorld / pathPixelDiameter][lengthOfWorld / pathPixelDiameter];
+TileFlag tileGridFlag[widthOfWorld / pathPixelRadius][lengthOfWorld / pathPixelRadius];
 
-void paintTile(int widthLocation, int lengthLocation, int id, std::string name) {
+void paintTile(int         widthLocation,
+               int         lengthLocation,
+               int         id,
+               std::string name) {
 
     Terminal* terminal = Terminal::instance();
 
@@ -132,10 +135,10 @@ void generateScene(std::string sceneName) {
 
             // First add a tile
             std::string command = "ADDTILE " + sceneName + " FOREST ";
-            command            += std::to_string(tileIndexW * tileWidth)   + " ";
-            command            += std::to_string(0)                            + " "; // Keep height 0 for now
+            command            += std::to_string(tileIndexW * tileWidth)  + " ";
+            command            += std::to_string(0)                       + " "; // Keep height 0 for now
             command            += std::to_string(tileIndexL * tileLength) + " ";
-            command            += std::to_string(1)                            + " "; // w component for scaling
+            command            += std::to_string(1)                       + " "; // w component for scaling
             command            += "SNOW.JPG DIRT.JPG ROCKS.JPG GRASS.JPG";
             terminal->processCommand(command);
 
@@ -148,15 +151,15 @@ void generateScene(std::string sceneName) {
 
             //    int treeWidthLocation  = rand() % tileWidth;
             //    int treeLengthLocation = rand() % tileLength;
-            //    treeWidthLocation     -= treeWidthLocation  % pathPixelDiameter;
-            //    treeLengthLocation    -= treeLengthLocation % pathPixelDiameter;
+            //    treeWidthLocation     -= treeWidthLocation  % pathPixelRadius;
+            //    treeLengthLocation    -= treeLengthLocation % pathPixelRadius;
 
             //    int tileWidthMin       = (tileIndexW * tileWidth)  - tileHalfWidth;
             //    int tileLengthMin      = (tileIndexL * tileLength) - tileHalfLength;
 
             //    // Flag grid location as having an item here
-            //    tileGridFlag[(tileWidthMin  + treeWidthLocation  + (widthOfWorld  / 2)) / pathPixelDiameter]
-            //                [(tileLengthMin + treeLengthLocation + (lengthOfWorld / 2)) / pathPixelDiameter] = Item;
+            //    tileGridFlag[(tileWidthMin  + treeWidthLocation  + (widthOfWorld  / 2)) / pathPixelRadius]
+            //                [(tileLengthMin + treeLengthLocation + (lengthOfWorld / 2)) / pathPixelRadius] = Item;
 
             //    // Add models around the path
             //    // The selection of trees we have are tree3, tree7 and tree8 for the time being
@@ -212,7 +215,7 @@ void updatePath(std::string sceneName) {
     // fbx but for now I will inject string commands to the terminal interface.
     Terminal* terminal  = Terminal::instance();
 
-    srand(time(NULL));
+    //srand(time(NULL));
 
     // Second add paths and terrain painting of the tile
     // and make sure the path is within the extents of the tile terrain texture
@@ -243,8 +246,8 @@ void updatePath(std::string sceneName) {
                 /*
                 // Flag grid location as having a path here
                 TileFlag tileGridValue =
-                    tileGridFlag[((tileWidthIndex  * tileWidth)  + proposedPathWidthLocation)  / pathPixelDiameter]
-                                [((tileLengthIndex * tileLength) + proposedPathLengthLocation) / pathPixelDiameter];
+                    tileGridFlag[((tileWidthIndex  * tileWidth)  + proposedPathWidthLocation)  / pathPixelRadius]
+                                [((tileLengthIndex * tileLength) + proposedPathLengthLocation) / pathPixelRadius];
 
                 int tempDirection[2] = { proposedPathWidthLocation  - pathWidthLocation,
                                          proposedPathLengthLocation - pathLengthLocation };
@@ -314,49 +317,56 @@ void updatePath(std::string sceneName) {
                     prevTileLengthIndex    = tileLengthIndex;
 
                     // Flag grid location as having a path here
-                    tileGridFlag[((tileWidthIndex  * tileWidth)  + pathWidthLocation)  / pathPixelDiameter]
-                                [((tileLengthIndex * tileLength) + pathLengthLocation) / pathPixelDiameter] = Path;
+                    tileGridFlag[((tileWidthIndex  * tileWidth)  + pathWidthLocation)  / pathPixelRadius]
+                                [((tileLengthIndex * tileLength) + pathLengthLocation) / pathPixelRadius] = Path;
                 //}
             }
 
-            //// Chance of placing a tree near the path
-            //bool placingItem = (rand() % probabilityToPlaceItem == 0) ? true : false;
-            //if (placingItem == true) {
+            // Chance of placing a tree near the path
+            bool placingItem = ((rand() % probabilityToPlaceItem) == 0) ? true : false;
+            if (placingItem == true) {
 
-            //    // Flag grid location as having an item here
-            //    tileGridFlag[((tileWidthIndex  * tileWidth)  + pathWidthLocation - pathPixelDiameter) / pathPixelDiameter]
-            //                [((tileLengthIndex * tileLength) + pathLengthLocation)                    / pathPixelDiameter] = Item;
+                // Flag grid location as having an item here
+                tileGridFlag[((tileWidthIndex  * tileWidth)  + pathWidthLocation - pathPixelRadius) / pathPixelRadius]
+                            [((tileLengthIndex * tileLength) + pathLengthLocation)                  / pathPixelRadius] = Item;
 
-            //    float tileWidthMin  = ((tileWidthIndex  - halfWidthTiles)  * tileWidth)  - tileHalfWidth;
-            //    float tileLengthMin = ((tileLengthIndex - halfLengthTiles) * tileLength) - tileHalfLength;
+                float tileWidthMin  = ((tileWidthIndex  - halfWidthTiles)  * tileWidth)  - tileHalfWidth;
+                float tileLengthMin = ((tileLengthIndex - halfLengthTiles) * tileLength) - tileHalfLength;
 
-            //    // Add models around the path
-            //    // The selection of trees we have are tree3, tree7 and tree8 for the time being
-            //    std::string command  = "ADD " + sceneName + " ";
-            //    int treeType = rand() % typesOfTrees;
+                // Add models around the path
+                // The selection of trees we have are tree3, tree7 and tree8 for the time being
+                std::string command  = "ADD " + sceneName + " ";
+                int treeType = rand() % typesOfTrees;
 
-            //    // Select tree type
-            //    if (treeType == 0) {
-            //        command += "TREE3 ";
-            //    }
-            //    else if (treeType == 1) {
-            //        command += "TREE7 ";
-            //    }
-            //    else if (treeType == 2) {
-            //        command += "TREE8 ";
-            //    }
+                // Select tree type
+                if (treeType == 0) {
+                    command += "TREE3 ";
+                }
+                else if (treeType == 1) {
+                    command += "TREE7 ";
+                }
+                else if (treeType == 2) {
+                    command += "TREE8 ";
+                }
 
-            //    // Scale model between 0.25 and 0.75
-            //    float scale = ((static_cast<float>(rand()) / maxRandomValue) * 0.5f) + 0.25f;
+                // Scale model between 0.25 and 0.75
+                float scale = ((static_cast<float>(rand()) / maxRandomValue) * 0.5f) + 0.25f;
 
-            //    // Place to the left or right of the path, etc.
-            //    command += std::to_string(tileWidthMin  + pathWidthLocation - pathPixelDiameter) + " ";
-            //    command += std::to_string(0)                                                     + " "; // Keep height 0 for now
-            //    command += std::to_string(tileLengthMin + pathLengthLocation)                    + " ";
-            //    command += std::to_string(scale)                                                 + " "; // w component for scaling
+                // Place to the left or right of the path, etc.
+                // Add 90 degree rotation to make offset perpendicular to the direction of the path
+                // Figure which perpendicular direction to place tree 
+                const float perpendicularDirection = (((rand() % 2) == 0) ? 1.0f : -1.0f);
+                // Vary tree path offset with atleast 2 times the radius plus an extra offset between 0 and 2 in float
+                const float radiusOffsetFromPath   = (static_cast<float>(rand() % 17) / 8.0f) + 2.0f;
+                const int treeLocationOffsetWidth  = perpendicularDirection * (radiusOffsetFromPath * pathPixelRadius) * sin((currRotationInDegrees + 90.0f) * degToRad);
+                const int treeLocationOffsetLength = perpendicularDirection * (radiusOffsetFromPath * pathPixelRadius) * cos((currRotationInDegrees + 90.0f) * degToRad);
 
-            //    terminal->processCommand(command);
-            //}
+                command += std::to_string(tileWidthMin  + pathWidthLocation  + treeLocationOffsetWidth)  + " ";
+                command += std::to_string(0)                                                             + " "; // Keep height 0 for now
+                command += std::to_string(tileLengthMin + pathLengthLocation + treeLocationOffsetLength) + " ";
+                command += std::to_string(scale)                                                         + " "; // w component for scaling
+                terminal->processCommand(command);
+            }
         }
     }
     else {

@@ -8,9 +8,9 @@ const int   tileWidth       = 200;
 const int   tileLength      = 200;
 const int   tileHalfWidth   = tileWidth / 2;
 const int   tileHalfLength  = tileLength / 2;
-const int   widthOfWorld    = 1000;
-const int   lengthOfWorld   = 1000;
-const int   heightOfWorld   = 1000;
+const int   widthOfWorld    = 10000;
+const int   lengthOfWorld   = 10000;
+const int   heightOfWorld   = 10000;
 const int   numWidthTiles   = widthOfWorld / tileWidth;
 const int   numLengthTiles  = lengthOfWorld / tileLength;
 const int   halfWidthTiles  = numWidthTiles / 2;
@@ -40,11 +40,11 @@ int entityIDMap[numWidthTiles][numLengthTiles];
 // Radial pathing data
 // 360 degrees of rotation for the next path direction
 const int   fullCircleInDegrees         = 360;
-const int   rotationPathOffsetInDegress = 5;
-const int   rotationPathVariations      = fullCircleInDegrees / rotationPathOffsetInDegress;
+const int   rotationPathOffsetInDegrees = 5;
+const int   rotationPathVariations      = fullCircleInDegrees / rotationPathOffsetInDegrees;
 const float degToRad                    = PI / 180.0f;
 
-int prevRotationInDegress = 0;
+int prevRotationInDegrees = 0;
 int currRotationInDegrees = 0;
 
 // Flags used to identify what type of object is at this location in the grid
@@ -122,6 +122,9 @@ void generateScene(std::string sceneName) {
 
     srand(time(NULL));
 
+    // Randomize initial path direction
+    currRotationInDegrees = (rand() % rotationPathVariations) * rotationPathOffsetInDegrees;
+
     const std::vector<Entity*>* entityList = nullptr;
 
     for (int tileIndexW = -halfWidthTiles; tileIndexW <= halfWidthTiles; tileIndexW++) {
@@ -141,50 +144,50 @@ void generateScene(std::string sceneName) {
             // Stores an entityID for every tile
             entityIDMap[tileIndexW + halfWidthTiles][tileIndexL + halfLengthTiles] = entityList->back()->getID();
 
-            for (int treeIndex = 0; treeIndex < numTreesToPlace; treeIndex++) {
+            //for (int treeIndex = 0; treeIndex < numTreesToPlace; treeIndex++) {
 
-                int treeWidthLocation  = ((rand() % tileWidth));
-                int treeLengthLocation = ((rand() % tileLength));
-                treeWidthLocation     -= treeWidthLocation  % pathPixelDiameter;
-                treeLengthLocation    -= treeLengthLocation % pathPixelDiameter;
+            //    int treeWidthLocation  = rand() % tileWidth;
+            //    int treeLengthLocation = rand() % tileLength;
+            //    treeWidthLocation     -= treeWidthLocation  % pathPixelDiameter;
+            //    treeLengthLocation    -= treeLengthLocation % pathPixelDiameter;
 
-                int tileWidthMin       = (tileIndexW * tileWidth)  - tileHalfWidth;
-                int tileLengthMin      = (tileIndexL * tileLength) - tileHalfLength;
+            //    int tileWidthMin       = (tileIndexW * tileWidth)  - tileHalfWidth;
+            //    int tileLengthMin      = (tileIndexL * tileLength) - tileHalfLength;
 
-                // Flag grid location as having an item here
-                tileGridFlag[(tileWidthMin  + treeWidthLocation  + (widthOfWorld  / 2)) / pathPixelDiameter]
-                            [(tileLengthMin + treeLengthLocation + (lengthOfWorld / 2)) / pathPixelDiameter] = Item;
+            //    // Flag grid location as having an item here
+            //    tileGridFlag[(tileWidthMin  + treeWidthLocation  + (widthOfWorld  / 2)) / pathPixelDiameter]
+            //                [(tileLengthMin + treeLengthLocation + (lengthOfWorld / 2)) / pathPixelDiameter] = Item;
 
-                // Add models around the path
-                // The selection of trees we have are tree3, tree7 and tree8 for the time being
-                std::string command  = "ADD " + sceneName + " ";
-                int         treeType = rand() % typesOfTrees;
+            //    // Add models around the path
+            //    // The selection of trees we have are tree3, tree7 and tree8 for the time being
+            //    std::string command  = "ADD " + sceneName + " ";
+            //    int         treeType = rand() % typesOfTrees;
 
-                // Select tree type
-                if (treeType == 0) {
-                    command += "TREE3 ";
-                } else if (treeType == 1) {
-                    command += "TREE7 ";
-                } else if (treeType == 2) {
-                    command += "TREE8 ";
-                }
+            //    // Select tree type
+            //    if (treeType == 0) {
+            //        command += "TREE3 ";
+            //    } else if (treeType == 1) {
+            //        command += "TREE7 ";
+            //    } else if (treeType == 2) {
+            //        command += "TREE8 ";
+            //    }
 
-                // Scale model between 0.25 and 0.75
-                float scale = ((static_cast<float>(rand()) / maxRandomValue) * 0.5f) + 0.25f;
+            //    // Scale model between 0.25 and 0.75
+            //    float scale = ((static_cast<float>(rand()) / maxRandomValue) * 0.5f) + 0.25f;
 
-                // Rotate tree around Y axis
-                float yRot  = static_cast<float>(rand() % 360);
+            //    // Rotate tree around Y axis
+            //    float yRot  = static_cast<float>(rand() % 360);
 
-                // Place to the left or right of the path, etc.
-                command += std::to_string(tileWidthMin  + treeWidthLocation)  + " ";
-                command += std::to_string(0)                                  + " "; // Keep height 0 for now
-                command += std::to_string(tileLengthMin + treeLengthLocation) + " ";
-                command += std::to_string(scale)                              + " "; // w component for scaling
-                command += std::to_string(0)                                  + " ";
-                command += std::to_string(yRot)                               + " "; // rotation around y
-                command += std::to_string(0)                                  + " ";
-                terminal->processCommand(command);
-            }
+            //    // Place to the left or right of the path, etc.
+            //    command += std::to_string(tileWidthMin  + treeWidthLocation)  + " ";
+            //    command += std::to_string(0)                                  + " "; // Keep height 0 for now
+            //    command += std::to_string(tileLengthMin + treeLengthLocation) + " ";
+            //    command += std::to_string(scale)                              + " "; // w component for scaling
+            //    command += std::to_string(0)                                  + " ";
+            //    command += std::to_string(yRot)                               + " "; // rotation around y
+            //    command += std::to_string(0)                                  + " ";
+            //    terminal->processCommand(command);
+            //}
         }
     }
 
@@ -233,12 +236,11 @@ void updatePath(std::string sceneName) {
                 float proposedPathLengthLocation = pathLengthLocation;
 
                 // 0 degrees is North, 90 is East, 180 is South, 270 is West
-                currRotationInDegrees      += ((rand() % 3) - 1) * rotationPathOffsetInDegress;
+                currRotationInDegrees      += ((rand() % 3) - 1) * rotationPathOffsetInDegrees;
                 proposedPathLengthLocation += pathPixelRadius * cos(currRotationInDegrees * degToRad);
                 proposedPathWidthLocation  += pathPixelRadius * sin(currRotationInDegrees * degToRad);
 
                 /*
-
                 // Flag grid location as having a path here
                 TileFlag tileGridValue =
                     tileGridFlag[((tileWidthIndex  * tileWidth)  + proposedPathWidthLocation)  / pathPixelDiameter]
@@ -251,8 +253,8 @@ void updatePath(std::string sceneName) {
 
                 if ((tileGridValue != Path) &&
                     (tileGridValue != Item) &&
-                    (sign          >= 0.0f)) {*/
-
+                    (sign          >= 0.0f)) {
+                */
                     int prevEntityID = entityIDMap[prevTileWidthIndex][prevTileLengthIndex];
 
                     // DEBUG PATH CODE

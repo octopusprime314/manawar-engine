@@ -381,7 +381,7 @@ void EngineManager::_postDraw() {
 
 
         if ((_generatorMode == true) &&
-            ((++_pathCounter) % 20 == 0)) {
+            ((++_pathCounter) % 1 == 0)) {
 
             updatePath("SPAWN-TEST");
         }

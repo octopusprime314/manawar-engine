@@ -341,7 +341,6 @@ void FbxLoader::_searchAndEditMesh(FbxNode*    childNode,
         FbxMesh* mesh = node->GetMesh();
         if (mesh != nullptr) {
             std::string nodeName = std::string(node->GetName());
-            OutputDebugString(nodeName.c_str());
             nodeName.insert(nodeName.find_first_of("_"), "_" + std::to_string(_clonedInstances[modelName]));
             FbxNode* lNode = FbxNode::Create(_export.scene,
                 (nodeName + "instance" + std::to_string(_export.scene->GetRootNode()->GetChildCount())).c_str());
@@ -553,7 +552,6 @@ void FbxLoader::addToScene(Model* modelAddedTo, FbxLoader* modelToLoad, Vector4 
                 FbxMesh* mesh = childNode->GetMesh();
                 if (mesh != nullptr) {
                     std::string nodeName = std::string(childNode->GetName());
-                    OutputDebugString(nodeName.c_str());
                     nodeName.insert(nodeName.find_first_of("_"), "_" + std::to_string(_clonedInstances[modelName]));
                     FbxNode* lNode = FbxNode::Create(_export.scene,
                         (nodeName + "instance" + std::to_string(_export.scene->GetRootNode()->GetChildCount())).c_str());
@@ -745,8 +743,6 @@ void FbxLoader::addTileToScene(Model*                   modelAddedTo,
                         }
 
                         for (int z = 0; z < toAdd.size(); z++) {
-                            OutputDebugString(toAdd[z]->GetFileName());
-                            OutputDebugStringW(L"\n");
                             layeredTextureToEdit->ConnectSrcObject(toAdd[z]);
                         }
                     }

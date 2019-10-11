@@ -280,17 +280,17 @@ void IOEventDistributor::_drawUpdate() {
             }
 
             //Only draw when a framerate trigger event has been received from the master clock
-            if (_renderNow > 0) {
-                _renderLock.lock();
-                do {
-                    IOEvents::updateDraw(_window);
-                    //Decrement trigger
-                    _renderNow--;
-                } while (_renderNow > 0);
-                _renderLock.unlock();
-            }
+            //if (_renderNow > 0) {
+            //    _renderLock.lock();
+            //    do {
+            //        IOEvents::updateDraw(_window);
+            //        //Decrement trigger
+            //        _renderNow--;
+            //    } while (_renderNow > 0);
+            //    _renderLock.unlock();
+            //}
 
-            //IOEvents::updateDraw(_window);
+            IOEvents::updateDraw(_window);
         }
     }
     else {

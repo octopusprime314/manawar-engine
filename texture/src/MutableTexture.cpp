@@ -36,17 +36,6 @@ void MutableTexture::_cloneTexture(std::string newName) {
     int textureWidth  = FreeImage_GetWidth(bitmap);
     int textureHeight = FreeImage_GetHeight(bitmap);
 
-    for (int y = textureHeight - 1; y >= 0; y--) {
-        BYTE* bits = FreeImage_GetScanLine(bitmap, textureHeight - 1 - y);
-        for (int x = 0; x < textureWidth; x++) {
-            bits[0] = 0; // blue
-            bits[1] = 0; // green
-            bits[2] = 0; // red
-            bits[3] = 0; // alpha
-            bits += 4;   // pointer math
-        }
-    }
-
     bool success = FreeImage_Save(fif, bitmap, newName.c_str(), TIFF_DEFAULT);
     FreeImage_Unload(bitmap);
 

@@ -438,8 +438,10 @@ void AssetTexture::_decodeTexture(std::string textureName, uint32_t textureType,
     if (_alphaValues) {
         // If alpha value is opaque then do not count as a transparent texture
         // test all 4 corners
-        if (_bits[3] == 255 && _bits[(4 * _width) - 1] == 255 && _bits[((4 * _width) * (_height - 1)) + 3] == 255 &&
-            _bits[(4 * _width * _height) - 1] == 255) {
+        if (_bits[3]                                  == 255 &&
+            _bits[(4 * _width) - 1]                   == 255 &&
+            _bits[((4 * _width) * (_height - 1)) + 3] == 255 &&
+            _bits[(4 * _width * _height) - 1]         == 255) {
 
             _alphaValues = false;
         }

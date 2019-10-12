@@ -144,7 +144,7 @@ void MutableTexture::editTextureData(int xPosition, int yPosition, Vector4 textu
         }
         if (_originalData != nullptr && tempChange == false) {
             auto size = texture->getSizeInBytes();
-            memcpy(_originalData, FreeImage_GetBits(_bitmapToWrite), size);
+            memcpy(_originalData, FreeImage_GetBits(_bitmapToWrite), FreeImage_GetMemorySize(_bitmapToWrite) /*size*/);
         }
         TextureBroker::instance()->updateTextureToLayered(_name, _bitmapToWrite);
     }

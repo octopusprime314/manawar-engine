@@ -28,7 +28,7 @@
 #include "DXLayer.h"
 #include "HLSLShader.h"
 #include "BlitDepthShader.h"
-#include "TileGenerator.h"
+#include "WorldGenerator.h"
 #include <chrono>
 
 using namespace std::chrono;
@@ -140,7 +140,6 @@ EngineManager::EngineManager(int*      argc,
         if (_generatorMode) {
             // Use tile generator to create a randomly generated scene based on a rules system
             _pathCounter = 0;
-            generateScene("SPAWN-TEST");
         }
     }
 
@@ -383,7 +382,7 @@ void EngineManager::_postDraw() {
         if ((_generatorMode == true) &&
             ((++_pathCounter) % 1 == 0)) {
 
-            updatePath("SPAWN-TEST");
+            WorldGenerator::spawnPaths("SPAWN-TEST");
         }
 
         if (_viewManager->getViewState() == Camera::ViewState::DEFERRED_LIGHTING) {

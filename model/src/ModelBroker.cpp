@@ -74,7 +74,7 @@ Model* ModelBroker::getModel(std::string modelName, Vector4 pos) {
         Vector4 cameraPos = getViewManager()->getCameraPos();
         float distance    = (pos + cameraPos).getMagnitude();
         //use lod 1 which is the highest poly count for the model
-        if (distance < 400 ||
+        if (distance < 1000 ||
             EngineState::getEngineState().worldEditorModeEnabled) {
              return _models[upperCaseMapName];
         }

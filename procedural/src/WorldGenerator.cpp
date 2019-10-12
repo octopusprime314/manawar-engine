@@ -1,59 +1,20 @@
-#include "TileGenerator.h"
+#include "WorldGenerator.h"
 #include "Terminal.h"
-#include "EngineManager.h"
 #include <iostream>
 
-// First define the extents of the world and use the hardcoded tile size of 200x200
-const int   tileWidth       = 200;
-const int   tileLength      = 200;
-const int   tileHalfWidth   = tileWidth  / 2;
-const int   tileHalfLength  = tileLength / 2;
-const int   widthOfWorld    = 5000;
-const int   lengthOfWorld   = 5000;
-const int   heightOfWorld   = 5000;
-const int   numWidthTiles   = widthOfWorld   / tileWidth;
-const int   numLengthTiles  = lengthOfWorld  / tileLength;
-const int   halfWidthTiles  = numWidthTiles  / 2;
-const int   halfLengthTiles = numLengthTiles / 2;
-const int   typesOfTrees    = 3;
-const int   numTreesToPlace = 1;
-const float maxRandomValue  = static_cast<float>(RAND_MAX);
-const int   pathPixelRadius = 10;
-const int   pathPixelDiameter      = pathPixelRadius * 2;
-const int   probabilityToPlaceItem = 20; // 1/20
 
-int  pathWidthLocation  = tileHalfWidth;
-int  pathLengthLocation = tileHalfLength;
-int  tileWidthIndex     = numWidthTiles  / 2;
-int  tileLengthIndex    = numLengthTiles / 2;
-int  direction[2]       = {0, 0};
-bool proceduralGenDone  = false;
+TileFlag WorldGenerator::_tileGridFlag[widthOfWorld / pathPixelRadius][lengthOfWorld / pathPixelRadius];
 
-int prevTileWidthIndex     = tileWidthIndex;
-int prevTileLengthIndex    = tileLengthIndex;
-int prevPathWidthLocation  = pathWidthLocation;
-int prevPathLengthLocation = pathLengthLocation;
+int      WorldGenerator::_entityIDMap[numWidthTiles][numLengthTiles];
+bool     WorldGenerator::_allPathsFinished = false;
+bool     WorldGenerator::_fileSaved        = false;
 
-// Identifies a tile within the grid's entity ID for access
-int entityIDMap[numWidthTiles][numLengthTiles];
 
-// Radial pathing data
-// 360 degrees of rotation for the next path direction
-const int   fullCircleInDegrees         = 360;
-const int   rotationPathOffsetInDegrees = 5;
-const int   rotationPathVariations      = fullCircleInDegrees / rotationPathOffsetInDegrees;
-const float degToRad                    = PI / 180.0f;
 
-int prevRotationInDegrees = 0;
-int currRotationInDegrees = 0;
-
-// Flags used to identify what type of object is at this location in the grid
-TileFlag tileGridFlag[widthOfWorld / pathPixelRadius][lengthOfWorld / pathPixelRadius];
-
-void paintTile(int         widthLocation,
-               int         lengthLocation,
-               int         id,
-               std::string name) {
+void WorldGenerator::paintTile(int         widthLocation,
+                               int         lengthLocation,
+                               int         id,
+                               std::string name) {
 
     Terminal* terminal = Terminal::instance();
 
@@ -65,57 +26,87 @@ void paintTile(int         widthLocation,
     terminal->processCommand(command);
 }
 
-void paintTiles(int         widthLocation,
-                int         lengthLocation,
-                int         tileWidthIndex,
-                int         tileLengthIndex,
-                std::string name) {
+void WorldGenerator::paintTiles(int         widthLocation,
+                                int         lengthLocation,
+                                int         tileWidthIndex,
+                                int         tileLengthIndex,
+                                std::string name) {
 
     // Paint current tile
     paintTile(widthLocation,
               lengthLocation,
-              entityIDMap[tileWidthIndex][tileLengthIndex],
+              _entityIDMap[tileWidthIndex][tileLengthIndex],
               name);
 
     //Checks to see if neighboring tiles need to be colored as well
 
     // Straddling tile to the right of current
-    if (widthLocation >= (tileWidth - pathPixelRadius)) {
+    if (widthLocation      >= (tileWidth - pathPixelRadius) &&
+        tileWidthIndex + 1 < numWidthTiles) {
 
         paintTile(widthLocation - tileWidth,
                   lengthLocation,
-                  entityIDMap[tileWidthIndex + 1][tileLengthIndex],
+                  _entityIDMap[tileWidthIndex + 1][tileLengthIndex],
                   name);
     }
     // Straddling tile to the left of current
-    if (widthLocation <= pathPixelRadius) {
+    if (widthLocation      <= pathPixelRadius &&
+        tileWidthIndex - 1 >= 0) {
 
         paintTile(tileWidth + widthLocation,
                   lengthLocation,
-                  entityIDMap[tileWidthIndex - 1][tileLengthIndex],
+                  _entityIDMap[tileWidthIndex - 1][tileLengthIndex],
                   name);
     }
 
     // Straddling tile to the top of current
-    if (lengthLocation >= (tileLength - pathPixelRadius)) {
+    if (lengthLocation      >= (tileLength - pathPixelRadius) &&
+        tileLengthIndex + 1 < numLengthTiles) {
 
         paintTile(widthLocation,
                   lengthLocation - tileLength,
-                  entityIDMap[tileWidthIndex][tileLengthIndex + 1],
+                  _entityIDMap[tileWidthIndex][tileLengthIndex + 1],
                   name);
     }
 
     //// Straddling tile to the bottom of current
-    if (lengthLocation <= pathPixelRadius) {
+    if (lengthLocation      <= pathPixelRadius &&
+        tileLengthIndex - 1 >= 0) {
 
         paintTile(widthLocation,
                   tileLength + lengthLocation,
-                  entityIDMap[tileWidthIndex][tileLengthIndex - 1],
+                  _entityIDMap[tileWidthIndex][tileLengthIndex - 1],
                   name);
     }
 }
 
-void generateScene(std::string sceneName) {
+WorldGenerator::WorldGenerator(std::string sceneName,
+                               int         widthLocation,
+                               int         lengthLocation,
+                               int         pathDirection,
+                               int         tileWidthIndex,
+                               int         tileLengthIndex)
+    :
+    _pathWidthLocation     (widthLocation),
+    _pathLengthLocation    (lengthLocation),
+    _tileWidthIndex        (tileWidthIndex),
+    _tileLengthIndex       (tileLengthIndex),
+    _direction             {0, 0},
+    _proceduralGenDone     (false),
+    _currRotationInDegrees (pathDirection),
+    _prevTileWidthIndex    (tileWidthIndex),
+    _prevTileLengthIndex   (tileLengthIndex),
+    _prevPathWidthLocation (widthLocation),
+    _prevPathLengthLocation(lengthLocation),
+    _sceneName             (sceneName) {
+
+}
+
+WorldGenerator::~WorldGenerator() {
+
+}
+
+void WorldGenerator::generateWorldTiles() {
 
     // Utilize the terminal's ability to create and edit fbx files...
     // I know this should be lifted to a generic wrapper that edits the 
@@ -126,7 +117,7 @@ void generateScene(std::string sceneName) {
     srand(time(NULL));
 
     // Randomize initial path direction
-    currRotationInDegrees = (rand() % rotationPathVariations) * rotationPathOffsetInDegrees;
+    _currRotationInDegrees = (rand() % rotationPathVariations) * rotationPathOffsetInDegrees;
 
     const std::vector<Entity*>* entityList = nullptr;
 
@@ -134,7 +125,7 @@ void generateScene(std::string sceneName) {
         for (int tileIndexL = -halfLengthTiles; tileIndexL <= halfLengthTiles; tileIndexL++) {
 
             // First add a tile
-            std::string command = "ADDTILE " + sceneName + " FOREST ";
+            std::string command = "ADDTILE " + _sceneName + " FOREST ";
             command            += std::to_string(tileIndexW * tileWidth)  + " ";
             command            += std::to_string(0)                       + " "; // Keep height 0 for now
             command            += std::to_string(tileIndexL * tileLength) + " ";
@@ -145,7 +136,7 @@ void generateScene(std::string sceneName) {
             // Get latest entity list based on the previous addition of a tile which is guaranteed to be at the end :)
             entityList   = EngineManager::getEntityList();
             // Stores an entityID for every tile
-            entityIDMap[tileIndexW + halfWidthTiles][tileIndexL + halfLengthTiles] = entityList->back()->getID();
+            _entityIDMap[tileIndexW + halfWidthTiles][tileIndexL + halfLengthTiles] = entityList->back()->getID();
 
             //for (int treeIndex = 0; treeIndex < numTreesToPlace; treeIndex++) {
 
@@ -204,10 +195,52 @@ void generateScene(std::string sceneName) {
     }
 }
 
-void updatePath(std::string sceneName) {
+void WorldGenerator::spawnPaths(std::string sceneName) {
 
-    if (proceduralGenDone) {
+    // seed path
+    static WorldGenerator* seedPath = nullptr;
+
+    if (seedPath == nullptr) {
+        seedPath = new WorldGenerator(sceneName);
+        seedPath->generateWorldTiles();
+    }
+
+    if ((_allPathsFinished == true) &&
+        (_fileSaved        == false)) {
+        Terminal* terminal = Terminal::instance();
+        terminal->processCommand("SAVE " + sceneName);
+        _fileSaved = true;
+    }
+
+    if (_fileSaved == false) {
+        _allPathsFinished = true;
+        seedPath->buildPath();
+    }
+}
+
+void WorldGenerator::buildPath() {
+
+    // Build forked paths
+    for (auto pathGen : _pathGenerators) {
+        pathGen->buildPath();
+    }
+
+    if (_proceduralGenDone) {
         return;
+    }
+
+    _allPathsFinished = false;
+
+    // Randomly generate a fork in the current path so pass in the current path location
+    if (rand() % probabilityToForkPath == 0) {
+
+        // Change direction of forked path to be perpendicular to current path direction.
+        _pathGenerators.push_back(new WorldGenerator(_sceneName,
+                                                     _pathWidthLocation,
+                                                     _pathLengthLocation,
+                                                     _currRotationInDegrees + ((rand() % 2 == 0) ? 90.0f : -90.0f),
+                                                     _tileWidthIndex,
+                                                     _tileLengthIndex));
     }
 
     // Utilize the terminal's ability to create and edit fbx files...
@@ -215,19 +248,17 @@ void updatePath(std::string sceneName) {
     // fbx but for now I will inject string commands to the terminal interface.
     Terminal* terminal  = Terminal::instance();
 
-    //srand(time(NULL));
-
     // Second add paths and terrain painting of the tile
     // and make sure the path is within the extents of the tile terrain texture
-    if ((tileWidthIndex  >= 0)             &&
-        (tileWidthIndex  <  numWidthTiles) &&
-        (tileLengthIndex >= 0)             &&
-        (tileLengthIndex <  numLengthTiles)) {
+    if ((_tileWidthIndex  >= 0)             &&
+        (_tileWidthIndex  <  numWidthTiles) &&
+        (_tileLengthIndex >= 0)             &&
+        (_tileLengthIndex <  numLengthTiles)) {
 
-        if ((pathWidthLocation  >= 0)         &&
-            (pathWidthLocation  <= tileWidth) &&
-            (pathLengthLocation >= 0)         &&
-            (pathLengthLocation <= tileLength)) {
+        if ((_pathWidthLocation  >= 0)         &&
+            (_pathWidthLocation  <= tileWidth) &&
+            (_pathLengthLocation >= 0)         &&
+            (_pathLengthLocation <= tileLength)) {
 
             bool foundLocationWithoutPath = false;
             unsigned int directionFlags   = 0;
@@ -235,13 +266,13 @@ void updatePath(std::string sceneName) {
 
                 // Find the next path location
 
-                float proposedPathWidthLocation  = pathWidthLocation;
-                float proposedPathLengthLocation = pathLengthLocation;
+                float proposedPathWidthLocation  = _pathWidthLocation;
+                float proposedPathLengthLocation = _pathLengthLocation;
 
                 // 0 degrees is North, 90 is East, 180 is South, 270 is West
-                currRotationInDegrees      += ((rand() % 3) - 1) * rotationPathOffsetInDegrees;
-                proposedPathLengthLocation += pathPixelRadius * cos(currRotationInDegrees * degToRad);
-                proposedPathWidthLocation  += pathPixelRadius * sin(currRotationInDegrees * degToRad);
+                _currRotationInDegrees     += ((rand() % 3) - 1) * rotationPathOffsetInDegrees;
+                proposedPathLengthLocation += pathPixelRadius * cos(_currRotationInDegrees * degToRad);
+                proposedPathWidthLocation  += pathPixelRadius * sin(_currRotationInDegrees * degToRad);
 
                 /*
                 // Flag grid location as having a path here
@@ -258,18 +289,18 @@ void updatePath(std::string sceneName) {
                     (tileGridValue != Item) &&
                     (sign          >= 0.0f)) {
                 */
-                    int prevEntityID = entityIDMap[prevTileWidthIndex][prevTileLengthIndex];
+                    int prevEntityID = _entityIDMap[_prevTileWidthIndex][_prevTileLengthIndex];
 
                     // DEBUG PATH CODE
                     // Paint previous path texture with the third texture option to indicate already traveled
                     // Send a middle mouse button click to change texture
                     terminal->processCommand("MOUSEPATHING 2 1 0 0 0");
 
-                    paintTiles(prevPathWidthLocation,
-                               prevPathLengthLocation,
-                               prevTileWidthIndex,
-                               prevTileLengthIndex,
-                               sceneName);
+                    paintTiles(_prevPathWidthLocation,
+                               _prevPathLengthLocation,
+                               _prevTileWidthIndex,
+                               _prevTileLengthIndex,
+                               _sceneName);
 
                     //Reset texture back to path texture
                     terminal->processCommand("MOUSEPATHING 2 1 0 0 0");
@@ -277,48 +308,48 @@ void updatePath(std::string sceneName) {
                     terminal->processCommand("MOUSEPATHING 2 1 0 0 0");
                     // FINISHED DEBUG PATH CODE
 
-                    pathWidthLocation        = proposedPathWidthLocation;
-                    pathLengthLocation       = proposedPathLengthLocation;
+                    _pathWidthLocation        = proposedPathWidthLocation;
+                    _pathLengthLocation       = proposedPathLengthLocation;
                     foundLocationWithoutPath = true;
                     //direction[0]             = tempDirection[0];
                     //direction[1]             = tempDirection[1];
 
-                    if (pathWidthLocation <= 0) {
-                        tileWidthIndex--;
+                    if (_pathWidthLocation <= 0) {
+                        _tileWidthIndex--;
                         // Location when jumping into another tile
-                        pathWidthLocation += tileWidth;
+                        _pathWidthLocation += tileWidth;
                     }
-                    else if (pathWidthLocation >= tileWidth) {
-                        tileWidthIndex++;
+                    else if (_pathWidthLocation >= tileWidth) {
+                        _tileWidthIndex++;
                         // Location when jumping into another tile
-                        pathWidthLocation = pathWidthLocation % tileWidth;
+                        _pathWidthLocation = _pathWidthLocation % tileWidth;
                     }
-                    if (pathLengthLocation <= 0) {
-                        tileLengthIndex--;
+                    if (_pathLengthLocation <= 0) {
+                        _tileLengthIndex--;
                         // Location when jumping into another tile
-                        pathLengthLocation += tileLength;
+                        _pathLengthLocation += tileLength;
                     }
-                    else if (pathLengthLocation >= tileLength) {
-                        tileLengthIndex++;
+                    else if (_pathLengthLocation >= tileLength) {
+                        _tileLengthIndex++;
                         // Location when jumping into another tile
-                        pathLengthLocation = pathLengthLocation % tileLength;
+                        _pathLengthLocation = _pathLengthLocation % tileLength;
                     }
 
                     // Draw the current tile
-                    paintTiles(pathWidthLocation,
-                               pathLengthLocation,
-                               tileWidthIndex,
-                               tileLengthIndex,
-                               sceneName);
+                    paintTiles(_pathWidthLocation,
+                               _pathLengthLocation,
+                               _tileWidthIndex,
+                               _tileLengthIndex,
+                               _sceneName);
 
-                    prevPathWidthLocation  = pathWidthLocation;
-                    prevPathLengthLocation = pathLengthLocation;
-                    prevTileWidthIndex     = tileWidthIndex;
-                    prevTileLengthIndex    = tileLengthIndex;
+                    _prevPathWidthLocation  = _pathWidthLocation;
+                    _prevPathLengthLocation = _pathLengthLocation;
+                    _prevTileWidthIndex     = _tileWidthIndex;
+                    _prevTileLengthIndex    = _tileLengthIndex;
 
                     // Flag grid location as having a path here
-                    tileGridFlag[((tileWidthIndex  * tileWidth)  + pathWidthLocation)  / pathPixelRadius]
-                                [((tileLengthIndex * tileLength) + pathLengthLocation) / pathPixelRadius] = Path;
+                    _tileGridFlag[((_tileWidthIndex  * tileWidth)  + _pathWidthLocation)  / pathPixelRadius]
+                                 [((_tileLengthIndex * tileLength) + _pathLengthLocation) / pathPixelRadius] = Path;
                 //}
             }
 
@@ -327,15 +358,15 @@ void updatePath(std::string sceneName) {
             if (placingItem == true) {
 
                 // Flag grid location as having an item here
-                tileGridFlag[((tileWidthIndex  * tileWidth)  + pathWidthLocation - pathPixelRadius) / pathPixelRadius]
-                            [((tileLengthIndex * tileLength) + pathLengthLocation)                  / pathPixelRadius] = Item;
+                _tileGridFlag[((_tileWidthIndex  * tileWidth)  + _pathWidthLocation - pathPixelRadius) / pathPixelRadius]
+                             [((_tileLengthIndex * tileLength) + _pathLengthLocation)                  / pathPixelRadius] = Item;
 
-                float tileWidthMin  = ((tileWidthIndex  - halfWidthTiles)  * tileWidth)  - tileHalfWidth;
-                float tileLengthMin = ((tileLengthIndex - halfLengthTiles) * tileLength) - tileHalfLength;
+                float tileWidthMin  = ((_tileWidthIndex  - halfWidthTiles)  * tileWidth)  - tileHalfWidth;
+                float tileLengthMin = ((_tileLengthIndex - halfLengthTiles) * tileLength) - tileHalfLength;
 
                 // Add models around the path
                 // The selection of trees we have are tree3, tree7 and tree8 for the time being
-                std::string command  = "ADD " + sceneName + " ";
+                std::string command  = "ADD " + _sceneName + " ";
                 int treeType = rand() % typesOfTrees;
 
                 // Select tree type
@@ -358,19 +389,18 @@ void updatePath(std::string sceneName) {
                 const float perpendicularDirection = (((rand() % 2) == 0) ? 1.0f : -1.0f);
                 // Vary tree path offset with atleast 2 times the radius plus an extra offset between 0 and 2 in float
                 const float radiusOffsetFromPath   = (static_cast<float>(rand() % 17) / 8.0f) + 2.0f;
-                const int treeLocationOffsetWidth  = perpendicularDirection * (radiusOffsetFromPath * pathPixelRadius) * sin((currRotationInDegrees + 90.0f) * degToRad);
-                const int treeLocationOffsetLength = perpendicularDirection * (radiusOffsetFromPath * pathPixelRadius) * cos((currRotationInDegrees + 90.0f) * degToRad);
+                const int treeLocationOffsetWidth  = perpendicularDirection * (radiusOffsetFromPath * pathPixelRadius) * sin((_currRotationInDegrees + 90.0f) * degToRad);
+                const int treeLocationOffsetLength = perpendicularDirection * (radiusOffsetFromPath * pathPixelRadius) * cos((_currRotationInDegrees + 90.0f) * degToRad);
 
-                command += std::to_string(tileWidthMin  + pathWidthLocation  + treeLocationOffsetWidth)  + " ";
-                command += std::to_string(0)                                                             + " "; // Keep height 0 for now
-                command += std::to_string(tileLengthMin + pathLengthLocation + treeLocationOffsetLength) + " ";
-                command += std::to_string(scale)                                                         + " "; // w component for scaling
+                command += std::to_string(tileWidthMin  + _pathWidthLocation  + treeLocationOffsetWidth)  + " ";
+                command += std::to_string(0)                                                              + " "; // Keep height 0 for now
+                command += std::to_string(tileLengthMin + _pathLengthLocation + treeLocationOffsetLength) + " ";
+                command += std::to_string(scale)                                                          + " "; // w component for scaling
                 terminal->processCommand(command);
             }
         }
     }
     else {
-        terminal->processCommand("SAVE SPAWN-TEST");
-        proceduralGenDone = true;
+        _proceduralGenDone = true;
     }
 }

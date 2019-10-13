@@ -39,12 +39,13 @@ ViewEventDistributor::ViewEventDistributor(int*         argc,
     _vectorCamera.setVectorsFromFile(vec_file);
     _trackedCamera = &_vectorCamera;
 
-    // Used for god mode
-    _trackedState = true;
-    _godState     = false;
+    //// Used to enable tracked camera
+    //_trackedState = true;
+    //_godState     = false;
+    //_currCamera = _trackedCamera;
+    _currCamera = &_godCamera;
     _waypointCamera.reset();
     _vectorCamera.reset();
-    _currCamera = _trackedCamera;
     _currCamera->getState()->setGravity(false);
     _currCamera->getState()->setActive(true);
 

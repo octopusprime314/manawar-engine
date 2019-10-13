@@ -3,16 +3,24 @@
 
 MutableTexture::MutableTexture() {}
 
-MutableTexture::MutableTexture(std::string textureName, int width, int height)
-    : Texture(TEXTURE_LOCATION + textureName + ".tif", width, height), _bitmapToWrite(nullptr), _originalData(nullptr) {
+MutableTexture::MutableTexture(std::string textureName,
+                               int         width,
+                               int         height)
+    : Texture(TEXTURE_LOCATION + textureName + ".tif",
+              width,
+              height),
+      _bitmapToWrite(nullptr),
+      _originalData(nullptr) {
     _createTextureData();
 }
 
-MutableTexture::MutableTexture(std::string originalTexture, std::string clonedTexture)
+MutableTexture::MutableTexture(std::string originalTexture,
+                               std::string clonedTexture)
     : Texture(originalTexture,
               TextureBroker::instance()->getAssetTextureFromLayered(originalTexture)->getWidth(),
               TextureBroker::instance()->getAssetTextureFromLayered(originalTexture)->getHeight()),
-      _bitmapToWrite(nullptr), _originalData(nullptr) {
+      _bitmapToWrite(nullptr),
+      _originalData(nullptr) {
     _cloneTexture(TEXTURE_LOCATION + clonedTexture + ".tif");
 }
 
@@ -20,7 +28,8 @@ MutableTexture::MutableTexture(std::string textureName)
     : Texture(textureName,
               TextureBroker::instance()->getAssetTextureFromLayered(textureName)->getWidth(),
               TextureBroker::instance()->getAssetTextureFromLayered(textureName)->getHeight()),
-      _bitmapToWrite(nullptr), _originalData(nullptr) {}
+      _bitmapToWrite(nullptr),
+      _originalData(nullptr) {}
 
 MutableTexture::~MutableTexture() {}
 
@@ -87,16 +96,19 @@ void MutableTexture::saveToDisk() {
     }
 }
 
-void MutableTexture::editTextureData(int xPosition, int yPosition, Vector4 texturePixel, bool tempChange, int radius) {
+void MutableTexture::editTextureData(int     xPosition,
+                                     int     yPosition,
+                                     Vector4 texturePixel,
+                                     bool    tempChange,
+                                     int     radius) {
 
     auto texture       = TextureBroker::instance()->getAssetTextureFromLayered(_name);
     int  textureWidth  = texture->getWidth();
     int  textureHeight = texture->getHeight();
 
-    if (xPosition >= -radius && xPosition < (textureWidth + radius) &&
+    if (xPosition >= -radius && xPosition < (textureWidth  + radius) &&
         yPosition >= -radius && yPosition < (textureHeight + radius)) {
 
-        FIBITMAP* bitmap = nullptr;
         if (_originalData == nullptr) {
             auto size     = texture->getSizeInBytes();
             _originalData = new BYTE[size];
@@ -120,8 +132,8 @@ void MutableTexture::editTextureData(int xPosition, int yPosition, Vector4 textu
             BYTE* bits = FreeImage_GetScanLine(_bitmapToWrite, textureHeight - 1 - y);
             for (int x = 0; x < textureWidth; x++) {
 
-                int    deltaX         = abs(x - xPosition);
-                int    deltaY         = abs(y - yPosition);
+                int deltaX = abs(x - xPosition);
+                int deltaY = abs(y - yPosition);
 
                 // Use for circular painting on a texture
                 double computedRadius = sqrt(static_cast<double>(deltaX * deltaX + deltaY * deltaY));
@@ -143,8 +155,7 @@ void MutableTexture::editTextureData(int xPosition, int yPosition, Vector4 textu
             }
         }
         if (_originalData != nullptr && tempChange == false) {
-            auto size = texture->getSizeInBytes();
-            memcpy(_originalData, FreeImage_GetBits(_bitmapToWrite), FreeImage_GetMemorySize(_bitmapToWrite) /*size*/);
+            _originalData = FreeImage_GetBits(_bitmapToWrite);
         }
         TextureBroker::instance()->updateTextureToLayered(_name, _bitmapToWrite);
     }

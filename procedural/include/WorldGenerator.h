@@ -12,22 +12,22 @@ enum TileFlag {
 // First define the extents of the world and various other world building constants
 const int   tileWidth              = 200;
 const int   tileLength             = 200;
-const int   tileHalfWidth          = tileWidth / 2;
+const int   tileHalfWidth          = tileWidth  / 2;
 const int   tileHalfLength         = tileLength / 2;
-const int   widthOfWorld           = 10000;
-const int   lengthOfWorld          = 10000;
-const int   heightOfWorld          = 10000;
-const int   numWidthTiles          = widthOfWorld / tileWidth;
-const int   numLengthTiles         = lengthOfWorld / tileLength;
-const int   halfWidthTiles         = numWidthTiles / 2;
+const int   widthOfWorld           = 5000;
+const int   lengthOfWorld          = 5000;
+const int   heightOfWorld          = 5000;
+const int   numWidthTiles          = widthOfWorld   / tileWidth;
+const int   numLengthTiles         = lengthOfWorld  / tileLength;
+const int   halfWidthTiles         = numWidthTiles  / 2;
 const int   halfLengthTiles        = numLengthTiles / 2;
 const int   typesOfTrees           = 3;
 const int   numTreesToPlace        = 1;
 const float maxRandomValue         = static_cast<float>(RAND_MAX);
 const int   pathPixelRadius        = 10;
 const int   pathPixelDiameter      = pathPixelRadius * 2;
-const int   probabilityToPlaceItem = 20; // 1/20
-const int   probabilityToForkPath  = 100; // 1/100
+const int   probabilityToPlaceItem = 20;  // 1/20
+const int   probabilityToForkPath  = 200; // 1/200
 
 // Radial pathing data
 // 360 degrees of rotation for the next path direction
@@ -79,7 +79,6 @@ private:
     int                          _tileLengthIndex;
     int                          _tileWidthIndex;
     std::vector<WorldGenerator*> _pathGenerators;
-    int                          _direction[2];
     std::string                  _sceneName;
 
     static bool                  _allPathsFinished;

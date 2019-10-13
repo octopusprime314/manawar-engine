@@ -457,4 +457,5 @@ void AssetTexture::_decodeTexture(std::string textureName, uint32_t textureType,
     glCheck();
 }
 
-bool AssetTexture::getTransparency() { return _alphaValues; }
+bool      AssetTexture::getTransparency() { return _alphaValues; }
+FIBITMAP* AssetTexture::getBitmap()       { return _dib; }

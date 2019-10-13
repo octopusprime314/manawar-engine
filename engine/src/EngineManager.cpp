@@ -100,8 +100,8 @@ EngineManager::EngineManager(int*      argc,
                                 0.1f,
                                 5000.0f);
 
-    _viewManager->setView(      Matrix::translation(0, -5.0f, 0),
-                                Matrix::rotationAroundY(0.0f),
+    _viewManager->setView(      Matrix::translation(0, 1200.0f, -2500.0f),
+                                Matrix::rotationAroundX(-70.0f),
                                 Matrix());
 
     //Load and compile all shaders for the shader broker

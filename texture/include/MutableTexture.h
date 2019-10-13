@@ -23,21 +23,28 @@
 #include "AssetTexture.h"
 #include "Texture.h"
 #include "Vector4.h"
+#include <mutex>
 
 class MutableTexture : public Texture {
 
     MutableTexture(); // Make the default constructor private which forces coder to allocate a Texture with a string
-                      // name
-    void      _createTextureData();
-    void      _cloneTexture(std::string newName);
-    FIBITMAP* _bitmapToWrite;
-    BYTE*     _originalData;
+    void       _createTextureData();
+    void       _cloneTexture(std::string newName);
+    FIBITMAP*  _bitmapToWrite;
+    BYTE*      _originalData;
 
   public:
     MutableTexture(std::string textureName); // texture already exists!
-    MutableTexture(std::string originalTexture, std::string clonedTexture);
-    MutableTexture(std::string textureName, int width, int height);
+    MutableTexture(std::string originalTexture,
+                   std::string clonedTexture);
+    MutableTexture(std::string textureName,
+                   int         width,
+                   int         height);
     ~MutableTexture();
-    void editTextureData(int x, int y, Vector4 texturePixel, bool tempChange, int radius = 0);
+    void editTextureData(int     x,
+                         int     y,
+                         Vector4 texturePixel,
+                         bool    tempChange,
+                         int     radius = 0);
     void saveToDisk();
 };

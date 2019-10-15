@@ -42,8 +42,8 @@ public:
     FrustumCuller(                   Entity* entity,
                                      Cube    aabbCube);
     bool              getVisibleVAO( Entity* entity);
-    static bool       getVisibleAABB(Entity* entity,
-                                     Matrix inverseViewProjection);
+    static bool       getVisibleAABB(Entity*               entity,
+                                     std::vector<Vector4>& frustumPlanes);
     static bool       getVisibleOBB( Entity* entity,
                                      Matrix inverseViewProjection, 
                                      Light* light);

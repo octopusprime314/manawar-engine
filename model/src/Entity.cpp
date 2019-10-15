@@ -56,7 +56,10 @@ void Entity::_updateDraw() {
     Matrix inverseViewProjection = ModelBroker::getViewManager()->getView().inverse() *
                                    ModelBroker::getViewManager()->getProjection().inverse();
 
-    if (FrustumCuller::getVisibleAABB(this, inverseViewProjection)) {
+    std::vector<Vector4> frustumPlanes;
+    GeometryMath::getFrustumPlanes(inverseViewProjection, frustumPlanes);
+
+    if (FrustumCuller::getVisibleAABB(this, frustumPlanes)) {
         if (_model->getClassType() == ModelClass::AnimatedModelType) {
 
             AnimatedModel* animatedModel = static_cast<AnimatedModel*>(_model);

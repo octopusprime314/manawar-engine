@@ -11,32 +11,32 @@ enum ItemFlag {
 };
 
 // First define the extents of the world and various other world building constants
-const int   tileWidth               = 200;
-const int   tileLength              = 200;
-const int   tileHalfWidth           = tileWidth  / 2;
-const int   tileHalfLength          = tileLength / 2;
-const int   widthOfWorld            = 5000;
-const int   lengthOfWorld           = 5000;
-const int   heightOfWorld           = 5000;
-const int   numWidthTiles           = widthOfWorld   / tileWidth;
-const int   numLengthTiles          = lengthOfWorld  / tileLength;
-const int   halfWidthTiles          = numWidthTiles  / 2;
-const int   halfLengthTiles         = numLengthTiles / 2;
-const int   typesOfTrees            = 3;
-const int   numTreesToPlace         = 1;
-const float maxRandomValue          = static_cast<float>(RAND_MAX);
-const int   pathPixelRadius         = 10;
-const int   pathPixelDiameter       = pathPixelRadius * 2;
-const int   probabilityToPlaceTree  = 20;  // 1/20
-const int   probabilityToPlaceHouse = 100; // 1/200
-const int   probabilityToForkPath   = 200; // 1/200
+constexpr int   tileWidth               = 200;
+constexpr int   tileLength              = 200;
+constexpr int   tileHalfWidth           = tileWidth  / 2;
+constexpr int   tileHalfLength          = tileLength / 2;
+constexpr int   widthOfWorld            = 5000;
+constexpr int   lengthOfWorld           = 5000;
+constexpr int   heightOfWorld           = 5000;
+constexpr int   numWidthTiles           = widthOfWorld   / tileWidth;
+constexpr int   numLengthTiles          = lengthOfWorld  / tileLength;
+constexpr int   halfWidthTiles          = numWidthTiles  / 2;
+constexpr int   halfLengthTiles         = numLengthTiles / 2;
+constexpr int   typesOfTrees            = 3;
+constexpr int   numTreesToPlace         = 1;
+constexpr float maxRandomValue          = static_cast<float>(RAND_MAX);
+constexpr int   pathPixelRadius         = 10;
+constexpr int   pathPixelDiameter       = pathPixelRadius * 2;
+constexpr int   probabilityToPlaceTree  = 20;
+constexpr int   probabilityToPlaceHouse = 200;
+constexpr int   probabilityToForkPath   = 100;
 
 // Radial pathing data
 // 360 degrees of rotation for the next path direction
-const int   fullCircleInDegrees         = 360;
-const int   rotationPathOffsetInDegrees = 5;
-const int   rotationPathVariations      = fullCircleInDegrees / rotationPathOffsetInDegrees;
-const float degToRad                    = PI / 180.0f;
+constexpr int   fullCircleInDegrees         = 360;
+constexpr int   rotationPathOffsetInDegrees = 5;
+constexpr int   rotationPathVariations      = fullCircleInDegrees / rotationPathOffsetInDegrees;
+constexpr float degToRad                    = PI / 180.0f;
 
 class WorldGenerator {
 
@@ -85,8 +85,8 @@ private:
     std::string                  _sceneName;
 
     static int                   _prevConcurrentPaths;
-    static int                   _concurrentPaths;
     static bool                  _allPathsFinished;
+    static int                   _concurrentPaths;
     static bool                  _fileSaved;
 
     // Identifies a tile within the grid's entity ID for access

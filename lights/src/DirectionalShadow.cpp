@@ -6,6 +6,7 @@
 #include "HLSLShader.h"
 #include "ModelBroker.h"
 #include "FrustumCuller.h"
+#include "GeometryMath.h"
 
 //10 pixels per unit distance of 1
 static const float SHADOW_RESOLUTION = 1.0;
@@ -54,12 +55,16 @@ void DirectionalShadow::render(std::vector<Entity*> entityList, Light* light) {
         HLSLShader::setOM({ *depthTexture }, _shadow.getWidth(), _shadow.getHeight());
     }
 
-    for (Entity* entity : entityList) {
-            
-        Matrix inverseViewProjection = ModelBroker::getViewManager()->getView().inverse() *
-                                       ModelBroker::getViewManager()->getProjection().inverse();
+    Matrix inverseViewProjection = ModelBroker::getViewManager()->getView().inverse() *
+                                   ModelBroker::getViewManager()->getProjection().inverse();
 
-        if (FrustumCuller::getVisibleAABB(entity, inverseViewProjection)) {
+    std::vector<Vector4> frustumPlanes;
+    GeometryMath::getFrustumPlanes(inverseViewProjection,
+                                   frustumPlanes);
+
+    for (Entity* entity : entityList) {
+
+        if (FrustumCuller::getVisibleAABB(entity, frustumPlanes)) {
             if (entity->getModel()->getClassType() == ModelClass::ModelType) {
                 _staticShadowShader->runShader(entity, light);
             }

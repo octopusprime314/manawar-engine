@@ -18,8 +18,7 @@ ViewEventDistributor::ViewEventDistributor(int*         argc,
                                            unsigned int viewportWidth,
                                            unsigned int viewportHeight) {
 
-    _viewEvents = new ViewEvents();
-
+    _viewEvents   = new ViewEvents();
     _godState     = true;  // Start in god view mode
     _trackedState = false; // Don't start on the track...yet
     _entityIndex  = 0;     // Start at index 0

@@ -12,6 +12,26 @@ bool     WorldGenerator::_fileSaved           = false;
 int      WorldGenerator::_concurrentPaths     = 0;
 int      WorldGenerator::_prevConcurrentPaths = 0;
 
+WorldGenerator::WorldGenerator(std::string sceneName,
+                               int         widthLocation,
+                               int         lengthLocation,
+                               int         pathDirection,
+                               int         tileWidthIndex,
+                               int         tileLengthIndex)
+    :
+    _pathWidthLocation     (widthLocation),
+    _pathLengthLocation    (lengthLocation),
+    _tileWidthIndex        (tileWidthIndex),
+    _tileLengthIndex       (tileLengthIndex),
+    _proceduralGenDone     (false),
+    _currRotationInDegrees (pathDirection),
+    _prevTileWidthIndex    (tileWidthIndex),
+    _prevTileLengthIndex   (tileLengthIndex),
+    _prevPathWidthLocation (widthLocation),
+    _prevPathLengthLocation(lengthLocation),
+    _sceneName             (sceneName) {
+
+}
 
 void WorldGenerator::paintTile(int         widthLocation,
                                int         lengthLocation,
@@ -29,10 +49,6 @@ void WorldGenerator::paintTile(int         widthLocation,
     command += std::to_string(id)             + " ";
     command += name;
     terminal->processCommand(command);
-
-    // Tag path id for handling item placing.
-    _tileGridFlag[(tileWidthIndex  * tileWidth)  / pathPixelRadius]
-                 [(tileLengthIndex * tileLength) / pathPixelRadius] = Path;
 }
 
 void WorldGenerator::paintTiles(int         widthLocation,
@@ -82,7 +98,7 @@ void WorldGenerator::paintTiles(int         widthLocation,
                   name);
     }
 
-    //// Straddling tile to the bottom of current
+    // Straddling tile to the bottom of current
     if (lengthLocation      <= pathPixelRadius &&
         tileLengthIndex - 1 >= 0) {
 
@@ -92,27 +108,6 @@ void WorldGenerator::paintTiles(int         widthLocation,
                   tileLengthIndex - 1,
                   name);
     }
-}
-
-WorldGenerator::WorldGenerator(std::string sceneName,
-                               int         widthLocation,
-                               int         lengthLocation,
-                               int         pathDirection,
-                               int         tileWidthIndex,
-                               int         tileLengthIndex)
-    :
-    _pathWidthLocation     (widthLocation),
-    _pathLengthLocation    (lengthLocation),
-    _tileWidthIndex        (tileWidthIndex),
-    _tileLengthIndex       (tileLengthIndex),
-    _proceduralGenDone     (false),
-    _currRotationInDegrees (pathDirection),
-    _prevTileWidthIndex    (tileWidthIndex),
-    _prevTileLengthIndex   (tileLengthIndex),
-    _prevPathWidthLocation (widthLocation),
-    _prevPathLengthLocation(lengthLocation),
-    _sceneName             (sceneName) {
-
 }
 
 WorldGenerator::~WorldGenerator() {
@@ -234,77 +229,88 @@ void WorldGenerator::buildPath() {
             (_pathLengthLocation >= 0)         &&
             (_pathLengthLocation <= tileLength)) {
 
-            bool foundLocationWithoutPath = false;
-            unsigned int directionFlags   = 0;
-            while (!foundLocationWithoutPath) {
 
-                // Find the next path location
-                float proposedPathWidthLocation  = _pathWidthLocation;
-                float proposedPathLengthLocation = _pathLengthLocation;
+            // Find the next path location
+            float proposedPathWidthLocation  = _pathWidthLocation;
+            float proposedPathLengthLocation = _pathLengthLocation;
 
-                // 0 degrees is North, 90 is East, 180 is South, 270 is West
-                _currRotationInDegrees     += ((rand() % 3) - 1) * rotationPathOffsetInDegrees;
-                proposedPathLengthLocation += pathPixelRadius * cos(_currRotationInDegrees * degToRad);
-                proposedPathWidthLocation  += pathPixelRadius * sin(_currRotationInDegrees * degToRad);
+            // 0 degrees is North, 90 is East, 180 is South, 270 is West
+            _currRotationInDegrees     += ((rand() % 3) - 1) * rotationPathOffsetInDegrees;
+            proposedPathLengthLocation += pathPixelRadius * cos(_currRotationInDegrees * degToRad);
+            proposedPathWidthLocation  += pathPixelRadius * sin(_currRotationInDegrees * degToRad);
 
-                int prevEntityID = _entityIDMap[_prevTileWidthIndex][_prevTileLengthIndex];
+            _pathWidthLocation  = proposedPathWidthLocation;
+            _pathLengthLocation = proposedPathLengthLocation;
 
-                // DEBUG PATH CODE
-                // Paint previous path texture with the third texture option to indicate already traveled
-                // Send a middle mouse button click to change texture
-                terminal->processCommand("MOUSEPATHING 2 1 0 0 0");
-
-                paintTiles(_prevPathWidthLocation,
-                            _prevPathLengthLocation,
-                            _prevTileWidthIndex,
-                            _prevTileLengthIndex,
-                            _sceneName);
-
-                //Reset texture back to path texture
-                terminal->processCommand("MOUSEPATHING 2 1 0 0 0");
-                terminal->processCommand("MOUSEPATHING 2 1 0 0 0");
-                terminal->processCommand("MOUSEPATHING 2 1 0 0 0");
-                // FINISHED DEBUG PATH CODE
-
-                _pathWidthLocation        = proposedPathWidthLocation;
-                _pathLengthLocation       = proposedPathLengthLocation;
-                foundLocationWithoutPath = true;
-
-                if (_pathWidthLocation <= 0) {
-                    _tileWidthIndex--;
-                    // Location when jumping into another tile
-                    _pathWidthLocation += tileWidth;
-                }
-                else if (_pathWidthLocation >= tileWidth) {
-                    _tileWidthIndex++;
-                    // Location when jumping into another tile
-                    _pathWidthLocation = _pathWidthLocation % tileWidth;
-                }
-                if (_pathLengthLocation <= 0) {
-                    _tileLengthIndex--;
-                    // Location when jumping into another tile
-                    _pathLengthLocation += tileLength;
-                }
-                else if (_pathLengthLocation >= tileLength) {
-                    _tileLengthIndex++;
-                    // Location when jumping into another tile
-                    _pathLengthLocation = _pathLengthLocation % tileLength;
-                }
-
-                // Draw the current tile
-                paintTiles(_pathWidthLocation,
-                            _pathLengthLocation,
-                            _tileWidthIndex,
-                            _tileLengthIndex,
-                            _sceneName);
-
-                _prevPathWidthLocation  = _pathWidthLocation;
-                _prevPathLengthLocation = _pathLengthLocation;
-                _prevTileWidthIndex     = _tileWidthIndex;
-                _prevTileLengthIndex    = _tileLengthIndex;
+            if (_pathWidthLocation <= 0) {
+                _tileWidthIndex--;
+                // Location when jumping into another tile
+                _pathWidthLocation += tileWidth;
+            }
+            else if (_pathWidthLocation >= tileWidth) {
+                _tileWidthIndex++;
+                // Location when jumping into another tile
+                _pathWidthLocation = _pathWidthLocation % tileWidth;
+            }
+            if (_pathLengthLocation <= 0) {
+                _tileLengthIndex--;
+                // Location when jumping into another tile
+                _pathLengthLocation += tileLength;
+            }
+            else if (_pathLengthLocation >= tileLength) {
+                _tileLengthIndex++;
+                // Location when jumping into another tile
+                _pathLengthLocation = _pathLengthLocation % tileLength;
             }
 
-            float tileWidthMin  = ((_tileWidthIndex - halfWidthTiles) * tileWidth) - tileHalfWidth;
+            // Tag path id for handling item placing.
+            int      prevTileWidthIndex  = ((_prevTileWidthIndex  * tileWidth)  + _prevPathWidthLocation)  / pathPixelRadius;
+            int      prevTileLengthIndex = ((_prevTileLengthIndex * tileLength) + _prevPathLengthLocation) / pathPixelRadius;
+            int      tileWidthIndex      = ((_tileWidthIndex      * tileWidth)  + _pathWidthLocation)      / pathPixelRadius;
+            int      tileLengthIndex     = ((_tileLengthIndex     * tileLength) + _pathLengthLocation)     / pathPixelRadius;
+            ItemFlag item                = _tileGridFlag[tileWidthIndex][tileLengthIndex];
+
+            if ((item                == ItemFlag::Path) &&
+                (prevTileWidthIndex  != tileWidthIndex) &&
+                (prevTileLengthIndex != tileLengthIndex)) {
+                // Path intersects another path so terminate for the time being
+                _proceduralGenDone = true;
+            }
+
+            // DEBUG PATH CODE
+            // Paint previous path texture with the third texture option to indicate already traveled
+            // Send a middle mouse button click to change texture
+            terminal->processCommand("MOUSEPATHING 2 1 0 0 0");
+
+            paintTiles(_prevPathWidthLocation,
+                       _prevPathLengthLocation,
+                       _prevTileWidthIndex,
+                       _prevTileLengthIndex,
+                       _sceneName);
+
+            //Reset texture back to path texture
+            terminal->processCommand("MOUSEPATHING 2 1 0 0 0");
+            terminal->processCommand("MOUSEPATHING 2 1 0 0 0");
+            terminal->processCommand("MOUSEPATHING 2 1 0 0 0");
+            // FINISHED DEBUG PATH CODE
+
+            // Draw the current tile
+            paintTiles(_pathWidthLocation,
+                       _pathLengthLocation,
+                       _tileWidthIndex,
+                       _tileLengthIndex,
+                       _sceneName);
+
+            
+            // Only tag main tile for path id.
+            _tileGridFlag[tileWidthIndex][tileLengthIndex] = Path;
+
+            _prevPathWidthLocation  = _pathWidthLocation;
+            _prevPathLengthLocation = _pathLengthLocation;
+            _prevTileWidthIndex     = _tileWidthIndex;
+            _prevTileLengthIndex    = _tileLengthIndex;
+
+            float tileWidthMin  = ((_tileWidthIndex  - halfWidthTiles)  * tileWidth)  - tileHalfWidth;
             float tileLengthMin = ((_tileLengthIndex - halfLengthTiles) * tileLength) - tileHalfLength;
             std::string command = "ADD " + _sceneName + " ";
 
@@ -319,11 +325,17 @@ void WorldGenerator::buildPath() {
                 // Scale house model between 5 and 10
                 float scale = static_cast<float>(rand() % 5) + 5.0f;
 
-                command += "HOUSE1 ";
+                // Rotate house around y axis
+                float yRot  = static_cast<float>(rand() % 360);
+
+                command += "HOUSE2 ";
                 command += std::to_string(tileWidthMin  + _pathWidthLocation)  + " ";
                 command += std::to_string(0)                                   + " "; // Keep height 0 for now
                 command += std::to_string(tileLengthMin + _pathLengthLocation) + " ";
                 command += std::to_string(scale)                               + " "; // w component for scaling
+                command += std::to_string(0)                                   + " ";
+                command += std::to_string(yRot)                                + " "; // Rotation around y axis
+                command += std::to_string(0)                                   + " ";
                 terminal->processCommand(command);
 
                 // Flag grid location as having an item here

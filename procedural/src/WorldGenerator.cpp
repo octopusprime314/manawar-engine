@@ -5,12 +5,16 @@
 
 
 int      WorldGenerator::_entityIDMap[numWidthTiles][numLengthTiles];
-ItemFlag WorldGenerator::_tileGridFlag[widthOfWorld / pathPixelRadius][lengthOfWorld / pathPixelRadius];
+int      WorldGenerator::_tiledPathIds[widthOfWorld / pathPixelRadius][lengthOfWorld / pathPixelRadius];
 
 bool     WorldGenerator::_allPathsFinished    = false;
 bool     WorldGenerator::_fileSaved           = false;
 int      WorldGenerator::_concurrentPaths     = 0;
 int      WorldGenerator::_prevConcurrentPaths = 0;
+
+// Reserve item flags in the bottom part of the integer and the rest represent unique path ids
+int      WorldGenerator::_pathIdAllocator     = ItemFlag::TileFlagLength;
+
 
 WorldGenerator::WorldGenerator(std::string sceneName,
                                int         widthLocation,
@@ -29,8 +33,11 @@ WorldGenerator::WorldGenerator(std::string sceneName,
     _prevTileLengthIndex   (tileLengthIndex),
     _prevPathWidthLocation (widthLocation),
     _prevPathLengthLocation(lengthLocation),
-    _sceneName             (sceneName) {
+    _sceneName             (sceneName),
+    _pathId                (_pathIdAllocator) {
 
+    // Increment path id
+    _pathIdAllocator++;
 }
 
 void WorldGenerator::paintTile(int         widthLocation,
@@ -268,31 +275,31 @@ void WorldGenerator::buildPath() {
             int      prevTileLengthIndex = ((_prevTileLengthIndex * tileLength) + _prevPathLengthLocation) / pathPixelRadius;
             int      tileWidthIndex      = ((_tileWidthIndex      * tileWidth)  + _pathWidthLocation)      / pathPixelRadius;
             int      tileLengthIndex     = ((_tileLengthIndex     * tileLength) + _pathLengthLocation)     / pathPixelRadius;
-            ItemFlag item                = _tileGridFlag[tileWidthIndex][tileLengthIndex];
+            int      item                = _tiledPathIds[tileWidthIndex][tileLengthIndex];
 
-            if ((item                == ItemFlag::Path) &&
-                (prevTileWidthIndex  != tileWidthIndex) &&
-                (prevTileLengthIndex != tileLengthIndex)) {
+            
+            if ((item != 0) && (item != _pathId)) {
                 // Path intersects another path so terminate for the time being
                 _proceduralGenDone = true;
             }
+            else {
+                // DEBUG PATH CODE
+                // Paint previous path texture with the third texture option to indicate already traveled
+                // Send a middle mouse button click to change texture
+                terminal->processCommand("MOUSEPATHING 2 1 0 0 0");
 
-            // DEBUG PATH CODE
-            // Paint previous path texture with the third texture option to indicate already traveled
-            // Send a middle mouse button click to change texture
-            terminal->processCommand("MOUSEPATHING 2 1 0 0 0");
+                paintTiles(_prevPathWidthLocation,
+                           _prevPathLengthLocation,
+                           _prevTileWidthIndex,
+                           _prevTileLengthIndex,
+                           _sceneName);
 
-            paintTiles(_prevPathWidthLocation,
-                       _prevPathLengthLocation,
-                       _prevTileWidthIndex,
-                       _prevTileLengthIndex,
-                       _sceneName);
-
-            //Reset texture back to path texture
-            terminal->processCommand("MOUSEPATHING 2 1 0 0 0");
-            terminal->processCommand("MOUSEPATHING 2 1 0 0 0");
-            terminal->processCommand("MOUSEPATHING 2 1 0 0 0");
-            // FINISHED DEBUG PATH CODE
+                // Reset texture back to path texture
+                terminal->processCommand("MOUSEPATHING 2 1 0 0 0");
+                terminal->processCommand("MOUSEPATHING 2 1 0 0 0");
+                terminal->processCommand("MOUSEPATHING 2 1 0 0 0");
+                // FINISHED DEBUG PATH CODE
+            }
 
             // Draw the current tile
             paintTiles(_pathWidthLocation,
@@ -303,7 +310,7 @@ void WorldGenerator::buildPath() {
 
             
             // Only tag main tile for path id.
-            _tileGridFlag[tileWidthIndex][tileLengthIndex] = Path;
+            _tiledPathIds[tileWidthIndex][tileLengthIndex] = _pathId;
 
             _prevPathWidthLocation  = _pathWidthLocation;
             _prevPathLengthLocation = _pathLengthLocation;
@@ -339,7 +346,7 @@ void WorldGenerator::buildPath() {
                 terminal->processCommand(command);
 
                 // Flag grid location as having an item here
-                _tileGridFlag[((_tileWidthIndex  * tileWidth)  + _pathWidthLocation)  / pathPixelRadius]
+                _tiledPathIds[((_tileWidthIndex  * tileWidth)  + _pathWidthLocation)  / pathPixelRadius]
                              [((_tileLengthIndex * tileLength) + _pathLengthLocation) / pathPixelRadius] = House;
 
                 // Path leads to a house so terminate path
@@ -384,7 +391,7 @@ void WorldGenerator::buildPath() {
                 terminal->processCommand(command);
 
                 // Flag grid location as having an item here
-                _tileGridFlag[((_tileWidthIndex  * tileWidth)  + _pathWidthLocation  + treeLocationOffsetWidth)  / pathPixelRadius]
+                _tiledPathIds[((_tileWidthIndex  * tileWidth)  + _pathWidthLocation  + treeLocationOffsetWidth)  / pathPixelRadius]
                              [((_tileLengthIndex * tileLength) + _pathLengthLocation + treeLocationOffsetLength) / pathPixelRadius] = Tree;
 
             }

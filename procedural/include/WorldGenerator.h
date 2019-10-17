@@ -4,10 +4,9 @@
 
 enum ItemFlag {
     NoFlag         = 0,
-    Path           = 1,
-    Tree           = 2,
-    House          = 3,
-    TileFlagLength = 4
+    Tree           = 1,
+    House          = 2,
+    TileFlagLength = 3
 };
 
 // First define the extents of the world and various other world building constants
@@ -83,14 +82,16 @@ private:
     int                          _tileWidthIndex;
     std::vector<WorldGenerator*> _pathGenerators;
     std::string                  _sceneName;
+    int                          _pathId;
 
     static int                   _prevConcurrentPaths;
     static bool                  _allPathsFinished;
+    static int                   _pathIdAllocator;
     static int                   _concurrentPaths;
     static bool                  _fileSaved;
 
     // Identifies a tile within the grid's entity ID for access
     static int      _entityIDMap[numWidthTiles][numLengthTiles];
-    // Flags used to identify what type of object is at this location in the grid
-    static ItemFlag _tileGridFlag[widthOfWorld / pathPixelRadius][lengthOfWorld / pathPixelRadius];
+    // Flags used to identify which path id is placed to detect intersections of other paths
+    static int      _tiledPathIds[widthOfWorld / pathPixelRadius][lengthOfWorld / pathPixelRadius];
 };

@@ -140,7 +140,7 @@ void WorldGenerator::generateWorldTiles() {
         for (int tileIndexL = -halfLengthTiles; tileIndexL <= halfLengthTiles; tileIndexL++) {
 
             // First add a tile
-            std::string command = "ADDTILE " + _sceneName + " FOREST ";
+            std::string command = "ADDTILE " + _sceneName + " TERRAINTILE ";
             command            += std::to_string(tileIndexW * tileWidth)  + " ";
             command            += std::to_string(0)                       + " "; // Keep height 0 for now
             command            += std::to_string(tileIndexL * tileLength) + " ";
@@ -158,6 +158,7 @@ void WorldGenerator::generateWorldTiles() {
 
     // Small temporary hack that sets the texture for pathing and painting terrain to non background texture
     // Send a middle mouse button click to change texture
+    terminal->processCommand("MOUSEPATHING 2 1 0 0 0");
     terminal->processCommand("MOUSEPATHING 2 1 0 0 0");
 
     // Increase the radius of the texture painting
@@ -283,22 +284,26 @@ void WorldGenerator::buildPath() {
                 _proceduralGenDone = true;
             }
             else {
-                // DEBUG PATH CODE
-                // Paint previous path texture with the third texture option to indicate already traveled
-                // Send a middle mouse button click to change texture
-                terminal->processCommand("MOUSEPATHING 2 1 0 0 0");
 
-                paintTiles(_prevPathWidthLocation,
-                           _prevPathLengthLocation,
-                           _prevTileWidthIndex,
-                           _prevTileLengthIndex,
-                           _sceneName);
+                if (highlightHeadOfPath) {
 
-                // Reset texture back to path texture
-                terminal->processCommand("MOUSEPATHING 2 1 0 0 0");
-                terminal->processCommand("MOUSEPATHING 2 1 0 0 0");
-                terminal->processCommand("MOUSEPATHING 2 1 0 0 0");
-                // FINISHED DEBUG PATH CODE
+                    // DEBUG PATH CODE
+                    // Paint previous path texture with the third texture option to indicate already traveled
+                    // Send a middle mouse button click to change texture
+                    terminal->processCommand("MOUSEPATHING 2 1 0 0 0");
+
+                    paintTiles(_prevPathWidthLocation,
+                               _prevPathLengthLocation,
+                               _prevTileWidthIndex,
+                               _prevTileLengthIndex,
+                               _sceneName);
+
+                    // Reset texture back to path texture
+                    terminal->processCommand("MOUSEPATHING 2 1 0 0 0");
+                    terminal->processCommand("MOUSEPATHING 2 1 0 0 0");
+                    terminal->processCommand("MOUSEPATHING 2 1 0 0 0");
+                    // FINISHED DEBUG PATH CODE
+                }
             }
 
             // Draw the current tile

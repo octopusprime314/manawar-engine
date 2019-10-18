@@ -29,6 +29,7 @@ constexpr int   pathPixelDiameter       = pathPixelRadius * 2;
 constexpr int   probabilityToPlaceTree  = 20;
 constexpr int   probabilityToPlaceHouse = 200;
 constexpr int   probabilityToForkPath   = 100;
+constexpr bool  highlightHeadOfPath     = false;
 
 // Radial pathing data
 // 360 degrees of rotation for the next path direction

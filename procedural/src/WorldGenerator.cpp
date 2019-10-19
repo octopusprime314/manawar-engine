@@ -2,26 +2,20 @@
 #include "Terminal.h"
 #include <iostream>
 
-
-
-int      WorldGenerator::_entityIDMap[numWidthTiles][numLengthTiles];
-int      WorldGenerator::_tiledPathIds[widthOfWorld / pathPixelRadius][lengthOfWorld / pathPixelRadius];
-
-bool     WorldGenerator::_allPathsFinished    = false;
-bool     WorldGenerator::_fileSaved           = false;
-int      WorldGenerator::_concurrentPaths     = 0;
-int      WorldGenerator::_prevConcurrentPaths = 0;
+bool Builder::_allPathsFinished    = false;
+int  Builder::_concurrentPaths     = 0;
+int  Builder::_prevConcurrentPaths = 0;
 
 // Reserve item flags in the bottom part of the integer and the rest represent unique path ids
-int      WorldGenerator::_pathIdAllocator     = ItemFlag::TileFlagLength;
+int Builder::_pathIdAllocator      = ItemFlag::TileFlagLength;
 
-
-WorldGenerator::WorldGenerator(std::string sceneName,
-                               int         widthLocation,
-                               int         lengthLocation,
-                               int         pathDirection,
-                               int         tileWidthIndex,
-                               int         tileLengthIndex)
+Builder::Builder(std::string sceneName,
+                 int         pathId,
+                 int         widthLocation,
+                 int         lengthLocation,
+                 int         pathDirection,
+                 int         tileWidthIndex,
+                 int         tileLengthIndex)
     :
     _pathWidthLocation     (widthLocation),
     _pathLengthLocation    (lengthLocation),
@@ -34,21 +28,24 @@ WorldGenerator::WorldGenerator(std::string sceneName,
     _prevPathWidthLocation (widthLocation),
     _prevPathLengthLocation(lengthLocation),
     _sceneName             (sceneName),
-    _pathId                (_pathIdAllocator) {
+    _pathId                (pathId) {
 
-    // Increment path id
-    _pathIdAllocator++;
+    // Randomize initial path direction
+    if (_currRotationInDegrees == -100000000) {
+        _currRotationInDegrees = (rand() % rotationPathVariations) * rotationPathOffsetInDegrees;
+    }
+
 }
 
-void WorldGenerator::paintTile(int         widthLocation,
-                               int         lengthLocation,
-                               int         tileWidthIndex,
-                               int         tileLengthIndex,
-                               std::string name) {
+void Builder::_paintTile(int         widthLocation,
+                         int         lengthLocation,
+                         int         tileWidthIndex,
+                         int         tileLengthIndex,
+                         std::string name) {
 
     Terminal* terminal = Terminal::instance();
 
-    int id = _entityIDMap[tileWidthIndex][tileLengthIndex];
+    int id = WorldGenerator::getEntityId(tileWidthIndex, tileLengthIndex);
 
     std::string command = "MOUSEPATHING 0 1 ";
     command += std::to_string(widthLocation)  + " ";
@@ -58,14 +55,14 @@ void WorldGenerator::paintTile(int         widthLocation,
     terminal->processCommand(command);
 }
 
-void WorldGenerator::paintTiles(int         widthLocation,
-                                int         lengthLocation,
-                                int         tileWidthIndex,
-                                int         tileLengthIndex,
-                                std::string name) {
+void Builder::_paintTiles(int         widthLocation,
+                          int         lengthLocation,
+                          int         tileWidthIndex,
+                          int         tileLengthIndex,
+                          std::string name) {
 
     // Paint current tile
-    paintTile(widthLocation,
+    _paintTile(widthLocation,
               lengthLocation,
               tileWidthIndex,
               tileLengthIndex,
@@ -77,122 +74,68 @@ void WorldGenerator::paintTiles(int         widthLocation,
     if (widthLocation      >= (tileWidth - pathPixelRadius) &&
         tileWidthIndex + 1 < numWidthTiles) {
 
-        paintTile(widthLocation - tileWidth,
-                  lengthLocation,
-                  tileWidthIndex + 1,
-                  tileLengthIndex,
-                  name);
+        _paintTile(widthLocation - tileWidth,
+                   lengthLocation,
+                   tileWidthIndex + 1,
+                   tileLengthIndex,
+                   name);
     }
     // Straddling tile to the left of current
     if (widthLocation      <= pathPixelRadius &&
         tileWidthIndex - 1 >= 0) {
 
-        paintTile(tileWidth + widthLocation,
-                  lengthLocation,
-                  tileWidthIndex - 1,
-                  tileLengthIndex,
-                  name);
+        _paintTile(tileWidth + widthLocation,
+                   lengthLocation,
+                   tileWidthIndex - 1,
+                   tileLengthIndex,
+                   name);
     }
 
     // Straddling tile to the top of current
     if (lengthLocation      >= (tileLength - pathPixelRadius) &&
         tileLengthIndex + 1 < numLengthTiles) {
 
-        paintTile(widthLocation,
-                  lengthLocation - tileLength,
-                  tileWidthIndex,
-                  tileLengthIndex + 1,
-                  name);
+        _paintTile(widthLocation,
+                   lengthLocation - tileLength,
+                   tileWidthIndex,
+                   tileLengthIndex + 1,
+                   name);
     }
 
     // Straddling tile to the bottom of current
     if (lengthLocation      <= pathPixelRadius &&
         tileLengthIndex - 1 >= 0) {
 
-        paintTile(widthLocation,
-                  tileLength + lengthLocation,
-                  tileWidthIndex,
-                  tileLengthIndex - 1,
-                  name);
+        _paintTile(widthLocation,
+                   tileLength + lengthLocation,
+                   tileWidthIndex,
+                   tileLengthIndex - 1,
+                   name);
     }
 }
 
-WorldGenerator::~WorldGenerator() {
+Builder::~Builder() {
 
 }
 
-void WorldGenerator::generateWorldTiles() {
+Forest::Forest(std::string sceneName,
+               int         pathId,
+               int         widthLocation,
+               int         lengthLocation,
+               int         pathDirection,
+               int         tileWidthIndex,
+               int         tileLengthIndex) :
+    Builder(sceneName,
+            pathId,
+            widthLocation,
+            lengthLocation,
+            pathDirection,
+            tileWidthIndex,
+            tileLengthIndex) {
 
-    // Utilize the terminal's ability to create and edit fbx files...
-    // I know this should be lifted to a generic wrapper that edits the 
-    // fbx but for now I will inject string commands to the terminal interface.
-
-    Terminal* terminal = Terminal::instance();
-
-    srand(time(NULL));
-
-    // Randomize initial path direction
-    _currRotationInDegrees = (rand() % rotationPathVariations) * rotationPathOffsetInDegrees;
-
-    const std::vector<Entity*>* entityList = nullptr;
-
-    for (int tileIndexW = -halfWidthTiles; tileIndexW <= halfWidthTiles; tileIndexW++) {
-        for (int tileIndexL = -halfLengthTiles; tileIndexL <= halfLengthTiles; tileIndexL++) {
-
-            // First add a tile
-            std::string command = "ADDTILE " + _sceneName + " TERRAINTILE ";
-            command            += std::to_string(tileIndexW * tileWidth)  + " ";
-            command            += std::to_string(0)                       + " "; // Keep height 0 for now
-            command            += std::to_string(tileIndexL * tileLength) + " ";
-            command            += std::to_string(1)                       + " "; // w component for scaling
-            command            += "SNOW.JPG DIRT.JPG ROCKS.JPG GRASS.JPG";
-            terminal->processCommand(command);
-
-            // Get latest entity list based on the previous addition of a tile which is guaranteed to be at the end :)
-            entityList   = EngineManager::getEntityList();
-            // Stores an entityID for every tile
-            unsigned int entityID = entityList->back()->getID();
-            _entityIDMap[tileIndexW + halfWidthTiles][tileIndexL + halfLengthTiles] = entityID;
-        }
-    }
-
-    // Small temporary hack that sets the texture for pathing and painting terrain to non background texture
-    // Send a middle mouse button click to change texture
-    terminal->processCommand("MOUSEPATHING 2 1 0 0 0");
-    terminal->processCommand("MOUSEPATHING 2 1 0 0 0");
-
-    // Increase the radius of the texture painting
-    for (int i = 0; i < pathPixelRadius; i++) {
-        terminal->processCommand("INCREASE_PAINT_SIZE");
-    }
 }
 
-void WorldGenerator::spawnPaths(std::string sceneName) {
-
-    // seed path
-    static WorldGenerator* seedPath = nullptr;
-
-    if (seedPath == nullptr) {
-        seedPath = new WorldGenerator(sceneName);
-        seedPath->generateWorldTiles();
-    }
-
-    if ((_allPathsFinished == true) &&
-        (_fileSaved        == false)) {
-        Terminal* terminal = Terminal::instance();
-        terminal->processCommand("SAVE " + sceneName);
-        _fileSaved = true;
-    }
-
-    if (_fileSaved == false) {
-        _concurrentPaths  = 0;
-        _allPathsFinished = true;
-        seedPath->buildPath();
-        _prevConcurrentPaths = _concurrentPaths;
-    }
-}
-
-void WorldGenerator::buildPath() {
+void Forest::buildPath() {
 
     // Build forked paths
     for (auto pathGen : _pathGenerators) {
@@ -212,12 +155,15 @@ void WorldGenerator::buildPath() {
     if (rand() % probabilityToForkPath == 0) {
 
         // Change direction of forked path to be perpendicular to current path direction.
-        _pathGenerators.push_back(new WorldGenerator(_sceneName,
-                                                     _pathWidthLocation,
-                                                     _pathLengthLocation,
-                                                     _currRotationInDegrees + ((rand() % 2 == 0) ? 90.0f : -90.0f),
-                                                     _tileWidthIndex,
-                                                     _tileLengthIndex));
+        _pathGenerators.push_back(new Forest(_sceneName,
+                                             _pathIdAllocator,
+                                             _pathWidthLocation,
+                                             _pathLengthLocation,
+                                             _currRotationInDegrees + ((rand() % 2 == 0) ? 90.0f : -90.0f),
+                                             _tileWidthIndex,
+                                             _tileLengthIndex));
+        // Increment path id
+        _pathIdAllocator++;
     }
 
     // Utilize the terminal's ability to create and edit fbx files...
@@ -276,10 +222,10 @@ void WorldGenerator::buildPath() {
             int      prevTileLengthIndex = ((_prevTileLengthIndex * tileLength) + _prevPathLengthLocation) / pathPixelRadius;
             int      tileWidthIndex      = ((_tileWidthIndex      * tileWidth)  + _pathWidthLocation)      / pathPixelRadius;
             int      tileLengthIndex     = ((_tileLengthIndex     * tileLength) + _pathLengthLocation)     / pathPixelRadius;
-            int      item                = _tiledPathIds[tileWidthIndex][tileLengthIndex];
+            int      item                = WorldGenerator::getItemId(tileWidthIndex, tileLengthIndex);
 
-            
-            if ((item != 0) && (item != _pathId)) {
+            if ((item != 0) &&
+                (item != _pathId)) {
                 // Path intersects another path so terminate for the time being
                 _proceduralGenDone = true;
             }
@@ -292,11 +238,11 @@ void WorldGenerator::buildPath() {
                     // Send a middle mouse button click to change texture
                     terminal->processCommand("MOUSEPATHING 2 1 0 0 0");
 
-                    paintTiles(_prevPathWidthLocation,
-                               _prevPathLengthLocation,
-                               _prevTileWidthIndex,
-                               _prevTileLengthIndex,
-                               _sceneName);
+                    _paintTiles(_prevPathWidthLocation,
+                                _prevPathLengthLocation,
+                                _prevTileWidthIndex,
+                                _prevTileLengthIndex,
+                                _sceneName);
 
                     // Reset texture back to path texture
                     terminal->processCommand("MOUSEPATHING 2 1 0 0 0");
@@ -307,15 +253,15 @@ void WorldGenerator::buildPath() {
             }
 
             // Draw the current tile
-            paintTiles(_pathWidthLocation,
-                       _pathLengthLocation,
-                       _tileWidthIndex,
-                       _tileLengthIndex,
-                       _sceneName);
+            _paintTiles(_pathWidthLocation,
+                        _pathLengthLocation,
+                        _tileWidthIndex,
+                        _tileLengthIndex,
+                        _sceneName);
 
             
             // Only tag main tile for path id.
-            _tiledPathIds[tileWidthIndex][tileLengthIndex] = _pathId;
+            WorldGenerator::setItemId(tileWidthIndex, tileLengthIndex, _pathId);
 
             _prevPathWidthLocation  = _pathWidthLocation;
             _prevPathLengthLocation = _pathLengthLocation;
@@ -351,8 +297,8 @@ void WorldGenerator::buildPath() {
                 terminal->processCommand(command);
 
                 // Flag grid location as having an item here
-                _tiledPathIds[((_tileWidthIndex  * tileWidth)  + _pathWidthLocation)  / pathPixelRadius]
-                             [((_tileLengthIndex * tileLength) + _pathLengthLocation) / pathPixelRadius] = House;
+                WorldGenerator::setItemId(((_tileWidthIndex  * tileWidth)  + _pathWidthLocation)  / pathPixelRadius,
+                                          ((_tileLengthIndex * tileLength) + _pathLengthLocation) / pathPixelRadius, House);
 
                 // Path leads to a house so terminate path
                 _proceduralGenDone = true;
@@ -396,13 +342,99 @@ void WorldGenerator::buildPath() {
                 terminal->processCommand(command);
 
                 // Flag grid location as having an item here
-                _tiledPathIds[((_tileWidthIndex  * tileWidth)  + _pathWidthLocation  + treeLocationOffsetWidth)  / pathPixelRadius]
-                             [((_tileLengthIndex * tileLength) + _pathLengthLocation + treeLocationOffsetLength) / pathPixelRadius] = Tree;
+                WorldGenerator::setItemId(((_tileWidthIndex  * tileWidth)  + _pathWidthLocation  + treeLocationOffsetWidth)  / pathPixelRadius,
+                                          ((_tileLengthIndex * tileLength) + _pathLengthLocation + treeLocationOffsetLength) / pathPixelRadius, Tree);
 
             }
         }
     }
     else {
         _proceduralGenDone = true;
+    }
+}
+
+
+
+
+int      WorldGenerator::_entityIDMap[numWidthTiles][numLengthTiles];
+int      WorldGenerator::_tiledPathIds[widthOfWorld / pathPixelRadius][lengthOfWorld / pathPixelRadius];
+
+bool     WorldGenerator::_fileSaved = false;
+Builder* WorldGenerator::_seedPath = nullptr;
+
+
+WorldGenerator::WorldGenerator(std::string sceneName) : _sceneName(sceneName) {
+
+}
+
+WorldGenerator::~WorldGenerator() {
+
+}
+
+void WorldGenerator::generateWorldTiles() {
+
+    // Utilize the terminal's ability to create and edit fbx files...
+    // I know this should be lifted to a generic wrapper that edits the 
+    // fbx but for now I will inject string commands to the terminal interface.
+
+    Terminal* terminal = Terminal::instance();
+
+    srand(time(NULL));
+
+    const std::vector<Entity*>* entityList = nullptr;
+
+    for (int tileIndexW = -halfWidthTiles; tileIndexW <= halfWidthTiles; tileIndexW++) {
+        for (int tileIndexL = -halfLengthTiles; tileIndexL <= halfLengthTiles; tileIndexL++) {
+
+            // First add a tile
+            std::string command = "ADDTILE " + _sceneName + " TERRAINTILE ";
+            command            += std::to_string(tileIndexW * tileWidth)  + " ";
+            command            += std::to_string(0)                       + " "; // Keep height 0 for now
+            command            += std::to_string(tileIndexL * tileLength) + " ";
+            command            += std::to_string(1)                       + " "; // w component for scaling
+            command            += "SNOW.JPG DIRT.JPG ROCKS.JPG GRASS.JPG";
+            terminal->processCommand(command);
+
+            // Get latest entity list based on the previous addition of a tile which is guaranteed to be at the end :)
+            entityList   = EngineManager::getEntityList();
+            // Stores an entityID for every tile
+            unsigned int entityID = entityList->back()->getID();
+            _entityIDMap[tileIndexW + halfWidthTiles][tileIndexL + halfLengthTiles] = entityID;
+        }
+    }
+
+    // Small temporary hack that sets the texture for pathing and painting terrain to non background texture
+    // Send a middle mouse button click to change texture
+    terminal->processCommand("MOUSEPATHING 2 1 0 0 0");
+    terminal->processCommand("MOUSEPATHING 2 1 0 0 0");
+
+    // Increase the radius of the texture painting
+    for (int i = 0; i < pathPixelRadius; i++) {
+        terminal->processCommand("INCREASE_PAINT_SIZE");
+    }
+}
+
+void WorldGenerator::spawnPaths(std::string sceneName) {
+
+    // seed path
+    static WorldGenerator* worldSeed = nullptr;
+
+    if (worldSeed == nullptr) {
+        worldSeed = new WorldGenerator(sceneName);
+        worldSeed->generateWorldTiles();
+        _seedPath = new Forest(sceneName, Builder::getNewPathId());
+    }
+
+    if ((Builder::isAllPathsFinished() == true) &&
+        (_fileSaved                    == false)) {
+        Terminal* terminal = Terminal::instance();
+        terminal->processCommand("SAVE " + sceneName);
+        _fileSaved = true;
+    }
+
+    if (_fileSaved == false) {
+        Builder::initPathingData();
+        _seedPath->buildPath();
+        Builder::updatePathCount();
     }
 }

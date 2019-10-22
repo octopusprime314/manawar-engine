@@ -170,35 +170,45 @@ PixelOut PS(float4 posH : SV_POSITION,
                             ~0,
                             ray);
 
+    RayQuery<RAY_FLAG_CULL_OPAQUE> multipleRayQueryTester;
+    multipleRayQueryTester.TraceRayInline(rtAS,
+                                          RAY_FLAG_CULL_OPAQUE,
+                                          ~0,
+                                          ray);
+    uint nonOpaqueCulledProceedCalls = 0;
     //Transparency testing
     while (rayQuery.Proceed() == true)
     {
         if (rayQuery.CandidateType() == CANDIDATE_NON_OPAQUE_TRIANGLE) {
-
+        
             float  alphaValue   = 1.0f;
             float2 barycentrics = rayQuery.CandidateTriangleBarycentrics();
             barycentrics = float2(barycentrics.x, barycentrics.y);
             if (rayQuery.CandidateInstanceID() == 1) {
                 alphaValue = transparencyTexture1.Sample(textureSampler, barycentrics).a;
             }
-            else if (rayQuery.CandidateInstanceID() == 2) {
-                alphaValue = transparencyTexture2.Sample(textureSampler, barycentrics).a;
-            }
-            else if (rayQuery.CandidateInstanceID() == 3) {
-                alphaValue = transparencyTexture3.Sample(textureSampler, barycentrics).a;
-            }
-            else if (rayQuery.CandidateInstanceID() == 4) {
-                alphaValue = transparencyTexture4.Sample(textureSampler, barycentrics).a;
-            }
-            else if (rayQuery.CandidateInstanceID() == 5) {
-                alphaValue = transparencyTexture5.Sample(textureSampler, barycentrics).a;
-            }
-
+            //else if (rayQuery.CandidateInstanceID() == 2) {
+            //    alphaValue = transparencyTexture2.Sample(textureSampler, barycentrics).a;
+            //}
+            //else if (rayQuery.CandidateInstanceID() == 3) {
+            //    alphaValue = transparencyTexture3.Sample(textureSampler, barycentrics).a;
+            //}
             if (alphaValue > 0.1) {
                 rayQuery.CommitNonOpaqueTriangleHit();
             }
         }
+
+      
+        //while (multipleRayQueryTester.Proceed() == true) {
+        //    nonOpaqueCulledProceedCalls++;
+        //    //break;
+        //}
+        //
+        //if (nonOpaqueCulledProceedCalls > 4) {
+        //    break;
+        //}
     }
+
     if (rayQuery.CommittedStatus() == COMMITTED_TRIANGLE_HIT)
     {
         float3   hitPosition   = rayQuery.WorldRayOrigin() +

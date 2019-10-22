@@ -313,9 +313,12 @@ RayTracingPipelineShader::RayTracingPipelineShader(std::string shader,
     UINT                                        instanceCount = 0;
     for (auto entity : entityList) {
         std::string name = entity->getModel()->getName();
-        bottomLevelInstances[name].push_back(entity);
-        bottomLevelModels[name] = entity;
-        testCount++;
+
+        //if (name.find("tree") != std::string::npos) {
+            bottomLevelInstances[name].push_back(entity);
+            bottomLevelModels[name] = entity;
+            testCount++;
+        //}
     }
     for (auto instances : bottomLevelInstances) {
         instanceCount += static_cast<UINT>(instances.second.size());

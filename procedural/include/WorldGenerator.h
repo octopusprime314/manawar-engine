@@ -94,16 +94,11 @@ public:
 
     Builder(std::string sceneName,
             int         pathId,
-            //int         widthLocation   = tileHalfWidth,
-            //int         lengthLocation  = tileHalfLength,
-            //int         pathDirection   = -100000000,          // magic init number for rotation
-            //int         tileWidthIndex  = numWidthTiles  / 2,
-            //int         tileLengthIndex = numLengthTiles / 2);
             int         widthLocation   = tileHalfWidth,
-            int         lengthLocation  = 0,
-            int         pathDirection   = 0,
-            int         tileWidthIndex  = numWidthTiles / 2,
-            int         tileLengthIndex = 0);
+            int         lengthLocation  = tileHalfLength,
+            int         pathDirection   = -100000000,          // magic init number for rotation
+            int         tileWidthIndex  = numWidthTiles  / 2,
+            int         tileLengthIndex = numLengthTiles / 2);
 
     ~Builder();
 

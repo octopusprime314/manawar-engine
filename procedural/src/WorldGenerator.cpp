@@ -34,6 +34,16 @@ Builder::Builder(std::string sceneName,
     // Randomize initial path direction
     if (_currRotationInDegrees == -100000000) {
         _currRotationInDegrees = (rand() % rotationPathVariations) * rotationPathOffsetInDegrees;
+
+        // Branch an equal and opposite path from seed
+        // so use the same seed id which is the previous index
+        _pathGenerators.push_back(new Builder(_sceneName,
+                                              _pathIdAllocator - 1,
+                                              _pathWidthLocation,
+                                              _pathLengthLocation,
+                                              _currRotationInDegrees + 180.0f,
+                                              _tileWidthIndex,
+                                              _tileLengthIndex));
     }
 
 }

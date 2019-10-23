@@ -9,11 +9,19 @@ enum ItemFlag {
     TileFlagLength = 3
 };
 
-enum GridFlag {
-    ForestGrid     = 0,
-    VillageGrid    = 1,
-    CityGrid       = 2,
-    GridFlagLength = 3
+enum QuadrantFlag {
+    ForestQuadrant  = 0,
+    VillageQuadrant = 1,
+    CityQuadrant    = 2,
+    QuadrantLength  = 3
+};
+
+struct QuandrantBuilder {
+
+    QuadrantFlag quadrantType;
+    int          probabilityToPlaceHouse;
+    int          probabilityToPlaceTree;
+    int          probabilityToForkPath;
 };
 
 // First define the extents of the world and various other world building constants
@@ -32,6 +40,13 @@ constexpr float maxRandomValue          = static_cast<float>(RAND_MAX);
 constexpr int   pathPixelRadius         = 10;
 constexpr int   pathPixelDiameter       = pathPixelRadius * 2;
 constexpr bool  highlightHeadOfPath     = false;
+constexpr int   numWidthPathIds         = widthOfWorld  / pathPixelRadius;
+constexpr int   numLengthPathIds        = lengthOfWorld / pathPixelRadius;
+constexpr int   widthOfBuilderQuadrant  = widthOfWorld  / 2;
+constexpr int   lengthOfBuilderQuadrant = lengthOfWorld / 2;
+constexpr int   numWidthQuadrants       = widthOfWorld  / widthOfBuilderQuadrant;
+constexpr int   numLengthQuadrants      = lengthOfWorld / lengthOfBuilderQuadrant;
+constexpr int   typesOfTrees            = 3;
 
 // Radial pathing data
 // 360 degrees of rotation for the next path direction
@@ -79,56 +94,29 @@ public:
 
     Builder(std::string sceneName,
             int         pathId,
-            int         widthLocation,
-            int         lengthLocation,
-            int         pathDirection,
-            int         tileWidthIndex,
-            int         tileLengthIndex);
+            //int         widthLocation   = tileHalfWidth,
+            //int         lengthLocation  = tileHalfLength,
+            //int         pathDirection   = -100000000,          // magic init number for rotation
+            //int         tileWidthIndex  = numWidthTiles  / 2,
+            //int         tileLengthIndex = numLengthTiles / 2);
+            int         widthLocation   = tileHalfWidth,
+            int         lengthLocation  = 0,
+            int         pathDirection   = 0,
+            int         tileWidthIndex  = numWidthTiles / 2,
+            int         tileLengthIndex = 0);
 
     ~Builder();
 
     // Debug aid to observe how the path creation is done
-    virtual void buildPath() = 0;
+    void buildPath();
 
     static bool isAllPathsFinished() { return _allPathsFinished; }
     static void initPathingData()    { _concurrentPaths  = 0;
                                        _allPathsFinished = true; }
     static void updatePathCount()    { _prevConcurrentPaths = _concurrentPaths; }
     static int  getNewPathId()       { return _pathIdAllocator++; };
-
 };
 
-class City : public Builder {
-
-public:
-    City();
-};
-
-class Village : public Builder {
-
-public:
-    Village();
-};
-
-class Forest : public Builder {
-
-    const int probabilityToPlaceHouse = 200;
-    const int probabilityToPlaceTree  = 20;
-    const int probabilityToForkPath   = 100;
-    const int numTreesToPlace         = 1;
-    const int typesOfTrees            = 3;
-
-  public:
-    Forest(std::string sceneName,
-           int         pathId,
-           int         widthLocation   = tileHalfWidth,
-           int         lengthLocation  = tileHalfLength,
-           int         pathDirection   = -100000000,          //magic init number for rotation
-           int         tileWidthIndex  = numWidthTiles  / 2,
-           int         tileLengthIndex = numLengthTiles / 2);
-    
-    virtual void buildPath();
-};
 
 class WorldGenerator {
 
@@ -141,28 +129,49 @@ public:
     static void spawnPaths(std::string sceneName);
     static int  getEntityId(int tileWidthIndex,
                             int tileLengthIndex) {
+
         return _entityIDMap[tileWidthIndex][tileLengthIndex];
     }
     static int  getItemId(int tileWidthIndex,
                           int tileLengthIndex) {
+
         return _tiledPathIds[tileWidthIndex][tileLengthIndex];
     }
     static void setItemId(int tileWidthIndex,
                           int tileLengthIndex,
                           int item) {
+
         _tiledPathIds[tileWidthIndex][tileLengthIndex] = item;
     }
+    static QuandrantBuilder getQuadrant(int tileWidthIndex,
+                                        int pathWidthLocation,
+                                        int tileLengthIndex,
+                                        int pathLengthLocation) {
 
+        int widthIndex  = ((tileWidthIndex  * tileWidth)  + pathWidthLocation ) / widthOfBuilderQuadrant;
+        int lengthIndex = ((tileLengthIndex * tileLength) + pathLengthLocation) / lengthOfBuilderQuadrant;
+        return _builderQuadrants[widthIndex][lengthIndex];
+    }
 
 private:
 
     std::string                  _sceneName;
-
     static bool                  _fileSaved;
     static Builder*              _seedPath;
 
     // Identifies a tile within the grid's entity ID for access
-    static int      _entityIDMap[numWidthTiles][numLengthTiles];
+    static int              _entityIDMap[numWidthTiles][numLengthTiles];
     // Flags used to identify which path id is placed to detect intersections of other paths
-    static int      _tiledPathIds[widthOfWorld / pathPixelRadius][lengthOfWorld / pathPixelRadius];
+    static int              _tiledPathIds[numWidthPathIds][numLengthPathIds];
+    // Quadrants within the world to indicate different types of procedural generation
+    static QuandrantBuilder _builderQuadrants[numWidthQuadrants][numLengthQuadrants];
+
+    QuandrantBuilder quadrantBuilder[QuadrantLength] =
+    {
+        //               Quadrant type    House Tree  Path
+        QuandrantBuilder{ForestQuadrant,  5000, 5,    200},
+        QuandrantBuilder{VillageQuadrant, 150,  50,   100},
+        QuandrantBuilder{CityQuadrant,    50,   1000, 20 },
+    };
+
 };

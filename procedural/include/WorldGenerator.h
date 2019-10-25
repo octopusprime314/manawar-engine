@@ -167,7 +167,7 @@ private:
     QuandrantBuilder quadrantBuilder[QuadrantLength] =
     {
         //               Quadrant type    House Tree  Path
-        QuandrantBuilder{ForestQuadrant,  5000, 100,  200},
+        QuandrantBuilder{ForestQuadrant,  5000, 40,  200},
         QuandrantBuilder{VillageQuadrant, 150,  500,  100},
         QuandrantBuilder{CityQuadrant,    50,   2500, 20 },
     };

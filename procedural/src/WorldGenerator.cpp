@@ -224,6 +224,7 @@ void Builder::buildPath() {
             (item != _pathId)) {
             // Path intersects another path so terminate for the time being
             _proceduralGenDone = true;
+            return;
         }
         else {
 
@@ -398,7 +399,7 @@ void WorldGenerator::generateWorldTiles() {
 
             QuadrantFlag quadrant = static_cast<QuadrantFlag>(rand() % QuadrantFlag::QuadrantLength);
 
-            _builderQuadrants[quadrantIndexW][quadrantIndexL] = quadrantBuilder[quadrant];
+            _builderQuadrants[quadrantIndexW][quadrantIndexL] = quadrantBuilder[ForestQuadrant];//quadrantBuilder[quadrant];
         }
     }
 
@@ -422,6 +423,58 @@ void WorldGenerator::clutterPass() {
     Terminal* terminal = Terminal::instance();
 
     const std::vector<Entity*>* entityList = EngineManager::getEntityList();
+
+
+    //// Debug draw all tagged trees from tiledPathIds array
+    //for (int tileIndexW = 0; tileIndexW < numWidthTiles; tileIndexW++) {
+    //    for (int tileIndexL = 0; tileIndexL < numLengthTiles; tileIndexL++) {
+
+    //        for (int tileLocationW = 0; tileLocationW < tileWidth; tileLocationW += pathPixelDiameter) {
+    //            for (int tileLocationL = 0; tileLocationL < tileLength; tileLocationL += pathPixelDiameter) {
+
+    //                int locationW = (tileLocationW + (rand() % pathPixelDiameter)) % tileWidth;
+    //                int locationL = (tileLocationL + (rand() % pathPixelDiameter)) % tileLength;
+
+    //                // Random tree placement
+    //                std::string command     = "ADD " + _sceneName + " ";
+    //                int         itemIndexW  = ((tileIndexW * tileWidth) + locationW) / pathPixelRadius;
+    //                int         itemIndexL  = ((tileIndexL * tileLength) + locationL) / pathPixelRadius;
+    //                int         itemId      = WorldGenerator::getItemId(itemIndexW, itemIndexL);
+
+    //                if (itemId == Tree) {
+
+    //                    // Add trees around the path
+    //                    // The selection of trees we have are tree3, tree7 and tree8 for the time being
+    //                    int treeType = rand() % typesOfTrees;
+
+    //                    // Select tree type
+    //                    if (treeType == 0) {
+    //                        command += "TREE3 ";
+    //                    } else if (treeType == 1) {
+    //                        command += "TREE7 ";
+    //                    } else if (treeType == 2) {
+    //                        command += "TREE8 ";
+    //                    }
+
+    //                    // Scale model between 0.25 and 0.75
+    //                    float scale = ((static_cast<float>(rand()) / maxRandomValue) * 0.5f) + 0.25f;
+
+    //                    command += std::to_string(((tileIndexW * tileWidth) + locationW) -
+    //                                              ((halfWidthTiles * tileWidth) + (tileWidth / 2))) +
+    //                               " ";
+    //                    command += std::to_string(0) + " "; // Keep height 0 for now
+    //                    command += std::to_string(((tileIndexL * tileLength) + locationL) -
+    //                                              ((halfLengthTiles * tileLength) + (tileLength / 2))) +
+    //                               " ";
+    //                    command += std::to_string(scale) + " "; // w component for scaling
+    //                    terminal->processCommand(command);
+    //                }
+    //            }
+    //        }
+    //    }
+    //}
+    //// End debug draw trees
+
 
     for (int tileIndexW = 0; tileIndexW < numWidthTiles; tileIndexW++) {
         for (int tileIndexL = 0; tileIndexL < numLengthTiles; tileIndexL++) {

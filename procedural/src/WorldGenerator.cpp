@@ -2,7 +2,6 @@
 #include "Terminal.h"
 #include <iostream>
 
-
 bool Builder::_allPathsFinished    = false;
 int  Builder::_concurrentPaths     = 0;
 int  Builder::_prevConcurrentPaths = 0;
@@ -101,7 +100,6 @@ void Builder::_paintTiles(int         widthLocation,
                    tileLengthIndex,
                    name);
     }
-
     // Straddling tile to the top of current
     if (lengthLocation      >= (tileLength - pathPixelRadius) &&
         tileLengthIndex + 1 < numLengthTiles) {
@@ -112,7 +110,6 @@ void Builder::_paintTiles(int         widthLocation,
                    tileLengthIndex + 1,
                    name);
     }
-
     // Straddling tile to the bottom of current
     if (lengthLocation      <= pathPixelRadius &&
         tileLengthIndex - 1 >= 0) {
@@ -252,7 +249,7 @@ void Builder::buildPath() {
                     _tileLengthIndex,
                     _sceneName);
 
-            
+
         // Only tag main tile for path id.
         WorldGenerator::setItemId(tileWidthIndex, tileLengthIndex, _pathId);
 
@@ -297,6 +294,7 @@ void Builder::buildPath() {
             _proceduralGenDone = true;
         }
 
+        command = "ADD " + _sceneName + " ";
         // Chance of placing a tree near the path
         bool placingTree = ((rand() % quadrant.probabilityToPlaceTree) == 0) ? true : false;
         if (placingTree == true) {
@@ -350,6 +348,7 @@ int              WorldGenerator::_tiledPathIds[numWidthPathIds][numLengthPathIds
 QuandrantBuilder WorldGenerator::_builderQuadrants[numWidthQuadrants][numLengthQuadrants];
 bool             WorldGenerator::_fileSaved = false;
 Builder*         WorldGenerator::_seedPath  = nullptr;
+bool             WorldGenerator::_finishedClutterPass = false;
 
 WorldGenerator::WorldGenerator(std::string sceneName) : _sceneName(sceneName) {
 
@@ -412,6 +411,72 @@ void WorldGenerator::generateWorldTiles() {
     }
 }
 
+void WorldGenerator::clutterPass() {
+
+    // Utilize the terminal's ability to create and edit fbx files...
+    // I know this should be lifted to a generic wrapper that edits the
+    // fbx but for now I will inject string commands to the terminal interface.
+
+    Terminal* terminal = Terminal::instance();
+
+    const std::vector<Entity*>* entityList = EngineManager::getEntityList();
+
+    for (int tileIndexW = 0; tileIndexW < numWidthTiles; tileIndexW++) {
+        for (int tileIndexL = 0; tileIndexL < numLengthTiles; tileIndexL++) {
+
+            for (int tileLocationW = 0; tileLocationW < tileWidth; tileLocationW += pathPixelDiameter) {
+                for (int tileLocationL = 0; tileLocationL < tileLength; tileLocationL += pathPixelDiameter) {
+
+                    int randoOffsetW = 0;//rand() % pathPixelDiameter;
+                    int randoOffsetL = 0;//rand() % pathPixelDiameter;
+
+                    QuandrantBuilder quadrant = WorldGenerator::getQuadrant(tileIndexW,
+                                                                            tileLocationW + randoOffsetW,
+                                                                            tileIndexL,
+                                                                            tileLocationL + randoOffsetL);
+
+                    // Random tree placement
+                    std::string command = "ADD " + _sceneName + " ";
+                    bool placingTree    = ((rand() % (quadrant.probabilityToPlaceTree)) == 0) ? true : false;
+                    int  itemIndexW     = ((tileIndexW * tileWidth)  + tileLocationW + randoOffsetW) / pathPixelDiameter;
+                    int  itemIndexL     = ((tileIndexL * tileLength) + tileLocationL + randoOffsetL) / pathPixelDiameter;
+                    int  itemId         = WorldGenerator::getItemId(itemIndexW, itemIndexL);
+
+                    if ((placingTree == true) &&
+                        (itemId      == NoFlag)) {
+
+                        // Add trees around the path
+                        // The selection of trees we have are tree3, tree7 and tree8 for the time being
+                        int treeType = rand() % typesOfTrees;
+
+                        // Select tree type
+                        if (treeType == 0) {
+                            command += "TREE3 ";
+                        } else if (treeType == 1) {
+                            command += "TREE7 ";
+                        } else if (treeType == 2) {
+                            command += "TREE8 ";
+                        }
+
+                        // Scale model between 0.25 and 0.75
+                        float scale = ((static_cast<float>(rand()) / maxRandomValue) * 0.5f) + 0.25f;
+
+                        command += std::to_string(((tileIndexW * tileWidth)  + tileLocationW + randoOffsetW) - (halfWidthTiles  * tileWidth))  + " ";
+                        command += std::to_string(0)                                                                            + " "; // Keep height 0 for now
+                        command += std::to_string(((tileIndexL * tileLength) + tileLocationL + randoOffsetL) - (halfLengthTiles * tileLength)) + " ";
+                        command += std::to_string(scale)                                                                        + " "; // w component for scaling
+                        terminal->processCommand(command);
+
+                        // Flag grid location as having an item here
+                        WorldGenerator::setItemId(itemIndexW, itemIndexL, Tree);
+                    }
+                }
+            }
+        }
+    }
+    _finishedClutterPass = true;
+}
+
 void WorldGenerator::spawnPaths(std::string sceneName) {
 
     // seed path
@@ -421,22 +486,27 @@ void WorldGenerator::spawnPaths(std::string sceneName) {
         worldSeed = new WorldGenerator(sceneName);
         worldSeed->generateWorldTiles();
 
-        // Randomly start in one of the quadrants and then after fixing all bugs move to generating all paths in parallel
-        int quadrantWidth  = rand() % numWidthQuadrants;
-        int quadrantLength = rand() % numLengthQuadrants;
-        _seedPath          = new Builder(sceneName, Builder::getNewPathId());
+        _seedPath = new Builder(sceneName, Builder::getNewPathId());
     }
 
-    if ((Builder::isAllPathsFinished() == true) &&
-        (_fileSaved                    == false)) {
-        Terminal* terminal = Terminal::instance();
-        terminal->processCommand("SAVE " + sceneName);
-        _fileSaved = true;
-    }
+    if (Builder::isAllPathsFinished() == true) {
 
-    if (_fileSaved == false) {
-        Builder::initPathingData();
-        _seedPath->buildPath();
-        Builder::updatePathCount();
+        if (_finishedClutterPass == false) {
+            worldSeed->clutterPass();
+        }
+
+        if (_fileSaved == false) {
+            Terminal* terminal = Terminal::instance();
+            terminal->processCommand("SAVE " + sceneName);
+            _fileSaved = true;
+        }
+    }
+    else {
+
+        if (_fileSaved == false) {
+            Builder::initPathingData();
+            _seedPath->buildPath();
+            Builder::updatePathCount();
+        }
     }
 }

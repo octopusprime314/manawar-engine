@@ -29,9 +29,8 @@ constexpr int   tileWidth               = 200;
 constexpr int   tileLength              = 200;
 constexpr int   tileHalfWidth           = tileWidth  / 2;
 constexpr int   tileHalfLength          = tileLength / 2;
-constexpr int   widthOfWorld            = 5000;
-constexpr int   lengthOfWorld           = 5000;
-constexpr int   heightOfWorld           = 5000;
+constexpr int   widthOfWorld            = tileWidth  * 30;
+constexpr int   lengthOfWorld           = tileLength * 30;
 constexpr int   numWidthTiles           = widthOfWorld   / tileWidth;
 constexpr int   numLengthTiles          = lengthOfWorld  / tileLength;
 constexpr int   halfWidthTiles          = numWidthTiles  / 2;
@@ -85,6 +84,7 @@ protected:
     std::string                  _sceneName;
     int                          _pathId;
 
+    static bool                  _clutterPassFinished;
     static int                   _prevConcurrentPaths;
     static bool                  _allPathsFinished;
     static int                   _concurrentPaths;
@@ -105,11 +105,11 @@ public:
     // Debug aid to observe how the path creation is done
     void buildPath();
 
-    static bool isAllPathsFinished() { return _allPathsFinished; }
-    static void initPathingData()    { _concurrentPaths  = 0;
-                                       _allPathsFinished = true; }
-    static void updatePathCount()    { _prevConcurrentPaths = _concurrentPaths; }
-    static int  getNewPathId()       { return _pathIdAllocator++; };
+    static bool isAllPathsFinished()    { return _allPathsFinished; }
+    static void initPathingData()       { _concurrentPaths  = 0;
+                                          _allPathsFinished = true; }
+    static void updatePathCount()       { _prevConcurrentPaths = _concurrentPaths; }
+    static int  getNewPathId()          { return _pathIdAllocator++; };
 };
 
 
@@ -120,6 +120,7 @@ public:
     WorldGenerator(std::string sceneName);
     ~WorldGenerator();
     void generateWorldTiles();
+    void clutterPass();
 
     static void spawnPaths(std::string sceneName);
     static int  getEntityId(int tileWidthIndex,
@@ -150,9 +151,11 @@ public:
 
 private:
 
-    std::string                  _sceneName;
-    static bool                  _fileSaved;
-    static Builder*              _seedPath;
+    std::string     _sceneName;
+    static bool     _fileSaved;
+    static Builder* _seedPath;
+    static bool     _finishedClutterPass;
+
 
     // Identifies a tile within the grid's entity ID for access
     static int              _entityIDMap[numWidthTiles][numLengthTiles];
@@ -164,9 +167,9 @@ private:
     QuandrantBuilder quadrantBuilder[QuadrantLength] =
     {
         //               Quadrant type    House Tree  Path
-        QuandrantBuilder{ForestQuadrant,  5000, 5,    200},
-        QuandrantBuilder{VillageQuadrant, 150,  50,   100},
-        QuandrantBuilder{CityQuadrant,    50,   1000, 20 },
+        QuandrantBuilder{ForestQuadrant,  5000, 100,  200},
+        QuandrantBuilder{VillageQuadrant, 150,  500,  100},
+        QuandrantBuilder{CityQuadrant,    50,   2500, 20 },
     };
 
 };

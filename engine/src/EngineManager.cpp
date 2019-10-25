@@ -98,9 +98,9 @@ EngineManager::EngineManager(int*      argc,
     _viewManager->setProjection(IOEventDistributor::screenPixelWidth,
                                 IOEventDistributor::screenPixelHeight,
                                 0.1f,
-                                5000.0f);
+                                10000.0f);
 
-    _viewManager->setView(      Matrix::translation(0, 1200.0f, -2500.0f),
+    _viewManager->setView(      Matrix::translation(0, 2000.0f, -3500.0f),
                                 Matrix::rotationAroundX(-70.0f),
                                 Matrix());
 

@@ -157,7 +157,7 @@ void ViewEventDistributor::_updateKeyboard(int key, int x,
                                key == GLFW_KEY_E || key == GLFW_KEY_C)) {
 
             Vector4     trans;
-            const float velMagnitude = 500.0f;
+            const float velMagnitude = 2000.0f;
 
             if (key == GLFW_KEY_W) { // forward w
                 trans = Vector4(_inverseRotation * Vector4(0.0, 0.0, velMagnitude));

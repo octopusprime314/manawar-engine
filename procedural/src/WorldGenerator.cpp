@@ -55,6 +55,12 @@ void Builder::_paintTile(int         widthLocation,
 
     Terminal* terminal = Terminal::instance();
 
+    int itemIndexW = ((tileWidthIndex  * tileWidth)  + widthLocation)  / pathPixelRadius;
+    int itemIndexL = ((tileLengthIndex * tileLength) + lengthLocation) / pathPixelRadius;
+    
+    // Tag path id here.
+    WorldGenerator::setItemId(itemIndexW, itemIndexL, _pathId);
+
     int id = WorldGenerator::getEntityId(tileWidthIndex, tileLengthIndex);
 
     std::string command = "MOUSEPATHING 0 1 ";
@@ -73,10 +79,10 @@ void Builder::_paintTiles(int         widthLocation,
 
     // Paint current tile
     _paintTile(widthLocation,
-              lengthLocation,
-              tileWidthIndex,
-              tileLengthIndex,
-              name);
+               lengthLocation,
+               tileWidthIndex,
+               tileLengthIndex,
+               name);
 
     //Checks to see if neighboring tiles need to be colored as well
 
@@ -249,10 +255,6 @@ void Builder::buildPath() {
                     _tileLengthIndex,
                     _sceneName);
 
-
-        // Only tag main tile for path id.
-        WorldGenerator::setItemId(tileWidthIndex, tileLengthIndex, _pathId);
-
         _prevPathWidthLocation  = _pathWidthLocation;
         _prevPathLengthLocation = _pathLengthLocation;
         _prevTileWidthIndex     = _tileWidthIndex;
@@ -346,8 +348,8 @@ void Builder::buildPath() {
 int              WorldGenerator::_entityIDMap[numWidthTiles][numLengthTiles];
 int              WorldGenerator::_tiledPathIds[numWidthPathIds][numLengthPathIds];
 QuandrantBuilder WorldGenerator::_builderQuadrants[numWidthQuadrants][numLengthQuadrants];
-bool             WorldGenerator::_fileSaved = false;
-Builder*         WorldGenerator::_seedPath  = nullptr;
+bool             WorldGenerator::_fileSaved           = false;
+Builder*         WorldGenerator::_seedPath            = nullptr;
 bool             WorldGenerator::_finishedClutterPass = false;
 
 WorldGenerator::WorldGenerator(std::string sceneName) : _sceneName(sceneName) {
@@ -370,8 +372,8 @@ void WorldGenerator::generateWorldTiles() {
 
     const std::vector<Entity*>* entityList = nullptr;
 
-    for (int tileIndexW = -halfWidthTiles; tileIndexW <= halfWidthTiles; tileIndexW++) {
-        for (int tileIndexL = -halfLengthTiles; tileIndexL <= halfLengthTiles; tileIndexL++) {
+    for (int tileIndexW = -halfWidthTiles; tileIndexW < halfWidthTiles; tileIndexW++) {
+        for (int tileIndexL = -halfLengthTiles; tileIndexL < halfLengthTiles; tileIndexL++) {
 
             // First add a tile
             std::string command = "ADDTILE " + _sceneName + " TERRAINTILE ";
@@ -427,19 +429,19 @@ void WorldGenerator::clutterPass() {
             for (int tileLocationW = 0; tileLocationW < tileWidth; tileLocationW += pathPixelDiameter) {
                 for (int tileLocationL = 0; tileLocationL < tileLength; tileLocationL += pathPixelDiameter) {
 
-                    int randoOffsetW = 0;//rand() % pathPixelDiameter;
-                    int randoOffsetL = 0;//rand() % pathPixelDiameter;
+                    int locationW = (tileLocationW + (rand() % pathPixelDiameter)) % tileWidth;
+                    int locationL = (tileLocationL + (rand() % pathPixelDiameter)) % tileLength;
 
                     QuandrantBuilder quadrant = WorldGenerator::getQuadrant(tileIndexW,
-                                                                            tileLocationW + randoOffsetW,
+                                                                            locationW,
                                                                             tileIndexL,
-                                                                            tileLocationL + randoOffsetL);
+                                                                            locationL);
 
                     // Random tree placement
                     std::string command = "ADD " + _sceneName + " ";
                     bool placingTree    = ((rand() % (quadrant.probabilityToPlaceTree)) == 0) ? true : false;
-                    int  itemIndexW     = ((tileIndexW * tileWidth)  + tileLocationW + randoOffsetW) / pathPixelDiameter;
-                    int  itemIndexL     = ((tileIndexL * tileLength) + tileLocationL + randoOffsetL) / pathPixelDiameter;
+                    int  itemIndexW     = ((tileIndexW * tileWidth)  + locationW) / pathPixelRadius;
+                    int  itemIndexL     = ((tileIndexL * tileLength) + locationL) / pathPixelRadius;
                     int  itemId         = WorldGenerator::getItemId(itemIndexW, itemIndexL);
 
                     if ((placingTree == true) &&
@@ -461,10 +463,10 @@ void WorldGenerator::clutterPass() {
                         // Scale model between 0.25 and 0.75
                         float scale = ((static_cast<float>(rand()) / maxRandomValue) * 0.5f) + 0.25f;
 
-                        command += std::to_string(((tileIndexW * tileWidth)  + tileLocationW + randoOffsetW) - (halfWidthTiles  * tileWidth))  + " ";
-                        command += std::to_string(0)                                                                            + " "; // Keep height 0 for now
-                        command += std::to_string(((tileIndexL * tileLength) + tileLocationL + randoOffsetL) - (halfLengthTiles * tileLength)) + " ";
-                        command += std::to_string(scale)                                                                        + " "; // w component for scaling
+                        command += std::to_string(((tileIndexW * tileWidth)  + locationW) - ((halfWidthTiles  * tileWidth)  + (tileWidth  / 2))) + " ";
+                        command += std::to_string(0)                                                                                             + " "; // Keep height 0 for now
+                        command += std::to_string(((tileIndexL * tileLength) + locationL) - ((halfLengthTiles * tileLength) + (tileLength / 2))) + " ";
+                        command += std::to_string(scale)                                                                                         + " "; // w component for scaling
                         terminal->processCommand(command);
 
                         // Flag grid location as having an item here

@@ -33,8 +33,8 @@ constexpr int   widthOfWorld            = tileWidth  * 30;
 constexpr int   lengthOfWorld           = tileLength * 30;
 constexpr int   numWidthTiles           = widthOfWorld   / tileWidth;
 constexpr int   numLengthTiles          = lengthOfWorld  / tileLength;
-constexpr int   halfWidthTiles          = numWidthTiles  / 2;
-constexpr int   halfLengthTiles         = numLengthTiles / 2;
+constexpr int   minWidthValue           = -(widthOfWorld  / 2) + tileHalfWidth;
+constexpr int   minLengthValue          = -(lengthOfWorld / 2) + tileHalfLength;
 constexpr float maxRandomValue          = static_cast<float>(RAND_MAX);
 constexpr int   pathPixelRadius         = 10;
 constexpr int   pathPixelDiameter       = pathPixelRadius * 2;
@@ -167,9 +167,9 @@ private:
     QuandrantBuilder quadrantBuilder[QuadrantLength] =
     {
         //               Quadrant type    House Tree  Path
-        QuandrantBuilder{ForestQuadrant,  5000, 40,  200},
-        QuandrantBuilder{VillageQuadrant, 150,  500,  100},
-        QuandrantBuilder{CityQuadrant,    50,   2500, 20 },
+        QuandrantBuilder{ForestQuadrant,  5000, 200,  50},
+        QuandrantBuilder{VillageQuadrant, 150,  1000, 50},
+        QuandrantBuilder{CityQuadrant,    50,   5000, 20},
     };
 
 };

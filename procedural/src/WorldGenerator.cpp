@@ -57,9 +57,13 @@ void Builder::_paintTile(int         widthLocation,
 
     int itemIndexW = ((tileWidthIndex  * tileWidth)  + widthLocation)  / pathPixelRadius;
     int itemIndexL = ((tileLengthIndex * tileLength) + lengthLocation) / pathPixelRadius;
-    
+
+    // Unfortunately the resolution of items is pathPixelRadius so we need to upcast as well for now
     // Tag path id here.
-    WorldGenerator::setItemId(itemIndexW, itemIndexL, _pathId);
+    WorldGenerator::setItemId(itemIndexW,     itemIndexL    , _pathId);
+    WorldGenerator::setItemId(itemIndexW + 1, itemIndexL    , _pathId);
+    WorldGenerator::setItemId(itemIndexW,     itemIndexL + 1, _pathId);
+    WorldGenerator::setItemId(itemIndexW + 1, itemIndexL + 1, _pathId);
 
     int id = WorldGenerator::getEntityId(tileWidthIndex, tileLengthIndex);
 
@@ -170,12 +174,12 @@ void Builder::buildPath() {
         
             // Change direction of forked path to be perpendicular to current path direction.
             _pathGenerators.push_back(new Builder(_sceneName,
-                                                    _pathIdAllocator,
-                                                    _pathWidthLocation,
-                                                    _pathLengthLocation,
-                                                    _currRotationInDegrees + ((rand() % 2 == 0) ? 90.0f : -90.0f),
-                                                    _tileWidthIndex,
-                                                    _tileLengthIndex));
+                                                  _pathIdAllocator,
+                                                  _pathWidthLocation,
+                                                  _pathLengthLocation,
+                                                  _currRotationInDegrees + ((rand() % 2 == 0) ? 90.0f : -90.0f),
+                                                  _tileWidthIndex,
+                                                  _tileLengthIndex));
             // Increment path id
             _pathIdAllocator++;
         }
@@ -224,7 +228,6 @@ void Builder::buildPath() {
             (item != _pathId)) {
             // Path intersects another path so terminate for the time being
             _proceduralGenDone = true;
-            return;
         }
         else {
 
@@ -261,8 +264,8 @@ void Builder::buildPath() {
         _prevTileWidthIndex     = _tileWidthIndex;
         _prevTileLengthIndex    = _tileLengthIndex;
 
-        float tileWidthMin  = ((_tileWidthIndex  - halfWidthTiles)  * tileWidth)  - tileHalfWidth;
-        float tileLengthMin = ((_tileLengthIndex - halfLengthTiles) * tileLength) - tileHalfLength;
+        float tileWidthMin  = (_tileWidthIndex  * tileWidth)  + minWidthValue  - tileHalfWidth;
+        float tileLengthMin = (_tileLengthIndex * tileLength) + minLengthValue - tileHalfLength;
         std::string command = "ADD " + _sceneName + " ";
 
         // Chance of placing a tree near the path
@@ -373,23 +376,23 @@ void WorldGenerator::generateWorldTiles() {
 
     const std::vector<Entity*>* entityList = nullptr;
 
-    for (int tileIndexW = -halfWidthTiles; tileIndexW < halfWidthTiles; tileIndexW++) {
-        for (int tileIndexL = -halfLengthTiles; tileIndexL < halfLengthTiles; tileIndexL++) {
+    for (int tileIndexW = 0; tileIndexW < numWidthTiles; tileIndexW++) {
+        for (int tileIndexL = 0; tileIndexL < numLengthTiles; tileIndexL++) {
 
             // First add a tile
             std::string command = "ADDTILE " + _sceneName + " TERRAINTILE ";
-            command            += std::to_string(tileIndexW * tileWidth)  + " ";
-            command            += std::to_string(0)                       + " "; // Keep height 0 for now
-            command            += std::to_string(tileIndexL * tileLength) + " ";
-            command            += std::to_string(1)                       + " "; // w component for scaling
+            command            += std::to_string((tileIndexW * tileWidth)  + minWidthValue)  + " ";
+            command            += std::to_string(0)                                          + " "; // Keep height 0 for now
+            command            += std::to_string((tileIndexL * tileLength) + minLengthValue) + " ";
+            command            += std::to_string(1)                                          + " "; // w component for scaling
             command            += "SNOW.JPG DIRT.JPG ROCKS.JPG GRASS.JPG";
             terminal->processCommand(command);
 
             // Get latest entity list based on the previous addition of a tile which is guaranteed to be at the end :)
-            entityList   = EngineManager::getEntityList();
+            entityList = EngineManager::getEntityList();
             // Stores an entityID for every tile
             unsigned int entityID = entityList->back()->getID();
-            _entityIDMap[tileIndexW + halfWidthTiles][tileIndexL + halfLengthTiles] = entityID;
+            _entityIDMap[tileIndexW][tileIndexL] = entityID;
         }
     }
 
@@ -399,7 +402,7 @@ void WorldGenerator::generateWorldTiles() {
 
             QuadrantFlag quadrant = static_cast<QuadrantFlag>(rand() % QuadrantFlag::QuadrantLength);
 
-            _builderQuadrants[quadrantIndexW][quadrantIndexL] = quadrantBuilder[ForestQuadrant];//quadrantBuilder[quadrant];
+            _builderQuadrants[quadrantIndexW][quadrantIndexL] = quadrantBuilder[quadrant];
         }
     }
 
@@ -424,66 +427,14 @@ void WorldGenerator::clutterPass() {
 
     const std::vector<Entity*>* entityList = EngineManager::getEntityList();
 
-
-    //// Debug draw all tagged trees from tiledPathIds array
-    //for (int tileIndexW = 0; tileIndexW < numWidthTiles; tileIndexW++) {
-    //    for (int tileIndexL = 0; tileIndexL < numLengthTiles; tileIndexL++) {
-
-    //        for (int tileLocationW = 0; tileLocationW < tileWidth; tileLocationW += pathPixelDiameter) {
-    //            for (int tileLocationL = 0; tileLocationL < tileLength; tileLocationL += pathPixelDiameter) {
-
-    //                int locationW = (tileLocationW + (rand() % pathPixelDiameter)) % tileWidth;
-    //                int locationL = (tileLocationL + (rand() % pathPixelDiameter)) % tileLength;
-
-    //                // Random tree placement
-    //                std::string command     = "ADD " + _sceneName + " ";
-    //                int         itemIndexW  = ((tileIndexW * tileWidth) + locationW) / pathPixelRadius;
-    //                int         itemIndexL  = ((tileIndexL * tileLength) + locationL) / pathPixelRadius;
-    //                int         itemId      = WorldGenerator::getItemId(itemIndexW, itemIndexL);
-
-    //                if (itemId == Tree) {
-
-    //                    // Add trees around the path
-    //                    // The selection of trees we have are tree3, tree7 and tree8 for the time being
-    //                    int treeType = rand() % typesOfTrees;
-
-    //                    // Select tree type
-    //                    if (treeType == 0) {
-    //                        command += "TREE3 ";
-    //                    } else if (treeType == 1) {
-    //                        command += "TREE7 ";
-    //                    } else if (treeType == 2) {
-    //                        command += "TREE8 ";
-    //                    }
-
-    //                    // Scale model between 0.25 and 0.75
-    //                    float scale = ((static_cast<float>(rand()) / maxRandomValue) * 0.5f) + 0.25f;
-
-    //                    command += std::to_string(((tileIndexW * tileWidth) + locationW) -
-    //                                              ((halfWidthTiles * tileWidth) + (tileWidth / 2))) +
-    //                               " ";
-    //                    command += std::to_string(0) + " "; // Keep height 0 for now
-    //                    command += std::to_string(((tileIndexL * tileLength) + locationL) -
-    //                                              ((halfLengthTiles * tileLength) + (tileLength / 2))) +
-    //                               " ";
-    //                    command += std::to_string(scale) + " "; // w component for scaling
-    //                    terminal->processCommand(command);
-    //                }
-    //            }
-    //        }
-    //    }
-    //}
-    //// End debug draw trees
-
-
     for (int tileIndexW = 0; tileIndexW < numWidthTiles; tileIndexW++) {
         for (int tileIndexL = 0; tileIndexL < numLengthTiles; tileIndexL++) {
 
-            for (int tileLocationW = 0; tileLocationW < tileWidth; tileLocationW += pathPixelDiameter) {
-                for (int tileLocationL = 0; tileLocationL < tileLength; tileLocationL += pathPixelDiameter) {
+            for (int tileLocationW = 0; tileLocationW < tileWidth; tileLocationW += pathPixelRadius) {
+                for (int tileLocationL = 0; tileLocationL < tileLength; tileLocationL += pathPixelRadius) {
 
-                    int locationW = (tileLocationW + (rand() % pathPixelDiameter)) % tileWidth;
-                    int locationL = (tileLocationL + (rand() % pathPixelDiameter)) % tileLength;
+                    int locationW = (tileLocationW /*+ (rand() % pathPixelRadius)*/) % tileWidth;
+                    int locationL = (tileLocationL /*+ (rand() % pathPixelRadius)*/) % tileLength;
 
                     QuandrantBuilder quadrant = WorldGenerator::getQuadrant(tileIndexW,
                                                                             locationW,
@@ -500,8 +451,7 @@ void WorldGenerator::clutterPass() {
                     if ((placingTree == true) &&
                         (itemId      == NoFlag)) {
 
-                        // Add trees around the path
-                        // The selection of trees we have are tree3, tree7 and tree8 for the time being
+                        // The selection of trees
                         int treeType = rand() % typesOfTrees;
 
                         // Select tree type
@@ -516,10 +466,10 @@ void WorldGenerator::clutterPass() {
                         // Scale model between 0.25 and 0.75
                         float scale = ((static_cast<float>(rand()) / maxRandomValue) * 0.5f) + 0.25f;
 
-                        command += std::to_string(((tileIndexW * tileWidth)  + locationW) - ((halfWidthTiles  * tileWidth)  + (tileWidth  / 2))) + " ";
-                        command += std::to_string(0)                                                                                             + " "; // Keep height 0 for now
-                        command += std::to_string(((tileIndexL * tileLength) + locationL) - ((halfLengthTiles * tileLength) + (tileLength / 2))) + " ";
-                        command += std::to_string(scale)                                                                                         + " "; // w component for scaling
+                        command += std::to_string(((tileIndexW * tileWidth)  + locationW) + minWidthValue  - tileHalfWidth)  + " ";
+                        command += std::to_string(0)                                                                         + " "; // Keep height 0 for now
+                        command += std::to_string(((tileIndexL * tileLength) + locationL) + minLengthValue - tileHalfLength) + " ";
+                        command += std::to_string(scale)                                                                     + " "; // w component for scaling
                         terminal->processCommand(command);
 
                         // Flag grid location as having an item here

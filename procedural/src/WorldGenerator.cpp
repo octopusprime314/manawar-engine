@@ -11,6 +11,7 @@ int Builder::_pathIdAllocator      = ItemFlag::TileFlagLength;
 
 Builder::Builder(std::string sceneName,
                  int         pathId,
+                 int         parentPathId,
                  int         widthLocation,
                  int         lengthLocation,
                  int         pathDirection,
@@ -28,7 +29,9 @@ Builder::Builder(std::string sceneName,
     _prevPathWidthLocation (widthLocation),
     _prevPathLengthLocation(lengthLocation),
     _sceneName             (sceneName),
-    _pathId                (pathId) {
+    _pathId                (pathId),
+    _parentPathId          (parentPathId),
+    _pathTileCount         (0) {
 
     // Randomize initial path direction
     if (_currRotationInDegrees == -100000000) {
@@ -37,7 +40,7 @@ Builder::Builder(std::string sceneName,
         // Branch an equal and opposite path from seed
         // so use the same seed id which is the previous index
         _pathGenerators.push_back(new Builder(_sceneName,
-                                              _pathIdAllocator - 1,
+                                              _pathId,
                                               _pathWidthLocation,
                                               _pathLengthLocation,
                                               _currRotationInDegrees + 180.0f,
@@ -60,17 +63,23 @@ void Builder::_paintTile(int         widthLocation,
 
     // Unfortunately the resolution of items is pathPixelRadius so we need to upcast as well for now
     // Tag path id here.
-    WorldGenerator::setItemId(itemIndexW,     itemIndexL    , _pathId);
-    WorldGenerator::setItemId(itemIndexW + 1, itemIndexL    , _pathId);
+    WorldGenerator::setItemId(itemIndexW,     itemIndexL,     _pathId);
+    WorldGenerator::setItemId(itemIndexW + 1, itemIndexL,     _pathId);
+    WorldGenerator::setItemId(itemIndexW - 1, itemIndexL,     _pathId);
     WorldGenerator::setItemId(itemIndexW,     itemIndexL + 1, _pathId);
+    WorldGenerator::setItemId(itemIndexW,     itemIndexL - 1, _pathId);
+
+    WorldGenerator::setItemId(itemIndexW - 1, itemIndexL - 1, _pathId);
+    WorldGenerator::setItemId(itemIndexW - 1, itemIndexL + 1, _pathId);
+    WorldGenerator::setItemId(itemIndexW + 1, itemIndexL - 1, _pathId);
     WorldGenerator::setItemId(itemIndexW + 1, itemIndexL + 1, _pathId);
 
     int id = WorldGenerator::getEntityId(tileWidthIndex, tileLengthIndex);
 
     std::string command = "MOUSEPATHING 0 1 ";
-    command += std::to_string(widthLocation)  + " ";
+    command += std::to_string(widthLocation) + " ";
     command += std::to_string(lengthLocation) + " ";
-    command += std::to_string(id)             + " ";
+    command += std::to_string(id) + " ";
     command += name;
     terminal->processCommand(command);
 }
@@ -169,21 +178,6 @@ void Builder::buildPath() {
                                         _tileLengthIndex,
                                         _pathLengthLocation);
 
-        // Randomly generate a fork in the current path so pass in the current path location
-        if (rand() % quadrant.probabilityToForkPath == 0) {
-        
-            // Change direction of forked path to be perpendicular to current path direction.
-            _pathGenerators.push_back(new Builder(_sceneName,
-                                                  _pathIdAllocator,
-                                                  _pathWidthLocation,
-                                                  _pathLengthLocation,
-                                                  _currRotationInDegrees + ((rand() % 2 == 0) ? 90.0f : -90.0f),
-                                                  _tileWidthIndex,
-                                                  _tileLengthIndex));
-            // Increment path id
-            _pathIdAllocator++;
-        }
-
         // Find the next path location
         float proposedPathWidthLocation  = _pathWidthLocation;
         float proposedPathLengthLocation = _pathLengthLocation;
@@ -224,8 +218,9 @@ void Builder::buildPath() {
         int tileLengthIndex     = ((_tileLengthIndex     * tileLength) + _pathLengthLocation)     / pathPixelRadius;
         int item                = WorldGenerator::getItemId(tileWidthIndex, tileLengthIndex);
 
-        if ((item != 0) &&
-            (item != _pathId)) {
+        if ((item != 0)       &&
+            (item != _pathId) &&
+            (item != _parentPathId)) {
             // Path intersects another path so terminate for the time being
             _proceduralGenDone = true;
         }
@@ -251,6 +246,25 @@ void Builder::buildPath() {
                 // FINISHED DEBUG PATH CODE
             }
         }
+
+        // Randomly generate a fork in the current path so pass in the current path location
+        if ((rand() % quadrant.probabilityToForkPath == 0) && 
+            (_pathTileCount                          >= minPathGenToCreatePath)) {
+        
+            // Change direction of forked path to be perpendicular to current path direction.
+            _pathGenerators.push_back(new Builder(_sceneName,
+                                                  _pathIdAllocator,
+                                                  _pathId,
+                                                  _pathWidthLocation,
+                                                  _pathLengthLocation,
+                                                  _currRotationInDegrees + ((rand() % 2 == 0) ? 90.0f : -90.0f),
+                                                  _tileWidthIndex,
+                                                  _tileLengthIndex));
+            // Increment path id
+            _pathIdAllocator++;
+        }
+
+        _pathTileCount++;
 
         // Draw the current tile
         _paintTiles(_pathWidthLocation,
@@ -351,6 +365,8 @@ void Builder::buildPath() {
 
 int              WorldGenerator::_entityIDMap[numWidthTiles][numLengthTiles];
 int              WorldGenerator::_tiledPathIds[numWidthPathIds][numLengthPathIds];
+bool             WorldGenerator::_dirtiedTiles[numWidthPathIds][numLengthPathIds];
+
 QuandrantBuilder WorldGenerator::_builderQuadrants[numWidthQuadrants][numLengthQuadrants];
 bool             WorldGenerator::_fileSaved           = false;
 Builder*         WorldGenerator::_seedPath            = nullptr;
@@ -402,7 +418,7 @@ void WorldGenerator::generateWorldTiles() {
 
             QuadrantFlag quadrant = static_cast<QuadrantFlag>(rand() % QuadrantFlag::QuadrantLength);
 
-            _builderQuadrants[quadrantIndexW][quadrantIndexL] = quadrantBuilder[quadrant];
+            _builderQuadrants[quadrantIndexW][quadrantIndexL] = quadrantBuilder[ForestQuadrant];//quadrantBuilder[quadrant];
         }
     }
 

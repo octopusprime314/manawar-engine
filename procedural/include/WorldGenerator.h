@@ -46,6 +46,7 @@ constexpr int   lengthOfBuilderQuadrant = lengthOfWorld / 2;
 constexpr int   numWidthQuadrants       = widthOfWorld  / widthOfBuilderQuadrant;
 constexpr int   numLengthQuadrants      = lengthOfWorld / lengthOfBuilderQuadrant;
 constexpr int   typesOfTrees            = 3;
+constexpr int   minPathGenToCreatePath  = 5;
 
 // Radial pathing data
 // 360 degrees of rotation for the next path direction
@@ -81,6 +82,8 @@ protected:
     int                          _tileLengthIndex;
     int                          _tileWidthIndex;
     std::vector<Builder*>        _pathGenerators;
+    int                          _pathTileCount;
+    int                          _parentPathId;
     std::string                  _sceneName;
     int                          _pathId;
 
@@ -94,6 +97,7 @@ public:
 
     Builder(std::string sceneName,
             int         pathId,
+            int         parentPathId    = TileFlagLength,
             int         widthLocation   = tileHalfWidth,
             int         lengthLocation  = tileHalfLength,
             int         pathDirection   = -100000000,          // magic init number for rotation
@@ -133,11 +137,19 @@ public:
 
         return _tiledPathIds[tileWidthIndex][tileLengthIndex];
     }
-    static void setItemId(int tileWidthIndex,
+    static bool setItemId(int tileWidthIndex,
                           int tileLengthIndex,
                           int item) {
 
-        _tiledPathIds[tileWidthIndex][tileLengthIndex] = item;
+        if ((tileWidthIndex                                  < numWidthPathIds) &&
+            (tileLengthIndex                                 < numWidthPathIds) &&
+            (_dirtiedTiles[tileWidthIndex][tileLengthIndex] == false)) {
+
+            _dirtiedTiles[tileWidthIndex][tileLengthIndex] = true;
+            _tiledPathIds[tileWidthIndex][tileLengthIndex] = item;
+            return true;
+        }
+        return false;
     }
     static QuandrantBuilder getQuadrant(int tileWidthIndex,
                                         int pathWidthLocation,
@@ -161,13 +173,15 @@ private:
     static int              _entityIDMap[numWidthTiles][numLengthTiles];
     // Flags used to identify which path id is placed to detect intersections of other paths
     static int              _tiledPathIds[numWidthPathIds][numLengthPathIds];
+    // Keeps track of which tiles have already been written
+    static bool             _dirtiedTiles[numWidthPathIds][numLengthPathIds];
     // Quadrants within the world to indicate different types of procedural generation
     static QuandrantBuilder _builderQuadrants[numWidthQuadrants][numLengthQuadrants];
 
     QuandrantBuilder quadrantBuilder[QuadrantLength] =
     {
         //               Quadrant type    House Tree  Path
-        QuandrantBuilder{ForestQuadrant,  5000, 200,  50},
+        QuandrantBuilder{ForestQuadrant,  5000, 200,  100},
         QuandrantBuilder{VillageQuadrant, 150,  1000, 50},
         QuandrantBuilder{CityQuadrant,    50,   5000, 20},
     };

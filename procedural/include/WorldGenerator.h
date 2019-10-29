@@ -141,7 +141,9 @@ public:
                           int tileLengthIndex,
                           int item) {
 
-        if ((tileWidthIndex                                  < numWidthPathIds) &&
+        if ((tileWidthIndex                                  >= 0)              &&
+            (tileLengthIndex                                 >= 0)              &&
+            (tileWidthIndex                                  < numWidthPathIds) &&
             (tileLengthIndex                                 < numWidthPathIds) &&
             (_dirtiedTiles[tileWidthIndex][tileLengthIndex] == false)) {
 

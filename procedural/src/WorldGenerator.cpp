@@ -40,6 +40,7 @@ Builder::Builder(std::string sceneName,
         // Branch an equal and opposite path from seed
         // so use the same seed id which is the previous index
         _pathGenerators.push_back(new Builder(_sceneName,
+                                              _parentPathId,
                                               _pathId,
                                               _pathWidthLocation,
                                               _pathLengthLocation,
@@ -178,39 +179,6 @@ void Builder::buildPath() {
                                         _tileLengthIndex,
                                         _pathLengthLocation);
 
-        // Find the next path location
-        float proposedPathWidthLocation  = _pathWidthLocation;
-        float proposedPathLengthLocation = _pathLengthLocation;
-
-        // 0 degrees is North, 90 is East, 180 is South, 270 is West
-        _currRotationInDegrees     += ((rand() % 3) - 1) * rotationPathOffsetInDegrees;
-        proposedPathLengthLocation += pathPixelRadius * cos(_currRotationInDegrees * degToRad);
-        proposedPathWidthLocation  += pathPixelRadius * sin(_currRotationInDegrees * degToRad);
-
-        _pathWidthLocation  = proposedPathWidthLocation;
-        _pathLengthLocation = proposedPathLengthLocation;
-
-        if (_pathWidthLocation <= 0) {
-            _tileWidthIndex--;
-            // Location when jumping into another tile
-            _pathWidthLocation += tileWidth;
-        }
-        else if (_pathWidthLocation >= tileWidth) {
-            _tileWidthIndex++;
-            // Location when jumping into another tile
-            _pathWidthLocation = _pathWidthLocation % tileWidth;
-        }
-        if (_pathLengthLocation <= 0) {
-            _tileLengthIndex--;
-            // Location when jumping into another tile
-            _pathLengthLocation += tileLength;
-        }
-        else if (_pathLengthLocation >= tileLength) {
-            _tileLengthIndex++;
-            // Location when jumping into another tile
-            _pathLengthLocation = _pathLengthLocation % tileLength;
-        }
-
         // Tag path id for handling item placing.
         int prevTileWidthIndex  = ((_prevTileWidthIndex  * tileWidth)  + _prevPathWidthLocation)  / pathPixelRadius;
         int prevTileLengthIndex = ((_prevTileLengthIndex * tileLength) + _prevPathLengthLocation) / pathPixelRadius;
@@ -248,20 +216,19 @@ void Builder::buildPath() {
         }
 
         // Randomly generate a fork in the current path so pass in the current path location
-        if ((rand() % quadrant.probabilityToForkPath == 0) && 
+        // Only if the minimum path size has been reached.
+        if ((rand() % quadrant.probabilityToForkPath == 0)                      &&
             (_pathTileCount                          >= minPathGenToCreatePath)) {
         
             // Change direction of forked path to be perpendicular to current path direction.
             _pathGenerators.push_back(new Builder(_sceneName,
-                                                  _pathIdAllocator,
+                                                  Builder::getNewPathId(),
                                                   _pathId,
                                                   _pathWidthLocation,
                                                   _pathLengthLocation,
                                                   _currRotationInDegrees + ((rand() % 2 == 0) ? 90.0f : -90.0f),
                                                   _tileWidthIndex,
                                                   _tileLengthIndex));
-            // Increment path id
-            _pathIdAllocator++;
         }
 
         _pathTileCount++;
@@ -287,8 +254,10 @@ void Builder::buildPath() {
 
         // Make sure that a house does not terminate the procedural generation.
         // Always ensure that if placing a house, there is another path generator alive.
+        // Also do not place houses on the seed paths because it will stunt procedural generation.
         if ((placingHouse         == true) &&
-            (_prevConcurrentPaths  >  1)) {
+            (_prevConcurrentPaths  >  1)   &&
+            (_parentPathId        != TileFlagLength)) {
 
             // Scale house model between 5 and 10
             float scale = static_cast<float>(rand() % 5) + 5.0f;
@@ -356,6 +325,39 @@ void Builder::buildPath() {
             WorldGenerator::setItemId(((_tileWidthIndex  * tileWidth)  + _pathWidthLocation  + treeLocationOffsetWidth)  / pathPixelRadius,
                                       ((_tileLengthIndex * tileLength) + _pathLengthLocation + treeLocationOffsetLength) / pathPixelRadius, Tree);
 
+        }
+
+        // Find the next path location
+        float proposedPathWidthLocation  = _pathWidthLocation;
+        float proposedPathLengthLocation = _pathLengthLocation;
+
+        // 0 degrees is North, 90 is East, 180 is South, 270 is West
+        _currRotationInDegrees     += ((rand() % 3) - 1) * rotationPathOffsetInDegrees;
+        proposedPathLengthLocation += pathPixelRadius * cos(_currRotationInDegrees * degToRad);
+        proposedPathWidthLocation  += pathPixelRadius * sin(_currRotationInDegrees * degToRad);
+
+        _pathWidthLocation  = proposedPathWidthLocation;
+        _pathLengthLocation = proposedPathLengthLocation;
+
+        if (_pathWidthLocation <= 0) {
+            _tileWidthIndex--;
+            // Location when jumping into another tile
+            _pathWidthLocation += tileWidth;
+        }
+        else if (_pathWidthLocation >= tileWidth) {
+            _tileWidthIndex++;
+            // Location when jumping into another tile
+            _pathWidthLocation = _pathWidthLocation % tileWidth;
+        }
+        if (_pathLengthLocation <= 0) {
+            _tileLengthIndex--;
+            // Location when jumping into another tile
+            _pathLengthLocation += tileLength;
+        }
+        else if (_pathLengthLocation >= tileLength) {
+            _tileLengthIndex++;
+            // Location when jumping into another tile
+            _pathLengthLocation = _pathLengthLocation % tileLength;
         }
     }
     else {

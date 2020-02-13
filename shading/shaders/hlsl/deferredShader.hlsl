@@ -149,74 +149,74 @@ PixelOut PS(float4 posH : SV_POSITION,
 
     float3 rayDir;
     float3 origin;
-    uint   rayFlags = RAY_FLAG_NONE;
-
-#if USE_FIRST_HIT_END_SEARCH_SHADOWS
-    // Shoot the ray in the reverse direction of the directional light
-    rayDir = lightInCameraView;
-    // Shoot the ray from the origin of the visible pixel position from the depth buffer
-    origin = mul(float4(position.xyz, 1.0), inverseView) + (rayDir * bias);
-    // Only need to figure out if one triangle blocks the directional light source
-    rayFlags |= RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH;
-#else
-    // Why does the y component of the shadow texture mapping need to be 1.0 - yCoord?
-    GenerateCameraRay(float2(shadowTextureCoordinates.x, 1.0 - shadowTextureCoordinates.y),
-                      origin,
-                      rayDir);
-#endif
 
 #if (USE_SHADER_MODEL_6_5 == 1)
 
-    // Trace the ray.
-    // Set the ray's extents.
-    RayDesc ray;
-    ray.Origin    = origin;
-    ray.Direction = rayDir;
-    ray.TMin      = 0.001;
-    ray.TMax      = MAX_DEPTH;
+    if (!((normal.x == 0.0) &&
+          (normal.y == 0.0) &&
+          (normal.z == 0.0))) {
 
-    RayQuery<RAY_FLAG_NONE> rayQuery;
-    rayQuery.TraceRayInline(rtAS,
-                            rayFlags,
-                            ~0,
-                            ray);
+        uint rayFlags = RAY_FLAG_NONE;
+#if USE_FIRST_HIT_END_SEARCH_SHADOWS
+        // Shoot the ray in the reverse direction of the directional light
+        rayDir = lightInCameraView;
+        // Shoot the ray from the origin of the visible pixel position from the depth buffer
+        origin = mul(float4(position.xyz, 1.0), inverseView) + (rayDir * bias);
+        // Only need to figure out if one triangle blocks the directional light source
+        rayFlags |= RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH;
+#else
+        // Why does the y component of the shadow texture mapping need to be 1.0 - yCoord?
+        GenerateCameraRay(float2(shadowTextureCoordinates.x, 1.0 - shadowTextureCoordinates.y),
+                          origin,
+                          rayDir);
+#endif
 
-    //Transparency testing
-    while (rayQuery.Proceed() == true)
-    {
-        if (rayQuery.CandidateType() == CANDIDATE_NON_OPAQUE_TRIANGLE) {
+        // Trace the ray.
+        // Set the ray's extents.
+        RayDesc ray;
+        ray.Origin    = origin;
+        ray.Direction = rayDir;
+        ray.TMin      = 0.001;
+        ray.TMax      = MAX_DEPTH;
+
+        RayQuery<RAY_FLAG_NONE> rayQuery;
+        rayQuery.TraceRayInline(rtAS,
+                                rayFlags,
+                                ~0,
+                                ray);
+
+        //Transparency testing
+        while (rayQuery.Proceed() == true)
+        {
+            if (rayQuery.CandidateType() == CANDIDATE_NON_OPAQUE_TRIANGLE) {
         
-            float  alphaValue   = 1.0f;
-            float2 barycentrics = rayQuery.CandidateTriangleBarycentrics();
-            if (rayQuery.CandidateInstanceID() == 1) {
-                alphaValue = transparencyTexture1.Sample(textureSampler, barycentrics).a;
-            }
-            //else if (rayQuery.CandidateInstanceID() == 2) {
-            //    alphaValue = transparencyTexture2.Sample(textureSampler, barycentrics).a;
-            //}
-            //else if (rayQuery.CandidateInstanceID() == 3) {
-            //    alphaValue = transparencyTexture3.Sample(textureSampler, barycentrics).a;
-            //}
-            if (alphaValue > 0.1) {
-                rayQuery.CommitNonOpaqueTriangleHit();
+                float  alphaValue   = 1.0f;
+                float2 barycentrics = rayQuery.CandidateTriangleBarycentrics();
+
+                if (rayQuery.CandidateInstanceID() == 1) {
+                    alphaValue = transparencyTexture1.Sample(textureSampler, barycentrics).a;
+                }
+
+                if (alphaValue > 0.1) {
+                    rayQuery.CommitNonOpaqueTriangleHit();
+                }
             }
         }
-    }
 
-    if (rayQuery.CommittedStatus() == COMMITTED_TRIANGLE_HIT)
-    {
+        if (rayQuery.CommittedStatus() == COMMITTED_TRIANGLE_HIT)
+        {
 #if USE_FIRST_HIT_END_SEARCH_SHADOWS
-        rtDepth = 0.0;
+            rtDepth = 0.0;
 #else
-        float3   hitPosition   = rayQuery.WorldRayOrigin() +
-                                 (rayQuery.CommittedRayT() * rayQuery.WorldRayDirection());
+            float3   hitPosition   = rayQuery.WorldRayOrigin() +
+                                     (rayQuery.CommittedRayT() * rayQuery.WorldRayDirection());
 
-        float4x4 lightViewProj = mul(lightViewMatrix, lightProjectionMatrix);
-        float4   clipSpace     = mul(float4(hitPosition, 1), lightViewProj);
-        rtDepth                = clipSpace.z;
+            float4x4 lightViewProj = mul(lightViewMatrix, lightProjectionMatrix);
+            float4   clipSpace     = mul(float4(hitPosition, 1), lightViewProj);
+            rtDepth                = clipSpace.z;
 #endif
+        }
     }
-
 #endif
 
     if (views == 0) {

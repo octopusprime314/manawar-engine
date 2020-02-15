@@ -126,6 +126,7 @@ void DebugShader::runShader(MVP*                  mvp,
                             std::vector<Vector4>* normalLines) {
 
     if ((EngineManager::getGraphicsLayer() == GraphicsLayer::OPENGL) &&
+        (_debugNormalsEnabled              == true)                  &&
         (normalLines->size()                > 0)) {
 
         _shader->bind();

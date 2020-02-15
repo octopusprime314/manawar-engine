@@ -45,4 +45,5 @@ public:
 private:
     GLuint _normalBuffer;
     GLuint _normalBufferVAO;
+    bool   _debugNormalsEnabled = false;
 };

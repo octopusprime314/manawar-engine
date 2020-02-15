@@ -47,7 +47,7 @@ EngineManager::EngineManager(int*      argc,
                              HINSTANCE hInstance,
                              int       nCmdShow) {
 
-    _graphicsLayer = GraphicsLayer::DXR_EXPERIMENTAL;
+    _graphicsLayer = GraphicsLayer::OPENGL;
     _generatorMode = true;
 
     if (_graphicsLayer >= GraphicsLayer::DX12) {
@@ -101,9 +101,16 @@ EngineManager::EngineManager(int*      argc,
                                 10000.0f);
 
 
-    _viewManager->setView(      Matrix::translation(0, 2000.0f, -3500.0f),
-                                Matrix::rotationAroundX(-70.0f),
-                                Matrix());
+    if (_graphicsLayer == GraphicsLayer::DXR_EXPERIMENTAL) {
+        _viewManager->setView(      Matrix::translation(0, 15, -60),
+                                    Matrix::rotationAroundX(0.0f),
+                                    Matrix());
+    }
+    else {
+        _viewManager->setView(      Matrix::translation(0, 2000.0f, -3500.0f),
+                                    Matrix::rotationAroundX(-70.0f),
+                                    Matrix());
+    }
 
     //Load and compile all shaders for the shader broker
     ShaderBroker::instance()->compileShaders();
@@ -147,8 +154,14 @@ EngineManager::EngineManager(int*      argc,
     Vector4 sunLocation(0.0f, 0.0f, 700.0f);
 
     MVP lightMapMVP;
-    lightMapMVP.setView(Matrix::translation(sunLocation.getx(), sunLocation.gety(), sunLocation.getz()) *
-                        Matrix::rotationAroundX(45.0f));
+     if (_graphicsLayer == GraphicsLayer::DXR_EXPERIMENTAL) {
+        lightMapMVP.setView(Matrix::translation(sunLocation.getx(), sunLocation.gety(), sunLocation.getz()) *
+                            Matrix::rotationAroundX(0.0f));
+    }
+    else {
+        lightMapMVP.setView(Matrix::translation(sunLocation.getx(), sunLocation.gety(), sunLocation.getz()) *
+                            Matrix::rotationAroundX(45.0f));
+    }
     lightMapMVP.setProjection(Matrix::ortho(1400.0f, 1400.0f, 0.0f, 1400.0f));
     _lightList.push_back(new ShadowedDirectionalLight(_viewManager->getEventWrapper(),
                                                       lightMapMVP,

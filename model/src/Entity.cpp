@@ -4,6 +4,7 @@
 #include "FrustumCuller.h"
 #include "GeometryMath.h"
 #include "ModelBroker.h"
+#include "ShaderBroker.h"
 
 unsigned int Entity::_idGenerator = 1;
 
@@ -63,8 +64,18 @@ void Entity::_updateDraw() {
             AnimatedModel* animatedModel = static_cast<AnimatedModel*>(_model);
             animatedModel->updateAnimation();
         }
-        //Run model shader by allowing the shader to operate on the model
+        // Run model shader by allowing the shader to operate on the model
         _model->runShader(this);
+
+        // Debug normals visualization
+        auto debugShader = static_cast<DebugShader*>(ShaderBroker::instance()->getShader("debugShader"));
+        // Special vao call that factors in frustum culling for the scene
+        std::vector<VAO*>* vao = getFrustumVAO();
+        for (auto vaoInstance : *vao) {
+            debugShader->runShader(&_mvp,
+                                   vaoInstance,
+                                   _model->getRenderBuffers()->getDebugNormals());
+        }
     }
 }
 

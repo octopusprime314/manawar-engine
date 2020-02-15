@@ -47,7 +47,7 @@ EngineManager::EngineManager(int*      argc,
                              HINSTANCE hInstance,
                              int       nCmdShow) {
 
-    _graphicsLayer = GraphicsLayer::DXR_EXPERIMENTAL;
+    _graphicsLayer = GraphicsLayer::OPENGL;
 
     if (_graphicsLayer >= GraphicsLayer::DX12) {
 
@@ -324,8 +324,8 @@ void EngineManager::_preDraw() {
         DXLayer::instance()->initCmdLists();
     }
 
-    // GraphicsLayer::DX12 renders shadows using the raserization path
-    // GraphicsLayer::DXR  renders shadows using the DXR path
+    // GraphicsLayer::DX12             renders shadows using the rasterization path
+    // GraphicsLayer::DXR              renders shadows using the DXR path
     // GraphicsLayer::DXR_EXPERIMENTAL doesn't use either of these paths and uses the deferred pixel shader to generate shadows
     if (_graphicsLayer == GraphicsLayer::DX12) {
         if (_viewManager->getViewState() == Camera::ViewState::POINT_SHADOW      ||

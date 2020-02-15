@@ -1,19 +1,19 @@
 // Object Declarations
-Texture2D   diffuseTexture : register(t0);     // Diffuse texture data array
-Texture2D   normalTexture : register(t1);      // Normal texture data array
-Texture2D   velocityTexture : register(t2);    // Velocity texture data array
-Texture2D   depthTexture : register(t3);       // Depth texture data array
+Texture2D   diffuseTexture     : register(t0); // Diffuse texture data array
+Texture2D   normalTexture      : register(t1); // Normal texture data array
+Texture2D   velocityTexture    : register(t2); // Velocity texture data array
+Texture2D   depthTexture       : register(t3); // Depth texture data array
 Texture2D   cameraDepthTexture : register(t4); // Depth texture data array
-Texture2D   mapDepthTexture : register(t5);    // Depth texture data array
-TextureCube depthMap : register(t6);           // Cube depth map for point light shadows
-TextureCube skyboxDayTexture : register(t7);   // Skybox day
+Texture2D   mapDepthTexture    : register(t5); // Depth texture data array
+TextureCube depthMap           : register(t6); // Cube depth map for point light shadows
+TextureCube skyboxDayTexture   : register(t7); // Skybox day
 TextureCube skyboxNightTexture : register(t8); // Skybox night
-Texture2D   ssaoTexture : register(t9);        // Depth texture data array
-sampler     textureSampler : register(s0);
+Texture2D   ssaoTexture        : register(t9); // Depth texture data array
+sampler     textureSampler     : register(s0);
 
 #if (USE_SHADER_MODEL_6_5 == 1)
 // Raytracing Acceleration Structure
-RaytracingAccelerationStructure rtAS : register(t10);
+RaytracingAccelerationStructure rtAS                 : register(t10);
 Texture2D                       transparencyTexture1 : register(t11); // transparency texture 1
 Texture2D                       transparencyTexture2 : register(t12); // transparency texture 2
 Texture2D                       transparencyTexture3 : register(t13); // transparency texture 3
@@ -40,10 +40,10 @@ cbuffer globalData : register(b0) {
     float3   pointLightPositions[20];
 }
 
-static const float2 poissonDisk[4] = {float2(-0.94201624, -0.39906216),
-                                      float2(0.94558609, -0.76890725),
-                                      float2(-0.094184101, -0.92938870),
-                                      float2(0.34495938, 0.29387760)};
+static const float2 poissonDisk[4] = { float2(-0.94201624,  -0.39906216),
+                                       float2( 0.94558609,  -0.76890725),
+                                       float2(-0.094184101, -0.92938870),
+                                       float2( 0.34495938,   0.29387760) };
 
 static const float shadowEffect = 0.6;
 static const float ambient      = 0.3;
@@ -96,20 +96,23 @@ PixelOut PS(float4 posH : SV_POSITION, float2 uv : UVOUT) {
 
     const float bias = 0.005; // removes shadow acne by adding a small bias
 
-    PixelOut pixel = {float4(0.0, 0.0, 0.0, 0.0), float4(0.0, 0.0, 0.0, 0.0), float4(0.0, 0.0, 0.0, 0.0), 1.0};
+    PixelOut pixel = {float4(0.0, 0.0, 0.0, 0.0),
+                      float4(0.0, 0.0, 0.0, 0.0),
+                      float4(0.0, 0.0, 0.0, 0.0),
+                      1.0};
 
     // extract position from depth texture
-    float4 position = float4(decodeLocation(uv), 1.0);
+    float4 position         = float4(decodeLocation(uv), 1.0);
     // extract normal from normal texture
     float4 normal           = normalTexture.Sample(textureSampler, uv);
     float3 normalizedNormal = normalize(normal.xyz);
     // extract color from diffuse texture
-    float4 diffuse = diffuseTexture.Sample(textureSampler, uv);
+    float4 diffuse          = diffuseTexture.Sample(textureSampler, uv);
     // extract 2d velocity buffer
-    float2 velocity  = velocityTexture.Sample(textureSampler, uv).rg;
-    float  occlusion = ssaoTexture.Sample(textureSampler, uv).r;
+    float2 velocity         = velocityTexture.Sample(textureSampler, uv).rg;
+    float  occlusion        = ssaoTexture.Sample(textureSampler, uv).r;
     // blit depth
-    pixel.depth = depthTexture.Sample(textureSampler, uv).r;
+    pixel.depth             = depthTexture.Sample(textureSampler, uv).r;
 
     // Directional light calculation
     float3 normalizedLight   = normalize(lightDirection);
@@ -148,7 +151,7 @@ PixelOut PS(float4 posH : SV_POSITION, float2 uv : UVOUT) {
         // Shoot the ray in the reverse direction of the directional light
         rayDir = lightInCameraView;
         // Shoot the ray from the origin of the visible pixel position from the depth buffer
-        origin = mul(float4(position.xyz, 1.0), inverseView)/* + (rayDir * bias)*/;
+        origin = mul(float4(position.xyz, 1.0), inverseView);
         // Only need to figure out if one triangle blocks the directional light source
         rayFlags |= RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH;
 #else
@@ -161,7 +164,7 @@ PixelOut PS(float4 posH : SV_POSITION, float2 uv : UVOUT) {
         RayDesc ray;
         ray.Origin    = origin;
         ray.Direction = rayDir;
-        ray.TMin      = 0.001;
+        ray.TMin      = 0.1;
         ray.TMax      = MAX_DEPTH;
 
         RayQuery<RAY_FLAG_NONE> rayQuery;
@@ -200,7 +203,6 @@ PixelOut PS(float4 posH : SV_POSITION, float2 uv : UVOUT) {
         const uint ambientOcclusionRayKernelSize = 2;
         // Always same origin and ray length
         ray.Origin = origin;
-        ray.TMin   = 0.001;
         ray.TMax   = 25;
         // Zero out ray flags and occlude transparent geometry and try first hit end search
         rayFlags   = RAY_FLAG_CULL_NON_OPAQUE | RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH;

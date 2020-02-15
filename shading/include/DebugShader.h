@@ -37,4 +37,12 @@ public:
                    std::set<Triangle*>  triangleIntersectionList,
                    float*               color,
                    GeometryConstruction geometryType);
+
+    void runShader(MVP*                  mvp,
+                   VAO*                  vao,
+                   std::vector<Vector4>* normalLines);
+
+private:
+    GLuint _normalBuffer;
+    GLuint _normalBufferVAO;
 };

@@ -29,8 +29,8 @@ constexpr int   tileWidth               = 200;
 constexpr int   tileLength              = 200;
 constexpr int   tileHalfWidth           = tileWidth  / 2;
 constexpr int   tileHalfLength          = tileLength / 2;
-constexpr int   widthOfWorld            = tileWidth  * 30;
-constexpr int   lengthOfWorld           = tileLength * 30;
+constexpr int   widthOfWorld            = tileWidth  * 5;//30;
+constexpr int   lengthOfWorld           = tileLength * 5;//30;
 constexpr int   numWidthTiles           = widthOfWorld   / tileWidth;
 constexpr int   numLengthTiles          = lengthOfWorld  / tileLength;
 constexpr int   minWidthValue           = -(widthOfWorld  / 2) + tileHalfWidth;
@@ -141,10 +141,10 @@ public:
                           int tileLengthIndex,
                           int item) {
 
-        if ((tileWidthIndex                                  >= 0)              &&
-            (tileLengthIndex                                 >= 0)              &&
-            (tileWidthIndex                                  < numWidthPathIds) &&
-            (tileLengthIndex                                 < numWidthPathIds) &&
+        if ((tileWidthIndex                                 >= 0)              &&
+            (tileLengthIndex                                >= 0)              &&
+            (tileWidthIndex                                 < numWidthPathIds) &&
+            (tileLengthIndex                                < numWidthPathIds) &&
             (_dirtiedTiles[tileWidthIndex][tileLengthIndex] == false)) {
 
             _dirtiedTiles[tileWidthIndex][tileLengthIndex] = true;

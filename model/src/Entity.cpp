@@ -69,14 +69,17 @@ void Entity::_updateDraw() {
         // Run model shader by allowing the shader to operate on the model
         _model->runShader(this);
 
-        // Debug normals visualization
-        auto debugShader = static_cast<DebugShader*>(ShaderBroker::instance()->getShader("debugShader"));
-        // Special vao call that factors in frustum culling for the scene
-        std::vector<VAO*>* vao = getFrustumVAO();
-        for (auto vaoInstance : *vao) {
-            debugShader->runShader(&_mvp,
-                                   vaoInstance,
-                                   _model->getRenderBuffers()->getDebugNormals());
+        if (_model->getName().find("terraintile") == std::string::npos) {
+        
+            // Debug normals visualization
+            auto debugShader = static_cast<DebugShader*>(ShaderBroker::instance()->getShader("debugShader"));
+            // Special vao call that factors in frustum culling for the scene
+            std::vector<VAO*>* vao = getFrustumVAO();
+            for (auto vaoInstance : *vao) {
+                debugShader->runShader(&_mvp,
+                                       vaoInstance,
+                                       _model->getRenderBuffers()->getDebugNormals());
+            }
         }
     }
 }

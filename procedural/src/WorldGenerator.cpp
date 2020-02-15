@@ -420,7 +420,7 @@ void WorldGenerator::generateWorldTiles() {
 
             QuadrantFlag quadrant = static_cast<QuadrantFlag>(rand() % QuadrantFlag::QuadrantLength);
 
-            _builderQuadrants[quadrantIndexW][quadrantIndexL] = quadrantBuilder[ForestQuadrant];//quadrantBuilder[quadrant];
+            _builderQuadrants[quadrantIndexW][quadrantIndexL] = quadrantBuilder[CityQuadrant];//quadrantBuilder[quadrant];
         }
     }
 

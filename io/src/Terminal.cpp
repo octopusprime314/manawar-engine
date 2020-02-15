@@ -51,22 +51,23 @@ void Terminal::processCommand(std::string command) {
     if (command.find("MOUSEPATHING") != std::string::npos) {
 
         command = command.substr(command.find_first_of(" ") + 1);
-        int button       = std::atoi(command.substr(0, command.find_first_of(" ")).c_str());
-        command          = command.substr(command.find_first_of(" ") + 1);
-        int action       = std::atoi(command.substr(0, command.find_first_of(" ")).c_str());
-        command          = command.substr(command.find_first_of(" ") + 1);
-        int tileWidthX   = std::atoi(command.substr(0, command.find_first_of(" ")).c_str());
-        command          = command.substr(command.find_first_of(" ") + 1);
-        int tileWidthY   = std::atoi(command.substr(0, command.find_first_of(" ")).c_str());
-        command          = command.substr(command.find_first_of(" ") + 1);
-        int entityID     = std::atoi(command.substr(0, command.find_first_of(" ")).c_str());
-        command          = command.substr(command.find_first_of(" ") + 1);
+        int button        = std::atoi(command.substr(0, command.find_first_of(" ")).c_str());
+        command           = command.substr(command.find_first_of(" ") + 1);
+        int action        = std::atoi(command.substr(0, command.find_first_of(" ")).c_str());
+        command           = command.substr(command.find_first_of(" ") + 1);
+        int tileWidthX    = std::atoi(command.substr(0, command.find_first_of(" ")).c_str());
+        command           = command.substr(command.find_first_of(" ") + 1);
+        int tileWidthY    = std::atoi(command.substr(0, command.find_first_of(" ")).c_str());
+        command           = command.substr(command.find_first_of(" ") + 1);
+        int entityID      = std::atoi(command.substr(0, command.find_first_of(" ")).c_str());
+        command           = command.substr(command.find_first_of(" ") + 1);
+        std::string scene = command.substr(0, command.find_first_of(" "));
 
         // Button is left or middle button mouse click.  0 is left, 2 is middle.
         // Left indicates a write to terrain and Middle indicates to switch to the next texture option.
         // Action is press or release mouse button.  0 is release, 1 is press.
         // X and Y are the screen space location of the mouse button click or release.
-        _picker->editTile(button, action, tileWidthX, tileWidthY, entityID);
+        _picker->editTile(button, action, tileWidthX, tileWidthY, entityID, scene);
     } else {
         _commandProcessor(command);
     }
@@ -105,13 +106,23 @@ void Terminal::_commandProcessor(std::string command) {
         command                = command.substr(command.find(' ') + 1);
         std::string scale      = command.substr(0, command.find(' '));
 
+        command                = command.substr(command.find(' ') + 1);
+        std::string xRot       = command.substr(0, command.find(' '));
+        command                = command.substr(command.find(' ') + 1);
+        std::string yRot       = command.substr(0, command.find(' '));
+        command                = command.substr(command.find(' ') + 1);
+        std::string zRot       = command.substr(0, command.find(' '));
+
         _modelManager->addModel(modelName,
                                 modelToAdd,
                                 Vector4(static_cast<float>(atof(xStr.c_str())),
                                         static_cast<float>(atof(yStr.c_str())),
                                         static_cast<float>(atof(zStr.c_str())),
                                         static_cast<float>(atof(scale.c_str()))),
-                                Vector4(0.0, 0.0, 0.0));
+                                Vector4(static_cast<float>(atof(xRot.c_str())),
+                                        static_cast<float>(atof(yRot.c_str())),
+                                        static_cast<float>(atof(zRot.c_str())),
+                                        1.0f));
     }
     else if (commandType == "ADDTILE") {
         command                = command.substr(command.find(' ') + 1);

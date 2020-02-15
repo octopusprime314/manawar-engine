@@ -117,7 +117,9 @@ IOEventDistributor::IOEventDistributor(int* argc,
     _prevMouseY = IOEventDistributor::screenPixelHeight / 2;
 
     MasterClock* masterClock = MasterClock::instance();
-    masterClock->setFrameRate(60); //Establishes the frame rate of the draw context
+    // Establishes the frame rate of the draw context
+    // For some reason i need to double the framerate to get the target frame rate of 60????
+    masterClock->setFrameRate(120); 
     masterClock->subscribeFrameRate(std::bind(_frameRateTrigger, std::placeholders::_1));
 
     // Hard coded debug events
@@ -276,6 +278,17 @@ void IOEventDistributor::_drawUpdate() {
                     event.pfnCallback();
                 }
             }
+
+            //Only draw when a framerate trigger event has been received from the master clock
+            //if (_renderNow > 0) {
+            //    _renderLock.lock();
+            //    do {
+            //        IOEvents::updateDraw(_window);
+            //        //Decrement trigger
+            //        _renderNow--;
+            //    } while (_renderNow > 0);
+            //    _renderLock.unlock();
+            //}
 
             IOEvents::updateDraw(_window);
         }

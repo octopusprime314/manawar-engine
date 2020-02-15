@@ -38,7 +38,9 @@ StateVector* Camera::getState() { return &_state; }
 void Camera::setView(Matrix translation, Matrix rotation, Matrix scale) {
     Vector4 zero(0.f, 0.f, 0.f);
     _state.setLinearPosition(translation * zero);
-    _state.setAngularPosition(rotation * zero);
+    //_state.setAngularPosition(rotation * zero);
+    // Debug to set camera to look over procedural geometry.
+    _state.setAngularPosition(Vector4(43.0, 0.0, 0.0));
     _mvp.setView(_mvp.getViewMatrix() * scale * rotation * translation);
 }
 

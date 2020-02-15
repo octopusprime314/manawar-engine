@@ -53,9 +53,9 @@ enum class GraphicsLayer {
 
 class EngineManager {
 
+    static RayTracingPipelineShader* _rayTracingPipeline;
     static std::mutex                _entityListLock;
     static Entity*                   _shadowEntity;
-    static RayTracingPipelineShader* _rayTracingPipeline;
 
     //Manages deferred shading g buffers
     DeferredRenderer*            _deferredRenderer;
@@ -64,12 +64,14 @@ class EngineManager {
     EnvironmentMap*              _environmentMap;
     static GraphicsLayer         _graphicsLayer;
     bool                         _useRaytracing;
+    bool                         _generatorMode;
     // Manages audio playback
     AudioManager*                _audioManager;
     //manages the view/camera matrix from the user's perspective
     ViewEventDistributor*        _viewManager;
     DeferredFrameBuffer*         _deferredFBO;
     MergeShader*                 _mergeShader;
+    unsigned int                 _pathCounter;
     //Contains models active in scene
     static std::vector<Entity*>  _entityList;
     IOEventDistributor*          _inputLayer;

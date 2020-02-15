@@ -18,8 +18,7 @@ ViewEventDistributor::ViewEventDistributor(int*         argc,
                                            unsigned int viewportWidth,
                                            unsigned int viewportHeight) {
 
-    _viewEvents = new ViewEvents();
-
+    _viewEvents   = new ViewEvents();
     _godState     = true;  // Start in god view mode
     _trackedState = false; // Don't start on the track...yet
     _entityIndex  = 0;     // Start at index 0
@@ -39,12 +38,13 @@ ViewEventDistributor::ViewEventDistributor(int*         argc,
     _vectorCamera.setVectorsFromFile(vec_file);
     _trackedCamera = &_vectorCamera;
 
-    // Used for god mode
-    _trackedState = true;
-    _godState     = false;
+    //// Used to enable tracked camera
+    //_trackedState = true;
+    //_godState     = false;
+    //_currCamera = _trackedCamera;
+    _currCamera = &_godCamera;
     _waypointCamera.reset();
     _vectorCamera.reset();
-    _currCamera = _trackedCamera;
     _currCamera->getState()->setGravity(false);
     _currCamera->getState()->setActive(true);
 
@@ -157,7 +157,7 @@ void ViewEventDistributor::_updateKeyboard(int key, int x,
                                key == GLFW_KEY_E || key == GLFW_KEY_C)) {
 
             Vector4     trans;
-            const float velMagnitude = 500.0f;
+            const float velMagnitude = 2000.0f;
 
             if (key == GLFW_KEY_W) { // forward w
                 trans = Vector4(_inverseRotation * Vector4(0.0, 0.0, velMagnitude));

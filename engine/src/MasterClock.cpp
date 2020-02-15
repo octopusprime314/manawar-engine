@@ -35,10 +35,14 @@ void MasterClock::_physicsProcess() {
         //If the millisecond amount is divisible by kinematics time,
         //then trigger a kinematic calculation time event to subscribers
         if (milliSecondCounter == KINEMATICS_TIME) {
+            _kinematicsRateLock.lock();
             milliSecondCounter = 0;
-            for (auto funcs : _kinematicsRateFuncs) {
-                funcs(KINEMATICS_TIME);
+            for (auto func : _kinematicsRateFuncs) {
+                if (func != nullptr) {
+                    func(KINEMATICS_TIME);
+                }
             }
+            _kinematicsRateLock.unlock();
         }
         auto end            = std::chrono::high_resolution_clock::now();
         double milliseconds = std::chrono::duration<double, std::milli>(end - start).count();
@@ -62,10 +66,14 @@ void MasterClock::_fpsProcess() {
         auto start = std::chrono::high_resolution_clock::now();
         //If the millisecond amount is divisible by frame time then trigger a frame time event to subscribers
         if (milliSecondCounter == _frameTime) {
+            _frameRateLock.lock();
             milliSecondCounter = 0;
-            for (auto funcs : _frameRateFuncs) {
-                funcs(_frameTime);
+            for (auto func : _frameRateFuncs) {
+                if (func != nullptr) {
+                    func(_frameTime);
+                }
             }
+            _frameRateLock.unlock();
         }
         auto end = std::chrono::high_resolution_clock::now();
         if (std::chrono::duration<double, std::milli>(end - start).count() <= 1.0f) {
@@ -82,10 +90,14 @@ void MasterClock::_animationProcess() {
         auto start = std::chrono::high_resolution_clock::now();
         //If the millisecond amount is divisible by frame time then trigger a frame time event to subscribers
         if (milliSecondCounter == _animationTime) {
+            _animationRateLock.lock();
             milliSecondCounter = 0;
-            for (auto funcs : _animationRateFuncs) {
-                funcs(_animationTime);
+            for (auto func : _animationRateFuncs) {
+                if (func != nullptr) {
+                    func(_animationTime);
+                }
             }
+            _animationRateLock.unlock();
         }
         auto end = std::chrono::high_resolution_clock::now();
         if (std::chrono::duration<double, std::milli>(end - start).count() <= 1.0f) {
@@ -101,13 +113,19 @@ void MasterClock::setFrameRate(int framesPerSecond) {
 }
 
 void MasterClock::subscribeFrameRate(std::function<void(int)> func) {
+    _frameRateLock.lock();
     _frameRateFuncs.push_back(func);
+    _frameRateLock.unlock();
 }
 
 void MasterClock::subscribeAnimationRate(std::function<void(int)> func) {
+    _animationRateLock.lock();
     _animationRateFuncs.push_back(func);
+    _animationRateLock.unlock();
 }
 
 void MasterClock::subscribeKinematicsRate(std::function<void(int)> func) {
+    _kinematicsRateLock.lock();
     _kinematicsRateFuncs.push_back(func);
+    _kinematicsRateLock.unlock();
 }

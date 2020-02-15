@@ -341,7 +341,6 @@ void FbxLoader::_searchAndEditMesh(FbxNode*    childNode,
         FbxMesh* mesh = node->GetMesh();
         if (mesh != nullptr) {
             std::string nodeName = std::string(node->GetName());
-            OutputDebugString(nodeName.c_str());
             nodeName.insert(nodeName.find_first_of("_"), "_" + std::to_string(_clonedInstances[modelName]));
             FbxNode* lNode = FbxNode::Create(_export.scene,
                 (nodeName + "instance" + std::to_string(_export.scene->GetRootNode()->GetChildCount())).c_str());
@@ -553,7 +552,6 @@ void FbxLoader::addToScene(Model* modelAddedTo, FbxLoader* modelToLoad, Vector4 
                 FbxMesh* mesh = childNode->GetMesh();
                 if (mesh != nullptr) {
                     std::string nodeName = std::string(childNode->GetName());
-                    OutputDebugString(nodeName.c_str());
                     nodeName.insert(nodeName.find_first_of("_"), "_" + std::to_string(_clonedInstances[modelName]));
                     FbxNode* lNode = FbxNode::Create(_export.scene,
                         (nodeName + "instance" + std::to_string(_export.scene->GetRootNode()->GetChildCount())).c_str());
@@ -745,8 +743,6 @@ void FbxLoader::addTileToScene(Model*                   modelAddedTo,
                         }
 
                         for (int z = 0; z < toAdd.size(); z++) {
-                            OutputDebugString(toAdd[z]->GetFileName());
-                            OutputDebugStringW(L"\n");
                             layeredTextureToEdit->ConnectSrcObject(toAdd[z]);
                         }
                     }
@@ -785,7 +781,13 @@ void FbxLoader::addTileToScene(Model*                   modelAddedTo,
         layeredTextureName += TEXTURE_LOCATION + modelName + "/" + texture;
         createLayeredTextureNames.push_back(TEXTURE_LOCATION + modelName + "/" + texture);
     }
-    std::string alphaMapName = modelName + "/alphamapclone";
+    std::string folderNameOfModel = modelAddedTo->getName().substr(0, modelAddedTo->getName().find_last_of("."));
+    std::transform(folderNameOfModel.begin(),
+                   folderNameOfModel.end(),
+                   folderNameOfModel.begin(),
+                   [](unsigned char c) { return std::tolower(c); }
+    );
+    std::string alphaMapName      = folderNameOfModel + "/alphamapclone";
     alphaMapName += std::to_string(static_cast<int>(location.getx())) + "_" +
                     std::to_string(static_cast<int>(location.gety())) + "_" +
                     std::to_string(static_cast<int>(location.getz()));
@@ -1322,18 +1324,17 @@ void FbxLoader::_loadNormals(FbxMesh*              meshNode,
             // Loop through the triangle meshes
             for (int polyCounter = 0; polyCounter < numNormals; ++polyCounter) {
                 //Get the normal for this vertex
-                FbxVector4 normal = normalElement->GetDirectArray().GetAt(polyCounter);
-                mappingNormals[indices[polyCounter]] = Vector4((float)normal[0],
-                                                               (float)normal[1],
-                                                               (float)normal[2],
-                                                                1.0f);
-            }
+                if (normalElement->GetReferenceMode() == FbxGeometryElement::eDirect) {
 
-            for (int j = 0; j < mappingNormals.size(); j++) {
-                normals.push_back(Vector4(mappingNormals[j].getx(),
-                                          mappingNormals[j].gety(),
-                                          mappingNormals[j].getz(),
-                                          1.0));
+                    FbxVector4 normal = normalElement->GetDirectArray().GetAt(polyCounter);
+                    normals.push_back(
+                        Vector4((float)normal[0], (float)normal[1], (float)normal[2], 1.0f));
+                }
+                else {
+                    int i = normalElement->GetIndexArray().GetAt(polyCounter);
+                    FbxVector4 normal = normalElement->GetDirectArray().GetAt(i);
+                    normals.push_back(Vector4((float)normal[0], (float)normal[1], (float)normal[2], 1.0f));
+                }
             }
         }
         else if (mapMode == FbxLayerElement::EMappingMode::eByControlPoint) {
@@ -1617,6 +1618,11 @@ void FbxLoader::_buildTriangles(Model*                model,
                      (std::numeric_limits<float>::min)(),
                      (std::numeric_limits<float>::min)() };
 
+    bool normalsIndexed = true;
+    if (vertices.size() != normals.size()) {
+        normalsIndexed = false;
+    }
+
     //Each index represents one vertex and a triangle is 3 vertices
     size_t totalTriangles = indices.size() / 3;
     //Read each triangle vertex indices and store them in triangle array
@@ -1628,9 +1634,13 @@ void FbxLoader::_buildTriangles(Model*                model,
         //Scale then rotate vertex
         renderBuffers->addVertex(A);
 
-        Vector4 AN(normals[indices[triCount]].getx(),
-                   normals[indices[triCount]].gety(),
-                   normals[indices[triCount]].getz(),
+        int aIndex = indices[triCount];
+        if (normalsIndexed == false) {
+            aIndex = triCount;
+        }
+        Vector4 AN(normals[aIndex].getx(),
+                   normals[aIndex].gety(),
+                   normals[aIndex].getz(),
                    1.0);
         //Scale then rotate normal
         renderBuffers->addNormal(rotation * AN);
@@ -1647,9 +1657,13 @@ void FbxLoader::_buildTriangles(Model*                model,
         //Scale then rotate vertex
         renderBuffers->addVertex(B);
 
-        Vector4 BN(normals[indices[triCount]].getx(),
-                   normals[indices[triCount]].gety(),
-                   normals[indices[triCount]].getz(),
+        int bIndex = indices[triCount];
+        if (normalsIndexed == false) {
+            bIndex = triCount;
+        }
+        Vector4 BN(normals[bIndex].getx(),
+                   normals[bIndex].gety(),
+                   normals[bIndex].getz(),
                    1.0);
         //Scale then rotate normal
         renderBuffers->addNormal(rotation * BN);
@@ -1666,9 +1680,13 @@ void FbxLoader::_buildTriangles(Model*                model,
         //Scale then rotate vertex
         renderBuffers->addVertex(C);
 
-        Vector4 CN(normals[indices[triCount]].getx(),
-                   normals[indices[triCount]].gety(),
-                   normals[indices[triCount]].getz(),
+        int cIndex = indices[triCount];
+        if (normalsIndexed == false) {
+            cIndex = triCount;
+        }
+        Vector4 CN(normals[cIndex].getx(),
+                   normals[cIndex].gety(),
+                   normals[cIndex].getz(),
                    1.0);
         //Scale then rotate normal
         renderBuffers->addNormal(rotation * CN);

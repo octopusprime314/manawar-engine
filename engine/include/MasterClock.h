@@ -25,6 +25,7 @@
 #include <functional>
 #include <chrono>
 #include <thread>
+#include <mutex>
 
 const int DEFAULT_FRAME_TIME = 16; //frame time in milliseconds which is 60 frames per second
 const int KINEMATICS_TIME = 5; //kinematics time in milliseconds
@@ -36,10 +37,14 @@ class MasterClock {
 
     //Clock feed subscriber's function pointers
     std::vector<std::function<void(int)>> _kinematicsRateFuncs;
+    std::mutex                            _kinematicsRateLock;
     //Clock feed subscriber's function pointers
     std::vector<std::function<void(int)>> _animationRateFuncs;
+    std::mutex                            _animationRateLock;
     //Clock feed subscriber's function pointers
     std::vector<std::function<void(int)>> _frameRateFuncs;
+    std::mutex                            _frameRateLock;
+
 
     unsigned int                          _milliSecondCounter;
     std::thread*                          _animationThread;

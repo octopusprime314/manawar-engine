@@ -2,6 +2,7 @@
 #include "IOEvents.h"
 #include "EngineManager.h"
 #include "IOEventDistributor.h"
+#include <cctype>
 
 Picker::Picker(MRTFrameBuffer*                    mrt,
                std::function<bool(Vector4, bool)> terminalCallback,
@@ -220,7 +221,8 @@ void Picker::editTile(int button,
                       int action,
                       int x,
                       int y,
-                      int entityID) {
+                      int entityID,
+                      std::string scene) {
 
      if (button == GLFW_MOUSE_BUTTON_MIDDLE &&
          action == GLFW_PRESS) {
@@ -238,20 +240,18 @@ void Picker::editTile(int button,
                 _pixelEditValue = Vector4(0, 0, 0, 0); //inverse for alpha value
             }
 
-            _editTile(x, y, entityID);
+            _editTile(x, y, entityID, scene);
             _textureSelection++;
             _textureSelection %= 4;
         }
         else if (button == GLFW_MOUSE_BUTTON_LEFT &&
-                 action == GLFW_PRESS             &&
-                 x >= 0                           &&
-                 y >= 0) {
+                 action == GLFW_PRESS) {
 
-            _editTile(x, y, entityID);
+            _editTile(x, y, entityID, scene);
         }
 }
 
-void Picker::_editTile(int x, int y, int entityID) {
+void Picker::_editTile(int x, int y, int entityID, std::string scene) {
 
     auto entityList = *EngineManager::getEntityList();
 
@@ -275,12 +275,23 @@ void Picker::_editTile(int x, int y, int entityID) {
                         if (texture->getName().find("alphamap") != std::string::npos) {
 
                             MutableTexture* alphaMapEditor = nullptr;
-                            if (_mutableTextureCache.find(texture->getName()) != _mutableTextureCache.end()) {
-                                alphaMapEditor = _mutableTextureCache.find(texture->getName())->second;
+
+                            std::string textureName = texture->getName();
+                            std::transform(scene.begin(),
+                                           scene.end(),
+                                           scene.begin(), [](unsigned char c) {
+                                return std::tolower(c);
+                            });
+
+                            std::string newAlphaTextureName =
+                                TEXTURE_LOCATION + scene + textureName.substr(textureName.find_last_of("/"));
+
+                            if (_mutableTextureCache.find(newAlphaTextureName) != _mutableTextureCache.end()) {
+                                alphaMapEditor = _mutableTextureCache.find(newAlphaTextureName)->second;
                             } else {
-                                alphaMapEditor = new MutableTexture(texture->getName());
+                                alphaMapEditor = new MutableTexture(newAlphaTextureName);
                                 _mutableTextureCache.insert(
-                                    std::pair<std::string, MutableTexture*>(texture->getName(), alphaMapEditor));
+                                    std::pair<std::string, MutableTexture*>(newAlphaTextureName, alphaMapEditor));
                             }
                             alphaMapEditor->editTextureData(x,
                                                             y,

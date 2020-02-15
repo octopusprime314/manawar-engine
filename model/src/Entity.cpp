@@ -36,8 +36,7 @@ Entity::Entity(Model*      model,
         _idGenerator++;
     }
     else if (_model->getClassType() == ModelClass::ModelType) {
-        //_frustumCuller = new FrustumCuller(this, 2000, 4000);
-        _frustumCuller = new FrustumCuller(this, 10000000, 100000000);
+        _frustumCuller = new FrustumCuller(this, *_model->getGfxAABB());
         //Tile the terrain and other static objects in the scene
         //_generateVAOTiles();
         _idGenerator++;
@@ -58,7 +57,10 @@ void Entity::_updateDraw() {
     Matrix inverseViewProjection = ModelBroker::getViewManager()->getView().inverse() *
                                    ModelBroker::getViewManager()->getProjection().inverse();
 
-    if (FrustumCuller::getVisibleAABB(this, inverseViewProjection)) {
+    std::vector<Vector4> frustumPlanes;
+    GeometryMath::getFrustumPlanes(inverseViewProjection, frustumPlanes);
+
+    if (FrustumCuller::getVisibleAABB(this, frustumPlanes)) {
         if (_model->getClassType() == ModelClass::AnimatedModelType) {
 
             AnimatedModel* animatedModel = static_cast<AnimatedModel*>(_model);

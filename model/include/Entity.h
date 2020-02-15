@@ -105,6 +105,4 @@ protected:
     void                        _updateView(           Matrix           view);
     void                        _generateVAOTiles();
     void                        _updateDraw();
-
-
 };

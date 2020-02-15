@@ -28,7 +28,7 @@
 #include "DXLayer.h"
 #include "HLSLShader.h"
 #include "BlitDepthShader.h"
-#include "TileGenerator.h"
+#include "WorldGenerator.h"
 #include <chrono>
 
 using namespace std::chrono;
@@ -48,6 +48,7 @@ EngineManager::EngineManager(int*      argc,
                              int       nCmdShow) {
 
     _graphicsLayer = GraphicsLayer::OPENGL;
+    _generatorMode = true;
 
     if (_graphicsLayer >= GraphicsLayer::DX12) {
 
@@ -97,10 +98,11 @@ EngineManager::EngineManager(int*      argc,
     _viewManager->setProjection(IOEventDistributor::screenPixelWidth,
                                 IOEventDistributor::screenPixelHeight,
                                 0.1f,
-                                5000.0f);
+                                10000.0f);
 
-    _viewManager->setView(      Matrix::translation(0, 15, -60),
-                                Matrix::rotationAroundY(0.0f),
+
+    _viewManager->setView(      Matrix::translation(0, 2000.0f, -3500.0f),
+                                Matrix::rotationAroundX(-70.0f),
                                 Matrix());
 
     //Load and compile all shaders for the shader broker
@@ -135,8 +137,11 @@ EngineManager::EngineManager(int*      argc,
     if (_graphicsLayer == GraphicsLayer::OPENGL) {
         _terminal = Terminal::instance();
         _terminal->initTerminal(_deferredRenderer->getGBuffers(), _entityList);
-        // Use tile generator to create a randomly generated scene based on a rules system
-        generateScene("SPAWN-TEST");
+
+        if (_generatorMode) {
+            // Use tile generator to create a randomly generated scene based on a rules system
+            _pathCounter = 0;
+        }
     }
 
     Vector4 sunLocation(0.0f, 0.0f, 700.0f);
@@ -378,6 +383,13 @@ void EngineManager::_postDraw() {
         //unbind fbo
         _deferredRenderer->unbind();
 
+
+        if ((_generatorMode == true) &&
+            ((++_pathCounter) % 1 == 0)) {
+
+            WorldGenerator::spawnPaths("SPAWN-TEST");
+        }
+
         if (_viewManager->getViewState() == Camera::ViewState::DEFERRED_LIGHTING) {
 
             //Only compute ssao for opaque objects
@@ -421,7 +433,7 @@ void EngineManager::_postDraw() {
 
             for (auto entity : _entityList) {
                 if (entity->getSelected()) {
-                    entity->getFrustumCuller()->visualize();
+                    //entity->getFrustumCuller()->visualize();
                 }
             }
 

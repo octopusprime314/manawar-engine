@@ -91,12 +91,8 @@ bool FrustumCuller::getVisibleVAO(Entity* entity) {
     }
 }
 
-bool FrustumCuller::getVisibleAABB(Entity* entity,
-                                   Matrix  inverseViewProjection){
-
-    std::vector<Vector4> frustumPlanes;
-    GeometryMath::getFrustumPlanes(inverseViewProjection,
-                                   frustumPlanes);
+bool FrustumCuller::getVisibleAABB(Entity*               entity,
+                                   std::vector<Vector4>& frustumPlanes) {
 
     Cube*   entityAABB = entity->getModel()->getGfxAABB();
     Matrix  trans      = entity->getWorldSpaceTransform();

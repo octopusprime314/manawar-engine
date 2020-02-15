@@ -7,6 +7,7 @@
 #include "FrustumCuller.h"
 #include "ModelBroker.h"
 #include "ViewEventDistributor.h"
+#include "GeometryMath.h"
 
 ForwardRenderer::ForwardRenderer() :
     _forwardShader(static_cast<ForwardShader*>(
@@ -27,9 +28,13 @@ void ForwardRenderer::forwardLighting(std::vector<Entity*>& entityList,
     Matrix inverseViewProjection = ModelBroker::getViewManager()->getView().inverse() *
                                    ModelBroker::getViewManager()->getProjection().inverse();
 
+    std::vector<Vector4> frustumPlanes;
+    GeometryMath::getFrustumPlanes(inverseViewProjection,
+                                   frustumPlanes);
+
     for (auto entity : entityList) {
 
-        if (FrustumCuller::getVisibleAABB(entity, inverseViewProjection)) {
+        if (FrustumCuller::getVisibleAABB(entity, frustumPlanes)) {
             auto model = entity->getModel();
             if (!model->getIsInstancedModel()) {
                 _forwardShader->runShader(         entity,

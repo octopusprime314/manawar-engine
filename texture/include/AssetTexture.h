@@ -72,8 +72,9 @@ class AssetTexture : public Texture {
 
     ~AssetTexture();
 
-    void  updateTexture(FIBITMAP* data);
-    bool  getTransparency();
-    void  buildMipLevels();
-    BYTE* getBits();
+    void      updateTexture(FIBITMAP* data);
+    bool      getTransparency();
+    void      buildMipLevels();
+    FIBITMAP* getBitmap();
+    BYTE*     getBits();
 };

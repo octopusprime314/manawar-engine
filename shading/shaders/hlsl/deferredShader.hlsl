@@ -140,7 +140,8 @@ PixelOut PS(float4 posH : SV_POSITION, float2 uv : UVOUT) {
 
     float3 rayDir;
     float3 origin;
-    float  rtOcclusion = 1.0;
+    float  rtOcclusion  = 1.0;
+    float3 rtReflection = float3(0.0, 0.0, 0.0);
 
 #if (USE_SHADER_MODEL_6_5 == 1)
 
@@ -199,40 +200,80 @@ PixelOut PS(float4 posH : SV_POSITION, float2 uv : UVOUT) {
 #endif
         }
 
-        // Shoot short rays around hemisphere of the pixel's normal
-        const uint ambientOcclusionRayKernelSize = 2;
-        // Always same origin and ray length
-        ray.Origin = origin;
-        ray.TMax   = 25;
-        // Zero out ray flags and occlude transparent geometry and try first hit end search
-        rayFlags   = RAY_FLAG_CULL_NON_OPAQUE | RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH;
+        // AMBIENT OCCLUSION WIP
+        //// Shoot short rays around hemisphere of the pixel's normal
+        //const uint ambientOcclusionRayKernelSize = 2;
+        //// Always same origin and ray length
+        //ray.Origin = origin;
+        //ray.TMax   = 25;
+        //// Zero out ray flags and occlude transparent geometry and try first hit end search
+        //rayFlags   = RAY_FLAG_CULL_NON_OPAQUE | RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH;
 
-        const float degreeOffset         = 180.0f       / ambientOcclusionRayKernelSize;
-        const float degreeStart          = degreeOffset / 2.0f;
-        const float occlusionDegradation = 1.0f         / (ambientOcclusionRayKernelSize * 2.0f);
-        //for (int x = 0; x < ambientOcclusionRayKernelSize; x++) {
-        //    for (int y = 0; y < ambientOcclusionRayKernelSize; y++) {
-        //        
-        //        float  xRot         = radians(degreeStart + (x * degreeOffset));
-        //        float  yRot         = radians(degreeStart + (y * degreeOffset));
-        //        ray.Direction       = float3(normalizedNormal.x * cos(xRot),
-        //                                     normalizedNormal.y * sin(yRot),
-        //                                     normalizedNormal.z * tan(yRot/xRot));
-                ray.Direction       = float3(-normalizedNormal.x,
-                                             -normalizedNormal.y,
-                                             -normalizedNormal.z);
-                RayQuery<RAY_FLAG_NONE> ambientOcclusionQuery;
-                ambientOcclusionQuery.TraceRayInline(rtAS, rayFlags, ~0, ray);
+        //const float degreeOffset         = 180.0f       / ambientOcclusionRayKernelSize;
+        //const float degreeStart          = degreeOffset / 2.0f;
+        //const float occlusionDegradation = 1.0f         / (ambientOcclusionRayKernelSize * 2.0f);
+        ////for (int x = 0; x < ambientOcclusionRayKernelSize; x++) {
+        ////    for (int y = 0; y < ambientOcclusionRayKernelSize; y++) {
+        ////        
+        ////        float  xRot         = radians(degreeStart + (x * degreeOffset));
+        ////        float  yRot         = radians(degreeStart + (y * degreeOffset));
+        ////        ray.Direction       = float3(normalizedNormal.x * cos(xRot),
+        ////                                     normalizedNormal.y * sin(yRot),
+        ////                                     normalizedNormal.z * tan(yRot/xRot));
+        //        ray.Direction       = float3(-normalizedNormal.x,
+        //                                     -normalizedNormal.y,
+        //                                     -normalizedNormal.z);
+        //        RayQuery<RAY_FLAG_NONE> ambientOcclusionQuery;
+        //        ambientOcclusionQuery.TraceRayInline(rtAS, rayFlags, ~0, ray);
 
-                // Test for collisions and add occlusion if there is at least one hit
-                ambientOcclusionQuery.Proceed();
+        //        // Test for collisions and add occlusion if there is at least one hit
+        //        ambientOcclusionQuery.Proceed();
 
-                if (ambientOcclusionQuery.CommittedStatus() == COMMITTED_TRIANGLE_HIT) {
-                    //rtOcclusion -= occlusionDegradation;
-                    rtOcclusion = ambientOcclusionQuery.CommittedRayT() / ray.TMax;
+        //        if (ambientOcclusionQuery.CommittedStatus() == COMMITTED_TRIANGLE_HIT) {
+        //            //rtOcclusion -= occlusionDegradation;
+        //            rtOcclusion = ambientOcclusionQuery.CommittedRayT() / ray.TMax;
+        //        }
+        ////    }
+        ////}
+
+        // Reflection single bounce WIP
+        // Shoot the ray from the origin of the visible pixel position from the depth buffer
+
+        float4 normalTest = mul(float4(normalizedNormal.xyz, 0.0), inverseView);
+        if (normalTest.x == 0.0 && normalTest.y == 1.0 && normalTest.z == 0.0) {
+        
+            ray.Origin             = mul(float4(position.xyz, 1.0), inverseView);
+            // Reflected ray from directional light hitting the surface material
+            float3 cameraPos       = mul(float4(inverseView[3][0], inverseView[3][1], inverseView[3][2], 1.0), inverseView);
+            float3 cameraDirection = normalize(ray.Origin - cameraPos);
+            ray.Direction          = (2.0f * cameraDirection * normalTest.xyz) - cameraDirection;
+            ray.TMin               = 0.1;
+            ray.TMax               = MAX_DEPTH;
+
+            RayQuery<RAY_FLAG_NONE> reflectionRayQuery;
+            reflectionRayQuery.TraceRayInline(rtAS, RAY_FLAG_NONE, ~0, ray);
+
+             //Transparency reflections
+            while (reflectionRayQuery.Proceed() == true) {
+                if (reflectionRayQuery.CandidateType() == CANDIDATE_NON_OPAQUE_TRIANGLE) {
+                    float  alphaValue   = 1.0f;
+                    float2 barycentrics = reflectionRayQuery.CandidateTriangleBarycentrics();
+
+                    if (reflectionRayQuery.CandidateInstanceID() == 1) {
+                        alphaValue = transparencyTexture1.Sample(textureSampler, barycentrics).a;
+                    }
+
+                    if (alphaValue > 0.1) {
+                        reflectionRayQuery.CommitNonOpaqueTriangleHit();
+                    }
                 }
-        //    }
-        //}
+            }
+
+            if (reflectionRayQuery.CommittedStatus() == COMMITTED_TRIANGLE_HIT) {
+                rtReflection = float3(0.0, 1.0, 0.0);
+            }
+            rtReflection = cameraPos;
+        }
     }
 #endif
 
@@ -318,9 +359,13 @@ PixelOut PS(float4 posH : SV_POSITION, float2 uv : UVOUT) {
         float depth = cameraDepthTexture.Sample(textureSampler, uv).x;
         //pixel.color = float4(depth, depth, depth, 1.0);
         //pixel.depth = 0.1;
-        pixel.color = float4(rtOcclusion + (depth * 0.00001),
-                             rtOcclusion + (depth * 0.00001),
-                             rtOcclusion + (depth * 0.00001),
+        //pixel.color = float4(rtOcclusion + (depth * 0.00001),
+        //                     rtOcclusion + (depth * 0.00001),
+        //                     rtOcclusion + (depth * 0.00001),
+        //                     1.0);
+        pixel.color = float4(rtReflection.x + (depth * 0.00001),
+                             rtReflection.y + (depth * 0.00001),
+                             rtReflection.z + (depth * 0.00001),
                              1.0);
     } else if (views == 7) {
         float2 screenPos = (2.0f * uv) - 1.0f;

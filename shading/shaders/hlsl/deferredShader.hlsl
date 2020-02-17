@@ -244,9 +244,10 @@ PixelOut PS(float4 posH : SV_POSITION, float2 uv : UVOUT) {
         
             ray.Origin             = mul(float4(position.xyz, 1.0), inverseView);
             // Reflected ray from directional light hitting the surface material
-            float3 cameraPos       = mul(float4(inverseView[3][0], inverseView[3][1], inverseView[3][2], 1.0), inverseView);
+            float3 cameraPos = float3(inverseView[3][0], inverseView[3][1], inverseView[3][2]);
+            
             float3 cameraDirection = normalize(ray.Origin - cameraPos);
-            ray.Direction          = (2.0f * cameraDirection * normalTest.xyz) - cameraDirection;
+            ray.Direction          = cameraDirection - (2.0f * dot(cameraDirection, normalTest.xyz) * normalTest.xyz);
             ray.TMin               = 0.1;
             ray.TMax               = MAX_DEPTH;
 
@@ -272,7 +273,6 @@ PixelOut PS(float4 posH : SV_POSITION, float2 uv : UVOUT) {
             if (reflectionRayQuery.CommittedStatus() == COMMITTED_TRIANGLE_HIT) {
                 rtReflection = float3(0.0, 1.0, 0.0);
             }
-            rtReflection = cameraPos;
         }
     }
 #endif
@@ -390,5 +390,10 @@ PixelOut PS(float4 posH : SV_POSITION, float2 uv : UVOUT) {
         pixel.color = float4(depth, depth, depth, 1.0);
         pixel.depth = 0.1;
     }
+
+    if (!(rtReflection.x == 0.0f && rtReflection.y == 0.0f && rtReflection.z == 0.0f)) {
+        pixel.color = float4(0.0, 1.0, 0.0, 1.0);
+    }
+
     return pixel;
 }

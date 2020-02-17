@@ -45,6 +45,7 @@ struct D3DBuffer {
     ComPtr<ID3D12Resource>      resource;
     D3D12_CPU_DESCRIPTOR_HANDLE cpuDescriptorHandle;
     D3D12_GPU_DESCRIPTOR_HANDLE gpuDescriptorHandle;
+    std::string                 nameId;
 };
 
 struct SceneConstantBuffer {
@@ -103,6 +104,7 @@ class RayTracingPipelineShader : public PipelineShader {
     ComPtr<ID3D12Resource>              _perFrameConstants;
     ComPtr<ID3D12Resource>              _rayGenShaderTable;
     RenderTexture*                      _raytracingOutput;
+    UINT                                _geometryDescSize;
     ComPtr<ID3D12Resource>              _missShaderTable;
     ComPtr<ID3D12Resource>              _scratchResource;
     ComPtr<ID3D12GraphicsCommandList4>  _dxrCommandList;
@@ -121,6 +123,9 @@ class RayTracingPipelineShader : public PipelineShader {
     ComPtr<ID3D12Device5>               _dxrDevice;
     ComPtr<ID3D12Resource>              _copiedAS;
     D3D12_UNORDERED_ACCESS_VIEW_DESC    _uavDesc;
+    D3D12_SHADER_RESOURCE_VIEW_DESC     _uvStructuredBuffer;
+    ComPtr<ID3D12DescriptorHeap>        _uvStructuredBufferDescHeap;
+    bool                                _initUvStructuredBuffer = false;
 
 public:
 
@@ -135,4 +140,5 @@ public:
     RenderTexture*                      getRayTracingTarget();
     ComPtr<ID3D12Resource>              getRTAS();
     std::map<Entity*, AssetTexture*>&   getTransparentTextures();
+    ComPtr<ID3D12DescriptorHeap>        getUVStructuredBuffer();
 };

@@ -184,6 +184,8 @@ void DeferredShader::runShader(std::vector<Light*>&  lights,
                                 GL_TEXTURE10 + texture.first->getRayTracingTextureId(),
                                 texture.second);
         }
+
+        _shader->updateStructuredBufferData("uvCoordinates", rtPipeline->getUVStructuredBuffer());
     }
 
     if (EngineManager::getGraphicsLayer() == GraphicsLayer::OPENGL) {

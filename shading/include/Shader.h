@@ -67,6 +67,9 @@ public:
                             ImageData   imageInfo) = 0;
     virtual void updateRTAS(std::string            id,
                             ComPtr<ID3D12Resource> rtAS) = 0;
+    virtual void updateStructuredBufferData(std::string                  id,
+                                            ComPtr<ID3D12DescriptorHeap> bufferDescriptorHeap) = 0;
+
     virtual void bindAttributes(VAO*    vao) = 0;
     virtual void unbindAttributes()          = 0;
     virtual void bind()                      = 0;

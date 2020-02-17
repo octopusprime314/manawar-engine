@@ -12,13 +12,20 @@ Texture2D   ssaoTexture        : register(t9); // Depth texture data array
 sampler     textureSampler     : register(s0);
 
 #if (USE_SHADER_MODEL_6_5 == 1)
+struct Vertex {
+    float3 pos;
+    float3 normal;
+    float2 uv;
+};
 // Raytracing Acceleration Structure
 RaytracingAccelerationStructure rtAS                 : register(t10);
 Texture2D                       transparencyTexture1 : register(t11); // transparency texture 1
-Texture2D                       transparencyTexture2 : register(t12); // transparency texture 2
-Texture2D                       transparencyTexture3 : register(t13); // transparency texture 3
-Texture2D                       transparencyTexture4 : register(t14); // transparency texture 4
-Texture2D                       transparencyTexture5 : register(t15); // transparency texture 5
+StructuredBuffer<Vertex>        uvCoordinates        : register(t12); // UV coordinates to shade reflections
+//Texture2D                       transparencyTexture2 : register(t13); // transparency texture 2
+//Texture2D                       transparencyTexture3 : register(t14); // transparency texture 3
+//Texture2D                       transparencyTexture4 : register(t15); // transparency texture 4
+//Texture2D                       transparencyTexture5 : register(t16); // transparency texture 5
+//Texture2D                       materialTextures[16] : register(t17); // All materials to shade reflections
 
 #define USE_FIRST_HIT_END_SEARCH_SHADOWS 1
 #endif
@@ -92,6 +99,19 @@ void GenerateCameraRay(float2 uv, out float3 origin, out float3 direction) {
     direction = lightDirection.xyz;
 }
 
+float2 GetTexCoord(float2 barycentrics, uint instanceContribution, uint primitiveIndex) {
+
+    float2 texCoord[3];
+
+    texCoord[0] = uvCoordinates.Load((primitiveIndex * 3) + 0).uv; //uvCoordinates[instanceContribution][primitiveIndex];
+    texCoord[1] = uvCoordinates.Load((primitiveIndex * 3) + 1).uv; // uvCoordinates[instanceContribution][primitiveIndex + 1];
+    texCoord[2] = uvCoordinates.Load((primitiveIndex * 3) + 2).uv; // uvCoordinates[instanceContribution][primitiveIndex + 2];
+
+    return (texCoord[0]                                  +
+            barycentrics.x * (texCoord[1] - texCoord[0]) +
+            barycentrics.y * (texCoord[2] - texCoord[0]));
+}
+
 PixelOut PS(float4 posH : SV_POSITION, float2 uv : UVOUT) {
 
     const float bias = 0.005; // removes shadow acne by adding a small bias
@@ -152,7 +172,7 @@ PixelOut PS(float4 posH : SV_POSITION, float2 uv : UVOUT) {
         // Shoot the ray in the reverse direction of the directional light
         rayDir = lightInCameraView;
         // Shoot the ray from the origin of the visible pixel position from the depth buffer
-        origin = mul(float4(position.xyz, 1.0), inverseView);
+        origin = mul(float4(position.xyz, 1.0), inverseView).xyz;
         // Only need to figure out if one triangle blocks the directional light source
         rayFlags |= RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH;
 #else
@@ -239,15 +259,15 @@ PixelOut PS(float4 posH : SV_POSITION, float2 uv : UVOUT) {
         // Reflection single bounce WIP
         // Shoot the ray from the origin of the visible pixel position from the depth buffer
 
-        float4 normalTest = mul(float4(normalizedNormal.xyz, 0.0), inverseView);
-        if (normalTest.x == 0.0 && normalTest.y == 1.0 && normalTest.z == 0.0) {
+        float4 normalWorldSpace = mul(float4(normalizedNormal.xyz, 0.0), inverseView);
+        if (normalWorldSpace.x == 0.0 && normalWorldSpace.y == 1.0 && normalWorldSpace.z == 0.0) {
         
-            ray.Origin             = mul(float4(position.xyz, 1.0), inverseView);
+            ray.Origin             = mul(float4(position.xyz, 1.0), inverseView).xyz;
             // Reflected ray from directional light hitting the surface material
             float3 cameraPos = float3(inverseView[3][0], inverseView[3][1], inverseView[3][2]);
             
             float3 cameraDirection = normalize(ray.Origin - cameraPos);
-            ray.Direction          = cameraDirection - (2.0f * dot(cameraDirection, normalTest.xyz) * normalTest.xyz);
+            ray.Direction = cameraDirection - (2.0f * dot(cameraDirection, normalWorldSpace.xyz) * normalWorldSpace.xyz);
             ray.TMin               = 0.1;
             ray.TMax               = MAX_DEPTH;
 
@@ -261,7 +281,11 @@ PixelOut PS(float4 posH : SV_POSITION, float2 uv : UVOUT) {
                     float2 barycentrics = reflectionRayQuery.CandidateTriangleBarycentrics();
 
                     if (reflectionRayQuery.CandidateInstanceID() == 1) {
-                        alphaValue = transparencyTexture1.Sample(textureSampler, barycentrics).a;
+                        //alphaValue = transparencyTexture1.Sample(textureSampler, barycentrics).a;
+                        float2 texCoord = GetTexCoord(reflectionRayQuery.CandidateTriangleBarycentrics(),
+                                                      reflectionRayQuery.CandidateInstanceID(),
+                                                      reflectionRayQuery.CandidatePrimitiveIndex());
+                        alphaValue      = transparencyTexture1.Sample(textureSampler, texCoord).a;
                     }
 
                     if (alphaValue > 0.1) {
@@ -271,7 +295,14 @@ PixelOut PS(float4 posH : SV_POSITION, float2 uv : UVOUT) {
             }
 
             if (reflectionRayQuery.CommittedStatus() == COMMITTED_TRIANGLE_HIT) {
-                rtReflection = float3(0.0, 1.0, 0.0);
+
+                if (reflectionRayQuery.CommittedInstanceID() == 1) {
+                    float2 texCoord = GetTexCoord(reflectionRayQuery.CommittedTriangleBarycentrics(),
+                                                  reflectionRayQuery.CommittedInstanceID(),
+                                                  reflectionRayQuery.CommittedPrimitiveIndex());
+                    //rtReflection    = float3(texCoord.xy, 0.0);
+                    rtReflection    = transparencyTexture1.Sample(textureSampler, texCoord).rgb;
+                }
             }
         }
     }
@@ -392,7 +423,7 @@ PixelOut PS(float4 posH : SV_POSITION, float2 uv : UVOUT) {
     }
 
     if (!(rtReflection.x == 0.0f && rtReflection.y == 0.0f && rtReflection.z == 0.0f)) {
-        pixel.color = float4(0.0, 1.0, 0.0, 1.0);
+        pixel.color = float4(rtReflection.rgb, 1.0);
     }
 
     return pixel;

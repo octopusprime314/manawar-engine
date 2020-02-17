@@ -370,6 +370,7 @@ void HLSLShader::build(std::vector<DXGI_FORMAT>* rtvs) {
     for (auto resource : _resourceDescriptorTable) {
         // SRV or Raytracing acceleration structure aka 12
         if (resource.second.Type == D3D_SHADER_INPUT_TYPE::D3D_SIT_TEXTURE ||
+            resource.second.Type == D3D_SHADER_INPUT_TYPE::D3D_SIT_STRUCTURED ||
             resource.second.Type == 12) {
             srvTableRange = new CD3DX12_DESCRIPTOR_RANGE();
             srvTableRange->Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, resource.second.uID);
@@ -768,6 +769,18 @@ void HLSLShader::updateRTAS(std::string            id,
 
     cmdList->SetGraphicsRootDescriptorTable(_resourceIndexes[id],
                                             _rtASDescriptorHeap->GetGPUDescriptorHandleForHeapStart());
+}
+
+void HLSLShader::updateStructuredBufferData(std::string                  id,
+                                            ComPtr<ID3D12DescriptorHeap> bufferDescriptorHeap) {
+
+    auto cmdList = DXLayer::instance()->getCmdList();
+
+    ID3D12DescriptorHeap* descriptorHeaps[] = {bufferDescriptorHeap.Get()};
+    cmdList->SetDescriptorHeaps(1, descriptorHeaps);
+
+    cmdList->SetGraphicsRootDescriptorTable(_resourceIndexes[id],
+                                            bufferDescriptorHeap->GetGPUDescriptorHandleForHeapStart());
 }
 
 void HLSLShader::updateData(std::string dataName,

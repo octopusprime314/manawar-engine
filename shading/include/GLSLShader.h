@@ -70,6 +70,8 @@ public:
                               int           z);
     void         updateRTAS(  std::string            id,
                               ComPtr<ID3D12Resource> rtAS) {};
+    void         updateStructuredBufferData(std::string                  id,
+                                            ComPtr<ID3D12DescriptorHeap> bufferDescriptorHeap) {};
     void         bindAttributes(VAO*                 vao);
     GLint        getLocation(   std::string          uniformName);
     void         unbindAttributes();

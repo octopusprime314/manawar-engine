@@ -199,7 +199,10 @@ PixelOut PS(float4 posH : SV_POSITION, float2 uv : UVOUT) {
                 float2 barycentrics = rayQuery.CandidateTriangleBarycentrics();
 
                 if (rayQuery.CandidateInstanceID() == 1) {
-                    alphaValue = transparencyTexture1.Sample(textureSampler, barycentrics).a;
+                    float2 texCoord = GetTexCoord(rayQuery.CandidateTriangleBarycentrics(),
+                                                  rayQuery.CandidateInstanceID(),
+                                                  rayQuery.CandidatePrimitiveIndex());
+                    alphaValue      = transparencyTexture1.Sample(textureSampler, texCoord).a;
                 }
 
                 if (alphaValue > 0.1) {
@@ -281,7 +284,6 @@ PixelOut PS(float4 posH : SV_POSITION, float2 uv : UVOUT) {
                     float2 barycentrics = reflectionRayQuery.CandidateTriangleBarycentrics();
 
                     if (reflectionRayQuery.CandidateInstanceID() == 1) {
-                        //alphaValue = transparencyTexture1.Sample(textureSampler, barycentrics).a;
                         float2 texCoord = GetTexCoord(reflectionRayQuery.CandidateTriangleBarycentrics(),
                                                       reflectionRayQuery.CandidateInstanceID(),
                                                       reflectionRayQuery.CandidatePrimitiveIndex());

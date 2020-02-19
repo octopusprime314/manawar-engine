@@ -40,6 +40,7 @@ cbuffer globalData : register(b0) {
     float4x4 viewToModelMatrix;
     float4x4 lightRayProjection;
     float4x4 lightMapViewMatrix;
+    float4x4 viewProjection;
     float3   pointLightColors[20];
     float    pointLightRanges[20];
     float4x4 lightProjectionMatrix;
@@ -103,9 +104,9 @@ float2 GetTexCoord(float2 barycentrics, uint instanceContribution, uint primitiv
 
     float2 texCoord[3];
 
-    texCoord[0] = uvCoordinates.Load((primitiveIndex * 3) + 0).uv; //uvCoordinates[instanceContribution][primitiveIndex];
-    texCoord[1] = uvCoordinates.Load((primitiveIndex * 3) + 1).uv; // uvCoordinates[instanceContribution][primitiveIndex + 1];
-    texCoord[2] = uvCoordinates.Load((primitiveIndex * 3) + 2).uv; // uvCoordinates[instanceContribution][primitiveIndex + 2];
+    texCoord[0] = uvCoordinates.Load((primitiveIndex * 3) + 0).uv;
+    texCoord[1] = uvCoordinates.Load((primitiveIndex * 3) + 1).uv;
+    texCoord[2] = uvCoordinates.Load((primitiveIndex * 3) + 2).uv;
 
     return (texCoord[0]                                  +
             barycentrics.x * (texCoord[1] - texCoord[0]) +
@@ -265,12 +266,12 @@ PixelOut PS(float4 posH : SV_POSITION, float2 uv : UVOUT) {
         float4 normalWorldSpace = mul(float4(normalizedNormal.xyz, 0.0), inverseView);
         if (normalWorldSpace.x == 0.0 && normalWorldSpace.y == 1.0 && normalWorldSpace.z == 0.0) {
         
-            ray.Origin             = mul(float4(position.xyz, 1.0), inverseView).xyz;
+            ray.Origin       = mul(float4(position.xyz, 1.0), inverseView).xyz;
             // Reflected ray from directional light hitting the surface material
             float3 cameraPos = float3(inverseView[3][0], inverseView[3][1], inverseView[3][2]);
             
             float3 cameraDirection = normalize(ray.Origin - cameraPos);
-            ray.Direction = cameraDirection - (2.0f * dot(cameraDirection, normalWorldSpace.xyz) * normalWorldSpace.xyz);
+            ray.Direction          = cameraDirection - (2.0f * dot(cameraDirection, normalWorldSpace.xyz) * normalWorldSpace.xyz);
             ray.TMin               = 0.1;
             ray.TMax               = MAX_DEPTH;
 
@@ -304,6 +305,13 @@ PixelOut PS(float4 posH : SV_POSITION, float2 uv : UVOUT) {
                                                   reflectionRayQuery.CommittedPrimitiveIndex());
                     //rtReflection    = float3(texCoord.xy, 0.0);
                     rtReflection    = transparencyTexture1.Sample(textureSampler, texCoord).rgb;
+
+                    // shadows for reflections uggghh gross
+                    float3 hitPosition = reflectionRayQuery.WorldRayOrigin() +
+                                         (reflectionRayQuery.CommittedRayT() * reflectionRayQuery.WorldRayDirection());
+
+                    float4   clipSpace     = mul(float4(hitPosition, 1), viewProjection);
+                    rtDepth                = clipSpace.z;
                 }
             }
         }

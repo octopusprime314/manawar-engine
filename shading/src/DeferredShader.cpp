@@ -169,6 +169,8 @@ void DeferredShader::runShader(std::vector<Light*>&  lights,
                         lights[0]->getLightMVP().getModelMatrix()).inverse();
 
     _shader->updateData("lightRayProjection", inverseProj.getFlatBuffer());
+    _shader->updateData("viewProjection",
+                        (viewEventDistributor->getView() * viewEventDistributor->getProjection()).getFlatBuffer());
 
     RayTracingPipelineShader* rtPipeline = EngineManager::getRTPipeline();
 

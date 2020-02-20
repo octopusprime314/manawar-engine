@@ -20,7 +20,7 @@ struct Vertex {
 // Raytracing Acceleration Structure
 RaytracingAccelerationStructure rtAS                 : register(t10);
 Texture2D                       transparencyTexture1 : register(t11); // transparency texture 1
-StructuredBuffer<Vertex>        uvCoordinates        : register(t12); // UV coordinates to shade reflections
+StructuredBuffer<Vertex>        vertexBuffer        : register(t12); // UV coordinates to shade reflections
 //Texture2D                       transparencyTexture2 : register(t13); // transparency texture 2
 //Texture2D                       transparencyTexture3 : register(t14); // transparency texture 3
 //Texture2D                       transparencyTexture4 : register(t15); // transparency texture 4
@@ -104,13 +104,27 @@ float2 GetTexCoord(float2 barycentrics, uint instanceContribution, uint primitiv
 
     float2 texCoord[3];
 
-    texCoord[0] = uvCoordinates.Load((primitiveIndex * 3) + 0).uv;
-    texCoord[1] = uvCoordinates.Load((primitiveIndex * 3) + 1).uv;
-    texCoord[2] = uvCoordinates.Load((primitiveIndex * 3) + 2).uv;
+    texCoord[0] = vertexBuffer.Load((primitiveIndex * 3) + 0).uv;
+    texCoord[1] = vertexBuffer.Load((primitiveIndex * 3) + 1).uv;
+    texCoord[2] = vertexBuffer.Load((primitiveIndex * 3) + 2).uv;
 
     return (texCoord[0]                                  +
             barycentrics.x * (texCoord[1] - texCoord[0]) +
             barycentrics.y * (texCoord[2] - texCoord[0]));
+}
+
+float3 GetNormal(uint primitiveIndex) {
+
+    float3 normal[3];
+
+    normal[0] = vertexBuffer.Load((primitiveIndex * 3) + 0).normal;
+    normal[1] = vertexBuffer.Load((primitiveIndex * 3) + 1).normal;
+    normal[2] = vertexBuffer.Load((primitiveIndex * 3) + 2).normal;
+
+    // average the normals maybe or take one of the normals?
+    //float3 averagedNormal = (normal[0] + normal[1] + normal[2]) / 3.0f;
+    float3 averagedNormal = normal[0];
+    return averagedNormal;
 }
 
 PixelOut PS(float4 posH : SV_POSITION, float2 uv : UVOUT) {
@@ -163,6 +177,7 @@ PixelOut PS(float4 posH : SV_POSITION, float2 uv : UVOUT) {
     float3 origin;
     float  rtOcclusion  = 1.0;
     float3 rtReflection = float3(0.0, 0.0, 0.0);
+    float3 rayIllumination = float3(0.0, 0.0, 0.0);
 
 #if (USE_SHADER_MODEL_6_5 == 1)
 
@@ -312,6 +327,15 @@ PixelOut PS(float4 posH : SV_POSITION, float2 uv : UVOUT) {
 
                     float4   clipSpace     = mul(float4(hitPosition, 1), viewProjection);
                     rtDepth                = clipSpace.z;
+
+                    float3 worldSpaceNormal =
+                        normalize(GetNormal(reflectionRayQuery.CommittedPrimitiveIndex()));
+
+                    float3 viewSpaceNormal   =
+                        normalize(float3(mul(float4(worldSpaceNormal, 0.0), normalMatrix).xyz));
+
+                    rayIllumination = worldSpaceNormal;
+                    //dot(lightInCameraView, viewSpaceNormal);
                 }
             }
         }
@@ -404,9 +428,13 @@ PixelOut PS(float4 posH : SV_POSITION, float2 uv : UVOUT) {
         //                     rtOcclusion + (depth * 0.00001),
         //                     rtOcclusion + (depth * 0.00001),
         //                     1.0);
-        pixel.color = float4(rtReflection.x + (depth * 0.00001),
-                             rtReflection.y + (depth * 0.00001),
-                             rtReflection.z + (depth * 0.00001),
+        //pixel.color = float4(rtReflection.x + (depth * 0.00001),
+        //                     rtReflection.y + (depth * 0.00001),
+        //                     rtReflection.z + (depth * 0.00001),
+        //                     1.0);
+        pixel.color = float4(rayIllumination.x + (depth * 0.00001),
+                             rayIllumination.y + (depth * 0.00001),
+                             rayIllumination.z + (depth * 0.00001),
                              1.0);
     } else if (views == 7) {
         float2 screenPos = (2.0f * uv) - 1.0f;
@@ -432,8 +460,15 @@ PixelOut PS(float4 posH : SV_POSITION, float2 uv : UVOUT) {
         pixel.depth = 0.1;
     }
 
-    if (!(rtReflection.x == 0.0f && rtReflection.y == 0.0f && rtReflection.z == 0.0f)) {
-        pixel.color = float4(rtReflection.rgb, 1.0);
+    if (!(rtReflection.x == 0.0f && rtReflection.y == 0.0f && rtReflection.z == 0.0f) &&
+        views == 0) {
+        
+        float rtDirectionalShadow = 1.0;
+        //if (rtDepth < shadowMapping.z - bias) {
+        //    rtDirectionalShadow = shadowEffect;
+        //}
+        pixel.color = float4((rayIllumination * rtReflection.rgb * rtDirectionalShadow), 1.0);
+        //pixel.color = float4(rtReflection.rgb, 1.0);
     }
 
     return pixel;

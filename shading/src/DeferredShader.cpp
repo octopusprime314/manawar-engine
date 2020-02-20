@@ -187,7 +187,7 @@ void DeferredShader::runShader(std::vector<Light*>&  lights,
                                 texture.second);
         }
 
-        _shader->updateStructuredBufferData("uvCoordinates", rtPipeline->getUVStructuredBuffer());
+        _shader->updateStructuredBufferData("vertexBuffer", rtPipeline->getUVStructuredBuffer());
     }
 
     if (EngineManager::getGraphicsLayer() == GraphicsLayer::OPENGL) {

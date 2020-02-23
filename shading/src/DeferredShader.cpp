@@ -183,7 +183,7 @@ void DeferredShader::runShader(std::vector<Light*>&  lights,
 
         for (auto texture : transparentTextures) {
             _shader->updateData("transparencyTexture" + std::to_string(texture.first->getRayTracingTextureId()),
-                                GL_TEXTURE10 + texture.first->getRayTracingTextureId(),
+                                GL_TEXTURE11 + texture.first->getRayTracingTextureId(),
                                 texture.second);
         }
 

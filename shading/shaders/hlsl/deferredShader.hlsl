@@ -1,15 +1,15 @@
 // Object Declarations
-Texture2D   diffuseTexture     : register(t0); // Diffuse texture data array
-Texture2D   normalTexture      : register(t1); // Normal texture data array
-Texture2D   velocityTexture    : register(t2); // Velocity texture data array
-Texture2D   depthTexture       : register(t3); // Depth texture data array
+Texture2D   diffuseTexture : register(t0);     // Diffuse texture data array
+Texture2D   normalTexture : register(t1);      // Normal texture data array
+Texture2D   velocityTexture : register(t2);    // Velocity texture data array
+Texture2D   depthTexture : register(t3);       // Depth texture data array
 Texture2D   cameraDepthTexture : register(t4); // Depth texture data array
-Texture2D   mapDepthTexture    : register(t5); // Depth texture data array
-TextureCube depthMap           : register(t6); // Cube depth map for point light shadows
-TextureCube skyboxDayTexture   : register(t7); // Skybox day
+Texture2D   mapDepthTexture : register(t5);    // Depth texture data array
+TextureCube depthMap : register(t6);           // Cube depth map for point light shadows
+TextureCube skyboxDayTexture : register(t7);   // Skybox day
 TextureCube skyboxNightTexture : register(t8); // Skybox night
-Texture2D   ssaoTexture        : register(t9); // Depth texture data array
-sampler     textureSampler     : register(s0);
+Texture2D   ssaoTexture : register(t9);        // Depth texture data array
+sampler     textureSampler : register(s0);
 
 #if (USE_SHADER_MODEL_6_5 == 1)
 struct Vertex {
@@ -18,14 +18,14 @@ struct Vertex {
     float2 uv;
 };
 // Raytracing Acceleration Structure
-RaytracingAccelerationStructure rtAS                 : register(t10);
-Texture2D                       transparencyTexture1 : register(t11); // transparency texture 1
-StructuredBuffer<Vertex>        vertexBuffer        : register(t12); // UV coordinates to shade reflections
-//Texture2D                       transparencyTexture2 : register(t13); // transparency texture 2
-//Texture2D                       transparencyTexture3 : register(t14); // transparency texture 3
-//Texture2D                       transparencyTexture4 : register(t15); // transparency texture 4
-//Texture2D                       transparencyTexture5 : register(t16); // transparency texture 5
-//Texture2D                       materialTextures[16] : register(t17); // All materials to shade reflections
+RaytracingAccelerationStructure rtAS : register(t10);
+StructuredBuffer<Vertex>        vertexBuffer : register(t11);         // UV coordinates to shade reflections
+Texture2D                       transparencyTexture1 : register(t12); // transparency texture 1
+Texture2D                       transparencyTexture2 : register(t13); // transparency texture 2
+Texture2D                       transparencyTexture3 : register(t14); // transparency texture 3
+// Texture2D                       transparencyTexture4 : register(t15); // transparency texture 4
+// Texture2D                       transparencyTexture5 : register(t16); // transparency texture 5
+// Texture2D                       materialTextures[16] : register(t17); // All materials to shade reflections
 
 #define USE_FIRST_HIT_END_SEARCH_SHADOWS 1
 #endif
@@ -48,10 +48,10 @@ cbuffer globalData : register(b0) {
     float3   pointLightPositions[20];
 }
 
-static const float2 poissonDisk[4] = { float2(-0.94201624,  -0.39906216),
-                                       float2( 0.94558609,  -0.76890725),
-                                       float2(-0.094184101, -0.92938870),
-                                       float2( 0.34495938,   0.29387760) };
+static const float2 poissonDisk[4] = {float2(-0.94201624, -0.39906216),
+                                      float2(0.94558609, -0.76890725),
+                                      float2(-0.094184101, -0.92938870),
+                                      float2(0.34495938, 0.29387760)};
 
 static const float shadowEffect = 0.6;
 static const float ambient      = 0.3;
@@ -78,10 +78,10 @@ void VS(uint id : SV_VERTEXID, out float4 outPosition : SV_POSITION, out float2 
     outUV.y       = 1.0 - (float)(id % 2) * 2.0;
 }
 struct PixelOut {
-    float4 color : SV_Target0;
+    float4 color  : SV_Target0;
     float4 debug0 : SV_Target1;
     float4 debug1 : SV_Target2;
-    float  depth : SV_Depth;
+    float  depth  : SV_Depth;
 };
 
 // Generate a ray in world space for a camera pixel corresponding to an index from the dispatched 2D grid.
@@ -108,9 +108,7 @@ float2 GetTexCoord(float2 barycentrics, uint instanceContribution, uint primitiv
     texCoord[1] = vertexBuffer.Load((primitiveIndex * 3) + 1).uv;
     texCoord[2] = vertexBuffer.Load((primitiveIndex * 3) + 2).uv;
 
-    return (texCoord[0]                                  +
-            barycentrics.x * (texCoord[1] - texCoord[0]) +
-            barycentrics.y * (texCoord[2] - texCoord[0]));
+    return (texCoord[0] + barycentrics.x * (texCoord[1] - texCoord[0]) + barycentrics.y * (texCoord[2] - texCoord[0]));
 }
 
 float3 GetNormal(uint primitiveIndex) {
@@ -122,7 +120,7 @@ float3 GetNormal(uint primitiveIndex) {
     normal[2] = vertexBuffer.Load((primitiveIndex * 3) + 2).normal;
 
     // average the normals maybe or take one of the normals?
-    //float3 averagedNormal = (normal[0] + normal[1] + normal[2]) / 3.0f;
+    // float3 averagedNormal = (normal[0] + normal[1] + normal[2]) / 3.0f;
     float3 averagedNormal = normal[0];
     return averagedNormal;
 }
@@ -131,23 +129,20 @@ PixelOut PS(float4 posH : SV_POSITION, float2 uv : UVOUT) {
 
     const float bias = 0.005; // removes shadow acne by adding a small bias
 
-    PixelOut pixel = {float4(0.0, 0.0, 0.0, 0.0),
-                      float4(0.0, 0.0, 0.0, 0.0),
-                      float4(0.0, 0.0, 0.0, 0.0),
-                      1.0};
+    PixelOut pixel = {float4(0.0, 0.0, 0.0, 0.0), float4(0.0, 0.0, 0.0, 0.0), float4(0.0, 0.0, 0.0, 0.0), 1.0};
 
     // extract position from depth texture
-    float4 position         = float4(decodeLocation(uv), 1.0);
+    float4 position = float4(decodeLocation(uv), 1.0);
     // extract normal from normal texture
     float4 normal           = normalTexture.Sample(textureSampler, uv);
     float3 normalizedNormal = normalize(normal.xyz);
     // extract color from diffuse texture
-    float4 diffuse          = diffuseTexture.Sample(textureSampler, uv);
+    float4 diffuse = diffuseTexture.Sample(textureSampler, uv);
     // extract 2d velocity buffer
-    float2 velocity         = velocityTexture.Sample(textureSampler, uv).rg;
-    float  occlusion        = ssaoTexture.Sample(textureSampler, uv).r;
+    float2 velocity  = velocityTexture.Sample(textureSampler, uv).rg;
+    float  occlusion = ssaoTexture.Sample(textureSampler, uv).r;
     // blit depth
-    pixel.depth             = depthTexture.Sample(textureSampler, uv).r;
+    pixel.depth = depthTexture.Sample(textureSampler, uv).r;
 
     // Directional light calculation
     float3 normalizedLight   = normalize(lightDirection);
@@ -175,13 +170,13 @@ PixelOut PS(float4 posH : SV_POSITION, float2 uv : UVOUT) {
 
     float3 rayDir;
     float3 origin;
-    float  rtOcclusion  = 1.0;
-    float3 rtReflection = float3(0.0, 0.0, 0.0);
-    float3 rayIllumination = float3(0.0, 0.0, 0.0);
+    float  rtOcclusion     = 1.0;
+    float3 rtReflection    = float3(0.0, 0.0, 0.0);
+    float  rayIllumination = 1.0f;
 
 #if (USE_SHADER_MODEL_6_5 == 1)
 
-    if (!((normal.x == 0.0) && (normal.y == 0.0) && (normal.z == 0.0))) {
+    //if (!((normal.x == 0.0) && (normal.y == 0.0) && (normal.z == 0.0))) {
 
         uint rayFlags = RAY_FLAG_NONE;
 #if USE_FIRST_HIT_END_SEARCH_SHADOWS
@@ -218,7 +213,19 @@ PixelOut PS(float4 posH : SV_POSITION, float2 uv : UVOUT) {
                     float2 texCoord = GetTexCoord(rayQuery.CandidateTriangleBarycentrics(),
                                                   rayQuery.CandidateInstanceID(),
                                                   rayQuery.CandidatePrimitiveIndex());
-                    alphaValue      = transparencyTexture1.Sample(textureSampler, texCoord).a;
+                    alphaValue      = transparencyTexture1.SampleLevel(textureSampler, texCoord, 0).a;
+                }
+                else if (rayQuery.CandidateInstanceID() == 2) {
+                    float2 texCoord = GetTexCoord(rayQuery.CandidateTriangleBarycentrics(),
+                                                  rayQuery.CandidateInstanceID(),
+                                                  rayQuery.CandidatePrimitiveIndex());
+                    alphaValue      = transparencyTexture2.SampleLevel(textureSampler, texCoord, 0).a;
+                }
+                else if (rayQuery.CandidateInstanceID() == 3) {
+                    float2 texCoord = GetTexCoord(rayQuery.CandidateTriangleBarycentrics(),
+                                                  rayQuery.CandidateInstanceID(),
+                                                  rayQuery.CandidatePrimitiveIndex());
+                    alphaValue      = transparencyTexture3.SampleLevel(textureSampler, texCoord, 0).a;
                 }
 
                 if (alphaValue > 0.1) {
@@ -241,19 +248,19 @@ PixelOut PS(float4 posH : SV_POSITION, float2 uv : UVOUT) {
 
         // AMBIENT OCCLUSION WIP
         //// Shoot short rays around hemisphere of the pixel's normal
-        //const uint ambientOcclusionRayKernelSize = 2;
+        // const uint ambientOcclusionRayKernelSize = 2;
         //// Always same origin and ray length
-        //ray.Origin = origin;
-        //ray.TMax   = 25;
+        // ray.Origin = origin;
+        // ray.TMax   = 25;
         //// Zero out ray flags and occlude transparent geometry and try first hit end search
-        //rayFlags   = RAY_FLAG_CULL_NON_OPAQUE | RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH;
+        // rayFlags   = RAY_FLAG_CULL_NON_OPAQUE | RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH;
 
-        //const float degreeOffset         = 180.0f       / ambientOcclusionRayKernelSize;
-        //const float degreeStart          = degreeOffset / 2.0f;
-        //const float occlusionDegradation = 1.0f         / (ambientOcclusionRayKernelSize * 2.0f);
+        // const float degreeOffset         = 180.0f       / ambientOcclusionRayKernelSize;
+        // const float degreeStart          = degreeOffset / 2.0f;
+        // const float occlusionDegradation = 1.0f         / (ambientOcclusionRayKernelSize * 2.0f);
         ////for (int x = 0; x < ambientOcclusionRayKernelSize; x++) {
         ////    for (int y = 0; y < ambientOcclusionRayKernelSize; y++) {
-        ////        
+        ////
         ////        float  xRot         = radians(degreeStart + (x * degreeOffset));
         ////        float  yRot         = radians(degreeStart + (y * degreeOffset));
         ////        ray.Direction       = float3(normalizedNormal.x * cos(xRot),
@@ -279,67 +286,86 @@ PixelOut PS(float4 posH : SV_POSITION, float2 uv : UVOUT) {
         // Shoot the ray from the origin of the visible pixel position from the depth buffer
 
         float4 normalWorldSpace = mul(float4(normalizedNormal.xyz, 0.0), inverseView);
-        if (normalWorldSpace.x == 0.0 && normalWorldSpace.y == 1.0 && normalWorldSpace.z == 0.0) {
-        
-            ray.Origin       = mul(float4(position.xyz, 1.0), inverseView).xyz;
-            // Reflected ray from directional light hitting the surface material
-            float3 cameraPos = float3(inverseView[3][0], inverseView[3][1], inverseView[3][2]);
-            
-            float3 cameraDirection = normalize(ray.Origin - cameraPos);
-            ray.Direction          = cameraDirection - (2.0f * dot(cameraDirection, normalWorldSpace.xyz) * normalWorldSpace.xyz);
-            ray.TMin               = 0.1;
-            ray.TMax               = MAX_DEPTH;
+        // if (normalWorldSpace.x == 0.0 && normalWorldSpace.y == 1.0 && normalWorldSpace.z == 0.0) {
 
-            RayQuery<RAY_FLAG_NONE> reflectionRayQuery;
-            reflectionRayQuery.TraceRayInline(rtAS, RAY_FLAG_NONE, ~0, ray);
+        ray.Origin = mul(float4(position.xyz, 1.0), inverseView).xyz;
+        // Reflected ray from directional light hitting the surface material
+        float3 cameraPos = float3(inverseView[3][0], inverseView[3][1], inverseView[3][2]);
 
-             //Transparency reflections
-            while (reflectionRayQuery.Proceed() == true) {
-                if (reflectionRayQuery.CandidateType() == CANDIDATE_NON_OPAQUE_TRIANGLE) {
-                    float  alphaValue   = 1.0f;
-                    float2 barycentrics = reflectionRayQuery.CandidateTriangleBarycentrics();
+        float3 cameraDirection = normalize(ray.Origin - cameraPos);
+        ray.Direction = cameraDirection - (2.0f * dot(cameraDirection, normalWorldSpace.xyz) * normalWorldSpace.xyz);
+        ray.TMin      = 0.1;
+        ray.TMax      = MAX_DEPTH;
 
-                    if (reflectionRayQuery.CandidateInstanceID() == 1) {
-                        float2 texCoord = GetTexCoord(reflectionRayQuery.CandidateTriangleBarycentrics(),
-                                                      reflectionRayQuery.CandidateInstanceID(),
-                                                      reflectionRayQuery.CandidatePrimitiveIndex());
-                        alphaValue      = transparencyTexture1.Sample(textureSampler, texCoord).a;
-                    }
+        RayQuery<RAY_FLAG_NONE> reflectionRayQuery;
+        reflectionRayQuery.TraceRayInline(rtAS, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, ~0, ray);
 
-                    if (alphaValue > 0.1) {
-                        reflectionRayQuery.CommitNonOpaqueTriangleHit();
-                    }
+        // Transparency reflections
+        while (reflectionRayQuery.Proceed() == true) {
+            if (reflectionRayQuery.CandidateType() == CANDIDATE_NON_OPAQUE_TRIANGLE) {
+                float  alphaValue   = 1.0f;
+                float2 barycentrics = reflectionRayQuery.CandidateTriangleBarycentrics();
+
+                if (reflectionRayQuery.CandidateInstanceID() == 1) {
+                    float2 texCoord = GetTexCoord(reflectionRayQuery.CandidateTriangleBarycentrics(),
+                                                  reflectionRayQuery.CandidateInstanceID(),
+                                                  reflectionRayQuery.CandidatePrimitiveIndex());
+                    // Force mip sample level to 0 because this is ray tracing
+                    alphaValue      = transparencyTexture1.SampleLevel(textureSampler, texCoord, 0).a;
                 }
-            }
 
-            if (reflectionRayQuery.CommittedStatus() == COMMITTED_TRIANGLE_HIT) {
-
-                if (reflectionRayQuery.CommittedInstanceID() == 1) {
-                    float2 texCoord = GetTexCoord(reflectionRayQuery.CommittedTriangleBarycentrics(),
-                                                  reflectionRayQuery.CommittedInstanceID(),
-                                                  reflectionRayQuery.CommittedPrimitiveIndex());
-                    //rtReflection    = float3(texCoord.xy, 0.0);
-                    rtReflection    = transparencyTexture1.Sample(textureSampler, texCoord).rgb;
-
-                    // shadows for reflections uggghh gross
-                    float3 hitPosition = reflectionRayQuery.WorldRayOrigin() +
-                                         (reflectionRayQuery.CommittedRayT() * reflectionRayQuery.WorldRayDirection());
-
-                    float4   clipSpace     = mul(float4(hitPosition, 1), viewProjection);
-                    rtDepth                = clipSpace.z;
-
-                    float3 worldSpaceNormal =
-                        normalize(GetNormal(reflectionRayQuery.CommittedPrimitiveIndex()));
-
-                    float3 viewSpaceNormal   =
-                        normalize(float3(mul(float4(worldSpaceNormal, 0.0), normalMatrix).xyz));
-
-                    rayIllumination = worldSpaceNormal;
-                    //dot(lightInCameraView, viewSpaceNormal);
+                if (alphaValue > 0.1) {
+                    reflectionRayQuery.CommitNonOpaqueTriangleHit();
                 }
             }
         }
-    }
+
+        if (reflectionRayQuery.CommittedStatus() == COMMITTED_TRIANGLE_HIT) {
+
+            uint primIndex = reflectionRayQuery.CommittedPrimitiveIndex();
+            if (reflectionRayQuery.CommittedInstanceID() == 1) {
+                float2 texCoord = GetTexCoord(reflectionRayQuery.CommittedTriangleBarycentrics(),
+                                              reflectionRayQuery.CommittedInstanceID(),
+                                              primIndex);
+
+                rtReflection = transparencyTexture1.Sample(textureSampler, texCoord).rgb;
+
+                // shadows for reflections uggghh gross
+                float3 hitPosition = reflectionRayQuery.WorldRayOrigin() +
+                                     (reflectionRayQuery.CommittedRayT() * reflectionRayQuery.WorldRayDirection());
+
+                float4 clipSpace = mul(float4(hitPosition, 1), viewProjection);
+                rtDepth          = clipSpace.z;
+
+                float3 worldSpaceNormal = normalize(GetNormal(reflectionRayQuery.CommittedPrimitiveIndex()));
+
+                float3 viewSpaceNormal = normalize(float3(mul(float4(-worldSpaceNormal, 0.0), normalMatrix).xyz));
+
+                // rayIllumination = worldSpaceNormal;
+                rayIllumination = dot(lightInCameraView, viewSpaceNormal);
+
+                //uint  prim   = reflectionRayQuery.CommittedPrimitiveIndex();
+                //uint  geom   = reflectionRayQuery.CommittedGeometryIndex();
+                //float cr     = (((prim + 23) % 11) + 1) / 11.f;
+                //float cg     = (((prim + 16) % 12) + 1) / 12.f;
+                //float cb     = (((prim +  7) % 10) + 1) / 10.f;
+                ////rtReflection = float3(cr, cg, cb);
+                ////pixel.debug0 = float4(reflectionRayQuery.CommittedRayT(), prim, geom, 1.0f);
+                //float3 vertex0 = vertexBuffer.Load((prim * 3) + 0).pos;
+                //float3 vertex1 = vertexBuffer.Load((prim * 3) + 1).pos;
+                //float3 vertex2 = vertexBuffer.Load((prim * 3) + 2).pos;
+                //float3 centroidOfTri = (vertex0 + vertex1 + vertex2) / 3.0f;
+                //pixel.debug0         = float4(centroidOfTri.x, centroidOfTri.y, centroidOfTri.z, 1.0f);
+                //
+                //vertex0              = vertexBuffer.Load((prim * 3) + 3).pos;
+                //vertex1              = vertexBuffer.Load((prim * 3) + 4).pos;
+                //vertex2              = vertexBuffer.Load((prim * 3) + 5).pos;
+                //centroidOfTri        = (vertex0 + vertex1 + vertex2) / 3.0f;
+                //pixel.debug1         = float4(centroidOfTri.x, centroidOfTri.y, centroidOfTri.z, 1.0f);
+
+            }
+        }
+//    }
 #endif
 
     if (views == 0) {
@@ -422,19 +448,19 @@ PixelOut PS(float4 posH : SV_POSITION, float2 uv : UVOUT) {
         // pixel.color = float4(rtOcclusion, rtOcclusion, rtOcclusion, 1.0);
     } else if (views == 6) {
         float depth = cameraDepthTexture.Sample(textureSampler, uv).x;
-        //pixel.color = float4(depth, depth, depth, 1.0);
-        //pixel.depth = 0.1;
-        //pixel.color = float4(rtOcclusion + (depth * 0.00001),
+        // pixel.color = float4(depth, depth, depth, 1.0);
+        // pixel.depth = 0.1;
+        // pixel.color = float4(rtOcclusion + (depth * 0.00001),
         //                     rtOcclusion + (depth * 0.00001),
         //                     rtOcclusion + (depth * 0.00001),
         //                     1.0);
-        //pixel.color = float4(rtReflection.x + (depth * 0.00001),
+        // pixel.color = float4(rtReflection.x + (depth * 0.00001),
         //                     rtReflection.y + (depth * 0.00001),
         //                     rtReflection.z + (depth * 0.00001),
         //                     1.0);
-        pixel.color = float4(rayIllumination.x + (depth * 0.00001),
-                             rayIllumination.y + (depth * 0.00001),
-                             rayIllumination.z + (depth * 0.00001),
+        pixel.color = float4(rayIllumination + (depth * 0.00001),
+                             rayIllumination + (depth * 0.00001),
+                             rayIllumination + (depth * 0.00001),
                              1.0);
     } else if (views == 7) {
         float2 screenPos = (2.0f * uv) - 1.0f;
@@ -460,15 +486,14 @@ PixelOut PS(float4 posH : SV_POSITION, float2 uv : UVOUT) {
         pixel.depth = 0.1;
     }
 
-    if (!(rtReflection.x == 0.0f && rtReflection.y == 0.0f && rtReflection.z == 0.0f) &&
-        views == 0) {
-        
+    if (!(rtReflection.x == 0.0f && rtReflection.y == 0.0f && rtReflection.z == 0.0f) && views == 0) {
+
         float rtDirectionalShadow = 1.0;
         //if (rtDepth < shadowMapping.z - bias) {
         //    rtDirectionalShadow = shadowEffect;
         //}
-        pixel.color = float4((rayIllumination * rtReflection.rgb * rtDirectionalShadow), 1.0);
-        //pixel.color = float4(rtReflection.rgb, 1.0);
+        pixel.color = float4((rtReflection.rgb * rtDirectionalShadow * rayIllumination), 1.0);
+        // pixel.color = float4(rtReflection.rgb, 1.0);
     }
 
     return pixel;

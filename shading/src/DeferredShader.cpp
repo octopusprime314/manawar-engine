@@ -121,8 +121,7 @@ void DeferredShader::runShader(std::vector<Light*>&  lights,
 
     _shader->updateData("viewToModelMatrix",      viewToModelSpace.getFlatBuffer());
     _shader->updateData("projectionToViewMatrix", projectionToViewSpace.getFlatBuffer());
-    _shader->updateData("inverseView",            viewToModelSpace.getFlatBuffer());
-    _shader->updateData("inverseProjection",      projectionToViewSpace.getFlatBuffer());
+    _shader->updateData("viewMatrix",             viewEventDistributor->getView().getFlatBuffer());
 
     auto viewState = viewEventDistributor->getViewState();
     _shader->updateData("views", &viewState);

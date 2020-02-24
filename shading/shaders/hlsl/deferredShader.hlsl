@@ -78,10 +78,10 @@ void VS(uint id : SV_VERTEXID, out float4 outPosition : SV_POSITION, out float2 
     outUV.y       = 1.0 - (float)(id % 2) * 2.0;
 }
 struct PixelOut {
-    float4 color  : SV_Target0;
+    float4 color : SV_Target0;
     float4 debug0 : SV_Target1;
     float4 debug1 : SV_Target2;
-    float  depth  : SV_Depth;
+    float  depth : SV_Depth;
 };
 
 // Generate a ray in world space for a camera pixel corresponding to an index from the dispatched 2D grid.
@@ -118,33 +118,32 @@ float3 GetNormal(uint primitiveIndex) {
     normal[0] = vertexBuffer.Load((primitiveIndex * 3) + 0).normal;
 
     // average the normals maybe or take one of the normals?
-    //normal[1] = vertexBuffer.Load((primitiveIndex * 3) + 1).normal;
-    //normal[2] = vertexBuffer.Load((primitiveIndex * 3) + 2).normal;
-    //float3 averagedNormal = (normal[0] + normal[1] + normal[2]) / 3.0f;
+    // normal[1] = vertexBuffer.Load((primitiveIndex * 3) + 1).normal;
+    // normal[2] = vertexBuffer.Load((primitiveIndex * 3) + 2).normal;
+    // float3 averagedNormal = (normal[0] + normal[1] + normal[2]) / 3.0f;
 
     return normal[0];
 }
 
-PixelOut DebugCode(RayQuery<RAY_FLAG_NONE> rayQuery,
-                   PixelOut                pixel) {
+PixelOut DebugCode(RayQuery<RAY_FLAG_NONE> rayQuery, PixelOut pixel) {
 
-    uint  prim   = rayQuery.CommittedPrimitiveIndex();
-    uint  geom   = rayQuery.CommittedGeometryIndex();
-    float cr     = (((prim + 23) % 11) + 1) / 11.f;
-    float cg     = (((prim + 16) % 12) + 1) / 12.f;
-    float cb     = (((prim +  7) % 10) + 1) / 10.f;
+    uint  prim = rayQuery.CommittedPrimitiveIndex();
+    uint  geom = rayQuery.CommittedGeometryIndex();
+    float cr   = (((prim + 23) % 11) + 1) / 11.f;
+    float cg   = (((prim + 16) % 12) + 1) / 12.f;
+    float cb   = (((prim + 7) % 10) + 1) / 10.f;
 
-    float3 vertex0 = vertexBuffer.Load((prim * 3) + 0).pos;
-    float3 vertex1 = vertexBuffer.Load((prim * 3) + 1).pos;
-    float3 vertex2 = vertexBuffer.Load((prim * 3) + 2).pos;
+    float3 vertex0       = vertexBuffer.Load((prim * 3) + 0).pos;
+    float3 vertex1       = vertexBuffer.Load((prim * 3) + 1).pos;
+    float3 vertex2       = vertexBuffer.Load((prim * 3) + 2).pos;
     float3 centroidOfTri = (vertex0 + vertex1 + vertex2) / 3.0f;
     pixel.debug0         = float4(centroidOfTri.x, centroidOfTri.y, centroidOfTri.z, 1.0f);
-    
-    vertex0              = vertexBuffer.Load((prim * 3) + 3).pos;
-    vertex1              = vertexBuffer.Load((prim * 3) + 4).pos;
-    vertex2              = vertexBuffer.Load((prim * 3) + 5).pos;
-    centroidOfTri        = (vertex0 + vertex1 + vertex2) / 3.0f;
-    pixel.debug1         = float4(centroidOfTri.x, centroidOfTri.y, centroidOfTri.z, 1.0f);
+
+    vertex0       = vertexBuffer.Load((prim * 3) + 3).pos;
+    vertex1       = vertexBuffer.Load((prim * 3) + 4).pos;
+    vertex2       = vertexBuffer.Load((prim * 3) + 5).pos;
+    centroidOfTri = (vertex0 + vertex1 + vertex2) / 3.0f;
+    pixel.debug1  = float4(centroidOfTri.x, centroidOfTri.y, centroidOfTri.z, 1.0f);
     return pixel;
 }
 
@@ -233,20 +232,18 @@ PixelOut PS(float4 posH : SV_POSITION, float2 uv : UVOUT) {
 
             if (rayQuery.CandidateInstanceID() == 1) {
                 float2 texCoord = GetTexCoord(rayQuery.CandidateTriangleBarycentrics(),
-                                                rayQuery.CandidateInstanceID(),
-                                                rayQuery.CandidatePrimitiveIndex());
+                                              rayQuery.CandidateInstanceID(),
+                                              rayQuery.CandidatePrimitiveIndex());
                 alphaValue      = transparencyTexture1.SampleLevel(textureSampler, texCoord, 0).a;
-            }
-            else if (rayQuery.CandidateInstanceID() == 2) {
+            } else if (rayQuery.CandidateInstanceID() == 2) {
                 float2 texCoord = GetTexCoord(rayQuery.CandidateTriangleBarycentrics(),
-                                                rayQuery.CandidateInstanceID(),
-                                                rayQuery.CandidatePrimitiveIndex());
+                                              rayQuery.CandidateInstanceID(),
+                                              rayQuery.CandidatePrimitiveIndex());
                 alphaValue      = transparencyTexture2.SampleLevel(textureSampler, texCoord, 0).a;
-            }
-            else if (rayQuery.CandidateInstanceID() == 3) {
+            } else if (rayQuery.CandidateInstanceID() == 3) {
                 float2 texCoord = GetTexCoord(rayQuery.CandidateTriangleBarycentrics(),
-                                                rayQuery.CandidateInstanceID(),
-                                                rayQuery.CandidatePrimitiveIndex());
+                                              rayQuery.CandidateInstanceID(),
+                                              rayQuery.CandidatePrimitiveIndex());
                 alphaValue      = transparencyTexture3.SampleLevel(textureSampler, texCoord, 0).a;
             }
 
@@ -269,44 +266,45 @@ PixelOut PS(float4 posH : SV_POSITION, float2 uv : UVOUT) {
     }
 
     // AMBIENT OCCLUSION WIP
-    //// Shoot short rays around hemisphere of the pixel's normal
-    // const uint ambientOcclusionRayKernelSize = 2;
-    //// Always same origin and ray length
-    // ray.Origin = origin;
-    // ray.TMax   = 25;
-    //// Zero out ray flags and occlude transparent geometry and try first hit end search
-    // rayFlags   = RAY_FLAG_CULL_NON_OPAQUE | RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH;
+    // Shoot short rays around hemisphere of the pixel's normal
+    const uint ambientOcclusionRayKernelSize = 2;
+    // Always same origin and ray length
+    ray.Origin = origin;
+    ray.TMax   = 25;
+    // Zero out ray flags and occlude transparent geometry and try first hit end search
+    rayFlags =
+        RAY_FLAG_CULL_NON_OPAQUE | RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH | RAY_FLAG_CULL_BACK_FACING_TRIANGLES;
 
-    // const float degreeOffset         = 180.0f       / ambientOcclusionRayKernelSize;
-    // const float degreeStart          = degreeOffset / 2.0f;
-    // const float occlusionDegradation = 1.0f         / (ambientOcclusionRayKernelSize * 2.0f);
-    ////for (int x = 0; x < ambientOcclusionRayKernelSize; x++) {
-    ////    for (int y = 0; y < ambientOcclusionRayKernelSize; y++) {
-    ////
-    ////        float  xRot         = radians(degreeStart + (x * degreeOffset));
-    ////        float  yRot         = radians(degreeStart + (y * degreeOffset));
-    ////        ray.Direction       = float3(normalizedNormal.x * cos(xRot),
-    ////                                     normalizedNormal.y * sin(yRot),
-    ////                                     normalizedNormal.z * tan(yRot/xRot));
-    //        ray.Direction       = float3(-normalizedNormal.x,
-    //                                     -normalizedNormal.y,
-    //                                     -normalizedNormal.z);
-    //        RayQuery<RAY_FLAG_NONE> ambientOcclusionQuery;
-    //        ambientOcclusionQuery.TraceRayInline(rtAS, rayFlags, ~0, ray);
+    const float degreeOffset         = 180.0f / ambientOcclusionRayKernelSize;
+    const float degreeStart          = degreeOffset / 2.0f;
+    const float occlusionDegradation = 1.0f / (ambientOcclusionRayKernelSize * 2.0f);
+    // for (int x = 0; x < ambientOcclusionRayKernelSize; x++) {
+    //    for (int y = 0; y < ambientOcclusionRayKernelSize; y++) {
+    //
+    //        float  xRot         = radians(degreeStart + (x * degreeOffset));
+    //        float  yRot         = radians(degreeStart + (y * degreeOffset));
+    //        ray.Direction       = float3(normalizedNormal.x * cos(xRot),
+    //                                     normalizedNormal.y * sin(yRot),
+    //                                     normalizedNormal.z * tan(yRot/xRot));
+    float4 worldSpaceNormal = mul(float4(normalizedNormal, 0.0), viewToModelMatrix);
+    ray.Direction           = float3(-worldSpaceNormal.x, -worldSpaceNormal.y, -worldSpaceNormal.z);
+    RayQuery<RAY_FLAG_NONE> ambientOcclusionQuery;
+    ambientOcclusionQuery.TraceRayInline(rtAS, rayFlags, ~0, ray);
 
-    //        // Test for collisions and add occlusion if there is at least one hit
-    //        ambientOcclusionQuery.Proceed();
+    // Test for collisions and add occlusion if there is at least one hit
+    ambientOcclusionQuery.Proceed();
 
-    //        if (ambientOcclusionQuery.CommittedStatus() == COMMITTED_TRIANGLE_HIT) {
-    //            //rtOcclusion -= occlusionDegradation;
-    //            rtOcclusion = ambientOcclusionQuery.CommittedRayT() / ray.TMax;
-    //        }
-    ////    }
-    ////}
+    if (ambientOcclusionQuery.CommittedStatus() == COMMITTED_TRIANGLE_HIT) {
+        //rtOcclusion -= occlusionDegradation;
+        rtOcclusion = 0;
+        rtOcclusion = ambientOcclusionQuery.CommittedRayT() / ray.TMax;
+    }
+    //    }
+    //}
 
     // Reflection single bounce
     // Shoot the ray from the origin of the visible pixel position from the depth buffer
-    ray.Origin              = mul(float4(position.xyz, 1.0), viewToModelMatrix).xyz;
+    ray.Origin = mul(float4(position.xyz, 1.0), viewToModelMatrix).xyz;
     // Reflected ray from directional light hitting the surface material
     float3 cameraPos        = float3(viewToModelMatrix[3][0], viewToModelMatrix[3][1], viewToModelMatrix[3][2]);
     float3 cameraDirection  = normalize(ray.Origin - cameraPos);
@@ -330,7 +328,7 @@ PixelOut PS(float4 posH : SV_POSITION, float2 uv : UVOUT) {
                                               reflectionRayQuery.CandidateInstanceID(),
                                               reflectionRayQuery.CandidatePrimitiveIndex());
                 // Force mip sample level to 0 because this is ray tracing
-                alphaValue      = transparencyTexture1.SampleLevel(textureSampler, texCoord, 0).a;
+                alphaValue = transparencyTexture1.SampleLevel(textureSampler, texCoord, 0).a;
             }
 
             if (alphaValue > 0.1) {
@@ -350,14 +348,14 @@ PixelOut PS(float4 posH : SV_POSITION, float2 uv : UVOUT) {
             float3 worldSpaceNormal = normalize(GetNormal(reflectionRayQuery.CommittedPrimitiveIndex()));
             // Select mip levels 0 - 7 based on the incident angle of the ray upon the triangle's surface normal
             // using the dot product
-            uint   mipSelection = (1.0f - abs(dot(ray.Direction, worldSpaceNormal))) * 7.0f;
-            rtReflectionColor   = transparencyTexture1.SampleLevel(textureSampler, texCoord, mipSelection).rgb;
+            uint mipSelection = (1.0f - abs(dot(ray.Direction, worldSpaceNormal))) * 7.0f;
+            rtReflectionColor = transparencyTexture1.SampleLevel(textureSampler, texCoord, mipSelection).rgb;
             // shadows for reflections
-            float3 hitPosition  = reflectionRayQuery.WorldRayOrigin() +
-                                  (reflectionRayQuery.CommittedRayT() * reflectionRayQuery.WorldRayDirection());
+            float3 hitPosition = reflectionRayQuery.WorldRayOrigin() +
+                                 (reflectionRayQuery.CommittedRayT() * reflectionRayQuery.WorldRayDirection());
 
-            float4 clipSpace    = mul(float4(hitPosition, 1), viewProjection);
-            rtDepth             = clipSpace.z;
+            float4 clipSpace = mul(float4(hitPosition, 1), viewProjection);
+            rtDepth          = clipSpace.z;
 
             // Convert from camera space vertex to light clip space vertex
             float4 rtShadowMapping = mul(float4(hitPosition.xyz, 1.0), viewMatrix);
@@ -370,7 +368,7 @@ PixelOut PS(float4 posH : SV_POSITION, float2 uv : UVOUT) {
             float3 viewSpaceNormal = normalize(float3(mul(float4(-worldSpaceNormal, 0.0), normalMatrix).xyz));
             rtReflectionLighting   = dot(lightInCameraView, viewSpaceNormal);
 
-            //pixel = DebugCode(reflectionRayQuery, pixel);
+            // pixel = DebugCode(reflectionRayQuery, pixel);
         }
     }
 #endif
@@ -454,9 +452,9 @@ PixelOut PS(float4 posH : SV_POSITION, float2 uv : UVOUT) {
         pixel.color = float4(occlusion, occlusion, occlusion, 1.0);
     } else if (views == 6) {
         float depth = cameraDepthTexture.Sample(textureSampler, uv).x;
-        pixel.color = float4(rtReflectionLighting + (depth * 0.00001),
-                             rtReflectionLighting + (depth * 0.00001),
-                             rtReflectionLighting + (depth * 0.00001),
+        pixel.color = float4(rtOcclusion + (depth * 0.00001),
+                             rtOcclusion + (depth * 0.00001),
+                             rtOcclusion + (depth * 0.00001),
                              1.0);
     } else if (views == 7) {
         float2 screenPos = (2.0f * uv) - 1.0f;
@@ -481,10 +479,8 @@ PixelOut PS(float4 posH : SV_POSITION, float2 uv : UVOUT) {
         pixel.depth = 0.1;
     }
 
-    if (!((rtReflectionColor.x == 0.0f)  &&
-          (rtReflectionColor.y == 0.0f)  &&
-          (rtReflectionColor.z == 0.0f)) &&
-          (views               == 0)) {
+    if (!((rtReflectionColor.x == 0.0f) && (rtReflectionColor.y == 0.0f) && (rtReflectionColor.z == 0.0f)) &&
+        (views == 0)) {
 
         pixel.color = float4((rtReflectionColor.rgb * rtReflectionShadow * rtReflectionLighting), 1.0);
     }

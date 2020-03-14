@@ -102,14 +102,14 @@ EngineManager::EngineManager(int*      argc,
 
 
     if (_graphicsLayer == GraphicsLayer::DXR_EXPERIMENTAL) {
-        _viewManager->setView(      Matrix::translation(0, 15, -60),
-                                    Matrix::rotationAroundX(0.0f),
-                                    Matrix());
+        _viewManager->setView(Matrix::translation(0, 15, -60),
+                              Matrix::rotationAroundX(0.0f),
+                              Matrix());
     }
     else {
-        _viewManager->setView(      Matrix::translation(0, 2000.0f, -3500.0f),
-                                    Matrix::rotationAroundX(-70.0f),
-                                    Matrix());
+        _viewManager->setView(Matrix::translation(0, 1000.0f, -1500.0f),
+                              Matrix::rotationAroundX(-70.0f),
+                              Matrix());
     }
 
     //Load and compile all shaders for the shader broker
@@ -398,7 +398,7 @@ void EngineManager::_postDraw() {
 
 
         if ((_generatorMode == true) &&
-            ((++_pathCounter) % 1 == 0)) {
+            ((++_pathCounter) % 20 == 0)) {
 
             WorldGenerator::spawnPaths("SPAWN-TEST");
         }

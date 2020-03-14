@@ -73,7 +73,7 @@ void main() {
     gl_FragDepth = texture(depthTexture, vsData.texCoordOut.xy).r;
 
     vec3  lightInCameraView = normalize((normalMatrix * vec4(-lightDirection, 0.0)).xyz);
-    float illumination      = dot(lightInCameraView, normalizedNormal);
+    float illumination      = 0.6f;//dot(lightInCameraView, normalizedNormal);
 
     // Determines day/night calculations and does not factor in the view transform
     vec3 normalizedLight = normalize(lightDirection);
@@ -113,9 +113,9 @@ void main() {
                 // Only shadow in textures space
                 // if(shadowTextureCoordinates.x <= 1.0 && shadowTextureCoordinates.x >= 0.0 &&
                 // shadowTextureCoordinates.y <= 1.0 && shadowTextureCoordinates.y >= 0.0){
-                if (texture(cameraDepthTexture, shadowTextureCoordinates).x < (shadowMapping.z * 0.5 + 0.5) - bias) {
-                    directionalShadow = shadowEffect;
-                }
+                //if (texture(cameraDepthTexture, shadowTextureCoordinates).x < (shadowMapping.z * 0.5 + 0.5) - bias) {
+                //    directionalShadow = shadowEffect;
+                //}
                 //}
                 // else if(shadowTextureCoordinatesMap.x <= 1.0 && shadowTextureCoordinatesMap.x >= 0.0 &&
                 // shadowTextureCoordinatesMap.y <= 1.0 && shadowTextureCoordinatesMap.y >= 0.0){

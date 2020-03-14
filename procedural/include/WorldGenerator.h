@@ -29,8 +29,8 @@ constexpr int   tileWidth               = 200;
 constexpr int   tileLength              = 200;
 constexpr int   tileHalfWidth           = tileWidth  / 2;
 constexpr int   tileHalfLength          = tileLength / 2;
-constexpr int   widthOfWorld            = tileWidth  * 5;//30;
-constexpr int   lengthOfWorld           = tileLength * 5;//30;
+constexpr int   widthOfWorld            = tileWidth  * 10;
+constexpr int   lengthOfWorld           = tileLength * 10;
 constexpr int   numWidthTiles           = widthOfWorld   / tileWidth;
 constexpr int   numLengthTiles          = lengthOfWorld  / tileLength;
 constexpr int   minWidthValue           = -(widthOfWorld  / 2) + tileHalfWidth;
@@ -98,8 +98,8 @@ public:
     Builder(std::string sceneName,
             int         pathId,
             int         parentPathId    = TileFlagLength,
-            int         widthLocation   = tileHalfWidth,
-            int         lengthLocation  = tileHalfLength,
+            int         widthLocation   = 0,
+            int         lengthLocation  = 0,
             int         pathDirection   = -100000000,          // magic init number for rotation
             int         tileWidthIndex  = numWidthTiles  / 2,
             int         tileLengthIndex = numLengthTiles / 2);

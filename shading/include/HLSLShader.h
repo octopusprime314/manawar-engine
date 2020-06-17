@@ -61,7 +61,6 @@ protected:
     ResourceDescriptors                    _resourceDescriptorTable;
     InputDescriptors                       _inputDescriptorTable;
     std::string                            _pipelineShaderName;
-    ComPtr<ID3D12DescriptorHeap>           _rtASDescriptorHeap;
     std::map<std::string, UINT>            _resourceIndexes;
     std::map<std::string, ConstantBuffer*> _constantBuffers;
     bool                                   _isASHeapCreated;
@@ -95,8 +94,8 @@ public:
                                                      UINT        textureUnit,
                                                      Texture*    texture,
                                                      ImageData   imageInfo);
-    void                                  updateRTAS(std::string            id,
-                                                     ComPtr<ID3D12Resource> rtAS);
+    void                                  updateRTAS(std::string            id, ComPtr<ID3D12DescriptorHeap> rtASDescriptorHeap,
+                                                     D3D12_GPU_VIRTUAL_ADDRESS gpuva);
     void                                  updateStructuredBufferData(std::string                  id,
                                                                      ComPtr<ID3D12DescriptorHeap> bufferDescriptorHeap);
 

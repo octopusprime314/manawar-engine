@@ -106,7 +106,8 @@ class RayTracingPipelineShader : public PipelineShader {
     RenderTexture*                      _raytracingOutput;
     UINT                                _geometryDescSize;
     ComPtr<ID3D12Resource>              _missShaderTable;
-    ComPtr<ID3D12Resource>              _scratchResource;
+    ComPtr<ID3D12Resource>              _blScratchResource;
+    ComPtr<ID3D12Resource>              _tlScratchResource;
     ComPtr<ID3D12GraphicsCommandList4>  _dxrCommandList;
     ComPtr<ID3D12StateObjectPrototype>  _dxrStateObject;
     CD3DX12_CPU_DESCRIPTOR_HANDLE*      _hUAVDescriptor;
@@ -126,8 +127,11 @@ class RayTracingPipelineShader : public PipelineShader {
     D3D12_SHADER_RESOURCE_VIEW_DESC     _uvStructuredBuffer;
     ComPtr<ID3D12DescriptorHeap>        _uvStructuredBufferDescHeap;
     bool                                _initUvStructuredBuffer = false;
+    ComPtr<ID3D12DescriptorHeap>        _rtASDescriptorHeap;
+    D3D12_DESCRIPTOR_HEAP_DESC          _rtASSrvHeapDesc;
+    D3D12_SHADER_RESOURCE_VIEW_DESC     _rtASSrvDesc;
 
-public:
+  public:
 
     RayTracingPipelineShader(                        std::string shader,
                                                      ComPtr<ID3D12Device> device,
@@ -138,7 +142,8 @@ public:
                                                      Light* light);
 
     RenderTexture*                      getRayTracingTarget();
-    ComPtr<ID3D12Resource>              getRTAS();
+    ComPtr<ID3D12DescriptorHeap>        getRTASDescHeap();
+    D3D12_GPU_VIRTUAL_ADDRESS           getRTASGPUVA() { return _topLevelAccelerationStructure->GetGPUVirtualAddress(); };
     std::map<Entity*, AssetTexture*>&   getTransparentTextures();
     ComPtr<ID3D12DescriptorHeap>        getUVStructuredBuffer();
 };

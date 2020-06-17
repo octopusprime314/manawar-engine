@@ -69,9 +69,10 @@ public:
                               int           y,
                               int           z);
     void         updateRTAS(  std::string            id,
-                              ComPtr<ID3D12Resource> rtAS) {};
+                              ComPtr<ID3D12DescriptorHeap> rtASDescriptorHeap,
+                              D3D12_GPU_VIRTUAL_ADDRESS   gpuva) {};
     void         updateStructuredBufferData(std::string                  id,
-                                            ComPtr<ID3D12DescriptorHeap> bufferDescriptorHeap) {};
+                                            ComPtr<ID3D12DescriptorHeap> bufferDescriptorHeap){};
     void         bindAttributes(VAO*                 vao);
     GLint        getLocation(   std::string          uniformName);
     void         unbindAttributes();

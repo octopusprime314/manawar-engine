@@ -84,6 +84,7 @@ class EngineManager {
     Water*                       _water;
     Bloom*                       _bloom;
     SSCompute*                   _add;
+    unsigned int                 _frameCounter = 0;
 
     //Post of drawing objects call this function
     void                         _postDraw();

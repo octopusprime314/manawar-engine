@@ -39,7 +39,7 @@ inline void AllocateUploadBuffer(ID3D12Device*    pDevice,
     (*ppResource)->Unmap(0, nullptr);
 }
 
-ComPtr<ID3D12Resource> RayTracingPipelineShader::getRTAS() { return _topLevelAccelerationStructure; }
+ComPtr<ID3D12DescriptorHeap> RayTracingPipelineShader::getRTASDescHeap() { return _rtASDescriptorHeap; }
 
 std::map<Entity*, AssetTexture*>& RayTracingPipelineShader::getTransparentTextures() { return _transparencyTextures; }
 
@@ -279,7 +279,7 @@ RayTracingPipelineShader::RayTracingPipelineShader(std::string           shader,
     for (auto entity : entityList) {
         std::string name = entity->getModel()->getName();
 
-        // if (name.find("tree") != std::string::npos) {
+        // if (name.find("tree") = std::string::npos) {
         bottomLevelInstances[name].push_back(entity);
         bottomLevelModels[name] = entity;
         testCount++;
@@ -346,13 +346,13 @@ RayTracingPipelineShader::RayTracingPipelineShader(std::string           shader,
                              static_cast<UINT>(_geometryDesc[modelIndex].Triangles.VertexBuffer.StrideInBytes));
 
         // If model is a tree then add non opaque flag to indicate transparency
-        if (entity.first.find("tree") != std::string::npos) {
+         if (entity.first.find("tree") != std::string::npos) {
             _geometryDesc[modelIndex].Flags = D3D12_RAYTRACING_GEOMETRY_FLAG_NONE;
         } else {
-            // Mark the geometry as opaque.
-            // PERFORMANCE TIP: mark geometry as opaque whenever applicable as it can enable important ray processing
-            // optimizations. Note: When rays encounter opaque geometry an any hit shader will not be executed whether
-            // it is present or not.
+        // Mark the geometry as opaque.
+        // PERFORMANCE TIP: mark geometry as opaque whenever applicable as it can enable important ray processing
+        // optimizations. Note: When rays encounter opaque geometry an any hit shader will not be executed whether
+        // it is present or not.
             _geometryDesc[modelIndex].Flags = D3D12_RAYTRACING_GEOMETRY_FLAG_OPAQUE;
         }
         modelIndex++;
@@ -395,7 +395,14 @@ RayTracingPipelineShader::RayTracingPipelineShader(std::string           shader,
                                         &bufferDesc,
                                         D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
                                         nullptr,
-                                        IID_PPV_ARGS(&_scratchResource));
+                                        IID_PPV_ARGS(&_blScratchResource));
+
+    _dxrDevice->CreateCommittedResource(&uploadHeapProperties,
+                                        D3D12_HEAP_FLAG_NONE,
+                                        &bufferDesc,
+                                        D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
+                                        nullptr,
+                                        IID_PPV_ARGS(&_tlScratchResource));
 
     modelIndex = 0;
     for (auto model : bottomLevelInstances) {
@@ -504,7 +511,7 @@ RayTracingPipelineShader::RayTracingPipelineShader(std::string           shader,
     // Top Level Acceleration Structure desc
     {
         topLevelBuildDesc.DestAccelerationStructureData    = _topLevelAccelerationStructure->GetGPUVirtualAddress();
-        topLevelBuildDesc.ScratchAccelerationStructureData = _scratchResource->GetGPUVirtualAddress();
+        topLevelBuildDesc.ScratchAccelerationStructureData = _tlScratchResource->GetGPUVirtualAddress();
         topLevelBuildDesc.Inputs.InstanceDescs             = _instanceDescs->GetGPUVirtualAddress();
     }
 
@@ -520,7 +527,7 @@ RayTracingPipelineShader::RayTracingPipelineShader(std::string           shader,
         bottomLevelInputs.Type           = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL;
         bottomLevelInputs.pGeometryDescs = &_geometryDesc[i];
 
-        bottomLevelBuildDesc.ScratchAccelerationStructureData = _scratchResource->GetGPUVirtualAddress();
+        bottomLevelBuildDesc.ScratchAccelerationStructureData = _blScratchResource->GetGPUVirtualAddress();
         bottomLevelBuildDesc.DestAccelerationStructureData =
             (_bottomLevelAccelerationStructure[i])->GetGPUVirtualAddress();
 
@@ -605,6 +612,22 @@ RayTracingPipelineShader::RayTracingPipelineShader(std::string           shader,
     _uavDesc.Texture2D.MipSlice = 0;
     _dxrDevice->CreateUnorderedAccessView(
         _raytracingOutput->getResource()->getResource().Get(), nullptr, &_uavDesc, *_hUAVDescriptor);
+
+    // Create descriptor heap
+    ZeroMemory(&_rtASSrvHeapDesc, sizeof(_rtASSrvHeapDesc));
+    _rtASSrvHeapDesc.NumDescriptors = 1;
+    _rtASSrvHeapDesc.Type           = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+    _rtASSrvHeapDesc.Flags          = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+    _dxrDevice->CreateDescriptorHeap(&_rtASSrvHeapDesc, IID_PPV_ARGS(_rtASDescriptorHeap.GetAddressOf()));
+
+    // Create view of SRV for shader access
+    CD3DX12_CPU_DESCRIPTOR_HANDLE   hDescriptor(_rtASDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
+    ZeroMemory(&_rtASSrvDesc, sizeof(_rtASSrvDesc));
+    _rtASSrvDesc.Shader4ComponentMapping                  = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+    _rtASSrvDesc.ViewDimension                            = D3D12_SRV_DIMENSION_RAYTRACING_ACCELERATION_STRUCTURE;
+    _rtASSrvDesc.RaytracingAccelerationStructure.Location = _topLevelAccelerationStructure->GetGPUVirtualAddress();
+    _dxrDevice->CreateShaderResourceView(nullptr, &_rtASSrvDesc, hDescriptor);
+
 }
 
 void RayTracingPipelineShader::_queryShaderResources(ComPtr<ID3DBlob> shaderBlob) {

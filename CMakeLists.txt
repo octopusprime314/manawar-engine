@@ -153,16 +153,11 @@ file(REMOVE_RECURSE ${CMAKE_SOURCE_DIR}/build/data/)
 #dxil and dxcompiler dlls are needed for dxr
 add_custom_command(TARGET manawar-engine POST_BUILD
                    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/libs/freeimage/lib/FreeImage.dll $<TARGET_FILE_DIR:manawar-engine>
-                   COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/libs/fmod/lib/fmod64.dll         $<TARGET_FILE_DIR:manawar-engine> 
-                   COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/libs/dx/lib/dxcompiler.dll       $<TARGET_FILE_DIR:manawar-engine>
-				   COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/libs/dx/lib/D3D12.dll            $<TARGET_FILE_DIR:manawar-engine>
-				   COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/libs/dx/lib/d3d12SDKLayers.dll   $<TARGET_FILE_DIR:manawar-engine>)
-                   #COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/libs/dx/lib/dxil.dll             $<TARGET_FILE_DIR:manawar-engine>)
+                   COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/libs/fmod/lib/fmod64.dll         $<TARGET_FILE_DIR:manawar-engine>)
 
 install(TARGETS manawar-engine RUNTIME DESTINATION bin)
 install(FILES "${CMAKE_SOURCE_DIR}/libs/freeimage/lib/FreeImage.dll"
               "${CMAKE_SOURCE_DIR}/libs/fmod/lib/fmod64.dll"
-              "${CMAKE_SOURCE_DIR}/libs/dx/lib/dxcompiler.dll"
         DESTINATION bin)
 # FYI: Keep the trailing '/'s here.
 install(DIRECTORY "${CMAKE_SOURCE_DIR}/shading/shaders/"

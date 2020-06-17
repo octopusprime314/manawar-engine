@@ -82,12 +82,14 @@ void HLSLShader::buildDXC(CComPtr<IDxcBlob>& pResultBlob,
         define.Value = L"1";
     }
 
+    LPCWSTR args[] = {L"-Od"};
+
     dxcCompiler->Compile(pSource,
                          shaderString. c_str(),
                          entryPoint.   c_str(),
                          shaderProfile.c_str(),
-                         nullptr,
-                         0,
+                         args,
+                         1,
                          &define,
                          1,
                          nullptr,
@@ -162,8 +164,8 @@ void HLSLShader::buildDXC(CComPtr<IDxcBlob>& pResultBlob,
     }
 
     // Use this to inspect dxil generation
-    //dxcCompiler->Disassemble(pProgram, &pDisassembleBlob);
-    //std::string disassembleString((const char *)pDisassembleBlob->GetBufferPointer());
+    dxcCompiler->Disassemble(pProgram, &pDisassembleBlob);
+    std::string disassembleString((const char *)pDisassembleBlob->GetBufferPointer());
 }
 
 void HLSLShader::build(std::vector<DXGI_FORMAT>* rtvs) {
@@ -325,7 +327,7 @@ void HLSLShader::build(std::vector<DXGI_FORMAT>* rtvs) {
     std::map< D3D_SHADER_INPUT_TYPE, uint32_t> heapCounters;
     int i = 0;
     int rootParameterIndex = 0;
-    
+
     // all b0 aka constant buffer and root constants must be in this loop
     for (auto resource : _resourceDescriptorTable) {
         if (resource.second.Type == D3D_SHADER_INPUT_TYPE::D3D_SIT_CBUFFER) {
@@ -368,21 +370,27 @@ void HLSLShader::build(std::vector<DXGI_FORMAT>* rtvs) {
     // all t0 aka SRV shader resources must be in this loop
     rootParameterIndex = static_cast<int>(_resourceIndexes.size());
     for (auto resource : _resourceDescriptorTable) {
-        // SRV or Raytracing acceleration structure aka 12
         if (resource.second.Type == D3D_SHADER_INPUT_TYPE::D3D_SIT_TEXTURE ||
-            resource.second.Type == D3D_SHADER_INPUT_TYPE::D3D_SIT_STRUCTURED ||
-            resource.second.Type == 12) {
+            resource.second.Type == D3D_SHADER_INPUT_TYPE::D3D_SIT_STRUCTURED)
+        {
             srvTableRange = new CD3DX12_DESCRIPTOR_RANGE();
             srvTableRange->Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, resource.second.uID);
             if (csResult == S_OK) {
-                rootParameters[resource.second.uID + rootParameterIndex].InitAsDescriptorTable(1,
-                                                                                               srvTableRange);
+                rootParameters[resource.second.uID + rootParameterIndex].InitAsDescriptorTable(1, srvTableRange);
+            } else {
+                rootParameters[resource.second.uID + rootParameterIndex].InitAsDescriptorTable(
+                    1, srvTableRange, D3D12_SHADER_VISIBILITY_PIXEL);
             }
-            else {
-                rootParameters[resource.second.uID + rootParameterIndex].InitAsDescriptorTable(1,
-                                                                                               srvTableRange,
-                                                                                               D3D12_SHADER_VISIBILITY_PIXEL);
-            }
+
+            _resourceIndexes[resource.second.Name] = resource.second.uID + rootParameterIndex;
+            i++;
+            heapCounters[resource.second.Type]++;
+        }
+        // SRV or Raytracing acceleration structure aka 12
+        else if (resource.second.Type == 12) {
+
+            rootParameters[resource.second.uID + rootParameterIndex].InitAsShaderResourceView(0);
+
             _resourceIndexes[resource.second.Name] = resource.second.uID + rootParameterIndex;
             i++;
             heapCounters[resource.second.Type]++;
@@ -738,37 +746,15 @@ void HLSLShader::updateData(std::string id,
     }
 }
 
-void HLSLShader::updateRTAS(std::string            id,
-                            ComPtr<ID3D12Resource> rtAS) {
+void HLSLShader::updateRTAS(std::string                  id,
+                            ComPtr<ID3D12DescriptorHeap> rtASDescriptorHeap,
+                            D3D12_GPU_VIRTUAL_ADDRESS    gpuva) {
 
-    auto device  = DXLayer::instance()->getDevice();
     auto cmdList = DXLayer::instance()->getCmdList();
 
-    if (_isASHeapCreated == false) {
-        //Create descriptor heap
-        D3D12_DESCRIPTOR_HEAP_DESC   srvHeapDesc;
-        ZeroMemory(&srvHeapDesc, sizeof(srvHeapDesc));
-        srvHeapDesc.NumDescriptors = 1;
-        srvHeapDesc.Type           = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-        srvHeapDesc.Flags          = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-        device->CreateDescriptorHeap(&srvHeapDesc, IID_PPV_ARGS(_rtASDescriptorHeap.GetAddressOf()));
+    cmdList->SetDescriptorHeaps(1, rtASDescriptorHeap.GetAddressOf());
 
-        //Create view of SRV for shader access
-        CD3DX12_CPU_DESCRIPTOR_HANDLE hDescriptor(_rtASDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
-        D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc          = {};
-        srvDesc.Shader4ComponentMapping                  = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-        srvDesc.ViewDimension                            = D3D12_SRV_DIMENSION_RAYTRACING_ACCELERATION_STRUCTURE;
-        srvDesc.RaytracingAccelerationStructure.Location = rtAS->GetGPUVirtualAddress();
-        device->CreateShaderResourceView(nullptr, &srvDesc, hDescriptor);
-
-        _isASHeapCreated = true;
-    }
-
-    ID3D12DescriptorHeap* descriptorHeaps[] = { _rtASDescriptorHeap.Get() };
-    cmdList->SetDescriptorHeaps(1, descriptorHeaps);
-
-    cmdList->SetGraphicsRootDescriptorTable(_resourceIndexes[id],
-                                            _rtASDescriptorHeap->GetGPUDescriptorHandleForHeapStart());
+    cmdList->SetGraphicsRootShaderResourceView(_resourceIndexes[id], gpuva);
 }
 
 void HLSLShader::updateStructuredBufferData(std::string                  id,

@@ -65,8 +65,7 @@ public:
                             GLuint      textureUnit,
                             Texture*    texture,
                             ImageData   imageInfo) = 0;
-    virtual void updateRTAS(std::string            id,
-                            ComPtr<ID3D12Resource> rtAS) = 0;
+    virtual void updateRTAS(std::string            id, ComPtr<ID3D12DescriptorHeap> rtASDescriptorHeap, D3D12_GPU_VIRTUAL_ADDRESS gpuva) = 0;
     virtual void updateStructuredBufferData(std::string                  id,
                                             ComPtr<ID3D12DescriptorHeap> bufferDescriptorHeap) = 0;
 

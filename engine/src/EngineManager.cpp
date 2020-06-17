@@ -60,6 +60,7 @@ EngineManager::EngineManager(int*      argc,
 
         DXLayer::initialize(hInstance, nCmdShow);
 
+
         if (_graphicsLayer == GraphicsLayer::DXR_EXPERIMENTAL) {
             auto device                                     = DXLayer::instance()->getDevice();
             D3D12_FEATURE_DATA_SHADER_MODEL shaderModel     = { D3D_SHADER_MODEL_6_5 };
@@ -100,17 +101,9 @@ EngineManager::EngineManager(int*      argc,
                                 0.1f,
                                 10000.0f);
 
-
-    if (_graphicsLayer == GraphicsLayer::DXR_EXPERIMENTAL) {
-        _viewManager->setView(      Matrix::translation(0, 15, -60),
-                                    Matrix::rotationAroundX(0.0f),
-                                    Matrix());
-    }
-    else {
-        _viewManager->setView(      Matrix::translation(0, 2000.0f, -3500.0f),
-                                    Matrix::rotationAroundX(-70.0f),
-                                    Matrix());
-    }
+    _viewManager->setView(      Matrix::translation(0, 65, -100),
+                                Matrix::rotationAroundX(0.0f),
+                                Matrix());
 
     //Load and compile all shaders for the shader broker
     ShaderBroker::instance()->compileShaders();
@@ -512,12 +505,11 @@ void EngineManager::_postDraw() {
 
         if (_viewManager->getViewState() == Camera::ViewState::DEFERRED_LIGHTING) {
 
-
-            //Pass lights to deferred shading pass
-            _deferredRenderer->deferredLighting(_lightList,
-                _viewManager,
-                _ssaoPass,
-                nullptr);
+            // Pass lights to deferred shading pass
+            //if (_frameCounter % 2 == 0) {
+                _deferredRenderer->deferredLighting(_lightList, _viewManager, _ssaoPass, nullptr);
+            //}
+            _frameCounter++;
 
             _forwardRenderer->forwardLighting(_entityList,
                 _viewManager,

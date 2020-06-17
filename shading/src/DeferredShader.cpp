@@ -178,7 +178,7 @@ void DeferredShader::runShader(std::vector<Light*>&  lights,
     
         auto transparentTextures = rtPipeline->getTransparentTextures();
 
-        _shader->updateRTAS("rtAS", rtPipeline->getRTAS());
+        _shader->updateRTAS("rtAS", rtPipeline->getRTASDescHeap(), rtPipeline->getRTASGPUVA());
 
         for (auto texture : transparentTextures) {
             _shader->updateData("transparencyTexture" + std::to_string(texture.first->getRayTracingTextureId()),

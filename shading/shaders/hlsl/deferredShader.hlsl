@@ -1,14 +1,16 @@
 // Object Declarations
-Texture2D   diffuseTexture : register(t0);     // Diffuse texture data array
-Texture2D   normalTexture : register(t1);      // Normal texture data array
-Texture2D   velocityTexture : register(t2);    // Velocity texture data array
-Texture2D   depthTexture : register(t3);       // Depth texture data array
-Texture2D   cameraDepthTexture : register(t4); // Depth texture data array
-Texture2D   mapDepthTexture : register(t5);    // Depth texture data array
-TextureCube depthMap : register(t6);           // Cube depth map for point light shadows
-TextureCube skyboxDayTexture : register(t7);   // Skybox day
-TextureCube skyboxNightTexture : register(t8); // Skybox night
-Texture2D   ssaoTexture : register(t9);        // Depth texture data array
+
+RaytracingAccelerationStructure rtAS : register(t0);
+Texture2D   diffuseTexture : register(t1);     // Diffuse texture data array
+Texture2D   normalTexture : register(t2);      // Normal texture data array
+Texture2D   velocityTexture : register(t3);    // Velocity texture data array
+Texture2D   depthTexture : register(t4);       // Depth texture data array
+Texture2D   cameraDepthTexture : register(t5); // Depth texture data array
+Texture2D   mapDepthTexture : register(t6);    // Depth texture data array
+TextureCube depthMap : register(t7);           // Cube depth map for point light shadows
+TextureCube skyboxDayTexture : register(t8);   // Skybox day
+TextureCube skyboxNightTexture : register(t9); // Skybox night
+Texture2D   ssaoTexture : register(t10);        // Depth texture data array
 sampler     textureSampler : register(s0);
 
 #if (USE_SHADER_MODEL_6_5 == 1)
@@ -18,7 +20,6 @@ struct Vertex {
     float2 uv;
 };
 // Raytracing Acceleration Structure
-RaytracingAccelerationStructure rtAS : register(t10);
 StructuredBuffer<Vertex>        vertexBuffer : register(t11);         // UV coordinates to shade reflections
 Texture2D                       transparencyTexture1 : register(t12); // transparency texture 1
 Texture2D                       transparencyTexture2 : register(t13); // transparency texture 2

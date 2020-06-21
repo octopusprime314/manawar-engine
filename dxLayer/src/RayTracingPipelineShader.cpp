@@ -275,7 +275,7 @@ RayTracingPipelineShader::RayTracingPipelineShader(std::string           shader,
     std::map<std::string, std::vector<Entity*>> bottomLevelInstances;
     std::map<std::string, Entity*>              bottomLevelModels;
     int                                         testCount     = 0;
-    UINT                                        instanceCount = 0;
+    UINT                                        instanceCount = 1;
     for (auto entity : entityList) {
         std::string name = entity->getModel()->getName();
 
@@ -285,16 +285,16 @@ RayTracingPipelineShader::RayTracingPipelineShader(std::string           shader,
         testCount++;
         //}
     }
-    for (auto instances : bottomLevelInstances) {
+   /* for (auto instances : bottomLevelInstances) {
         instanceCount += static_cast<UINT>(instances.second.size());
-    }
+    }*/
 
     // D3D12_DESCRIPTOR_HEAP_DESC descriptorHeapDesc = {};
     // Allocate a heap for N + 3 descriptors:
     // 2 - vertex and index buffer SRVs
     // 1 - raytracing output texture SRV
     // N - bottom and top level acceleration structure fallback wrapped pointer UAVs
-    _descriptorHeapDesc.NumDescriptors = static_cast<UINT>(3 + bottomLevelModels.size() + instanceCount);
+    _descriptorHeapDesc.NumDescriptors = static_cast<UINT>(3 + (bottomLevelModels.size() * 2));
     _descriptorHeapDesc.Type           = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
     _descriptorHeapDesc.Flags          = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
     _descriptorHeapDesc.NodeMask       = 0;
@@ -310,6 +310,29 @@ RayTracingPipelineShader::RayTracingPipelineShader(std::string           shader,
         float uv[2];
     };
 
+    constexpr auto transformOffset = sizeof(float) * 12;
+    UINT blasWorldSpaceTransformSizeInBytes = bottomLevelModels.size() * transformOffset;
+
+    float* flattenedTransforms = new float[blasWorldSpaceTransformSizeInBytes / sizeof(float)];
+
+    int transformIndex = 0;
+    for (auto instanceTransform : bottomLevelInstances) {
+
+        for (auto instance : instanceTransform.second) {
+
+
+            memcpy(&flattenedTransforms[transformIndex * (transformOffset / sizeof(float))],
+                   instance->getWorldSpaceTransform().getFlatBuffer(),
+                   sizeof(float) * 12);
+
+            transformIndex++;
+        }
+    }
+
+    _transformUploadResource = new ResourceBuffer(static_cast<const void*>(flattenedTransforms), 
+        blasWorldSpaceTransformSizeInBytes, commandList, device);
+
+
     for (auto entity : bottomLevelModels) {
 
         auto indexGPUAddress =
@@ -324,7 +347,10 @@ RayTracingPipelineShader::RayTracingPipelineShader(std::string           shader,
         _geometryDesc[modelIndex].Triangles.IndexBuffer  = indexGPUAddress;
         _geometryDesc[modelIndex].Triangles.IndexCount   = static_cast<UINT>(indexDesc.Width) / sizeof(uint32_t);
         _geometryDesc[modelIndex].Triangles.IndexFormat  = DXGI_FORMAT_R32_UINT;
-        _geometryDesc[modelIndex].Triangles.Transform3x4 = 0;
+        //_geometryDesc[modelIndex].Triangles.Transform3x4 = 0;
+        _geometryDesc[modelIndex].Triangles.Transform3x4 =
+            _transformUploadResource->getGPUAddress() + (modelIndex * transformOffset);
+
         _geometryDesc[modelIndex].Triangles.VertexFormat = DXGI_FORMAT_R32G32B32_FLOAT;
         _geometryDesc[modelIndex].Triangles.VertexCount  = static_cast<UINT>(vertexDesc.Width) / sizeof(Vertex);
         _geometryDesc[modelIndex].Triangles.VertexBuffer.StartAddress  = vertexGPUAddress;
@@ -360,7 +386,8 @@ RayTracingPipelineShader::RayTracingPipelineShader(std::string           shader,
 
     // Get required sizes for an acceleration structure.
     D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAGS buildFlags =
-        D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_PREFER_FAST_TRACE;
+        D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_PREFER_FAST_TRACE | 
+        D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_ALLOW_COMPACTION;
 
     D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_DESC    bottomLevelBuildDesc = {};
     D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_INPUTS& bottomLevelInputs    = bottomLevelBuildDesc.Inputs;
@@ -405,7 +432,8 @@ RayTracingPipelineShader::RayTracingPipelineShader(std::string           shader,
                                         IID_PPV_ARGS(&_tlScratchResource));
 
     modelIndex = 0;
-    for (auto model : bottomLevelInstances) {
+    {
+        // for (auto model : bottomLevelInstances) {
         // Allocate resources for acceleration structures.
         // Acceleration structures can only be placed in resources that are created in the default heap (or custom heap
         // equivalent). Default heap is OK since the application doesn’t need CPU read/write access to them. The
@@ -429,6 +457,7 @@ RayTracingPipelineShader::RayTracingPipelineShader(std::string           shader,
                                             nullptr,
                                             IID_PPV_ARGS(&(_bottomLevelAccelerationStructure[modelIndex])));
         modelIndex++;
+        //}
     }
 
     {
@@ -486,21 +515,84 @@ RayTracingPipelineShader::RayTracingPipelineShader(std::string           shader,
                     }
                 }
             }
-
-            memcpy(&_instanceDesc[i].Transform, instance->getWorldSpaceTransform().getFlatBuffer(), sizeof(float) * 12);
-            _instanceDesc[i].InstanceMask = 1;
-            // do not overwrite geometry flags for bottom levels, this caused the non opaque and opaqueness of bottom
-            // levels to be random
-            _instanceDesc[i].Flags = D3D12_RAYTRACING_INSTANCE_FLAG_NONE;
-            // Used to identify which geomtry contains non opaque geometry like leaves and bushes
-            _instanceDesc[i].InstanceID                          = instance->getRayTracingTextureId();
-            _instanceDesc[i].InstanceContributionToHitGroupIndex = 0;
-            _instanceDesc[i].AccelerationStructure =
-                (_bottomLevelAccelerationStructure[bottomLevelIndex])->GetGPUVirtualAddress();
-            i++;
         }
-        bottomLevelIndex++;
     }
+
+ 
+    GpuToCpuBuffers bottomLevelSerializedAS;
+    {
+        D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_INPUTS& bottomLevelInputs = bottomLevelBuildDesc.Inputs;
+        bottomLevelInputs.DescsLayout                                           = D3D12_ELEMENTS_LAYOUT_ARRAY;
+        bottomLevelInputs.Flags                                                 = buildFlags;
+        bottomLevelInputs.NumDescs                                              = bottomLevelInstances.size();
+        bottomLevelInputs.Type           = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL;
+        bottomLevelInputs.pGeometryDescs = _geometryDesc;
+
+        bottomLevelBuildDesc.ScratchAccelerationStructureData = _blScratchResource->GetGPUVirtualAddress();
+        bottomLevelBuildDesc.DestAccelerationStructureData =
+            (_bottomLevelAccelerationStructure[0])->GetGPUVirtualAddress();
+
+
+        GpuToCpuBuffers bottomLevelBuffers;
+        _populateDefaultHeap(bottomLevelBuffers, 16);
+
+        D3D12_RAYTRACING_ACCELERATION_STRUCTURE_POSTBUILD_INFO_DESC postBuildInfo[2];
+        
+        postBuildInfo[0].InfoType   = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_POSTBUILD_INFO_COMPACTED_SIZE;
+        postBuildInfo[0].DestBuffer = bottomLevelBuffers.outputBuffer->GetGPUVirtualAddress();
+
+        postBuildInfo[1].InfoType   = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_POSTBUILD_INFO_CURRENT_SIZE;
+        postBuildInfo[1].DestBuffer = bottomLevelBuffers.outputBuffer->GetGPUVirtualAddress() + 8;
+
+
+        _dxrCommandList->BuildRaytracingAccelerationStructure(&bottomLevelBuildDesc, 2, postBuildInfo);
+
+        _dxrCommandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV((_bottomLevelAccelerationStructure[0]).Get()));
+
+        _gpuToCpuTransfer(bottomLevelBuffers, 16);
+        dxLayer->fenceCommandList();
+        dxLayer->initCmdLists();
+        _readBackOnCpu(bottomLevelBuffers, 16);
+
+        UINT64 normalSize = 0;
+        memcpy(&normalSize, bottomLevelBuffers.cpuSideData + 8, 8);
+        UINT64 compactedSize = 0;
+        memcpy(&compactedSize, bottomLevelBuffers.cpuSideData, 8);
+        OutputDebugString(("Size of top serialized: " + std::to_string(normalSize) + " " + std::to_string(compactedSize) + "\n").c_str());
+
+        {
+            D3D12_RESOURCE_STATES initialResourceState = D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE;
+            auto                  sizeBuildInfo        = compactedSize;
+            auto                  uploadHeapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
+            auto bufferDesc = CD3DX12_RESOURCE_DESC::Buffer(sizeBuildInfo, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
+            _dxrDevice->CreateCommittedResource(&uploadHeapProperties,
+                                                D3D12_HEAP_FLAG_NONE,
+                                                &bufferDesc,
+                                                initialResourceState,
+                                                nullptr,
+                                                IID_PPV_ARGS(&_compactedBottomLevelAccelerationStructure));
+        }
+
+        auto mode              = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_COPY_MODE_COMPACT;
+        auto destinationBuffer = _compactedBottomLevelAccelerationStructure->GetGPUVirtualAddress();
+        auto sourceBuffer      = _bottomLevelAccelerationStructure[0]->GetGPUVirtualAddress();
+        _dxrCommandList->CopyRaytracingAccelerationStructure(destinationBuffer, sourceBuffer, mode);
+
+        _dxrCommandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV((_compactedBottomLevelAccelerationStructure).Get()));
+    }
+
+    Matrix identity;
+    memcpy(&_instanceDesc[0].Transform, identity.getFlatBuffer(), sizeof(float) * 12);
+    // memcpy(&_instanceDesc[i].Transform, instance->getWorldSpaceTransform().getFlatBuffer(), sizeof(float) * 12);
+
+    _instanceDesc[0].InstanceMask = 1;
+    // do not overwrite geometry flags for bottom levels, this caused the non opaque and opaqueness of bottom
+    // levels to be random
+    _instanceDesc[0].Flags = D3D12_RAYTRACING_INSTANCE_FLAG_NONE;
+    // Used to identify which geomtry contains non opaque geometry like leaves and bushes
+    _instanceDesc[0].InstanceID = 0; // instance->getRayTracingTextureId();
+    _instanceDesc[0].InstanceContributionToHitGroupIndex = 0;
+    _instanceDesc[0].AccelerationStructure = _compactedBottomLevelAccelerationStructure->GetGPUVirtualAddress();
 
     AllocateUploadBuffer(_dxrDevice.Get(),
                          _instanceDesc,
@@ -515,28 +607,6 @@ RayTracingPipelineShader::RayTracingPipelineShader(std::string           shader,
         topLevelBuildDesc.Inputs.InstanceDescs             = _instanceDescs->GetGPUVirtualAddress();
     }
 
-    GpuToCpuBuffers bottomLevelSerializedAS;
-    GpuToCpuBuffers topLevelSerializedAS;
-    i = 0;
-    for (auto instanceTransform : bottomLevelInstances) {
-
-        D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_INPUTS& bottomLevelInputs = bottomLevelBuildDesc.Inputs;
-        bottomLevelInputs.DescsLayout                                           = D3D12_ELEMENTS_LAYOUT_ARRAY;
-        bottomLevelInputs.Flags                                                 = buildFlags;
-        bottomLevelInputs.NumDescs                                              = 1;
-        bottomLevelInputs.Type           = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL;
-        bottomLevelInputs.pGeometryDescs = &_geometryDesc[i];
-
-        bottomLevelBuildDesc.ScratchAccelerationStructureData = _blScratchResource->GetGPUVirtualAddress();
-        bottomLevelBuildDesc.DestAccelerationStructureData =
-            (_bottomLevelAccelerationStructure[i])->GetGPUVirtualAddress();
-
-        _dxrCommandList->BuildRaytracingAccelerationStructure(&bottomLevelBuildDesc, 0, nullptr);
-
-        _dxrCommandList->ResourceBarrier(1,
-                                         &CD3DX12_RESOURCE_BARRIER::UAV((_bottomLevelAccelerationStructure[i]).Get()));
-        i++;
-    }
 
     _dxrCommandList->BuildRaytracingAccelerationStructure(&topLevelBuildDesc, 0, nullptr);
     _dxrCommandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(_topLevelAccelerationStructure.Get()));

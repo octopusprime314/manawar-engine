@@ -101,7 +101,7 @@ void GenerateCameraRay(float2 uv, out float3 origin, out float3 direction) {
     direction = lightDirection.xyz;
 }
 
-float2 GetTexCoord(float2 barycentrics, uint instanceContribution, uint primitiveIndex) {
+float2 GetTexCoord(float2 barycentrics, uint primitiveIndex) {
 
     float2 texCoord[3];
 
@@ -231,22 +231,19 @@ PixelOut PS(float4 posH : SV_POSITION, float2 uv : UVOUT) {
             float  alphaValue   = 1.0f;
             float2 barycentrics = rayQuery.CandidateTriangleBarycentrics();
 
-            if (rayQuery.CandidateInstanceID() == 1) {
+            //if (rayQuery.CandidateInstanceID() == 1) {
                 float2 texCoord = GetTexCoord(rayQuery.CandidateTriangleBarycentrics(),
-                                              rayQuery.CandidateInstanceID(),
                                               rayQuery.CandidatePrimitiveIndex());
                 alphaValue      = transparencyTexture1.SampleLevel(textureSampler, texCoord, 0).a;
-            } else if (rayQuery.CandidateInstanceID() == 2) {
+            /*} else if (rayQuery.CandidateInstanceID() == 2) {
                 float2 texCoord = GetTexCoord(rayQuery.CandidateTriangleBarycentrics(),
-                                              rayQuery.CandidateInstanceID(),
                                               rayQuery.CandidatePrimitiveIndex());
                 alphaValue      = transparencyTexture2.SampleLevel(textureSampler, texCoord, 0).a;
             } else if (rayQuery.CandidateInstanceID() == 3) {
                 float2 texCoord = GetTexCoord(rayQuery.CandidateTriangleBarycentrics(),
-                                              rayQuery.CandidateInstanceID(),
                                               rayQuery.CandidatePrimitiveIndex());
                 alphaValue      = transparencyTexture3.SampleLevel(textureSampler, texCoord, 0).a;
-            }
+            }*/
 
             if (alphaValue > 0.1) {
                 rayQuery.CommitNonOpaqueTriangleHit();
@@ -324,13 +321,12 @@ PixelOut PS(float4 posH : SV_POSITION, float2 uv : UVOUT) {
             float  alphaValue   = 1.0f;
             float2 barycentrics = reflectionRayQuery.CandidateTriangleBarycentrics();
 
-            if (reflectionRayQuery.CandidateInstanceID() == 1) {
+            //if (reflectionRayQuery.CandidateInstanceID() == 1) {
                 float2 texCoord = GetTexCoord(reflectionRayQuery.CandidateTriangleBarycentrics(),
-                                              reflectionRayQuery.CandidateInstanceID(),
                                               reflectionRayQuery.CandidatePrimitiveIndex());
                 // Force mip sample level to 0 because this is ray tracing
                 alphaValue = transparencyTexture1.SampleLevel(textureSampler, texCoord, 0).a;
-            }
+            //}
 
             if (alphaValue > 0.1) {
                 reflectionRayQuery.CommitNonOpaqueTriangleHit();
@@ -341,9 +337,8 @@ PixelOut PS(float4 posH : SV_POSITION, float2 uv : UVOUT) {
     if (reflectionRayQuery.CommittedStatus() == COMMITTED_TRIANGLE_HIT) {
 
         uint primIndex = reflectionRayQuery.CommittedPrimitiveIndex();
-        if (reflectionRayQuery.CommittedInstanceID() == 1) {
+        //if (reflectionRayQuery.CommittedInstanceID() == 1) {
             float2 texCoord = GetTexCoord(reflectionRayQuery.CommittedTriangleBarycentrics(),
-                                          reflectionRayQuery.CommittedInstanceID(),
                                           primIndex);
 
             float3 worldSpaceNormal = normalize(GetNormal(reflectionRayQuery.CommittedPrimitiveIndex()));
@@ -370,7 +365,7 @@ PixelOut PS(float4 posH : SV_POSITION, float2 uv : UVOUT) {
             rtReflectionLighting   = dot(lightInCameraView, viewSpaceNormal);
 
             // pixel = DebugCode(reflectionRayQuery, pixel);
-        }
+        //}
     }
 #endif
 

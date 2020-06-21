@@ -82,7 +82,7 @@ void HLSLShader::buildDXC(CComPtr<IDxcBlob>& pResultBlob,
         define.Value = L"1";
     }
 
-    LPCWSTR args[] = {L"-Od"};
+    LPCWSTR args[] = {L"-O3"};
 
     dxcCompiler->Compile(pSource,
                          shaderString. c_str(),

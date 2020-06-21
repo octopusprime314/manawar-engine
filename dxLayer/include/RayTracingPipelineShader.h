@@ -75,23 +75,23 @@ class RayTracingPipelineShader : public PipelineShader {
     virtual void                        _queryShaderResources(ComPtr<ID3DBlob> shaderBlob);
                                         
     void                                _populateDefaultHeap( GpuToCpuBuffers& resources,
-                                                              UINT64 byteSize = 8);
+                                                              UINT64 byteSize);
                                         
     UINT                                _allocateDescriptor(  D3D12_CPU_DESCRIPTOR_HANDLE* cpuDescriptor,
                                                               UINT descriptorIndexToUse = UINT_MAX);
                                         
     void                                _gpuToCpuTransfer(    GpuToCpuBuffers& resources,
-                                                              UINT64 byteSize = 8);
+                                                              UINT64 byteSize);
                                         
     UINT                                _createBufferSRV(     D3DBuffer* buffer,
                                                               UINT numElements,
                                                               UINT elementSize);
                                         
     void                                _readBackOnCpu(       GpuToCpuBuffers& buffers,
-                                                              UINT64 byteSize = 8);
+                                                              UINT64 byteSize);
     
-    ComPtr<ID3D12Resource>              _copiedBottomLevelAccelerationStructure;
-    ComPtr<ID3D12Resource>              _copiedTopLevelAccelerationStructure;
+    ComPtr<ID3D12Resource>              _compactedBottomLevelAccelerationStructure;
+    ComPtr<ID3D12Resource>              _compactedTopLevelAccelerationStructure;
     std::vector<ComPtr<ID3D12Resource>> _bottomLevelAccelerationStructure;
     ComPtr<ID3D12Resource>              _topLevelAccelerationStructure;
     ComPtr<ID3D12RootSignature>         _raytracingGlobalRootSignature;
@@ -130,6 +130,8 @@ class RayTracingPipelineShader : public PipelineShader {
     ComPtr<ID3D12DescriptorHeap>        _rtASDescriptorHeap;
     D3D12_DESCRIPTOR_HEAP_DESC          _rtASSrvHeapDesc;
     D3D12_SHADER_RESOURCE_VIEW_DESC     _rtASSrvDesc;
+    ComPtr<ID3D12Resource>              _blasWorldSpaceTransforms;
+    ResourceBuffer*                     _transformUploadResource;
 
   public:
 
